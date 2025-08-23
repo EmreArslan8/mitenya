@@ -109,7 +109,7 @@ export default async function ProductDetailPage({
       <Container maxWidth="lg">
         <Grid container spacing={{ xs: 3, md: 4 }}>
           {/* IMAGE */}
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid xs={12} md={6}>
             <Card sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: 6 }}>
               <Box sx={{ position: 'relative', pt: '100%' }}>
                 {product.images?.[0] ? (
@@ -136,7 +136,7 @@ export default async function ProductDetailPage({
           </Grid>
 
           {/* INFO / BUY BOX */}
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid xs={12} md={6}>
             <Card sx={{ borderRadius: 3, boxShadow: 6 }}>
               <CardContent>
                 <Stack spacing={2}>
@@ -182,7 +182,7 @@ export default async function ProductDetailPage({
 
         {/* DESCRIPTION & SPECS */}
         <Grid container spacing={{ xs: 3, md: 4 }} sx={{ mt: { xs: 4, md: 6 } }}>
-          <Grid size={{ xs: 12, md: 8 }}>
+          <Grid xs={12} md={8}>
             <Card sx={{ borderRadius: 3, boxShadow: 6 }}>
               <CardContent>
                 <Typography variant="h2" sx={{ mb: 2 }}>Ürün Açıklaması</Typography>
@@ -192,7 +192,7 @@ export default async function ProductDetailPage({
               </CardContent>
             </Card>
           </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
+          <Grid xs={12} md={4}>
             <Card sx={{ borderRadius: 3, boxShadow: 6 }}>
               <CardContent>
                 <Typography variant="h2" sx={{ mb: 2 }}>Özellikler</Typography>
