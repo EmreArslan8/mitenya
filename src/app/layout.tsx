@@ -1,6 +1,6 @@
 // app/layout.tsx
 import plusJakartaSans from '@/fonts/plusJakartaSans';
-import ThemeRegistry from '@/theme/ThemeRegistery';
+import ThemeRegistry from '@/theme/ThemeRegistry';
 import Script from 'next/script';
 
 
