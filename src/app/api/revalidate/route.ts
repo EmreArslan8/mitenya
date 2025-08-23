@@ -1,36 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 
+type SanitySlug = { current?: string } | string | null | undefined;
+type RevalidatePayload = {
+  _type?: string;
+  slug?: SanitySlug;
+  previousSlug?: SanitySlug;
+};
+
+function getSlugValue(slug: SanitySlug): string | null {
+  if (!slug) return null;
+  if (typeof slug === 'string') return slug;
+  return slug.current ?? null;
+}
+
 export async function POST(req: NextRequest) {
-  // Basit doğrulama (URL ?secret=… ile)
   const secret = req.nextUrl.searchParams.get('secret');
   if (secret !== process.env.REVALIDATE_SECRET) {
     return NextResponse.json({ ok: false, error: 'Invalid secret' }, { status: 401 });
   }
 
-  // Sanity payload (document gönderiyoruz)
-  let body: any = {};
+  let body: unknown;
   try {
     body = await req.json();
   } catch {
-    // boş bırak
+    body = {};
   }
 
-  // Tip ve slug çek
-  const docType = body?._type;
-  const slug =
-    body?.slug?.current || body?.slug || body?.previousSlug?.current || null;
+  const data = (body ?? {}) as RevalidatePayload;
+  const docType = data._type ?? null;
+  const slug = getSlugValue(data.slug) ?? getSlugValue(data.previousSlug);
 
-  // Her durumda ürün listesi yenilensin
+  // her durumda listeyi yenile
   revalidatePath('/products');
 
-  // Ürün detay sayfasını yenile (slug varsa)
+  // ürün detayını da yenile
   if (docType === 'product' && slug) {
     revalidatePath(`/products/${slug}`);
   }
-
-  // İsteğe bağlı: anasayfa/kategori/sitemap vs. de tetiklenebilir
-  // revalidatePath('/');
 
   return NextResponse.json({ ok: true, type: docType, slug });
 }

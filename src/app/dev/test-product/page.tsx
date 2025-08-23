@@ -4,13 +4,14 @@ import { sanityClient } from '@/lib/sanity.client';
 import { productBySlugQuery } from '@/lib/sanity.queries';
 import { urlFor } from '@/lib/sanity.image';
 import { Box, Button, Card, CardContent, Chip, Container, Divider, Stack, Typography } from '@mui/material';
+import type { Image as SanityImage } from 'sanity';   // ✅ Sanity tipini import et
 
 type Product = {
   slug: string;
   title: string;
   priceCents: number;
   currency?: string;
-  images?: any[];
+  images?: SanityImage[];   // ✅ any[] yerine SanityImage[]
   shortDesc?: string;
   badges?: string[];
 };
@@ -46,7 +47,9 @@ export default async function TestProductPage() {
         <Container maxWidth="md">
           <Typography variant="h1">{product.title}</Typography>
           {product.shortDesc ? (
-            <Typography variant="body" sx={{ color: 'text.medium', mt: 1 }}>{product.shortDesc}</Typography>
+            <Typography variant="body" sx={{ color: 'text.medium', mt: 1 }}>
+              {product.shortDesc}
+            </Typography>
           ) : null}
         </Container>
       </Box>

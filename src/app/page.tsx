@@ -14,6 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 
+
 const bestSellers = [
   { slug: '/products/marvis-classic', title: 'Marvis Classic Strong Mint', price: '₺349', img: '/static/images/placeholders/marvis-classic.webp' },
   { slug: '/products/round-lab-toner', title: 'ROUND LAB Dokdo Toner', price: '₺799', img: '/static/images/placeholders/roundlab-toner.webp' },
@@ -47,7 +48,7 @@ export default function HomePage() {
       >
         <Container maxWidth="lg">
           <Grid container spacing={{ xs: 4, sm: 6 }} alignItems="center">
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Stack spacing={2}>
                 <Chip
                   label="Yeni sezon • Otantik & Yetkili tedarik"
@@ -78,7 +79,7 @@ export default function HomePage() {
               </Stack>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Box
                 sx={{
                   position: 'relative',
@@ -110,7 +111,7 @@ export default function HomePage() {
           </Typography>
           <Grid container spacing={3} alignItems="center" justifyContent="space-between">
             {brands.map((b) => (
-              <Grid key={b.name} item xs={6} sm="auto">
+              <Grid key={b.name} size={{ xs: 6, sm: 'auto' }}>
                 <Box sx={{ position: 'relative', width: 140, height: 40, mx: 'auto', opacity: 0.9 }}>
                   <Image src={b.img} alt={b.name} fill sizes="140px" style={{ objectFit: 'contain' }} />
                 </Box>
@@ -130,7 +131,7 @@ export default function HomePage() {
           />
           <Grid container spacing={3}>
             {categories.map((c) => (
-              <Grid key={c.href} item xs={12} sm={4}>
+              <Grid key={c.href} size={{ xs: 12, sm: 4 }}>
                 <Link href={c.href} style={{ textDecoration: 'none' }}>
                   <Card sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: 6 }}>
                     <Box sx={{ position: 'relative', height: 180 }}>
@@ -163,7 +164,7 @@ export default function HomePage() {
           />
           <Grid container spacing={3}>
             {bestSellers.map((p) => (
-              <Grid key={p.slug} item xs={12} sm={6} md={4}>
+              <Grid key={p.slug} size={{ xs: 12, sm: 6, md: 4 }}>
                 <CardProduct {...p} />
               </Grid>
             ))}
@@ -175,13 +176,13 @@ export default function HomePage() {
       <Box component="section" sx={{ py: { xs: 6, sm: 8 } }}>
         <Container maxWidth="lg">
           <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <UspCard title="Yetkili Satıcı" desc="Markalardan veya resmi distribütörden tedarik." />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <UspCard title="Hızlı Teslimat" desc="14:00’a kadar verilen siparişler aynı gün kargoda." />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <UspCard title="Kolay İade" desc="Memnun kalmazsan 14 gün içinde ücretsiz iade." />
             </Grid>
           </Grid>

@@ -18,44 +18,58 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import type { Image as SanityImage } from 'sanity';
+
+type Spec = { label: string; value: string };
 
 type Product = {
   slug: string;
   title: string;
   priceCents: number;
   currency?: string;
-  images?: any[];
+  images?: SanityImage[];
   brand?: string;
   category?: string;
   shortDesc?: string;
-  description?: any[];
-  specs?: { label: string; value: string }[];
+  description?: unknown[];
+  specs?: Spec[];
   badges?: string[];
 };
 
 export const revalidate = 60;
 
-// SSG için slug’ları üret (opsiyonel ama önerilir)
+// SSG slug’larını üret
 export async function generateStaticParams() {
   const slugs = await sanityClient.fetch<string[]>(allProductSlugsQuery);
   return slugs.map((slug) => ({ slug }));
 }
 
-// SEO meta
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const product = await sanityClient.fetch<Product | null>(productBySlugQuery, { slug: params.slug });
+// ✅ params artık Promise tipinde
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+
+  const product = await sanityClient.fetch<Product | null>(productBySlugQuery, { slug });
   if (!product) return { title: 'Ürün Bulunamadı | Kozmedo' };
 
   const title = `${product.title} | Kozmedo`;
   const description = product.shortDesc ?? 'Kozmedo ürün detayları';
-  const imageUrl = product.images?.[0]
-    ? urlFor(product.images[0]).width(1200).height(630).fit('crop').url()
-    : '/static/images/ogBanner.webp';
+  const imageUrl =
+    product.images?.[0]
+      ? urlFor(product.images[0]).width(1200).height(630).fit('crop').url()
+      : '/static/images/ogBanner.webp';
 
   return {
     title,
     description,
-    openGraph: { title, description, images: [{ url: imageUrl, width: 1200, height: 630, alt: product.title }] },
+    openGraph: {
+      title,
+      description,
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: product.title }],
+    },
   };
 }
 
@@ -64,8 +78,15 @@ function trPrice(cents: number, currency = 'TRY') {
   return currency === 'TRY' ? `₺${tl.toLocaleString('tr-TR')}` : `${tl} ${currency}`;
 }
 
-export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
-  const product = await sanityClient.fetch<Product | null>(productBySlugQuery, { slug: params.slug });
+// ✅ burada da params Promise tipinde
+export default async function ProductDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+
+  const product = await sanityClient.fetch<Product | null>(productBySlugQuery, { slug });
   if (!product) notFound();
 
   return (
@@ -88,7 +109,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
       <Container maxWidth="lg">
         <Grid container spacing={{ xs: 3, md: 4 }}>
           {/* IMAGE */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: 6 }}>
               <Box sx={{ position: 'relative', pt: '100%' }}>
                 {product.images?.[0] ? (
@@ -115,7 +136,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
           </Grid>
 
           {/* INFO / BUY BOX */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card sx={{ borderRadius: 3, boxShadow: 6 }}>
               <CardContent>
                 <Stack spacing={2}>
@@ -134,7 +155,6 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
 
                   <Divider />
 
-                  {/* Sepete Ekle/Buy: gerçek işlevi client component ile bağlayabilirsin */}
                   <Stack direction="row" spacing={2}>
                     <Button color="primary" variant="contained" size="large">Sepete Ekle</Button>
                     <Button component={Link} href="/checkout" color="secondary" variant="outlined" size="large">
@@ -162,18 +182,17 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
 
         {/* DESCRIPTION & SPECS */}
         <Grid container spacing={{ xs: 3, md: 4 }} sx={{ mt: { xs: 4, md: 6 } }}>
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Card sx={{ borderRadius: 3, boxShadow: 6 }}>
               <CardContent>
                 <Typography variant="h2" sx={{ mb: 2 }}>Ürün Açıklaması</Typography>
                 <Typography variant="body" sx={{ color: 'text.medium' }}>
                   {product.shortDesc ?? 'Açıklama yakında eklenecek.'}
                 </Typography>
-                {/* Portable Text render istersen @portabletext/react ekleyebiliriz */}
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Card sx={{ borderRadius: 3, boxShadow: 6 }}>
               <CardContent>
                 <Typography variant="h2" sx={{ mb: 2 }}>Özellikler</Typography>
