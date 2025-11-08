@@ -1,9 +1,9 @@
-import React from 'react'
+import CheckoutPageView from './view';
 
-const page = () => {
-  return (
-    <div>page</div>
-  )
-}
-
-export default page
+const CheckoutPage = async () => {
+  return <CheckoutPageView />;
+};
+export const metadata = {
+  title: '🛒',
+};
+export default CheckoutPage;

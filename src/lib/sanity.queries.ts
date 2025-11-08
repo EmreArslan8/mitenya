@@ -32,3 +32,14 @@ export const allProductSlugsQuery = groq`
   *[_type=="product" && defined(slug.current) && status == "PUBLISHED"]
   [].slug.current
 `;
+
+export const allBrandsQuery = groq`*[_type == "brand"] | order(name asc){
+  name,
+  logo
+}`;
+
+export const allCategoriesQuery = groq`*[_type == "category"] | order(title asc){
+  title,
+  "slug": slug.current,
+  image
+}`;

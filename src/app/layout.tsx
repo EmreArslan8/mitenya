@@ -27,10 +27,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
         {isProduction && (
           <meta
-            name="google-site-verification"
-            content="HcwWovrpIyigp0wjGgeXgoC8r7dPlUkXJZ2JRqEcA6Y"
-          />
+          name="google-site-verification"
+          content="56m9ogKwjWscJgWxYAunQn2KRJPJflbmx1w_1ZvUUXY"
+        />
         )}
+
 
         {/* 🔴 ÖNEMLİ: Emotion insertion point */}
         <meta name="emotion-insertion-point" content="emotion-insertion-point" />
