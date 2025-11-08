@@ -26,10 +26,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
 
         {isProduction && (
-          <meta
-          name="google-site-verification"
-          content="56m9ogKwjWscJgWxYAunQn2KRJPJflbmx1w_1ZvUUXY"
-        />
+         <meta name="google-site-verification" content="n6n2EfCF4_xpwn238Hwy0W5Vddi-Yq55wh052uDHDZk" />
         )}
 
 
