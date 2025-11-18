@@ -24,24 +24,28 @@ interface ThemeContextState {
 const ThemeContext = createContext({} as ThemeContextState);
 
 export const usePalette = () => useContext(ThemeContext).palette;
-export const withPalette = (styles: (palette: Palette) => React.CSSProperties) => () => styles(usePalette());
+export const withPalette = <T extends Record<string, any>>(
+  styles: (palette: Palette) => T
+) => () => styles(usePalette());
 
 export default function ThemeRegistry({ children }: { children: ReactNode }) {
   const [palette, setPalette] = useState(defaultPalette);
-
-
   const theme = useMemo(() => createTheme(getDesignTokens(palette)), [palette]);
 
   useEffect(() => {
+    // ✅ DOM manipülasyonu yalnızca client’ta olur, SSR farkını tetiklemez
     document.body.style.background = palette.bg.main;
   }, [palette]);
 
   return (
-    <ThemeContext.Provider value={{ palette, setPalette }}>
-      <CssBaseline />
-      <NextAppDirEmotionCacheProvider options={{ key: 'mui' }}>
-        <ThemeProvider theme={theme}>{children}</ThemeProvider>
-      </NextAppDirEmotionCacheProvider>
-    </ThemeContext.Provider>
+    <NextAppDirEmotionCacheProvider options={{ key: 'mui', prepend: true }}>
+      <ThemeContext.Provider value={{ palette, setPalette }}>
+        <ThemeProvider theme={theme}>
+          {/* ✅ Emotion Cache içinde CssBaseline çağırıyoruz */}
+          <CssBaseline />
+          {children}
+        </ThemeProvider>
+      </ThemeContext.Provider>
+    </NextAppDirEmotionCacheProvider>
   );
 }

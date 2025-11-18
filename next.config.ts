@@ -1,13 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    // Eski yol (kolay)
-    domains: ['cdn.sanity.io'],
-
-    // veya yeni yol (önerilen)
-    // remotePatterns: [
-    //   { protocol: 'https', hostname: 'cdn.sanity.io' },
-    // ],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '1337',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: "https",
+        hostname: "kozmedo-cms.onrender.com", // 🔥 kendi render domainin
+        port: "",
+        pathname: "/uploads/**",
+      },
+    ],
   },
 };
+
 module.exports = nextConfig;

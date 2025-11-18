@@ -1,10 +1,19 @@
-import plusJakartaSans from '@/fonts/plusJakartaSans';
-import ThemeRegistry from '@/theme/ThemeRegistry';
-import Script from 'next/script';
+import MainLayout from "@/components/layouts/MainLayout";
+import Navigation from "@/components/Navigation";
+import { fetchShopHeader } from "@/lib/api/cms";
+import { defaultFontFamily } from "@/theme/theme";
+import ThemeRegistry from "@/theme/ThemeRegistry";
+import Script from "next/script";
 
-const isProduction = process.env.NEXT_PUBLIC_HOST_ENV === 'production';
+const isProduction = process.env.NEXT_PUBLIC_HOST_ENV === "production";
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const headerData = await fetchShopHeader();
+
   return (
     <html lang="tr">
       <head>
@@ -32,24 +41,46 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
 
         {/* Emotion / Viewport / Format ayarları */}
-        <meta name="emotion-insertion-point" content="emotion-insertion-point" />
+        <meta
+          name="emotion-insertion-point"
+          content="emotion-insertion-point"
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+        <meta
+          name="format-detection"
+          content="telephone=no, date=no, email=no, address=no"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=optional"
+        />
       </head>
 
-      <body className={plusJakartaSans.className} style={{ overflowX: 'hidden' }}>
-        <ThemeRegistry>{children}</ThemeRegistry>
+      <body style={{ fontFamily: defaultFontFamily, overflowX: "hidden" }}>
+        <ThemeRegistry>
+          {headerData && <Navigation data={headerData} />}
+          <MainLayout>{children}</MainLayout>
+        </ThemeRegistry>
       </body>
     </html>
   );
 }
 
 export const generateMetadata = async () => ({
-  title: { template: '%s | Kozmedo', default: 'Kozmedo' },
-  description: 'Kozmedo',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_HOST_URL ?? 'https://kozmedo.com'),
+  title: { template: "%s | Kozmedo", default: "Kozmedo" },
+  description: "Kozmedo",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_HOST_URL ?? "https://kozmedo.com"
+  ),
   openGraph: {
-    description: 'Kozmedo',
-    images: [{ url: '/static/images/ogBanner.webp', alt: 'Kozmedo', width: 1200, height: 630 }],
+    description: "Kozmedo",
+    images: [
+      {
+        url: "/static/images/ogBanner.webp",
+        alt: "Kozmedo",
+        width: 1200,
+        height: 630,
+      },
+    ],
   },
 });

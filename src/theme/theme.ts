@@ -1,6 +1,6 @@
 
 import { ButtonProps, ThemeOptions } from '@mui/material';
-import { Interpolation, PaletteColorOptions, Theme, createTheme } from '@mui/material/styles';
+import { PaletteColorOptions, createTheme } from '@mui/material/styles';
 import { Barlow, IBM_Plex_Sans, IBM_Plex_Mono, Rubik } from 'next/font/google';
 import { Palette, defaultPalette } from './palette';
 
