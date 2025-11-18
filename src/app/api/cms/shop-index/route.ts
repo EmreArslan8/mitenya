@@ -1,7 +1,7 @@
 import { bring } from "@/lib/api/bring";
 import { NextRequest } from "next/server";
 
-const cmsApiUrl = process.env.NEXT_PUBLIC_API_URL;
+const cmsApiUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
 const cmsBearer = process.env.STRAPI_BEARER;
 
 export const GET = async (req: NextRequest) => {

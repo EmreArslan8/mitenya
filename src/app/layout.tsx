@@ -1,6 +1,7 @@
+import Footer from "@/components/Footer";
 import MainLayout from "@/components/layouts/MainLayout";
 import Navigation from "@/components/Navigation";
-import { fetchShopHeader } from "@/lib/api/cms";
+import { fetchShopFooter, fetchShopHeader } from "@/lib/api/cms";
 import { defaultFontFamily } from "@/theme/theme";
 import ThemeRegistry from "@/theme/ThemeRegistry";
 import Script from "next/script";
@@ -13,6 +14,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const headerData = await fetchShopHeader();
+const footerData = await fetchShopFooter()
+
 
   return (
     <html lang="tr">
@@ -52,7 +55,7 @@ export default async function RootLayout({
         />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=optional"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=swap"
         />
       </head>
 
@@ -60,6 +63,7 @@ export default async function RootLayout({
         <ThemeRegistry>
           {headerData && <Navigation data={headerData} />}
           <MainLayout>{children}</MainLayout>
+          <Footer  data={footerData} />
         </ThemeRegistry>
       </body>
     </html>

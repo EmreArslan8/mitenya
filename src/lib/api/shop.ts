@@ -1,6 +1,4 @@
-
 import { bring } from './bring';
-
 import {
   AddressData,
   PagedResults,
@@ -28,8 +26,6 @@ export const fetchProducts = async (
 export const fetchRecommendations = async (options: {
   brandId: string;
   productId: string;
-  locale: string;
-  region: string;
 }): Promise<ShopProductListItemData[]> => {
   try {
     const url = '/api/shop/recommendations';
@@ -45,7 +41,7 @@ export const fetchProductData = async (
   id: string,
 ): Promise<ShopProductData | undefined> => {
   const url = '/api/shop/product';
-  const res = await bring(url, { params: { id, locale, region }, next: { revalidate: 60 } });
+  const res = await bring(url, { params: { id  }, next: { revalidate: 60 } });
   return res[0];
 };
 

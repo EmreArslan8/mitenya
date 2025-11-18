@@ -59,7 +59,7 @@ const ShopCartProductCard = ({
             />
           ) : (
             <Typography sx={styles.variants}>
-              {('quantity', { quantity: data.quantity })}
+              {'quantity'}
             </Typography>
           )}
           <Stack alignItems="end">

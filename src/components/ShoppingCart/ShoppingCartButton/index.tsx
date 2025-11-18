@@ -4,7 +4,6 @@ import Card from '@/components/common/Card';
 import QuantitySelector from '@/components/common/QuantitySelector';
 import { ShopContext } from '@/contexts/ShopContext';
 import { ShopProductData } from '@/lib/api/types';
-import formatPrice from '@/lib/utils/formatPrice';
 import { CircularProgress, MenuItem, Popover, Stack, Typography } from '@mui/material';
 import { useContext, useEffect, useRef, useState } from 'react';
 import useStyles from './styles';
@@ -34,7 +33,7 @@ const ShoppingCartButton = () => {
     <Stack>
       <MenuItem onClick={toggleMenuOpen} ref={buttonRef} sx={styles.button}>
         <Icon name="shopping_bag" fontSize={24} weight={400} />
-         {('cart.button.label', { numItems })}
+         {'cart.button.label'}
         {!isCartReady && <CircularProgress color="secondary" size={13} sx={{ mt: '2px' }} />}
       </MenuItem>
       <Popover
@@ -51,7 +50,7 @@ const ShoppingCartButton = () => {
             {cart && cart.length > 0 ? (
               <>
                 <Stack sx={styles.menuHeader}>
-                  <Typography variant="body"> {('cart.button.title', { numItems })}</Typography>
+                  <Typography variant="body"> {'cart.button.title'}</Typography>
                   <Icon name="close" onClick={() => setMenuOpen(false)} />
                 </Stack>
                 <Stack sx={styles.products}>

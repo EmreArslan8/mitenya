@@ -1,4 +1,4 @@
-/*
+
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { CognitoUserPool, CognitoUser, AuthenticationDetails } from 'amazon-cognito-identity-js';
 import { User } from 'next-auth';
@@ -82,4 +82,3 @@ async function SignIn(
 }
 
 export default CognitoCredentialsProvider;
-*/

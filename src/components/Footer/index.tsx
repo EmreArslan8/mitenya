@@ -2,7 +2,6 @@
 
 import { ShopFooterData } from '@/lib/api/types';
 import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
-import { Region } from '@/lib/shop/regions';
 import { Grid, Stack, Typography } from '@mui/material';
 import Image from 'next/image';
 import CMSImage from '../cms/shared/CMSImage';
@@ -13,14 +12,14 @@ import { useRouter } from 'next/navigation';
 
 interface FooterProps {
   data: ShopFooterData | undefined;
-  locale: Locale;
-  region: Region;
 }
-const Footer = ({ data, locale, region }: FooterProps) => {
+const Footer = ({ data }: FooterProps) => {
   const isMobileApp = useIsMobileApp();
   const router = useRouter();
   const styles = useStyles();
 
+
+  console.log(data, "footer")
   return (
     <Stack sx={styles.container}>
       <Stack sx={styles.innerContainer}>

@@ -1,14 +1,13 @@
-/*
+import axiosInstance, { CommonAxiosResponse } from '@/lib/simpleAxios';
 import { AuthOptions } from 'next-auth';
 import NextAuth from 'next-auth/next';
 import qs from 'qs';
 import CognitoCredentialsProvider from './cognitoCredentialsProvider';
 import { TOuathProvider, getOauthProvider } from './cognitoOauthProvider';
-import axiosInstance, { CommonAxiosResponse } from '@/lib/simpleAxios';
 
-const COOKIE_PREFIX = 'bringist';
+const COOKIE_PREFIX = 'kozmedo';
 const USE_SECURE_COOKIE = process.env.NODE_ENV != 'development';
-const COOKIE_DOMAIN = process.env.NODE_ENV === 'development' ? 'localhost' : '.bringist.com';
+const COOKIE_DOMAIN = process.env.NODE_ENV === 'development' ? 'localhost' : '.kozmedo.com';
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -24,7 +23,7 @@ export const authOptions: AuthOptions = {
 
       return true;
     },
-    async redirect({ url}) {
+    async redirect({ url, baseUrl }) {
       // Return the url to redirect to after successful sign in.
       return url;
     },
@@ -50,7 +49,10 @@ export const authOptions: AuthOptions = {
       try {
         const {
           COGNITO_DOMAIN,
+          COGNITO_OAUTH_CLIENT_ID,
+          COGNITO_OAUTH_CLIENT_SECRET,
           COGNITO_CREDENTIALS_CLIENT_ID,
+          NEXTAUTH_SECRET,
         } = process.env;
 
         //TODO: oauth ile gelen kullanıcı da bu yöntemle credential alabiliyor mu?
@@ -67,7 +69,6 @@ export const authOptions: AuthOptions = {
           }
         )) as CommonAxiosResponse;
 
-        
         if (!response.ok) throw response.error;
 
         return {
@@ -87,8 +88,6 @@ export const authOptions: AuthOptions = {
       the token is returned for increased security. If you want to make something available you added 
       to the token (like access_token and user.id from above)  via the jwt() callback, you have to explicitly 
       forward it here to make it available to the client. */
-
-      /*
       const sessionObj = {
         ...session,
         user: {
@@ -170,5 +169,3 @@ export const authOptions: AuthOptions = {
 };
 
 export default NextAuth(authOptions);
-
-*/
