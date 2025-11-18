@@ -14,15 +14,15 @@ const useStyles = withPalette(
         p: 1,
         borderRadius: 1,
         border: border ? 1 : 'none',
-        borderColor: (palette)[variant]?.main,
-        backgroundColor: withWhiteBg ? '#fff' : (palette)[variant]?.light,
+        borderColor: (palette as any)[variant]?.main,
+        backgroundColor: withWhiteBg ? '#fff' : (palette as any)[variant]?.light,
         gap: 2,
         flexDirection: horizontal ? 'row' : 'column',
         alignItems: horizontal ? 'center' : 'start',
         height: 'fit-content',
       },
       header: {
-        color: (palette)[variant]?.main,
+        color: (palette as any)[variant]?.main,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 1.5,
@@ -54,7 +54,7 @@ const useStyles = withPalette(
         flexDirection: 'column',
       },
       icon: {
-        color: (palette)[variant]?.main,
+        color: (palette as any)[variant]?.main,
       },
     })
 );

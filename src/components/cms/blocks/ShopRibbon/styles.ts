@@ -1,5 +1,4 @@
 import { withPalette } from '@/theme/ThemeRegistry';
-import { CSSProperties } from 'react';
 
 const useStyles = withPalette(
   (palette) => (colorway: 'primary' | 'info' | 'success' | 'error' | 'warning') => ({
@@ -29,7 +28,7 @@ const useStyles = withPalette(
       objectFit: 'cover',
       zIndex: 0,
       borderRadius: 12,
-    } as CSSProperties,
+    },
     markdownOptions: { a: { style: { textDecoration: 'underline' } } },
   })
 );

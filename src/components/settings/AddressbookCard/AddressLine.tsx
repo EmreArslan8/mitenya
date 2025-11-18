@@ -6,14 +6,11 @@ import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { AddressData } from '@/lib/api/types';
 import useAddress from '@/lib/api/useAddress';
-import useLocale from '@/lib/hooks/useLocale';
 import { IconButton, Menu, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import styles from './styles';
 
 const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => void }) => {
-  const t = useTranslations('common');
-  const { direction } = useLocale();
   const { deleteAddress } = useAddress();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteMenuAnchor, setDeleteMenuAnchor] = useState<HTMLElement | null>(null);
@@ -74,16 +71,16 @@ const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => vo
         anchorEl={deleteMenuAnchor}
         anchorOrigin={{
           vertical: 'bottom',
-          horizontal: direction === 'ltr' ? 'right' : 'left',
+          horizontal: 'left',
         }}
         transformOrigin={{
           vertical: 'top',
-          horizontal: direction === 'ltr' ? 'right' : 'left',
+          horizontal: 'left',
         }}
         PaperProps={{ sx: { boxShadow: '0px 0px 16px 0px #00000040' } }}
         MenuListProps={{ sx: { p: 0 } }}
       >
-        <Card title={t('address.deleteTitle')} sx={{ width: 200 }}>
+        <Card title={('address.deleteTitle')} sx={{ width: 200 }}>
           <Stack p={2} gap={1.5}>
             <Button
               color="secondary"
@@ -91,7 +88,7 @@ const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => vo
               size="small"
               onClick={handleDeleteMenuClose}
             >
-              {t('address.deleteCancel')}
+              {('address.deleteCancel')}
             </Button>
             <Button
               loading={deleteLoading}
@@ -100,7 +97,7 @@ const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => vo
               size="small"
               onClick={() => handleDelete(data.id)}
             >
-              {t('address.deleteConfirm')}
+              {('address.deleteConfirm')}
             </Button>
           </Stack>
         </Card>

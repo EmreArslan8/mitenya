@@ -9,9 +9,6 @@ interface CommonEventParams {
   cd_page_path?: string;
 }
 
-type DataLayerEvent = Record<string, unknown>;
-
-
 const getCommonEventParams = (): CommonEventParams => ({
   page_type: document.title,
   cd_language:
@@ -22,14 +19,22 @@ const getCommonEventParams = (): CommonEventParams => ({
   cd_page_path: window.location.pathname,
 });
 
+export type DataLayerEvent = Record<string, unknown>;
+
+const isDataLayerValid = (value: unknown): value is DataLayerEvent[] => {
+  return Array.isArray(value);
+};
 export const pushItemToDataLayer = (item: DataLayerEvent) => {
   try {
-    if ((window as any).dataLayer) (window as any).dataLayer.push(item);
+    if (typeof window === "undefined") return;
+
+    if (isDataLayerValid(window.dataLayer)) {
+      window.dataLayer.push(item);
+    }
   } catch (error) {
     console.error(error);
   }
 };
-
 const sendEvent = (params: DataLayerEvent) => {
   pushItemToDataLayer({ ...getCommonEventParams(), ...params });
 };

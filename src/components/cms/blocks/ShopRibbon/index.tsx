@@ -1,4 +1,4 @@
-
+import Button from '@/components/common/Button';
 import Markdown from '@/components/common/Markdown';
 import useScreen from '@/lib/hooks/useScreen';
 import { Stack, Typography } from '@mui/material';
@@ -7,7 +7,6 @@ import CMSImage from '../../shared/CMSImage';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import { SharedButtonType, SharedImageType } from '../../shared/cmsTypes';
 import useStyles from './styles';
-import Button from '@/components/common/Button';
 
 export interface ShopRibbonProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
@@ -19,16 +18,6 @@ export interface ShopRibbonProps extends BlockComponentBaseProps {
 }
 
 const ShopRibbon = ({ section, image, title, description, colorway, button }: ShopRibbonProps) => {
-  console.log("🟥 FULL ShopRibbon props:", {
-    section,
-    image,
-    title,
-    description,
-    colorway,
-    button,
-  });
-
-
   const styles = useStyles()(colorway);
   const { smUp } = useScreen();
 
@@ -43,9 +32,7 @@ const ShopRibbon = ({ section, image, title, description, colorway, button }: Sh
             style={styles.image}
             sizes="1200px"
           />
-          
         )}
-        
         <Stack sx={styles.content}>
           <Stack sx={styles.text}>
             <Typography component="h2" variant={smUp ? 'h1' : 'h2'}>

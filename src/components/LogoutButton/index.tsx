@@ -1,13 +1,12 @@
 'use client';
 
 import { signOut } from '@/lib/utils/signOut';
+import { useTranslations } from 'next-intl';
 import Icon from '../Icon';
 import Button from '../common/Button';
-import { ComponentProps } from "react";
 
-type LogoutButtonProps = ComponentProps<typeof Button>;
-
-const LogoutButton = (props: LogoutButtonProps) => {
+const LogoutButton = (props: any) => {
+  const t = useTranslations('common');
   return (
     <Button
       variant="outlined"
@@ -16,7 +15,7 @@ const LogoutButton = (props: LogoutButtonProps) => {
       onClick={signOut}
       {...props}
     >
-      {('logout')}
+      {t('logout')}
     </Button>
   );
 };

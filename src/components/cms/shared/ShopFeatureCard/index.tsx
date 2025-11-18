@@ -27,7 +27,7 @@ const ShopFeatureCard = ({
   searchOptions,
   url,
 }: ShopFeatureCardProps) => {
-  const styles = useStyles().root(variant);
+  const styles = useStyles()(variant);
   // TODO: Remove after 11.11
   const pathname = usePathname();
   const shouldUseFrame =

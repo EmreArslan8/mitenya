@@ -1,19 +1,22 @@
-"use client";
+'use client';
 
-import { ShopFooterData } from "@/lib/api/types";
-import { useIsMobileApp } from "@/lib/hooks/useIsMobileApp";
-import { Grid, Stack, Typography } from "@mui/material";
-import Image from "next/image";
-import CMSImage from "../cms/shared/CMSImage";
-import Link from "../common/Link";
-import Markdown from "../common/Markdown";
-import useStyles from "./styles";
-import { useRouter } from "next/navigation";
+import { ShopFooterData } from '@/lib/api/types';
+import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
+import { Region } from '@/lib/shop/regions';
+import { Grid, Stack, Typography } from '@mui/material';
+import Image from 'next/image';
+import CMSImage from '../cms/shared/CMSImage';
+import Link from '../common/Link';
+import Markdown from '../common/Markdown';
+import useStyles from './styles';
+import { useRouter } from 'next/navigation';
 
 interface FooterProps {
   data: ShopFooterData | undefined;
+  locale: Locale;
+  region: Region;
 }
-const Footer = ({ data, }: FooterProps) => {
+const Footer = ({ data, locale, region }: FooterProps) => {
   const isMobileApp = useIsMobileApp();
   const router = useRouter();
   const styles = useStyles();
@@ -30,7 +33,7 @@ const Footer = ({ data, }: FooterProps) => {
                 width={styles.logo.width}
                 height={styles.logo.height}
                 style={styles.logo}
-                onClick={() => router.push("/")}
+                onClick={() => router.push('/')}
               />
               <Stack sx={styles.socials}>
                 {data?.socials?.map((social) => (
@@ -56,7 +59,7 @@ const Footer = ({ data, }: FooterProps) => {
                       <Link
                         key={child.label}
                         href={child.url}
-                        target={isMobileApp ? "_self" : "_blank"}
+                        target={isMobileApp ? '_self' : '_blank'}
                       >
                         {child.label}
                       </Link>
@@ -78,7 +81,7 @@ const Footer = ({ data, }: FooterProps) => {
               alt={image.attributes.alternativeText}
               width={48}
               height={30}
-              style={{ objectFit: "contain" }}
+              style={{ objectFit: 'contain' }}
             />
           ))}
         </Stack>

@@ -1,7 +1,7 @@
 'use client';
 
-import { Box, SxProps } from '@mui/material';
 import { usePalette } from '@/theme/ThemeRegistry';
+import { Box, SxProps } from '@mui/material';
 
 export interface IconProps {
   name: string;
@@ -27,10 +27,7 @@ const Icon = ({
   target = '_self',
 }: IconProps) => {
   const palette = usePalette();
-
-  // ⭐ en temiz çözüm — ANY YOK
-  const resolvedColor =
-    palette[color as keyof typeof palette]?.main ?? color;
+  const fontVariationSettings = `'FILL' ${fill ? 1 : 0}, 'wght' ${weight}`;
 
   return (
     <Box
@@ -40,9 +37,9 @@ const Icon = ({
       className="material-symbols-rounded"
       sx={{
         userSelect: 'none',
-        fontVariationSettings: `'FILL' ${fill ? 1 : 0}, 'wght' ${weight}`,
+        fontVariationSettings,
         fontSize: `${fontSize}px !important`,
-        color: resolvedColor,
+        color: (palette as any)[color]?.main ?? color,
         cursor: onClick || href ? 'pointer' : 'unset',
         textDecoration: 'none',
         ...sx,

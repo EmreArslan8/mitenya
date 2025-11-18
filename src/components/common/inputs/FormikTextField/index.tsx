@@ -1,9 +1,7 @@
 import Icon from '@/components/Icon';
 import { usePalette } from '@/theme/ThemeRegistry';
-import { Box, InputAdornment, Stack, TextField, TextFieldProps, Typography } from '@mui/material';
+import { Box, InputAdornment, Stack, TextField, Typography } from '@mui/material';
 import { ChangeEvent, ReactNode, useMemo, useState } from 'react';
-import { FormikProps } from "formik";
-
 
 const FormikTextField = ({
   formik,
@@ -18,7 +16,7 @@ const FormikTextField = ({
   helperText = '',
   showHelperText = false,
 }: {
-  formik: FormikProps<any>;
+  formik: any;
   width?: string | number;
   fieldKey: string;
   required?: boolean;
@@ -26,7 +24,7 @@ const FormikTextField = ({
   limit?: number;
   placeholder?: string;
   disabled?: boolean;
-  props?: TextFieldProps;
+  props?: any;
   helperText?: ReactNode;
   showHelperText?: boolean;
 }) => {
@@ -51,11 +49,7 @@ const FormikTextField = ({
         <Typography
           variant="infoLabel"
           component="label"
-          color={
-            formik.touched[fieldKey] && formik.errors[fieldKey]
-              ? palette.error.main
-              : undefined
-          }
+          color={formik.touched[fieldKey] && Boolean(formik.errors[fieldKey]) && palette.error.main}
         >
           {label}
           {required && <Icon name="asterisk" color="error" fontSize={8} />}
@@ -82,9 +76,7 @@ const FormikTextField = ({
           sx: { ...props.InputProps?.sx },
         }}
         helperText={
-          showHelperText && formik.touched[fieldKey] && formik.errors[fieldKey]
-            ? String(formik.errors[fieldKey])
-            : helperText
+          (showHelperText && formik.touched[fieldKey] && formik.errors[fieldKey]) || helperText
         }
         sx={{ '& .MuiFormHelperText-root': { mx: 1, mt: '2px' } }}
       />

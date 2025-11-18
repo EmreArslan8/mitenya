@@ -12,7 +12,6 @@ interface DesktopCategoriesProps {
 }
 
 const DesktopCategories = ({ open, onClose, onOptionClicked }: DesktopCategoriesProps) => {
-  const t = useTranslations('categories');
   const styles = useStyles();
   const [currentCategory, setCurrentCategory] = useState(0);
   const prevScrollPosition = useRef(0);
@@ -43,7 +42,7 @@ const DesktopCategories = ({ open, onClose, onOptionClicked }: DesktopCategories
               key={e.key}
             >
               {e.icon && <Icon name={e.icon} />}
-              {t(e.key)}
+              {(e.key)}
             </MenuItem>
           ))}
         </Stack>
@@ -52,11 +51,11 @@ const DesktopCategories = ({ open, onClose, onOptionClicked }: DesktopCategories
             {categories[currentCategory].children?.map((e) => (
               <Grid item sm={6} md={4} lg={3} key={e.key}>
                 <Typography variant="cardTitle" sx={styles.childTitle}>
-                  {t(e.key)}
+                  {(e.key)}
                 </Typography>
                 {e.children?.map((c) => (
                   <MenuItem sx={styles.leaf} onClick={() => onOptionClicked(c)} key={c.key}>
-                    {t(c.key)}
+                    {(c.key)}
                   </MenuItem>
                 ))}
               </Grid>

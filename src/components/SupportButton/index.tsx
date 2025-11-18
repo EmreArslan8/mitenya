@@ -1,8 +1,5 @@
 'use client';
 
-import { Locale } from '@/i18n';
-import useLocale from '@/lib/hooks/useLocale';
-import { getSupportUrl } from '@/lib/utils/supportChat';
 import Image from 'next/image';
 import Button from '../common/Button';
 import { ReactNode } from 'react';
@@ -13,52 +10,37 @@ const logoSize = {
   large: 28,
 };
 
-const getBrandProps = (locale: Locale) => {
-  switch (locale) {
-    case 'he':
-      return {
-        logo: '/static/images/whatsapp_fab.svg',
-        color: 'green',
-        href: getSupportUrl(locale),
-      };
-    case 'en':
-    case 'uz':
-    case 'ru':
-    default:
-      return {
-        logo: '/static/images/telegram_fab.svg',
-        color: 'blue',
-        href: getSupportUrl(locale),
-      };
-  }
-};
+// Sabit support URL (istersen değiştir)
+const SUPPORT_URL = 'https://t.me/yourSupportChannel';
+// veya WhatsApp: const SUPPORT_URL = "https://wa.me/1234567890";
 
 const SupportButton = ({
   size = 'medium',
-  text = 'help',
+  label = 'Help',
   customText,
 }: {
   size?: 'small' | 'medium' | 'large';
-  text?: 'help' | 'contactUs';
+  label?: string;
   customText?: ReactNode;
 }) => {
-  const t = useTranslations('common');
-  const { locale } = useLocale();
-  const props = getBrandProps(locale);
-
   return (
     <Button
       variant="tonal"
       startIcon={
-        <Image src={props.logo} alt="support" width={logoSize[size]} height={logoSize[size]} />
+        <Image 
+          src="/static/images/telegram_fab.svg"
+          alt="support"
+          width={logoSize[size]}
+          height={logoSize[size]}
+        />
       }
-      color={props.color}
-      href={props.href}
+      color="blue"
+      href={SUPPORT_URL}
       size={size}
       target="_blank"
       sx={{ px: '14px' }}
     >
-      {customText ?? t(text)}
+      {customText ?? label}
     </Button>
   );
 };

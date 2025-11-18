@@ -1,5 +1,5 @@
 import { withPalette } from '@/theme/ThemeRegistry';
-
+import { Theme } from '@mui/material';
 
 const useStyles = withPalette((palette) => ({
   select: { '.MuiSelect-icon': { top: 'unset', transition: 'transform 0.1s' }, height: 56 },

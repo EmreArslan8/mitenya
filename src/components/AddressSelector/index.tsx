@@ -18,6 +18,7 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
   const { isAuthenticated, openAuthenticator } = useAuth();
   const styles = useStyles();
   // TODO: Read the locale from cookie in the redirect helper.
+
   const [newAddressModalOpen, setNewAddressModalOpen] = useState(false);
 
   return (
@@ -66,7 +67,7 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
             onClick={() => setNewAddressModalOpen(true)}
             sx={{ mt: 0.5 }}
           >
-            {('address.addAddress')}
+             {('address.addAddress')}
           </Button>
         </Select>
       ) : (
@@ -78,14 +79,14 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
           onClick={() => (isAuthenticated ? setNewAddressModalOpen(true) : openAuthenticator())}
           sx={{ mt: 0.5 }}
         >
-          {('address.addAddress')}
+           {('address.addAddress')}
         </Button>
       )}
       <NewAddressModal
         open={newAddressModalOpen}
         onClose={() => setNewAddressModalOpen(false)}
         onAddressAdded={onAddressAdded}
-        defaultName={('address.nameDefaultValue') + ' ' + (options.length + 1)}
+        defaultName= {('address.nameDefaultValue') + ' ' + (options.length + 1)}
       />
     </Stack>
   );

@@ -1,29 +1,30 @@
+"use client";
 
-import { LinkProps } from 'next/link';
-import { CSSProperties, ReactNode } from 'react';
-import useStyles from './styles';
+import NextLink, { LinkProps } from "next/link";
+import { CSSProperties, ReactNode } from "react";
+import useStyles from "./styles";
 
-const Link = (
-  props: Omit<LinkProps, 'href'> & {
-    children: ReactNode;
-    target?: '_self' | '_blank';
-    style?: CSSProperties;
-    colored?: boolean;
-    href: string | null | undefined;
-  }
-) => {
+type Props = Omit<LinkProps, "href"> & {
+  href: string | null | undefined;
+  children: ReactNode;
+  target?: "_self" | "_blank";
+  style?: CSSProperties;
+  colored?: boolean;
+};
+
+const Link = ({ href, children, colored, style, ...rest }: Props) => {
   const styles = useStyles();
 
-  return props.href ? (
-    <Link
-      {...props}
-      href={props.href.startsWith('http') ? props.href : `/${props.href}`}
-      style={{ ...styles.link(props.colored), ...props.style }}
+  if (!href) return <>{children}</>;
+
+  return (
+    <NextLink
+      {...rest}
+      href={href} // ❗ artı prefix yok, direkt real URL
+      style={{ ...styles.link(colored), ...style }}
     >
-      {props.children}
-    </Link>
-  ) : (
-    <>{props.children}</>
+      {children}
+    </NextLink>
   );
 };
 

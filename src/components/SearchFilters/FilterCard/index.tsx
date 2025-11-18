@@ -18,6 +18,7 @@ interface FilterCardProps {
 }
 
 const FilterCard = ({ index, data, onOptionClicked }: FilterCardProps) => {
+
   const styles = useStyles();
   const { smUp } = useScreen();
   const [query, setQuery] = useState('');
@@ -28,16 +29,9 @@ const FilterCard = ({ index, data, onOptionClicked }: FilterCardProps) => {
 
   useEffect(() => {
     if (!scrollable) return;
-    if (!query) {
-      setOptions(data);
-      return;
-    }
-  
-    setOptions(
-      data.filter((e) => e.text.toLowerCase().includes(query.toLowerCase()))
-    );
-  }, [query, data]);  // ✅ data eklendi
-  
+    if (!query) return setOptions(data);
+    setOptions(data.filter((e) => e.text.toLowerCase().includes(query.toLowerCase())));
+  }, [query]);
 
   if (!data.length) return <></>;
 
@@ -72,7 +66,7 @@ const FilterCard = ({ index, data, onOptionClicked }: FilterCardProps) => {
           value={query}
           InputProps={{ startAdornment: <Icon name="search" sx={styles.searchIcon} /> }}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={('filters.searchPlaceholder')}
+          placeholder={'filters.searchPlaceholder'}
           sx={styles.searchInput}
         />
       )}

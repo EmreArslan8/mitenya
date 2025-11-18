@@ -1,11 +1,9 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { LoadingButton } from '@mui/lab';
 import Icon from '../../Icon';
 import styles from './styles';
-import { LoadingButton, LoadingButtonProps } from '@mui/lab';
-import React from 'react';
-import { SxProps, Theme } from '@mui/material/styles';
+import { useRouter } from 'next/navigation';
 
 const arrowSizes = {
   small: 20,
@@ -13,59 +11,22 @@ const arrowSizes = {
   large: 24,
 };
 
-export interface ButtonProps
-  extends Omit<LoadingButtonProps, 'startIcon' | 'endIcon'> {
-  arrow?: 'none' | 'start' | 'end';
-  children: React.ReactNode;
-  href?: string;
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  dataLayerEventId?: string | null;
-  size?: 'small' | 'medium' | 'large';
-  sx?: SxProps<Theme>;
-target?: '_self' | '_blank';
-  startIcon?: React.ReactNode;
-  endIcon?: React.ReactNode;
-}
-
 const Button = ({
-  arrow = 'none',
+  arrow,
   children,
   href,
   onClick,
-  dataLayerEventId,
-  size = 'medium',
-  sx,
-  startIcon,
-  endIcon,
-  ...restProps
-}: ButtonProps) => {
+  dataLayerEventId: _dataLayerEventId,
+  ...props
+}: any) => {
   const router = useRouter();
-
-  const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
-    if (href) {
-      e.preventDefault();
-      router.push(href);
-      return;
-    }
-    onClick?.(e);
-  };
-
   return (
     <LoadingButton
-      {...restProps}
-      size={size}
-      startIcon={
-        arrow === 'start'
-          ? <Arrow position="start" size={size} />
-          : startIcon // Kullanıcı verdi ise onu kullan
-      }
-      endIcon={
-        arrow === 'end'
-          ? <Arrow position="end" size={size} />
-          : endIcon // Kullanıcı verdi ise onu kullan
-      }
-      onClick={handleClick}
-      sx={{ ...styles.button, ...sx }}
+      startIcon={arrow === 'start' && <Arrow position="start" size={props.size} />}
+      endIcon={arrow === 'end' && <Arrow position="end" size={props.size} />}
+      {...props}
+      onClick={href ? () => router.push(href) : onClick}
+      sx={{ ...styles.button, ...props.sx }}
     >
       {children}
     </LoadingButton>
@@ -77,7 +38,7 @@ const Arrow = ({
   size = 'medium',
 }: {
   position: 'end' | 'start';
-  size: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large';
 }) => {
   const iconName = position === 'start' ? 'arrow_back' : 'arrow_forward';
   return <Icon name={iconName} fontSize={arrowSizes[size]} />;

@@ -33,7 +33,6 @@ const FAQ = ({ section, categories: unparsedCategories, items: unparsedItems }: 
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   const [filteredItems, setFilteredItems] = useState(filterItemsByCategory(categories[0]));
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setFilteredItems(filterItemsByCategory(selectedCategory)), [selectedCategory]);
 
   return (
@@ -67,6 +66,7 @@ const FAQ = ({ section, categories: unparsedCategories, items: unparsedItems }: 
 
 const FAQItem = ({
   item,
+  index,
 }: {
   item: { title: string; description: string };
   index: number;

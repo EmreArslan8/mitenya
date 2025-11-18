@@ -25,7 +25,7 @@ const SectionBase = ({
   sx = {},
   children,
 }: SectionBaseProps) => {
-  // const selectedStyle = sectionBackground === 'primary' ? primaryStyle() : {};
+  const selectedStyle = sectionBackground === 'primary' ? primaryStyle() : {};
   const { smUp } = useScreen();
 
   return (
@@ -34,22 +34,12 @@ const SectionBase = ({
       sx={{
         gap: 3,
         maxWidth: sectionWidth,
-        width:
-          smUp && (sectionBackground === 'primary')
-            ? '100vw'
-            : '100%',
+        width: smUp && selectedStyle.sectionBackground?.bg ? '100vw' : '100%',
         height: '100%',
         flexGrow: 1,
-        backgroundColor:
-          sectionBackground === 'primary'
-            ? primaryStyle().sectionBackground?.bg
-            : undefined,
-            mx: 'auto', // merkeze al
-            alignItems: 'center', // içerikleri yatayda ortala
-            textAlign: 'center', // metinleri ortala
-            px: { xs: 2, md: 4 }, 
-            padding: 1,
+        backgroundColor: selectedStyle.sectionBackground?.bg,
         ...sx,
+        padding: 1,
       }}
     >
       {(sectionHeader || sectionDescription) && (
@@ -69,7 +59,7 @@ const splitTextWithDynamicSections = (text: string): (string | string[])[] => {
   const sections = text.split(/(\[[^\]]+\])/);
   const result: (string | string[])[] = [];
 
-  for (const section of sections) {
+  for (let section of sections) {
     if (section.startsWith('[') && section.endsWith(']')) {
       result.push(
         section
@@ -125,21 +115,21 @@ const DynamicTitleSection = ({ section }: { section: string[] }) => {
     if (!parentRef.current) return;
     let maxWidth = 0;
     itemsRef.current.forEach((item) => {
-      if (item) {
-        const width = item.offsetWidth;
-        if (width > maxWidth) maxWidth = width;
+      const width = item.offsetWidth;
+      if (width > maxWidth) {
+        maxWidth = width;
       }
     });
-    parentRef.current.style.width = `${maxWidth + 12}px`;
-  }, [windowWidth, section]);
+    parentRef.current.style.width = maxWidth + 12 + 'px';
+  }, [parentRef.current, windowWidth]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % section.length);
     }, 2000);
-  
+
     return () => clearInterval(intervalId);
-  }, [section.length]);
+  }, [currentIndex]);
 
   return (
     <Box
@@ -160,9 +150,7 @@ const DynamicTitleSection = ({ section }: { section: string[] }) => {
             ...(currentIndex === i ? styles.dynamicTitleSectionActive : {}),
           }}
           key={section}
-          ref={(ref: HTMLSpanElement | null) => {
-            itemsRef.current[i] = ref as HTMLElement;
-          }}
+          ref={(ref: HTMLElement) => (itemsRef.current[i] = ref)}
         >
           {section}
         </Typography>

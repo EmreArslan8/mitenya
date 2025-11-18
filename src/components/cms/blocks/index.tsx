@@ -1,4 +1,5 @@
 
+import { Direction } from '@mui/material';
 import { ComponentType } from 'react';
 import FAQ from './FAQ';
 import FreeText from './FreeText';
@@ -52,6 +53,7 @@ export type CMSBlock = {
  */
 export interface BlockComponentBaseProps {
   blockIndex: number;
+  direction: Direction;
 }
 
 const getBlockComponent = (block: CMSBlock, index: number) => {

@@ -1,5 +1,6 @@
 'use client';
 
+
 import { NextAppDirEmotionCacheProvider } from '@/theme/EmotionCache';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -24,16 +25,14 @@ interface ThemeContextState {
 const ThemeContext = createContext({} as ThemeContextState);
 
 export const usePalette = () => useContext(ThemeContext).palette;
-export const withPalette = <T extends Record<string, unknown>>(
-  styles: (palette: Palette) => T
-) => () => styles(usePalette());
+export const withPalette = (styles: (palette: Palette) => any) => () => styles(usePalette());
 
 export default function ThemeRegistry({ children }: { children: ReactNode }) {
   const [palette, setPalette] = useState(defaultPalette);
+
   const theme = useMemo(() => createTheme(getDesignTokens(palette)), [palette]);
 
   useEffect(() => {
-    // ✅ DOM manipülasyonu yalnızca client’ta olur, SSR farkını tetiklemez
     document.body.style.background = palette.bg.main;
   }, [palette]);
 
@@ -41,7 +40,6 @@ export default function ThemeRegistry({ children }: { children: ReactNode }) {
     <NextAppDirEmotionCacheProvider options={{ key: 'mui', prepend: true }}>
       <ThemeContext.Provider value={{ palette, setPalette }}>
         <ThemeProvider theme={theme}>
-          {/* ✅ Emotion Cache içinde CssBaseline çağırıyoruz */}
           <CssBaseline />
           {children}
         </ThemeProvider>

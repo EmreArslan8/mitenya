@@ -1,7 +1,6 @@
 import { withPalette } from '@/theme/ThemeRegistry';
-import { CSSProperties } from 'react';
 
-const useStyles = withPalette(() => ({
+const useStyles = withPalette((palette) => ({
   imageContainer: {
     position: 'relative',
     overflow: 'hidden',
@@ -11,7 +10,7 @@ const useStyles = withPalette(() => ({
     height: 'auto',
     margin: 'auto',
   },
-  video: { position: 'absolute', bottom: 0, width: '101%', left: -1, border: 'none' } as CSSProperties,
+  video: { position: 'absolute', bottom: 0, width: '101%', left: -1, border: 'none' },
 }));
 
 export default useStyles;

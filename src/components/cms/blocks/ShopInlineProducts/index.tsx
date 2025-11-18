@@ -41,7 +41,7 @@ const ShopInlineProducts = ({
   }, [mdUp, smUp]);
 
   const searchOptions = Object.fromEntries(
-    Object.entries(_searchOptions).filter(([v]) => Boolean(v))
+    Object.entries(_searchOptions).filter(([k, v]) => Boolean(v))
   );
 
   useEffect(() => {

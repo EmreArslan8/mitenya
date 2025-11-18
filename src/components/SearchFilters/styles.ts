@@ -1,6 +1,6 @@
 import { withPalette } from '@/theme/ThemeRegistry';
 
-const useStyles = withPalette(() => ({
+const useStyles = withPalette((palette) => ({
   aside: {
     position: 'sticky',
     top: 146,

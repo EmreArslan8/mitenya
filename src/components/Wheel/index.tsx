@@ -1,7 +1,10 @@
+/*
+
 import { Wheel } from 'react-custom-roulette';
 import { Stack, Typography } from '@mui/material';
 import styles from './styles';
 import ModalCard from '../common/ModalCard';
+
 import copyTextOnClick from '@/lib/utils/copyTextOnClick';
 import Button from '../common/Button';
 import Icon from '../Icon';
@@ -96,3 +99,6 @@ const WheelOfPrizes = ({
 };
 
 export default WheelOfPrizes;
+
+
+*/

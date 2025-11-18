@@ -1,4 +1,6 @@
 import { AddressData } from '@/lib/api/types';
+import useAddress from '@/lib/api/useAddress';
+import useLocale from '@/lib/hooks/useLocale';
 import useScreen from '@/lib/hooks/useScreen';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -12,16 +14,14 @@ import {
   Menu,
   Skeleton,
   Stack,
-  Theme,
-  SxProps,
   Typography,
 } from '@mui/material';
+import { useTranslations } from 'next-intl';
 import { ReactNode, useEffect, useState } from 'react';
 import Icon from '../Icon';
 import Card from '../common/Card';
 import EditAddressModal from './modals/EditAddressModal';
 import styles from './styles';
-import useAddress from '@/lib/api/useAddress';
 
 const gridColumns = {
   contactName: { xs: 6 },
@@ -46,13 +46,6 @@ interface AddressCardProps {
   summarized?: boolean;
 }
 
-type GridColumn = {
-  xs?: number;
-  sm?: number;
-  md?: number;
-  lg?: number;
-};
-
 const AddressCard = ({
   data: _data,
   onChange = () => {},
@@ -63,7 +56,9 @@ const AddressCard = ({
   summarized = false,
   skeleton = false,
 }: AddressCardProps) => {
+  const t = useTranslations('common');
   const { deleteAddress } = useAddress();
+  const { direction } = useLocale();
   const [deleteMenuAnchor, setDeleteMenuAnchor] = useState<HTMLElement | null>(null);
   const [deleteMenuOpen, setDeleteMenuOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -101,7 +96,7 @@ const AddressCard = ({
   const data = {
     email,
     lines: summarized
-      ? [line1, line2, line3, ...Object.values(rest), postcode, (`countries.${countryCode}`)]
+      ? [line1, line2, line3, ...Object.values(rest), postcode, t(`countries.${countryCode}`)]
           .filter((e) => e)
           .join(', ')
       : [line1, line2, line3].filter((e) => e).join(', '),
@@ -134,7 +129,7 @@ const AddressCard = ({
         border
         title={
           <Stack sx={styles.cardHeader}>
-            <Typography variant="cardTitle">{name ?? ('address.defaultCardLabel')}</Typography>
+            <Typography variant="cardTitle">{name ?? t('address.defaultCardLabel')}</Typography>
             <Stack direction="row" alignItems="center">
               {!hideEdit && (
                 <IconButton onClick={() => setEditModalOpen(true)} sx={{ my: -1 }}>
@@ -155,19 +150,19 @@ const AddressCard = ({
           <Grid container columnSpacing={{ xs: 2, md: 6 }} rowSpacing={1.5}>
             <AddressInfoItem
               cols={gridColumns.contactName}
-              label={('address.contactName')}
+              label={t('address.contactName')}
               value={contactName}
             />
             {taxNumber && !summarized && (
               <AddressInfoItem
                 cols={gridColumns.taxNumber}
-                label={('address.taxNumber')}
+                label={t('address.taxNumber')}
                 value={taxNumber}
               />
             )}
             <AddressInfoItem
               cols={gridColumns.lines}
-              label={('address.lines')}
+              label={t('address.lines')}
               value={data.lines}
               sx={{
                 height: expanded ? 0 : 'fit-content',
@@ -203,7 +198,7 @@ const AddressCard = ({
                       />
                     }
                   >
-                    {('address.viewMore')}
+                    {t('address.viewMore')}
                   </Button>
                 </Fade>
               </AccordionSummary>
@@ -212,7 +207,7 @@ const AddressCard = ({
                   {(phoneNumber || phoneCode) && (
                     <AddressInfoItem
                       cols={gridColumns.contactPhone}
-                      label={('address.phoneNumber')}
+                      label={t('address.phoneNumber')}
                       value={`${phoneCode ?? ''}${phoneNumber ?? ''}`}
                     />
                   )}
@@ -223,7 +218,7 @@ const AddressCard = ({
                         value && (
                           <AddressInfoItem
                             cols={gridColumns[key as keyof typeof gridColumns]}
-                            label={(`address.${key}`)}
+                            label={t(`address.${key}`)}
                             value={value}
                             key={key + value}
                           />
@@ -231,8 +226,8 @@ const AddressCard = ({
                     )}
                   <AddressInfoItem
                     cols={gridColumns.countryCode}
-                    label={('address.countryCode')}
-                    value={(`regions.${countryCode.toLowerCase()}`)}
+                    label={t('address.countryCode')}
+                    value={t(`regions.${countryCode.toLowerCase()}`)}
                     key={'countryCode' + countryCode}
                   />
                 </Grid>
@@ -248,16 +243,16 @@ const AddressCard = ({
         anchorEl={deleteMenuAnchor}
         anchorOrigin={{
           vertical: 'bottom',
-          horizontal: 'left',
+          horizontal: direction === 'ltr' ? 'right' : 'left',
         }}
         transformOrigin={{
           vertical: 'top',
-          horizontal: 'left',
+          horizontal: direction === 'ltr' ? 'right' : 'left',
         }}
         PaperProps={{ sx: { boxShadow: '0px 0px 16px 0px #00000040' } }}
         MenuListProps={{ sx: { p: 0 } }}
       >
-        <Card title={('address.deleteTitle')} sx={{ width: 200 }}>
+        <Card title={t('address.deleteTitle')} sx={{ width: 200 }}>
           <Stack p={2} gap={1.5}>
             <Button
               color="secondary"
@@ -265,7 +260,7 @@ const AddressCard = ({
               size="small"
               onClick={handleDeleteMenuClose}
             >
-              {('address.deleteCancel')}
+              {t('address.deleteCancel')}
             </Button>
             <LoadingButton
               loading={deleteLoading}
@@ -274,7 +269,7 @@ const AddressCard = ({
               size="small"
               onClick={handleDelete}
             >
-              {('address.deleteConfirm')}
+              {t('address.deleteConfirm')}
             </LoadingButton>
           </Stack>
         </Card>
@@ -297,8 +292,8 @@ const AddressInfoItem = ({
 }: {
   label: ReactNode;
   value: ReactNode;
-  cols: GridColumn;
-  sx?: SxProps<Theme>;
+  cols: any;
+  sx?: any;
 }) => {
   return (
     <Grid item {...cols} sx={sx}>
@@ -311,11 +306,12 @@ const AddressInfoItem = ({
 };
 
 const AddressSkeleton = ({ children }: { children: ReactNode }) => {
+  const t = useTranslations('common');
   return (
   <Card
     iconName="distance"
       title={
-        <Typography variant="cardTitle">{('address.defaultCardLabel')}</Typography>
+        <Typography variant="cardTitle">{t('address.defaultCardLabel')}</Typography>
       }
     >
       <Stack sx={styles.cardBody}>

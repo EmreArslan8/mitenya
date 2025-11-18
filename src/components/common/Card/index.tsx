@@ -1,3 +1,4 @@
+
 import {
   Accordion,
   AccordionDetails,
@@ -66,7 +67,6 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       <Stack
         sx={{
           ...styles.card,
-          direction: 'ltr',
           cursor: onClick || collapsible ? 'pointer' : 'unset',
           ...sx,
         }}
@@ -104,7 +104,5 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     );
   }
 );
-
-Card.displayName = "Card"; 
 
 export default Card;

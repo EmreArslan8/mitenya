@@ -1,65 +1,60 @@
-import { sanityClient } from '@/lib/sanity.client';
-import { productBySlugQuery, allProductSlugsQuery } from '@/lib/sanity.queries';
-import { urlFor } from '@/lib/sanity.image';
-import { notFound } from 'next/navigation';
+
+import { fetchProductData } from '@/lib/api/shop';
+import { ShopProductData } from '@/lib/api/types';
+import isPreviewBot from '@/lib/utils/isPreviewBot';
+import isSSR from '@/lib/utils/isSSR';
+import { Metadata } from 'next';
 import { Suspense } from 'react';
 import Loading from './loading';
 import SuspensedView from './suspensedView';
-import type { Metadata } from 'next';
 
-// Dinamik segment (id aslında slug)
-export const revalidate = 60;
+const ProductPage = async ({
+  params,
+}: {
+  params: { id: string;  };
+}) => {
+  // #SHUTDOWN
 
-const ProductPage = async ({ params }: { params: { id: string } }) => {
-  // slug olarak kullanıyoruz
-  const slug = params.id;
-
-  const product = await sanityClient.fetch(productBySlugQuery, { slug });
-  if (!product) notFound();
-
-
+  
+  if (await isPreviewBot()) return <></>;
   return (
-    <Suspense fallback={<Loading />} key={slug}>
-      <SuspensedView params={{ slug }} />
-    </Suspense>
+    <>
+      <Suspense fallback={<Loading />} key={params.id}>
+        <SuspensedView params={params} />
+      </Suspense>
+    </>
   );
 };
 
-export const generateStaticParams = async () => {
-  const slugs = await sanityClient.fetch<string[]>(allProductSlugsQuery);
-  return slugs.map((slug) => ({ id: slug }));
-};
+export const maxDuration = 30;
 
 export const generateMetadata = async ({
-  params,
+  params: { id },
 }: {
-  params: { id: string };
+  params: { id: string; };
 }): Promise<Metadata> => {
-  const slug = params.id;
-  const product = await sanityClient.fetch(productBySlugQuery, { slug });
-  if (!product)
-    return {
-      title: 'Ürün Bulunamadı | Kozmedo',
-      description: 'Bu ürün mevcut değil.',
-    };
-
-  const title = `${product.brand ? `${product.brand} ` : ''}${product.title} | Kozmedo`;
-  const description = product.shortDesc ?? 'Kozmedo ürün detayları';
-  const imageUrl =
-    product.images?.[0]
-      ? urlFor(product.images[0]).width(1200).height(630).fit('crop').url()
-      : '/static/images/ogBanner.webp';
-
+  if (!isSSR() && !isPreviewBot()) return {};
+  const data = await fetchProductData(id);
   return {
-    title,
-    description,
+    title: { absolute: `${data?.brand ?? ''} ${data?.name ?? ''} | Kozmedo` },
     openGraph: {
-      title,
-      description,
-      images: [{ url: imageUrl, alt: product.title, width: 1200, height: 630 }],
+      title: `${data?.brand ?? ''} ${data?.name ?? ''} | Kozmedo`,
+      images: [
+        {
+          url: data?.imgSrc ?? '/static/images/ogBanner.webp',
+          alt: data?.name,
+          width: 1200,
+          height: 630,
+        },
+      ],
     },
-    robots: { index: true, follow: true },
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 };
+
+export const dynamic = 'force-dynamic';
 
 export default ProductPage;

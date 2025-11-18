@@ -5,13 +5,14 @@ import Icon from '@/components/Icon';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { CrossFade } from '@/components/common/CrossFade';
-import Link from 'next/link';
+import Link from '@/components/common/Link';
 import Markdown from '@/components/common/Markdown';
 import { ShopContext } from '@/contexts/ShopContext';
-import { ShopProductData } from '@/lib/api/types'
+import { ShopProductData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
+import formatPrice from '@/lib/utils/formatPrice';
 import { Divider, Grid, Rating, Stack, Tab, Tabs, Typography } from '@mui/material';
 import ProductAttributes from './components/ProductAttributes';
 import ProductFaq from './components/ProductFaq';
@@ -22,11 +23,12 @@ import ProductSizeGuide from './components/ProductSizeGuide';
 import ProductVariants from './components/ProductVariants';
 import ProgressIndicator from './components/ProgressIndicator';
 import useStyles from './styles';
-import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
   const styles = useStyles();
+  const router = useRouter();
   const { smUp } = useScreen();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const imgContainerRef = useRef<HTMLDivElement>(null);
@@ -80,7 +82,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
             {smUp ? (
               <Card sx={styles.imageCard}>
                 <Stack sx={styles.imageContainer}>
-                  <Image src={currentImg} alt={data.name} style={styles.image} />
+                  <img src={currentImg} alt={data.name} style={styles.image} />
                 </Stack>
                 {data.images && data.images.length > 1 && (
                   <Tabs
@@ -91,7 +93,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                   >
                     {data.images.map((src) => (
                       <Tab
-                        label={<Image src={src} alt="" style={styles.thumbnailImage} />}
+                        label={<img src={src} alt="" style={styles.thumbnailImage} />}
                         value={src}
                         onClick={() => setCurrentImg(src)}
                         sx={styles.thumbnail}
@@ -107,7 +109,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                   <Stack sx={styles.mobileImages} ref={scrollerRef}>
                     {data.images?.map((src) => (
                       <Stack sx={styles.mobileImage} key={src}>
-                        <Image src={src} alt="" style={styles.image} />
+                        <img src={src} alt="" style={styles.image} />
                       </Stack>
                     ))}
                   </Stack>
@@ -193,13 +195,13 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                 <CrossFade
                   components={[
                     { in: showCheck, component: <Icon name="check" /> },
-                    { in: !showCheck, component: 'Sepete Ekle' },
+                    { in: !showCheck, component: t('addToCart') },
                   ]}
                 />
               </Button>
               {data.description && (
                 <Markdown
-                  text={typeof data.description === 'string' ? data.description : ''}
+                  text={data.description}
                   sx={styles.description}
                   options={styles.markdownOptions}
                 />

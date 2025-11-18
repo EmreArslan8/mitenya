@@ -1,38 +1,34 @@
-"use client";
+'use client';
 
-import Icon from "@/components/Icon";
-import FormikDropdown from "@/components/common/inputs/FormikDropdown";
-import PhoneNumberInput from "@/components/common/inputs/FormikPhoneNumberInput";
-import FormikTextField from "@/components/common/inputs/FormikTextField";
-import { AddressData } from "@/lib/api/types";
-import tokenize from "@/lib/utils/tokenize";
-import { Stack, Typography } from "@mui/material";
-import { useFormik } from "formik";
-import React, { useCallback, useEffect, useRef } from "react";
-import styles from "./styles";
-import { destinationCountries, DestinationCountry } from "@/lib/utils/countries";
+import Icon from '@/components/Icon';
+import FormikDropdown from '@/components/common/inputs/FormikDropdown';
+import PhoneNumberInput from '@/components/common/inputs/FormikPhoneNumberInput';
+import FormikTextField from '@/components/common/inputs/FormikTextField';
+import { AddressData } from '@/lib/api/types';
+import tokenize from '@/lib/utils/tokenize';
+import { Stack, Typography } from '@mui/material';
+import { useFormik } from 'formik';
+import React, { useEffect, useRef } from 'react';
 
 type AddressFormFields = {
   name: string;
   contactName: string;
-  contactSurname?: string;
+  contactSurname: string;
   phoneCode: string;
   phoneNumber: string;
   taxNumber: string;
   lines: string;
+  postcode: string;
   district: string;
   city: string;
-  postcode: string;
-  state?: string | null;
-  countryCode: DestinationCountry | null;
+  countryCode: string;
   email: string;
 };
 
 interface AddressFormProps {
   onSubmit: (address: AddressData) => void;
   initialValues?: Partial<AddressData>;
-  disabledFields?: { [key in keyof Partial<AddressData>]: boolean };
-  onValidationChange?: (isValid: boolean, errors?: string[]) => void;
+  disabledFields?: Partial<Record<keyof AddressData, boolean>>;
   submitTrigger?: unknown;
 }
 
@@ -40,176 +36,165 @@ const AddressForm = ({
   onSubmit,
   initialValues,
   disabledFields = {},
-  onValidationChange,
   submitTrigger,
 }: AddressFormProps) => {
   const isMounted = useRef(false);
 
-  const validate = useCallback((values: AddressFormFields) => {
+  const validate = (values: AddressFormFields) => {
     const errors: Partial<Record<keyof AddressFormFields, string>> = {};
-  
-    if (!values.name) errors.name = " ";
-    if (!values.contactName) errors.contactName = " ";
-    if (!values.contactSurname) errors.contactSurname = " ";
-    if (!values.phoneNumber) errors.phoneNumber = " ";
-    if (!values.phoneCode) errors.phoneCode = " ";
-    if (!values.city) errors.city = " ";
-    if (!values.district) errors.district = " ";
-    if (!values.countryCode) errors.countryCode = " ";
-    if (!values.postcode) errors.postcode = " ";
-    if (values.lines?.length > 90) errors.lines = " ";
-  
+
+    if (!values.name) errors.name = 'Required';
+    if (!values.contactName) errors.contactName = 'Required';
+    if (!values.contactSurname) errors.contactSurname = 'Required';
+    if (!values.phoneNumber) errors.phoneNumber = 'Required';
+    if (!values.lines || values.lines.length < 10)
+      errors.lines = 'Minimum 10 characters required';
+    if (!values.city) errors.city = 'Required';
+    if (!values.district) errors.district = 'Required';
+    if (!values.postcode) errors.postcode = 'Required';
+
     return errors;
-  }, []);
-  
+  };
 
   const formik = useFormik<AddressFormFields>({
     initialValues: {
-      name: "",
-      contactName: "",
-      contactSurname: "",
-      phoneNumber: "",
-      phoneCode: "",
-      taxNumber: "",
-      lines:
-        (initialValues?.line1 ?? "") +
-        (initialValues?.line2 ?? "") +
-        (initialValues?.line3 ?? ""),
-      district: "",
-      city: "",
-      state: null,
-      countryCode: null,
-      email: "",
-      postcode: "",
+      name: '',
+      contactName: '',
+      contactSurname: '',
+      phoneCode: '+90',
+      phoneNumber: '',
+      taxNumber: '',
+      lines: '',
+      postcode: '',
+      district: '',
+      city: '',
+      countryCode: 'TR',
+      email: '',
       ...initialValues,
     },
     enableReinitialize: true,
     validate,
     onSubmit: (values) => {
-      const [line1, line2, line3] = tokenize(values.lines ?? "", 30);
-    
+      const { lines, ...rest } = values;
+      const [line1, line2, line3] = tokenize(lines, 30);
+
       onSubmit({
-        ...values,
+        ...rest,
         line1,
         line2,
         line3,
       } as AddressData);
-    },    
+    },
   });
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (isMounted.current) {
-      if (formik.values.name) {
-        formik.handleSubmit();
-      }
-    } else {
-      isMounted.current = true;
-    }
-  }, [submitTrigger, formik.values.name]);
-  
-// eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!onValidationChange) return;
-    const errors = validate(formik.values);
-    onValidationChange(
-      Object.values(errors).every((e) => !e),
-      Object.keys(errors)
-    );
-  }, [formik.values, validate]);
-  
+    if (isMounted.current) formik.handleSubmit();
+    else isMounted.current = true;
+  }, [submitTrigger]);
 
   return (
     <Stack gap={1.5}>
-      <form onSubmit={formik.handleSubmit} style={styles.form as React.CSSProperties}>
+      <form onSubmit={formik.handleSubmit}>
+
+        {/* Address Title */}
         <FormikTextField
           fieldKey="name"
-          disabled={disabledFields.name}
-          label="address.name"
+          label="Address Title"
           formik={formik}
-          width="calc(50% - 8px)"
           required
+          disabled={disabledFields.name}
         />
+
+        {/* Contact Fields */}
         <Stack direction="row" gap={2}>
           <FormikTextField
             fieldKey="contactName"
-            disabled={disabledFields.contactName}
-            label="address.contactName"
+            label="First Name"
             formik={formik}
             required
+            disabled={disabledFields.contactName}
           />
-
           <FormikTextField
             fieldKey="contactSurname"
-            disabled={disabledFields.contactSurname}
-            label="address.contactSurname"
+            label="Surname"
             formik={formik}
             required
+            disabled={disabledFields.contactSurname}
           />
         </Stack>
 
-        <Stack gap={0.5} width="100%">
+        {/* Phone Number */}
+        <Stack>
           <Typography variant="infoLabel">
-            address.phoneNumber
-            <Icon name="asterisk" color="error" fontSize={8} />
+            Phone Number <Icon name="asterisk" color="error" fontSize={8} />
           </Typography>
-
-          <PhoneNumberInput
-            disabled={disabledFields.phoneCode || disabledFields.phoneNumber}
-            fullWidth
-            formik={formik}
-          />
+          <PhoneNumberInput formik={formik} fullWidth />
         </Stack>
 
+        {/* Email */}
         <FormikTextField
           fieldKey="email"
-          disabled={disabledFields.email}
-          label="address.email"
+          label="Email"
           formik={formik}
+          disabled={disabledFields.email}
         />
 
+        {/* Tax Number */}
+        <FormikTextField
+          fieldKey="taxNumber"
+          label="Tax Number (optional)"
+          formik={formik}
+          disabled={disabledFields.taxNumber}
+        />
+
+        {/* Address Lines */}
         <FormikTextField
           fieldKey="lines"
-          disabled={disabledFields.line1}
-          label="address.lines"
+          label="Address Line"
           formik={formik}
           required
           limit={90}
           props={{ multiline: true, maxRows: 3 }}
         />
 
+        {/* City + District */}
         <Stack direction="row" gap={2}>
           <FormikTextField
             fieldKey="city"
-            disabled={disabledFields.city}
-            label="address.city"
+            label="City"
             formik={formik}
             required
           />
 
           <FormikTextField
             fieldKey="district"
-            disabled={disabledFields.district}
-            label="address.district"
+            label="District"
             formik={formik}
             required
           />
         </Stack>
 
+        {/* Country + Postcode */}
         <Stack direction="row" gap={2}>
-          <FormikTextField
-            fieldKey="state"
-            disabled={disabledFields.state}
-            label="address.stateOptional"
+          <FormikDropdown
             formik={formik}
+            fieldKey="countryCode"
+            label="Country"
+            options={[
+              { label: 'Turkey', value: 'TR' },
+              { label: 'United States', value: 'US' },
+              { label: 'United Kingdom', value: 'UK' },
+            ]}
+            disabled={disabledFields.countryCode}
+            required
           />
 
           <FormikTextField
             fieldKey="postcode"
-            disabled={disabledFields.postcode}
-            label="address.postcode"
+            label="Postcode"
             formik={formik}
             required
+            disabled={disabledFields.postcode}
           />
         </Stack>
       </form>

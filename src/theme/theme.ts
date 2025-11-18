@@ -1,6 +1,6 @@
 
 import { ButtonProps, ThemeOptions } from '@mui/material';
-import { PaletteColorOptions, createTheme } from '@mui/material/styles';
+import { Interpolation, PaletteColorOptions, Theme, createTheme } from '@mui/material/styles';
 import { Barlow, IBM_Plex_Sans, IBM_Plex_Mono, Rubik } from 'next/font/google';
 import { Palette, defaultPalette } from './palette';
 
@@ -52,9 +52,7 @@ declare module '@mui/material/styles' {
     tertiary: PaletteColorOptions;
     bg: PaletteColorOptions;
   }
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface Palette extends CustomPalette {}
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface PaletteOptions extends CustomPalette {}
 }
 
@@ -103,6 +101,7 @@ export const defaultFontFamily = `${barlow.style.fontFamily}, ${ibmPlexSans.styl
 export const cyrillicFontFamily = ibmPlexSans.style.fontFamily;
 export const hebrewFontFamily = rubik.style.fontFamily;
 
+export const getFontFamily = defaultFontFamily
 
 const breakpoints = {
   xs: 0,
@@ -121,24 +120,7 @@ const buttonVariantMappingColors = [
   'error',
   'warning',
   'neutral',
-] as const;
-
-type ButtonColorKey = (typeof buttonVariantMappingColors)[number];
-
-// Helper function to safely access palette color properties
-const getPaletteColor = (
-  palette: Palette,
-  color: ButtonColorKey,
-): { main: string; light: string } => {
-  const colorObj = palette[color];
-  if (!colorObj || typeof colorObj !== 'object' || !('main' in colorObj)) {
-    throw new Error(`Invalid color key: ${color}`);
-  }
-  return {
-    main: colorObj.main as string,
-    light: (colorObj.light as string) || colorObj.main,
-  };
-};
+];
 
 export const getDesignTokens = (
   palette: Palette = defaultPalette,
@@ -175,31 +157,33 @@ export const getDesignTokens = (
             },
           },
           ...buttonVariantMappingColors.flatMap((color) => {
-            const paletteColor = getPaletteColor(palette, color);
             return [
               {
-                props: { color: color, variant: 'outlined' } as Partial<ButtonProps<'button'>>,
+                props: { color: color, variant: 'outlined' },
                 style: {
                   background: '#fff',
                   '&.Mui-disabled': {
-                    color: `${paletteColor.main}80`,
-                    borderColor: `${paletteColor.main}80`,
+                    color: `${(palette as any)[color].main}80`,
+                    borderColor: `${(palette as any)[color].main}80`,
                   },
                   '&:hover': {
-                    background: paletteColor.light,
+                    background: (palette as any)[color].light,
                   },
                 },
               },
               {
-                props: { color: color, variant: 'tonal' } as Partial<ButtonProps<'button'>>,
+                props: { color: color, variant: 'tonal' },
                 style: {
-                  color: paletteColor.main,
-                  background: `${paletteColor.main}20`,
-                  '&.Mui-disabled': { color: `${paletteColor.main}80` },
-                  '&:hover': { background: `${paletteColor.main}40` },
+                  color: (palette as any)[color].main,
+                  background: `${(palette as any)[color].main}20`,
+                  '&.Mui-disabled': { color: `${(palette as any)[color].main}80` },
+                  '&:hover': { background: `${(palette as any)[color].main}40` },
                 },
               },
-            ];
+            ] as {
+              props: Partial<ButtonProps<'button', {}>>;
+              style: Interpolation<{ theme: Theme }>;
+            }[];
           }),
           {
             props: { color: 'primary', variant: 'outlined' },

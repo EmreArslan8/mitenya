@@ -10,7 +10,6 @@ export interface FreeTextProps extends BlockComponentBaseProps {
 }
 
 const FreeText = ({ section, text }: FreeTextProps) => {
-
   return (
     <SectionBase {...section}>
       <Markdown text={text} />

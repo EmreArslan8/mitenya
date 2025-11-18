@@ -21,7 +21,6 @@ interface MobileFiltersProps {
 }
 
 const MobileFilters = ({ filters, sortOptions, onOptionClicked }: MobileFiltersProps) => {
-  const t = useTranslations('shop');
   const styles = useStyles();
   const [modalOpen, setModalOpen] = useState(false);
   const [currentFilter, setCurrentFilter] = useState<ShopFilter<ShopFilterType>[]>(
@@ -66,14 +65,14 @@ const MobileFilters = ({ filters, sortOptions, onOptionClicked }: MobileFiltersP
           }}
           key={e[0].type}
         >
-          {t(`filters.${e[0].type}`)}
+          {(`filters.${e[0].type}`)}
         </Button>
       ))}
       <ModalCard
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         showCloseIcon
-        title={t(`filters.${currentFilter![0].type}`)}
+        title={(`filters.${currentFilter![0].type}`)}
         iconName="tune"
         sx={styles.modal}
       >

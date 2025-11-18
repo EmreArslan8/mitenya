@@ -1,6 +1,7 @@
 import Icon from '@/components/Icon';
 import useScreen from '@/lib/hooks/useScreen';
 import { Stack } from '@mui/material';
+import Button from '@mui/material/Button';
 import { useRef } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick-theme.css';
@@ -10,8 +11,6 @@ import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import ShopBannerItem from '../../shared/ShopBannerItem';
 import { SharedImageType } from '../../shared/cmsTypes';
 import useStyles from './styles';
-import Button from '@/components/common/Button';
-
 export interface ShopBannersProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
   banners: { image: SharedImageType; mobileImage: SharedImageType; url: string }[];

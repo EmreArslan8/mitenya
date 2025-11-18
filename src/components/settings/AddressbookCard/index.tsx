@@ -6,13 +6,13 @@ import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { AddressData } from '@/lib/api/types';
 import { Divider, Stack } from '@mui/material';
+
 import { useState } from 'react';
 import AddressLine from './AddressLine';
 import styles from './styles';
 import LoadingOverlay from '@/components/LoadingOverlay';
 
 const AddressbookCard = ({ addresses }: { addresses: AddressData[] }) => {
-  const t = useTranslations('common');
   const [newAddressModalOpen, setNewAddressModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +23,7 @@ const AddressbookCard = ({ addresses }: { addresses: AddressData[] }) => {
 
   return (
     <>
-      <Card iconName="menu_book" title={t('address.addresses')} border>
+      <Card iconName="menu_book" title={('address.addresses')} border>
         <Stack sx={styles.cardBody}>
           {addresses?.map((e) => [
             <AddressLine data={e} onChange={handleChange} key={e.name} />,
@@ -37,14 +37,14 @@ const AddressbookCard = ({ addresses }: { addresses: AddressData[] }) => {
             onClick={() => setNewAddressModalOpen(true)}
             sx={{ mt: 1 }}
           >
-            {t('address.addAddress')}
+            {('address.addAddress')}
           </Button>
         </Stack>
         <NewAddressModal
           open={newAddressModalOpen}
           onClose={() => setNewAddressModalOpen(false)}
           onAddressAdded={handleChange}
-          defaultName={`${t('address.nameDefaultValue', { ns: 'common' })} ${
+          defaultName={`${('address.nameDefaultValue', { ns: 'common' })} ${
             (addresses?.length ?? 0) + 1
           }`}
         />

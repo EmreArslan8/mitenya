@@ -1,12 +1,12 @@
 /*
+
 import Icon from '@/components/Icon';
-import { Locale } from '@/i18n';
-import useLocale from '@/lib/hooks/useLocale';
 import { regionalLanguages } from '@/lib/shop/regions';
 import { cyrillicFontFamily } from '@/theme/theme';
 import { Menu } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 import emojiFlags from 'emoji-flags';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import styles from './styles';
 
@@ -59,5 +59,6 @@ const LanguageSwitcher = () => {
 };
 
 export default LanguageSwitcher;
+
 
 */

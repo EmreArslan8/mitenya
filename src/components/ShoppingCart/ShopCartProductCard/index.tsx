@@ -1,13 +1,13 @@
-import Card from "@/components/common/Card";
-import Link from "next/link";
-import QuantitySelector from "@/components/common/QuantitySelector";
-import { ShopProductData } from "@/lib/api/types";
-import getDiscountPercent from "@/lib/shop/getDiscountPercent";
-import { Stack, Typography } from "@mui/material";
-import { useContext } from "react";
-import useStyles from "./styles";
-import { ShopContext } from "@/contexts/ShopContext";
-import Image from "next/image";
+import Card from '@/components/common/Card';
+import Link from '@/components/common/Link';
+import QuantitySelector from '@/components/common/QuantitySelector';
+import { ShopContext } from '@/contexts/ShopContext';
+import { ShopProductData } from '@/lib/api/types';
+import getDiscountPercent from '@/lib/shop/getDiscountPercent';
+import formatPrice from '@/lib/utils/formatPrice';
+import { Stack, Typography } from '@mui/material';
+import { useContext } from 'react';
+import useStyles from './styles';
 
 interface ShopCartProductCardProps {
   data: ShopProductData;
@@ -22,8 +22,7 @@ const ShopCartProductCard = ({
   unavailable = false,
   onClick,
 }: ShopCartProductCardProps) => {
-  const { handleIncreaseItemQuantity, handleDecreaseItemQuantity } =
-    useContext(ShopContext);
+  const { handleIncreaseItemQuantity, handleDecreaseItemQuantity } = useContext(ShopContext);
   const styles = useStyles();
 
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
@@ -33,7 +32,7 @@ const ShopCartProductCard = ({
     <Card sx={styles.card(unavailable)}>
       <Link href={unavailable ? null : data.url} onClick={onClick}>
         <Stack sx={styles.imageContainer}>
-          <Image src={data.imgSrc} alt={data.name} style={styles.image} />
+          <img src={data.imgSrc} alt={data.name} style={styles.image} />
         </Stack>
       </Link>
       <Stack sx={styles.details}>
@@ -45,12 +44,9 @@ const ShopCartProductCard = ({
             <Typography sx={styles.variants}>
               {data.variants
                 ?.flatMap(
-                  (v) =>
-                    "variants.size" +
-                    ": " +
-                    v.options.filter((o) => o.selected)[0]?.value
+                  (v) => ('variants.size') + ': ' + v.options.filter((o) => o.selected)[0]?.value
                 )
-                .join(", ")}
+                .join(', ')}
             </Typography>
           </Stack>
         </Link>
@@ -63,24 +59,17 @@ const ShopCartProductCard = ({
             />
           ) : (
             <Typography sx={styles.variants}>
-              {("quantity", { quantity: data.quantity })}
+              {('quantity', { quantity: data.quantity })}
             </Typography>
           )}
           <Stack alignItems="end">
             {hasDiscount && (
               <Typography variant="infoValue" sx={styles.originalPrice}>
-                {
-                  (data.price.originalPrice * data.quantity,
-                  data.price.currency)
-                }
+                {(data.price.originalPrice * data.quantity, data.price.currency)}
               </Typography>
             )}
             <Stack direction="row">
-              {hasDiscount && (
-                <Stack
-                  sx={styles.discountBadge}
-                >{`-${discountPercent}%`}</Stack>
-              )}
+              {hasDiscount && <Stack sx={styles.discountBadge}>{`-${discountPercent}%`}</Stack>}
               <Typography variant="infoValue" sx={styles.price}>
                 {(data.price.currentPrice * data.quantity, data.price.currency)}
               </Typography>

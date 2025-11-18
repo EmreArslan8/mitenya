@@ -10,7 +10,6 @@ export interface ShopBadgeButtonsProps extends BlockComponentBaseProps {
 }
 
 const ShopBadgeButtons = ({ section, badges }: ShopBadgeButtonsProps) => {
-
   const getGridSize = () => {
     switch (badges.length) {
       case 1:

@@ -1,14 +1,14 @@
 'use client';
 
 import Card from '@/components/common/Card';
-
+import Link from '@/components/common/Link';
 import { ShopProductListItemData } from '@/lib/api/types';
 import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
-import { CircularProgress, Link, Rating, Skeleton, Stack, Typography } from '@mui/material';
+import formatPrice from '@/lib/utils/formatPrice';
+import { CircularProgress, Rating, Skeleton, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 import useStyles from './styles';
-import Image from 'next/image';
 
 interface ShopProductCardProps {
   data: ShopProductListItemData;
@@ -39,7 +39,7 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
             </Stack>
           )}
           {hasDiscount && <Stack sx={styles.discountBadge}>{`-${discountPercent}%`}</Stack>}
-          <Image src={data.imgSrc} alt={data.name} style={styles.image} />
+          <img src={data.imgSrc} alt={data.name} style={styles.image} />
         </Stack>
         <Stack>
           <Typography variant="warning" sx={styles.productName}>

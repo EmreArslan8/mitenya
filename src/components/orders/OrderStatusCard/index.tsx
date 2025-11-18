@@ -35,19 +35,18 @@ const OrderStatusCard = ({
   trackingNumber?: string;
   orderId: string;
 }) => {
-  const t = useTranslations('shop');
 
   return (
-    <Banner {...bannerProps[status]} title={t(`orders.statuses.${status}.label`)} sx={{ p: 1.5 }}>
+    <Banner {...bannerProps[status]} title={(`orders.statuses.${status}.label`)} sx={{ p: 1.5 }}>
       <Stack gap={1.5} alignItems="start">
-        <Typography variant="warningSemibold">{t('orders.orderId')}: {orderId}</Typography>
+        <Typography variant="warningSemibold">{('orders.orderId')}: {orderId}</Typography>
         <Typography variant="warningSemibold">
-          {t(`orders.statuses.${status}.description`)}
+          {(`orders.statuses.${status}.description`)}
         </Typography>
         {status === 'cancelled' && <SupportButton size="small" />}
         {status === 'shipped' && trackingNumber && (
           <>
-          <Typography variant="warningSemibold">{t('orders.trackingNumber')}: {trackingNumber}</Typography>
+          <Typography variant="warningSemibold">{('orders.trackingNumber')}: {trackingNumber}</Typography>
             <Button
               size="small"
               color='neutral'
@@ -56,7 +55,7 @@ const OrderStatusCard = ({
               target="_blank"
               endIcon={<Icon name="open_in_new" fontSize={20} />}
             >
-              {t('orders.orderPage.trackShipmentButton')}
+              {('orders.orderPage.trackShipmentButton')}
             </Button>
           </>
         )}

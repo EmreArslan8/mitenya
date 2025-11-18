@@ -1,15 +1,13 @@
 import Icon from '@/components/Icon';
-
 import { ShopSearchSort } from '@/lib/api/types';
 import searchUrlFromOptions, { searchOptionsFromSearchParams } from '@/lib/shop/searchHelpers';
 import { Box, MenuItem, Select } from '@mui/material';
-
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import LoadingOverlay from '../LoadingOverlay';
 
 const SearchSort = ({ sortOptions }: { sortOptions: ShopSearchSort[] }) => {
-  const t = useTranslations('shop.sort');
+
   const searchParams = useSearchParams();
   const currentSearchOptions = searchOptionsFromSearchParams(searchParams!);
   const router = useRouter();
@@ -44,7 +42,7 @@ const SearchSort = ({ sortOptions }: { sortOptions: ShopSearchSort[] }) => {
       >
         {sortOptions.map((e) => (
           <MenuItem value={e} key={e}>
-            {t(e)}
+            {(e)}
           </MenuItem>
         ))}
       </Select>

@@ -1,6 +1,5 @@
 import Icon from '@/components/Icon';
 import { Stack, Typography, Select, MenuItem } from '@mui/material';
-import { FormikProps } from 'formik';
 
 const FormikDropdown = ({
   formik,
@@ -11,7 +10,7 @@ const FormikDropdown = ({
   label,
   options,
 }: {
-  formik: FormikProps<any>;
+  formik: any;
   width?: string | number;
   fieldKey: string;
   required?: boolean;
@@ -19,7 +18,6 @@ const FormikDropdown = ({
   label?: string;
   options: { label: string; value: string | number | undefined }[];
 }) => {
-
   return (
     <Stack gap={0.5} width={width} display="inline-flex">
       {label && (
@@ -40,7 +38,7 @@ const FormikDropdown = ({
         error={formik.touched[fieldKey] && Boolean(formik.errors[fieldKey])}
       >
         {options.map((e) => (
-          <MenuItem value={e.value} key={e.value} >
+          <MenuItem value={e.value} key={e.value} sx={{}}>
             {e.label}
           </MenuItem>
         ))}

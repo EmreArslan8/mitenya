@@ -1,6 +1,6 @@
 import { withPalette } from '@/theme/ThemeRegistry';
 
-const useStyles = withPalette(() => ({
+const useStyles = withPalette((palette) => ({
   sliderContainer: {
     width: '100%',
     alignSelf: 'center',

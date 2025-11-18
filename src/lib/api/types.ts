@@ -258,12 +258,13 @@ export type ShopSearchResponseFilters = {
 
 export type ShopSearchSort = 'dsc' | 'asc' | 'rcc' | 'bst' | 'fav' | 'rct';
 
+
 export type ShopSearchOptions = {
   page?: number;
   query?: string;
   brand?: string;
   category?: string;
-  locale: Locale;
+  locale?: Locale;
   gender?: ShopGender;
   size?: string;
   nt?: boolean; // NOTE: stands for No Translation

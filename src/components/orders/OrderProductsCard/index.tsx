@@ -4,16 +4,14 @@ import Card from '@/components/common/Card';
 import { ShopProductData } from '@/lib/api/types';
 import useStyles from './styles';
 import { Divider, Stack, Typography } from '@mui/material';
-import formatPrice from '@/lib/utils/formatPrice';
-import useLocale from '@/lib/hooks/useLocale';
+
+
 
 const OrderProductsCard = ({ data }: { data: ShopProductData[] }) => {
-  const t = useTranslations('shop.orders.orderPage.products');
-  const { locale } = useLocale();
   const styles = useStyles();
 
   return (
-    <Card iconName="list" title={t('cardTitle')} border>
+    <Card iconName="list" title={('cardTitle')} border>
       <Stack sx={styles.cardBody}>
         {data.map((e, i) => (
           <Stack gap={2} key={JSON.stringify(e)}>
@@ -32,11 +30,11 @@ const OrderProductsCard = ({ data }: { data: ShopProductData[] }) => {
                       .join(', ')}
                   </Typography>
                   <Typography sx={styles.variants}>
-                    {t('quantity', { quantity: e.quantity })}
+                    {"qauntity"}
                   </Typography>
                 </Stack>
                 <Typography variant="infoValue" whiteSpace="nowrap" sx={styles.price}>
-                  {formatPrice(e.price.currentPrice * e.quantity, e.price.currency, locale)}
+                  {(e.price.currentPrice * e.quantity, e.price.currency)}
                 </Typography>
               </Stack>
             </Card>

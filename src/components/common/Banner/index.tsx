@@ -41,7 +41,7 @@ export interface BannerProps {
   noIcon?: boolean;
   border?: boolean;
   buttonLabel?: ReactNode;
-  buttonProps?: Omit<React.ComponentProps<typeof Button>, "children">;
+  buttonProps?: any;
   horizontal?: boolean;
   withWhiteBg?: boolean;
   collapsible?: boolean;
@@ -141,7 +141,5 @@ const Banner = forwardRef<HTMLDivElement, BannerProps>(
     );
   }
 );
-
-Banner.displayName = "Banner";
 
 export default Banner;

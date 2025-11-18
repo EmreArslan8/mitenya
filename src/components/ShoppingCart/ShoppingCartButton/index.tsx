@@ -1,20 +1,14 @@
-import Icon from "@/components/Icon";
-import Button from "@/components/common/Button";
-import Card from "@/components/common/Card";
-import QuantitySelector from "@/components/common/QuantitySelector";
-import { ShopContext } from "@/contexts/ShopContext";
-import { ShopProductData } from "@/lib/api/types";
-import {
-  CircularProgress,
-  MenuItem,
-  Popover,
-  Stack,
-  Typography,
-} from "@mui/material";
-import { useContext, useEffect, useRef, useState } from "react";
-import useStyles from "./styles";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
+import Icon from '@/components/Icon';
+import Button from '@/components/common/Button';
+import Card from '@/components/common/Card';
+import QuantitySelector from '@/components/common/QuantitySelector';
+import { ShopContext } from '@/contexts/ShopContext';
+import { ShopProductData } from '@/lib/api/types';
+import formatPrice from '@/lib/utils/formatPrice';
+import { CircularProgress, MenuItem, Popover, Stack, Typography } from '@mui/material';
+import { useContext, useEffect, useRef, useState } from 'react';
+import useStyles from './styles';
+import { useRouter } from 'next/navigation';
 
 const ShoppingCartButton = () => {
   const router = useRouter();
@@ -40,18 +34,16 @@ const ShoppingCartButton = () => {
     <Stack>
       <MenuItem onClick={toggleMenuOpen} ref={buttonRef} sx={styles.button}>
         <Icon name="shopping_bag" fontSize={24} weight={400} />
-        {t("cart.button.label", { numItems })}
-        {!isCartReady && (
-          <CircularProgress color="secondary" size={13} sx={{ mt: "2px" }} />
-        )}
+         {('cart.button.label', { numItems })}
+        {!isCartReady && <CircularProgress color="secondary" size={13} sx={{ mt: '2px' }} />}
       </MenuItem>
       <Popover
         elevation={0}
         anchorEl={buttonRef.current}
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        transformOrigin={{ vertical: "top", horizontal: "center" }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
         sx={styles.popover}
       >
         <Card sx={styles.menu}>
@@ -59,9 +51,7 @@ const ShoppingCartButton = () => {
             {cart && cart.length > 0 ? (
               <>
                 <Stack sx={styles.menuHeader}>
-                  <Typography variant="body">
-                    {t("cart.button.title", { numItems })}
-                  </Typography>
+                  <Typography variant="body"> {('cart.button.title', { numItems })}</Typography>
                   <Icon name="close" onClick={() => setMenuOpen(false)} />
                 </Stack>
                 <Stack sx={styles.products}>
@@ -80,16 +70,16 @@ const ShoppingCartButton = () => {
                   arrow="end"
                   onClick={() => {
                     setMenuOpen(false);
-                    router.push("/cart");
+                    router.push('/cart');
                   }}
                 >
-                  {t("cart.button.continue")}
+                   {('cart.button.continue')}
                 </Button>
               </>
             ) : (
               <Stack sx={styles.menuHeader}>
                 <Typography variant="body" sx={{ px: 1, pb: 0.5 }}>
-                  {t("cart.button.shoppingCartEmpty")}
+                   {('cart.button.shoppingCartEmpty')}
                 </Typography>
                 <Icon name="close" onClick={() => setMenuOpen(false)} />
               </Stack>
@@ -113,23 +103,18 @@ const Product = ({
   const styles = useStyles();
 
   const selectedVariantOptions = data.variants
-    ?.map(
-      (variant) =>
-        `(${variant.options.find((option) => option.selected)?.value})`
-    )
+    ?.map((variant) => `(${variant.options.find((option) => option.selected)?.value})`)
     .filter((option) => option !== undefined)
-    .join(" ");
+    .join(' ');
 
   return (
     <Stack sx={styles.product}>
-      <Image src={data.imgSrc} alt={data.name} style={styles.productImage} />
+      <img src={data.imgSrc} alt={data.name} style={styles.productImage} />
       <Stack sx={styles.info}>
         <Typography sx={styles.productName}>
           {data.brand} {data.name}
         </Typography>
-        <Typography sx={styles.productName}>
-          {selectedVariantOptions}
-        </Typography>
+        <Typography sx={styles.productName}>{selectedVariantOptions}</Typography>
       </Stack>
       {Boolean(data.quantity) && (
         <QuantitySelector

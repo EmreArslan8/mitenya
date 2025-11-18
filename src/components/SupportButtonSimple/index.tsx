@@ -1,20 +1,27 @@
 'use client';
 
 import Icon from '../Icon';
-import Button, { ButtonProps } from '../common/Button';
+import Button from '../common/Button';
 
-const SUPPORT_URL = "https://support.example.com"; 
+const SUPPORT_URL = "https://t.me/yourSupportChannel"; // veya WhatsApp linki
 
-const SupportButton = (props: Omit<ButtonProps, "children">) => {
+interface SupportButtonProps {
+  size?: 'small' | 'medium' | 'large';
+  text?: string;
+  [key: string]: any; // props genişlemesi için
+}
+
+const SupportButton = ({ size = 'medium', text = 'Contact Support', ...props }: SupportButtonProps) => {
   return (
     <Button
       variant="outlined"
       startIcon={<Icon name="support_agent" />}
       href={SUPPORT_URL}
       target="_blank"
+      size={size}
       {...props}
     >
-      {('contactSupport')}
+      {text}
     </Button>
   );
 };

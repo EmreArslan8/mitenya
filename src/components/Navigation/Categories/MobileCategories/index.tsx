@@ -40,7 +40,7 @@ const MobileCategories = ({ open, onClose, onOptionClicked }: MobileCategoriesPr
             {(history[history.length - 2].key)}
           </MenuItem>
         ) : (
-          <MenuItem sx={styles.back}>{t(rootNode.key)}</MenuItem>
+          <MenuItem sx={styles.back}>{(rootNode.key)}</MenuItem>
         )
       }
       open={open}

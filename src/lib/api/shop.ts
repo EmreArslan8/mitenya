@@ -1,22 +1,17 @@
-import { sanityClient } from '@/lib/sanity.client';
-import {
-  allProductsQuery,
-  productBySlugQuery,
-  allBrandsQuery,
-  allCategoriesWithChildrenQuery,
-  productsSearchQuery,
-  productsByFiltersQuery,
-  inlineProductsQuery,
-} from '@/lib/sanity.queries';
-import { ProductData, CategoryData, BrandData, ShopProductListItemData, ShopSearchOptions, ShopSearchResponse } from './types';
+
 import { bring } from './bring';
 
+import {
+  AddressData,
+  PagedResults,
+  ShopOrderData,
+  ShopOrderListItemData,
+  ShopProductData,
+  ShopProductListItemData,
+  ShopSearchOptions,
+  ShopSearchResponse
+} from './types';
 
-/* -------------------------------------------------------------------------- */
-/* 🧠 FETCH FONKSİYONLARI */
-/* -------------------------------------------------------------------------- */
-
-// ✅ TÜM ÜRÜNLER
 export const fetchProducts = async (
   options: Partial<ShopSearchOptions>
 ): Promise<ShopSearchResponse | undefined> => {
@@ -30,71 +25,11 @@ export const fetchProducts = async (
   }
 };
 
-
-export const fetchInlineProducts = async ({
-  categories = [],
-  brands = [],
-  limit = 8,
-}: {
-  categories?: string[];
-  brands?: string[];
-  limit?: number;
-}) => {
-  try {
-    const params = {
-      categorySlugs: categories,
-      brandNames: brands,
-      limit,
-    };
-
-    const result = await sanityClient.fetch(inlineProductsQuery, params);
-    console.log('🟢 fetchInlineProducts output:', result?.length, 'ürün bulundu.');
-    return result || [];
-  } catch (err) {
-    console.error('❌ fetchInlineProducts hata:', err);
-    return [];
-  }
-};
-
-
-
-// ✅ TEK ÜRÜN
-export const fetchProductData = async (slug: string): Promise<ProductData | null> => {
-  try {
-    const res = await sanityClient.fetch<ProductData>(productBySlugQuery, { slug });
-    return res || null;
-  } catch (error) {
-    console.error('❌ fetchProductData error:', error);
-    return null;
-  }
-};
-
-// ✅ TÜM KATEGORİLER
-export const fetchCategories = async () => {
-  try {
-    const data = await sanityClient.fetch(allCategoriesWithChildrenQuery);
-    return data;
-  } catch (error) {
-    console.error('❌ [fetchCategories] Hata:', error);
-    return [];
-  }
-};
-
-
-
-// ✅ TÜM MARKALAR
-export const fetchBrands = async (): Promise<BrandData[]> => {
-  try {
-    return await sanityClient.fetch<BrandData[]>(allBrandsQuery);
-  } catch (error) {
-    console.error('❌ fetchBrands error:', error);
-    return [];
-  }
-};
-
 export const fetchRecommendations = async (options: {
   brandId: string;
   productId: string;
+  locale: string;
+  region: string;
 }): Promise<ShopProductListItemData[]> => {
   try {
     const url = '/api/shop/recommendations';
@@ -106,4 +41,50 @@ export const fetchRecommendations = async (options: {
   }
 };
 
+export const fetchProductData = async (
+  id: string,
+): Promise<ShopProductData | undefined> => {
+  const url = '/api/shop/product';
+  const res = await bring(url, { params: { id, locale, region }, next: { revalidate: 60 } });
+  return res[0];
+};
 
+
+export const fetchOrders = async (): Promise<PagedResults<ShopOrderListItemData> | undefined> => {
+  const url = '/api/shop/orders';
+  const res = await bring(url);
+  return res[0];
+};
+
+export const fetchOrder = async (id: string): Promise<ShopOrderData | undefined> => {
+  const url = `/api/shop/orders/${id}`;
+  const res = await bring(url);
+  return res[0];
+};
+
+export const finalizeCodOrder = async (
+  checkoutUrl: string,
+  vsn: string,
+  selected: ShopProductData[]
+): Promise<boolean> => {
+  try {
+    const pids = selected
+      .map(
+        (e) =>
+          `${e.id}${
+            e.variants?.length
+              ? ' : ' + e.variants.map((v) => v.options.find((o) => o.selected)?.value).join('-')
+              : ''
+          }`
+      )
+      .join(',');
+
+    const params = { checkoutUrl, vsn, pids };
+    const [, err] = await bring('/api/shop/checkout/cod', { params });
+    if (err) return false;
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
