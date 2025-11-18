@@ -1,5 +1,3 @@
-/*
-
 const {
   NEXTAUTH_URL,
   COGNITO_REGION,
@@ -16,8 +14,6 @@ export const getOauthProvider = (provider: TOuathProvider) => {
         Provider generation function to avoid repeating ourselved when
         declaring providers in the authOptions below.
      */
-
-        /*
   return {
     // e.g. cognito_google | cognito_facebook
     id: `cognito_${provider.toLowerCase()}`,
@@ -75,5 +71,3 @@ export const getOauthProvider = (provider: TOuathProvider) => {
     },
   };
 };
-
-*/
