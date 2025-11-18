@@ -5,6 +5,16 @@ import { DestinationCountry } from '../utils/countries';
 import { Currency } from '../utils/currencies';
 
 
+export interface CMSImage {
+  url: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+  ext?: string;
+  [key: string]: unknown;
+}
+
+
 export type ExchangeRate = {
   from: string;
   to: string;
@@ -167,7 +177,7 @@ export type ShopProductData = {
   slug: string;
   priceCents: number;
   currency?: string;
-  images?: any[];
+  images?: CMSImage[];
   brand?: string;
   category?: string;
   shortDesc?: string;
@@ -300,7 +310,7 @@ export type ShopFooterData = {
 
 export type PhoneNumber = { phoneCode: string; phoneNumber: string };
 
-// --- Sanity veri tipi
+/* --- Sanity veri tipi
 export interface SanityProductData {
   _id: string;
   title: string;
@@ -318,6 +328,8 @@ export interface SanityProductData {
   }[];
 }
 
+
+*/
 
 // src/lib/api/types.ts
 
@@ -344,6 +356,7 @@ export interface CategoryData {
   children?: CategoryData[];
 }
 
+/*
 export interface ProductData {
   _id: string;
   slug: { current: string };
@@ -359,3 +372,4 @@ export interface ProductData {
   specs?: { label: string; value: string }[];
 }
 
+*/

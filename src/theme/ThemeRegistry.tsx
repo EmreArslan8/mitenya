@@ -24,7 +24,7 @@ interface ThemeContextState {
 const ThemeContext = createContext({} as ThemeContextState);
 
 export const usePalette = () => useContext(ThemeContext).palette;
-export const withPalette = <T extends Record<string, any>>(
+export const withPalette = <T extends Record<string, unknown>>(
   styles: (palette: Palette) => T
 ) => () => styles(usePalette());
 

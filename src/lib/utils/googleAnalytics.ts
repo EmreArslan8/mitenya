@@ -9,6 +9,9 @@ interface CommonEventParams {
   cd_page_path?: string;
 }
 
+type DataLayerEvent = Record<string, unknown>;
+
+
 const getCommonEventParams = (): CommonEventParams => ({
   page_type: document.title,
   cd_language:
@@ -19,7 +22,7 @@ const getCommonEventParams = (): CommonEventParams => ({
   cd_page_path: window.location.pathname,
 });
 
-export const pushItemToDataLayer = (item: any) => {
+export const pushItemToDataLayer = (item: DataLayerEvent) => {
   try {
     if ((window as any).dataLayer) (window as any).dataLayer.push(item);
   } catch (error) {
@@ -27,7 +30,7 @@ export const pushItemToDataLayer = (item: any) => {
   }
 };
 
-const sendEvent = (params: any) => {
+const sendEvent = (params: DataLayerEvent) => {
   pushItemToDataLayer({ ...getCommonEventParams(), ...params });
 };
 
@@ -77,49 +80,59 @@ export type CheckoutFunnelEventType =
   | 'add_payment_info'
   | 'purchase';
 
-export const sendCheckoutFunnelEvent = (data: {
-  type: CheckoutFunnelEventType;
-  customerData: CustomerData | undefined;
-  products: ShopProductData[];
-  orderSummary?: ShopOrderSummaryData;
-  transactionId?: string;
-  paymentType?: string;
-}) => {
-  const items = data.products.map((e) => ({
-    item_id: e.id,
-    item_name: e.name,
-    item_brand: e.brand,
-    price: e.price.currentPrice,
-    currency: e.price.currency,
-    item_url: e.url,
-    quantity: e.quantity,
-  }));
-
-  let event: any = {
-    event: data.type,
-    ecommerce: {
-      customer_email: data.customerData?.email,
-      customer_phone_number: `${data.customerData?.phoneCode ?? ''}${
-        data.customerData?.phoneNumber ?? ''
-      }`,
-      items,
-    },
+  export const sendCheckoutFunnelEvent = (data: {
+    type: CheckoutFunnelEventType;
+    customerData: CustomerData | undefined;
+    products: ShopProductData[];
+    orderSummary?: ShopOrderSummaryData;
+    transactionId?: string;
+    paymentType?: string;
+  }) => {
+    const items = data.products.map((e) => ({
+      item_id: e.id,
+      item_name: e.name,
+      item_brand: e.brand,
+      price: e.price.currentPrice,
+      currency: e.price.currency,
+      item_url: e.url,
+      quantity: e.quantity,
+    }));
+  
+    const baseEvent: DataLayerEvent = {
+      event: data.type,
+      ecommerce: {
+        customer_email: data.customerData?.email,
+        customer_phone_number: `${data.customerData?.phoneCode ?? ''}${data.customerData?.phoneNumber ?? ''}`,
+        items,
+      },
+    };
+  
+    // ek alanlar — mutate yerine shallow merge
+    const ecommerceExt: DataLayerEvent = {};
+  
+    if (data.type === 'add_shipping_info' || data.type === 'purchase') {
+      ecommerceExt.currency = data.orderSummary?.currency;
+      ecommerceExt.value = data.orderSummary?.totalDue;
+    }
+  
+    if (data.type === 'add_payment_info') {
+      ecommerceExt.currency = data.orderSummary?.currency;
+      ecommerceExt.paymentType = data.paymentType;
+    }
+  
+    if (data.type === 'purchase') {
+      ecommerceExt.transactionId = data.transactionId;
+    }
+  
+    sendEvent({
+      ...baseEvent,
+      ecommerce: { 
+        ...(baseEvent.ecommerce as object),
+        ...ecommerceExt
+      },
+    });
   };
-
-  if (data.type === 'add_shipping_info') {
-    event.ecommerce.currency = data.orderSummary?.currency;
-    event.ecommerce.value = data.orderSummary?.totalDue;
-  } else if (data.type === 'add_payment_info') {
-    event.ecommerce.currency = data.orderSummary?.currency;
-    event.ecommerce.paymentType = data.paymentType;
-  } else if (data.type === 'purchase') {
-    event.ecommerce.currency = data.orderSummary?.currency;
-    event.ecommerce.value = data.orderSummary?.totalDue;
-    event.ecommerce.transactionId = data.transactionId;
-  }
-
-  sendEvent(event);
-};
+  
 
 export const useCheckoutAnalytics = () => {
   const { customerData } = useAuth();

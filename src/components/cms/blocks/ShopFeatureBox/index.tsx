@@ -1,23 +1,22 @@
-'use client';
+"use client";
 
-import { Grid, Stack, Typography } from '@mui/material';
-import { BlockComponentBaseProps } from '..';
-import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
-import { SharedImageType } from '../../shared/cmsTypes';
-import useStyles from './styles';
-import CMSImage from '../../shared/CMSImage';
-import Markdown from '@/components/common/Markdown';
-import Button from '@/components/common/Button';
-
+import { ButtonProps, Grid, Stack, Typography } from "@mui/material";
+import { BlockComponentBaseProps } from "..";
+import SectionBase, { SectionBaseProps } from "../../shared/SectionBase";
+import { SharedImageType } from "../../shared/cmsTypes";
+import useStyles from "./styles";
+import CMSImage from "../../shared/CMSImage";
+import Markdown from "@/components/common/Markdown";
+import Button from "@/components/common/Button";
 
 export interface ShopFeatureBoxProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
   title?: string;
   description?: string;
   image: SharedImageType;
-  imagePosition: 'start' | 'end';
-  imageFit: 'cover' | 'contain';
-  button?: any;
+  imagePosition: "start" | "end";
+  imageFit: "cover" | "contain";
+  button?: ButtonProps & { label?: string };
 }
 
 const ShopFeatureBox = ({
@@ -34,7 +33,12 @@ const ShopFeatureBox = ({
   return (
     <SectionBase {...section}>
       <Grid container spacing={{ xs: 3, sm: 4 }}>
-        <Grid item xs={12} sm={6} order={{ sm: imagePosition === 'start' ? 0 : 1 }}>
+        <Grid
+          item
+          xs={12}
+          sm={6}
+          order={{ sm: imagePosition === "start" ? 0 : 1 }}
+        >
           <Stack sx={styles.imageContainer}>
             <CMSImage
               src={image.data.attributes.url}

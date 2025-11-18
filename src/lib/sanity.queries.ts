@@ -359,6 +359,7 @@ export const footerQuery = groq`*[_type == "footer"][0]{
   social[]{ platform, url }
 }`;
 
+/*
 export const productsSearchQuery = (filters: any) => {
   let base = `*[_type == "product" && defined(slug.current)]`;
 
@@ -381,7 +382,7 @@ export const productsSearchQuery = (filters: any) => {
     tags[]->{ title, "slug": slug.current }
   }`;
 };
-
+*/
 
 export const productsByFiltersQuery = groq`
 *[

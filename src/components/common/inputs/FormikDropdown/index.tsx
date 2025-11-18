@@ -1,5 +1,6 @@
 import Icon from '@/components/Icon';
 import { Stack, Typography, Select, MenuItem } from '@mui/material';
+import { FormikProps } from 'formik';
 
 const FormikDropdown = ({
   formik,
@@ -10,7 +11,7 @@ const FormikDropdown = ({
   label,
   options,
 }: {
-  formik: any;
+  formik: FormikProps<any>;
   width?: string | number;
   fieldKey: string;
   required?: boolean;

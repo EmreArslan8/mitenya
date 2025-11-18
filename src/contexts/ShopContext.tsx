@@ -259,14 +259,14 @@ export const ShopContextProvider = ({ children }: ShopContextProviderProps) => {
   const reinitalizeCart = async (cartItems?: ShopProductData[]) => {
     try {
       if (!cartItems) return;
-
-      let newCart: ShopProductData[] = [];
-      let newUnavailable: ShopProductData[] = [];
-
+  
+      const newCart: ShopProductData[] = [];
+      const newUnavailable: ShopProductData[] = [];
+  
       const deduped = Array.from(new Set(cartItems.map((e) => JSON.stringify(e)))).map((e) =>
         JSON.parse(e)
       );
-
+  
       const promises = deduped.map((e) =>
         fetchProductData(e.id).then((data) => {
           try {
@@ -274,16 +274,16 @@ export const ShopContextProvider = ({ children }: ShopContextProviderProps) => {
               newUnavailable.push(e);
               return;
             }
-
+  
             newCart.push({ ...data, quantity: e.quantity, variants: e.variants });
           } catch (error) {
             console.log(error);
           }
         })
       );
-
+  
       await Promise.all(promises);
-
+  
       setCart(newCart);
       setUnavailableItems(newUnavailable);
       localStorage.setItem('cart', JSON.stringify(newCart));
@@ -294,6 +294,7 @@ export const ShopContextProvider = ({ children }: ShopContextProviderProps) => {
       setIsCartReady(true);
     }
   };
+  
 
   useEffect(() => {
     const handleStorage = (e: StorageEvent) =>

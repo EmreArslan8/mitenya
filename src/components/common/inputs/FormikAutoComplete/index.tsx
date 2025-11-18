@@ -1,6 +1,7 @@
 import Icon from '@/components/Icon';
 import { Autocomplete, Stack, TextField, Typography } from '@mui/material';
 import styles from './styles'; // Import your styles file
+import { FormikProps } from 'formik';
 
 const FormikAutocomplete = ({
   formik,
@@ -11,7 +12,7 @@ const FormikAutocomplete = ({
   label,
   options,
 }: {
-  formik: any;
+  formik: FormikProps<any>;
   width?: string | number;
   fieldKey: string;
   required?: boolean;
@@ -43,7 +44,11 @@ const FormikAutocomplete = ({
             required={required}
             size="small"
             error={formik.touched[fieldKey] && Boolean(formik.errors[fieldKey])}
-            helperText={formik.touched[fieldKey] && formik.errors[fieldKey]}
+            helperText={
+              formik.touched[fieldKey] && typeof formik.errors[fieldKey] === "string"
+                ? formik.errors[fieldKey]
+                : ""
+            }
             InputProps={{
               ...params.InputProps,
               sx: styles.autocompleteInput,

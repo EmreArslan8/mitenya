@@ -1,8 +1,26 @@
 import { ReadonlyURLSearchParams } from 'next/navigation';
 import { ShopSearchOptions } from '../api/types';
 
-export const searchUrlFromOptions = (options: Partial<ShopSearchOptions>, withSalt = false) => {
-  const { category, brand, gender, query, size, sort, nt, nf, ph, xt, collection, price, color } = options;
+export const searchUrlFromOptions = (
+  options: Partial<ShopSearchOptions>,
+  withSalt = false
+) => {
+  const {
+    category,
+    brand,
+    gender,
+    query,
+    size,
+    sort,
+    nt,
+    nf,
+    ph,
+    xt,
+    collection,
+    price,
+    color,
+  } = options;
+
   const searchParams = new URLSearchParams();
   if (category) searchParams.append('category', category);
   if (brand) searchParams.append('brand', brand);
@@ -18,53 +36,88 @@ export const searchUrlFromOptions = (options: Partial<ShopSearchOptions>, withSa
   if (collection) searchParams.append('collection', collection);
   if (color) searchParams.append('color', color);
   if (price) searchParams.append('price', price);
+
   return `/search?${searchParams}`;
 };
 
+// ----------------------------------------------------------------------
+
 export const mergeSearchOptions = (
-  currentOptions: Partial<ShopSearchOptions>,
-  optionsToMerge: Partial<ShopSearchOptions>
+  current: Partial<ShopSearchOptions>,
+  merge: Partial<ShopSearchOptions>
 ) => {
-  let newOptions = { ...currentOptions };
-  Object.entries(optionsToMerge).forEach(([k, v]) => {
-    let newValue = newOptions[k as keyof typeof newOptions];
-    if (newValue) {
-      const newValueList = newValue.toString().split(',');
-      const valueToMergeList = v.toString().split(',');
-      valueToMergeList.forEach((e) => !newValueList.includes(e) && newValueList.push(e));
-      newValue = newValueList.join(',');
-    } else newValue = v;
-    newOptions[k as keyof typeof newOptions] = newValue as any;
+  const newOptions: Partial<ShopSearchOptions> = { ...current };
+
+  Object.entries(merge).forEach(([key, val]) => {
+    if (val == null) return;
+
+    const k = key as keyof ShopSearchOptions;
+    const existing = newOptions[k];
+
+    const existingStr = existing?.toString() ?? '';
+    const valStr = val.toString();
+
+    if (existingStr) {
+      const base = existingStr.split(',');
+      valStr.split(',').forEach((item) => {
+        if (!base.includes(item)) base.push(item);
+      });
+      newOptions[k] = base.join(',') as any;
+    } else {
+      newOptions[k] = valStr as any;
+    }
   });
+
   return newOptions;
 };
+
+
+// ----------------------------------------------------------------------
 
 export const removeSearchOptions = (
-  currentOptions: Partial<ShopSearchOptions>,
-  optionsToRemove: Partial<ShopSearchOptions>
+  current: Partial<ShopSearchOptions>,
+  remove: Partial<ShopSearchOptions>
 ) => {
-  let newOptions = { ...currentOptions };
-  Object.entries(optionsToRemove).forEach(([k, v]) => {
-    let newValue = newOptions[k as keyof typeof newOptions];
-    if (!newValue) return;
-    newValue = newValue
-      ?.toString()
+  const newOptions: Partial<ShopSearchOptions> = { ...current };
+
+  Object.entries(remove).forEach(([key, val]) => {
+    const k = key as keyof ShopSearchOptions;
+    const existing = newOptions[k];
+    if (!existing) return;
+
+    const updated = existing
+      .toString()
       .split(',')
-      .filter((e) => e !== v.toString())
+      .filter((e) => e !== val!.toString())
       .join(',');
 
-    newOptions[k as keyof typeof newOptions] = newValue as any;
+    newOptions[k] = updated as any;
   });
 
-  if (!newOptions.brand && !newOptions.category && !newOptions.query) return currentOptions;
+  if (!newOptions.brand && !newOptions.category && !newOptions.query) {
+    return current;
+  }
+
   return newOptions;
 };
 
-export const searchOptionsFromSearchParams = (searchParams: ReadonlyURLSearchParams) => {
-  let options: Partial<ShopSearchOptions> = Object.fromEntries(searchParams.entries());
-  if (searchParams.getAll('category').length)
+// ----------------------------------------------------------------------
+
+export const searchOptionsFromSearchParams = (
+  searchParams: ReadonlyURLSearchParams
+) => {
+  const options: Partial<ShopSearchOptions> = Object.fromEntries(
+    searchParams.entries()
+  );
+
+  if (searchParams.getAll('category').length) {
     options.category = searchParams.getAll('category').join(',');
-  if (searchParams.getAll('brand').length) options.brand = searchParams.getAll('brand').join(',');
+  }
+
+  if (searchParams.getAll('brand').length) {
+    options.brand = searchParams.getAll('brand').join(',');
+  }
+
   return options;
 };
 

@@ -7,8 +7,12 @@ const useCustomerData = () => {
   const getCustomerData = async (): Promise<CustomerData | undefined> => {
     try {
       const url = '/customers/v1/me';
-      const results = await axios.get(url);
-      return (results as any)[0];
+      const response = await axios.get(url);
+
+      const data = response.data as CustomerData | CustomerData[] | undefined;
+
+      if (Array.isArray(data)) return data[0];
+      return data;
     } catch (error) {
       console.log(error);
       return undefined;
@@ -20,11 +24,15 @@ const useCustomerData = () => {
   ): Promise<CustomerData | undefined> => {
     try {
       const url = '/customers/v1/me/';
-      const results = await axios.post(url, {
+      const response = await axios.post(url, {
         ...data,
         warehouseId: '2a6e9f83-06f9-4758-ae0a-43d01fb4a60b',
       });
-      return (results as any)[0];
+
+      const result = response.data as CustomerData | CustomerData[] | undefined;
+
+      if (Array.isArray(result)) return result[0];
+      return result;
     } catch (error) {
       console.log(error);
       return undefined;

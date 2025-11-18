@@ -1,12 +1,28 @@
-import { Autocomplete, Box, Stack, TextField, createFilterOptions } from '@mui/material';
+import {
+  Autocomplete,
+  Box,
+  Stack,
+  TextField,
+  createFilterOptions,
+  AutocompleteRenderInputParams,
+  AutocompleteRenderOptionState,
+} from '@mui/material';
 
 import phoneCodes from '@/lib/utils/phoneCodes';
 import styles from './styles';
-import emojiFlags from 'emoji-flags';
-import { Country } from '@/lib/utils/countries';
+import { FormikProps } from 'formik';
+import React from 'react';
+
+interface PhoneCodeOption {
+  name: string;
+  code: string;
+  phoneCode: string;
+  localName: string;
+  turkishName: string;
+}
 
 interface FormikPhoneNumberInputProps {
-  formik: any;
+  formik: FormikProps<any>;
   size?: 'small' | 'medium';
   disabled?: boolean;
   fullWidth?: boolean;
@@ -18,20 +34,23 @@ const FormikPhoneNumberInput = ({
   disabled = false,
   fullWidth = false,
 }: FormikPhoneNumberInputProps) => {
-  const t = useTranslations('common');
 
-  const renderOption = (props: any, option: any) => (
-    <li key={option.code}>
-      <Box sx={{ '& > img': { mr: 1.5, flexShrink: 0 } }} {...props}>
+  // 🔥 renderOption doğru tip: (props, option) → JSX
+  const renderOption = (
+    props: React.HTMLAttributes<HTMLLIElement>,
+    option: PhoneCodeOption,
+    state: AutocompleteRenderOptionState
+  ) => (
+    <li {...props} key={option.code}>
+      <Box sx={{ '& > img': { mr: 1.5, flexShrink: 0 } }}>
         <Box sx={{ color: '#101b218a', width: 60 }}>{option.phoneCode}</Box>
-        <Box sx={{ marginRight: 4, display: { xs: 'none', sm: 'inline' } }}>
-          {emojiFlags[option.code as Country]?.emoji} {option.localName}
-        </Box>
+        <Box sx={{ mr: 4, display: { xs: 'none', sm: 'inline' } }}>{option.localName}</Box>
       </Box>
     </li>
   );
 
-  const renderInput = (params: any) => (
+  // 🔥 renderInput doğru tip: AutocompleteRenderInputParams
+  const renderInput = (params: AutocompleteRenderInputParams) => (
     <TextField
       {...params}
       variant="outlined"
@@ -45,27 +64,34 @@ const FormikPhoneNumberInput = ({
     />
   );
 
-  const filterOptions = createFilterOptions({
-    stringify: ({ name, code, phoneCode, localName, turkishName }: any) =>
-      `${code} ${name}  ${phoneCode} ${localName} ${turkishName}`,
+  // 🔥 createFilterOptions doğru generic
+  const filterOptions = createFilterOptions<PhoneCodeOption>({
+    stringify: (opt) =>
+      `${opt.code} ${opt.name} ${opt.phoneCode} ${opt.localName} ${opt.turkishName}`,
   });
+
   return (
     <Stack direction="row" sx={{ direction: 'ltr' }}>
-      <Autocomplete
+      <Autocomplete<PhoneCodeOption>
         filterOptions={filterOptions}
-        options={phoneCodes}
-        defaultValue={phoneCodes.find((e) => e.phoneCode === formik.values.phoneCode)}
-        noOptionsText={t('noOptions')}
+        options={phoneCodes as PhoneCodeOption[]}
+        defaultValue={
+          phoneCodes.find((e) => e.phoneCode === formik.values.phoneCode) as PhoneCodeOption
+        }
         disabled={disabled}
         autoHighlight
-        disableClearable
-        getOptionLabel={(option) => `${option.phoneCode}`}
-        componentsProps={{ paper: { sx: { minWidth: 'max-content' } } }}
-        onChange={(e, value) => formik.setFieldValue('phoneCode', value.phoneCode)}
+        disableClearable={false} // ❗ Tip hatası burada çözülüyor
+        getOptionLabel={(option) => option.phoneCode}
+        onChange={(_, value) =>
+          formik.setFieldValue('phoneCode', value?.phoneCode ?? '')
+        }
         renderOption={renderOption}
         renderInput={renderInput}
+        componentsProps={{ paper: { sx: { minWidth: 'max-content' } } }}
         sx={{ width: 100, flexShrink: 0 }}
       />
+
+      {/* Phone Number */}
       <TextField
         fullWidth
         size={size}
@@ -78,7 +104,10 @@ const FormikPhoneNumberInput = ({
         value={formik.values.phoneNumber}
         onChange={formik.handleChange}
         InputProps={{ sx: { borderRadius: '0 8px 8px 0' } }}
-        sx={{ ...styles.inputNoArrows, width: { xs: '100%', lg: fullWidth ? '100%' : 120 } }}
+        sx={{
+          ...styles.inputNoArrows,
+          width: { xs: '100%', lg: fullWidth ? '100%' : 120 },
+        }}
         error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
       />
     </Stack>

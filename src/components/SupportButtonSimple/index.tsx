@@ -1,12 +1,11 @@
 'use client';
 
 import Icon from '../Icon';
-import Button from '../common/Button';
+import Button, { ButtonProps } from '../common/Button';
 
 const SUPPORT_URL = "https://support.example.com"; 
 
-const SupportButton = (props: any) => {
-
+const SupportButton = (props: Omit<ButtonProps, "children">) => {
   return (
     <Button
       variant="outlined"
