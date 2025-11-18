@@ -1,3 +1,4 @@
+/*
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchOrder } from '../api';
 
@@ -7,3 +8,6 @@ export const GET = async (_: NextRequest, { params }: { params: { id: string } }
   if (!res) return NextResponse.json({ error: 'Error fetching order.' }, { status: 500 });
   return NextResponse.json(res);
 };
+
+
+*/

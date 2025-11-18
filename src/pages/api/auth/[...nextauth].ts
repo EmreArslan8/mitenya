@@ -1,4 +1,4 @@
-
+/*
 import { AuthOptions } from 'next-auth';
 import NextAuth from 'next-auth/next';
 import qs from 'qs';
@@ -87,6 +87,8 @@ export const authOptions: AuthOptions = {
       the token is returned for increased security. If you want to make something available you added 
       to the token (like access_token and user.id from above)  via the jwt() callback, you have to explicitly 
       forward it here to make it available to the client. */
+
+      /*
       const sessionObj = {
         ...session,
         user: {
@@ -168,3 +170,5 @@ export const authOptions: AuthOptions = {
 };
 
 export default NextAuth(authOptions);
+
+*/
