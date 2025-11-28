@@ -1,4 +1,4 @@
-import { bring } from '../bring';
+import bring from '../bring';
 import { CheckoutRequestData, OrderSummaryRequestData, ShopOrderSummaryData } from '../types';
 
 export const getOrderSummary = async (

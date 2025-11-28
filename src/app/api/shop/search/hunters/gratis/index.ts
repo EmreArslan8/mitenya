@@ -1,5 +1,3 @@
-/*
-
 import axios from 'axios';
 import { ProductHunter } from '..';
 import { ShopProductListItemData, ShopSearchOptions } from '@/lib/api/types';
@@ -15,12 +13,9 @@ const gratisHunter: ProductHunter = async (params: ShopSearchOptions) => {
   let query = params.query ? params.query.toString().replace('gratis', '') : '';
   if (!category && !query) query = 'gratis';
 
-  const translatedQuery = query && !nt ? await translateQuery(query, locale, 'en') : query;
-
-  const requestQuery = `${category} ${translatedQuery}`;
+  const requestQuery = `${category}`;
 
   console.log('query: ', query);
-  console.log('translatedQuery: ', translatedQuery);
   console.log('requestQuery: ', requestQuery);
 
   const url = `https://api.cn94v1klbw-gratisicv1-p1-public.model-t.cc.commerce.ondemand.com/gratiscommercewebservices/v2/gratis/products/search?query=${requestQuery}`;
@@ -38,7 +33,7 @@ const gratisHunter: ProductHunter = async (params: ShopSearchOptions) => {
     return {
       products,
       totalCount: result.pagination.totalResults,
-      tq: 'gratis ' + translatedQuery,
+      tq: 'gratis ' + requestQuery,
     };
   } catch (err) {
     console.log(err);
@@ -73,5 +68,3 @@ const transformData = (data: GratisListItemData): ShopProductListItemData => {
 };
 
 export default gratisHunter;
-
-*/

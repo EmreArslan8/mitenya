@@ -21,7 +21,10 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
 
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
-
+  
+  const imageUrl = data.images?.[0]?.url
+  ? `${process.env.NEXT_PUBLIC_STRAPI_URL}${data.images[0].url}`
+  : null;
   return (
     <Link
       href={data.url}
@@ -65,11 +68,11 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
         <Stack sx={styles.priceContainer}>
           {hasDiscount && (
             <Typography sx={styles.originalPrice}>
-              {(data.price.originalPrice, data.price.currency)}
+              {formatPrice(data.price.originalPrice, data.price.currency)}
             </Typography>
           )}
           <Typography variant="infoValue" sx={styles.price}>
-            {(data.price.currentPrice, data.price.currency)}
+            {formatPrice(data.price.currentPrice, data.price.currency)}
           </Typography>
         </Stack>
       </Card>

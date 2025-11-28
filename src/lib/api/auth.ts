@@ -1,7 +1,7 @@
 import { setCookie } from 'cookies-next';
 import { getProviders, signIn } from 'next-auth/react';
 import { PhoneNumber } from './types';
-import { bring } from './bring';
+import  bring  from './bring';
 
 
 
@@ -38,7 +38,7 @@ export const signUpOTP = async (code: string, phone: PhoneNumber, turnstileToken
     const providers = await getProviders();
     if (!providers) throw new Error('Error initializing providers.');
 
-    const email = `${phone.phoneCode}${phone.phoneNumber}@bringist.com`;
+    const email = `${phone.phoneCode}${phone.phoneNumber}@kozmedo.com`;
 
     setCookie('phone', JSON.stringify(phone));
 

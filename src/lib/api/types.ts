@@ -137,6 +137,7 @@ export type ShopProductListItemData = {
   category?: string;
   name: string;
   url: string;
+  images?: { url: string }[];
   imgSrc: string;
   price: ShopProductPrice;
   rating?: ShopProductRating;
@@ -174,32 +175,30 @@ export type Spec = { label: string; value: string };
 
 export type ShopProductData = {
   id: string;
-  slug: string;
-  priceCents: number;
-  currency?: string;
-  images?: CMSImage[];
-  brand?: string;
-  category?: string;
-  shortDesc?: string;
-  description?: unknown[];
-  specs?: Spec[];
-  badges?: string[];
-  title: string;
   url: string;
+  brand?: string;
   brandId?: string;
+  category?: string;
   imgSrc?: string;
+  images?: string[];
   variants?: ShopProductVariantData[];
   name?: string;
   price: ShopProductPrice;
   note?: string;
   quantity: number;
   rating?: ShopProductRating;
+  description?: string;
   attributes?: ShopProductAttribute[];
   reviews?: ShopProductReview[];
   sizeRecommendation?: string;
   sizeGuide?: string;
   breadcrumbs?: ShopProductBreadcrumb[];
   src?: string;
+  faqs?: {
+    question: string;
+    answer: string;
+    sort_order?: number;
+  }[];
 };
 
 export type PaymentType = 'Stripe' | 'UniversalBank' | 'COD';

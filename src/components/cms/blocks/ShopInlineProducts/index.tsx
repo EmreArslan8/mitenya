@@ -3,7 +3,7 @@
 import CustomSlider from '@/components/CustomSlider';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import Button from '@/components/common/Button';
-import { fetchProducts } from '@/lib/api/shop';
+import { fetchProductData, fetchProducts } from '@/lib/api/shop';
 import { ShopProductListItemData, ShopSearchOptions } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
@@ -40,18 +40,44 @@ const ShopInlineProducts = ({
     setSlidesToScroll(mdUp ? 5 : smUp ? 4 : 1);
   }, [mdUp, smUp]);
 
+ 
   const searchOptions = Object.fromEntries(
-    Object.entries(_searchOptions).filter(([k, v]) => Boolean(v))
+    Object.entries(_searchOptions).filter(([k, v]) =>
+      !['id', 'blockIndex', 'direction', '__component'].includes(k) && Boolean(v)
+    )
   );
 
   useEffect(() => {
-    fetchProducts(searchOptions).then((res) => {
-      if (!res?.products) return setError(true);
-      setProducts(res.products);
-    });
-  }, []);
+    console.log('InlineProducts → searchOptions:', searchOptions);
+  
+    fetchProducts(searchOptions)
+      .then((res) => {
+        // API bazen array, bazen direkt obje olabilir diye esnek yazalım:
+        const apiResult = Array.isArray(res) ? res[0] : res;
+  
+        console.log('InlineProducts → RAW API RESPONSE:', apiResult);
+  
+        if (!apiResult?.products || !apiResult.products.length) {
+          console.log('InlineProducts → API response has NO products');
+          setError(true);
+          return;
+        }
+  
+        console.log('InlineProducts → PRODUCTS:', apiResult.products);
+        setProducts(apiResult.products);
+      })
+      .catch((err) => {
+        console.error('InlineProducts → fetchProducts error:', err);
+        setError(true);
+      });
+  }, [JSON.stringify(searchOptions)]);
+  
+
 
   if (error) return <></>;
+
+ 
+
 
   return (
     <SectionBase {...section} sx={{ gap: 2 }}>

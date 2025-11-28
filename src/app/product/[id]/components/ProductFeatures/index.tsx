@@ -3,10 +3,11 @@ import { Grid, Stack, Typography } from '@mui/material';
 import useStyles from './styles';
 
 const features = [
-  { icon: 'local_shipping', label: 'shipping' },
-  { icon: 'workspace_premium', label: 'genuine' },
-  { icon: 'payments', label: 'payments' },
+  { icon: 'local_shipping', label: 'Hızlı & Güvenli Kargo' },
+  { icon: 'workspace_premium', label: '%100 Orijinal Ürün' },
+  { icon: 'payments', label: 'Güvenli Ödeme' },
 ];
+
 
 const ProductFeatures = () => {
   const styles = useStyles();
@@ -16,7 +17,7 @@ const ProductFeatures = () => {
         <Grid item xs={6} key={e.label}>
           <Stack sx={styles.item}>
             <Icon name={e.icon} fontSize={28} />
-            <Typography variant="warningSemibold">{(`shop.features.${e.label}`)}</Typography>
+            <Typography variant="warningSemibold">{e.label}</Typography>
           </Stack>
         </Grid>
       ))}

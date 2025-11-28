@@ -26,7 +26,7 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
       {options.length ? (
         <Select
           fullWidth
-          value={value?.id.toString() ?? ''}
+          value={value?.id?.toString() ?? ''}
           IconComponent={(props) => (
             <Stack {...props}>
               <Icon name="expand_more" />
@@ -35,10 +35,10 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
           MenuProps={{ PaperProps: { sx: styles.paper } }}
           onChange={(e: SelectChangeEvent) =>
             e.target.value &&
-            onChange(options.find((option) => option.id.toString() === e.target.value)!)
+            onChange(options.find((option) => option.id?.toString() === e.target.value)!)
           }
           renderValue={(value: string) => {
-            const address = options.find((e) => e.id.toString() === value)!;
+            const address = options.find((e) => e.id?.toString() === value)!;
             return (
               <Stack>
                 <Typography variant="infoValue">{address.name}</Typography>
@@ -50,15 +50,17 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
           }}
           sx={styles.select}
         >
-          {options.map((option) => [
-            <MenuItem value={option.id.toString()} sx={styles.option} key={option.id}>
-              <Typography variant="body">{option.name}</Typography>
-              <Typography variant="body" fontSize={14} fontStyle="italic">
-                {option.line1}
-              </Typography>
-            </MenuItem>,
-            <Divider flexItem sx={styles.divider} key={`${option.name}-divider`} />,
-          ])}
+          {options
+            .filter((option) => option.id !== undefined)
+            .map((option) => [
+              <MenuItem value={option.id!.toString()} sx={styles.option} key={option.id}>
+                <Typography variant="body">{option.name}</Typography>
+                <Typography variant="body" fontSize={14} fontStyle="italic">
+                  {option.line1}
+                </Typography>
+              </MenuItem>,
+              <Divider flexItem sx={styles.divider} key={`${option.name}-divider`} />,
+            ])}
           <Button
             fullWidth
             size="small"

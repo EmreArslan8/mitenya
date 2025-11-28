@@ -33,7 +33,7 @@ const Loading = () => {
           />
           <Image
             src="/static/images/logo_white.webp"
-            alt="bringist"
+            alt="kozmedo"
             width={104.625}
             height={30}
             style={{ zIndex: 2 }}

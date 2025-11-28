@@ -1,4 +1,6 @@
-import { bring } from './bring';
+
+import { fetchProductsSupabase} from './supabaseShop';
+import { fetchProductDataSupabase } from './supabaseProducts'
 import {
   AddressData,
   PagedResults,
@@ -9,19 +11,49 @@ import {
   ShopSearchOptions,
   ShopSearchResponse
 } from './types';
+import bring from './bring';
 
-export const fetchProducts = async (
+/*  export const fetchProducts = async (
   options: Partial<ShopSearchOptions>
 ): Promise<ShopSearchResponse | undefined> => {
+
   try {
     const url = '/api/shop/search';
     const res = await bring(url, { params: options });
+    console.log(res, "fetch")
     return res[0];
   } catch (error) {
     console.log(error);
     return undefined;
   }
 };
+*/
+
+export const fetchProducts = async (
+  options: Partial<ShopSearchOptions>
+): Promise<ShopSearchResponse | undefined> => {
+  try {
+    const res = await fetchProductsSupabase(options);
+    return res;
+  } catch (error) {
+    console.log(error);
+    return undefined;
+  }
+};
+
+export const fetchProductData = async (
+  id: string
+): Promise<ShopProductData | undefined> => {
+  try {
+    const res = await fetchProductDataSupabase(id);
+    return res ?? undefined;
+  } catch (error) {
+    console.log(error);
+    return undefined;
+  }
+};
+
+
 
 export const fetchRecommendations = async (options: {
   brandId: string;
@@ -35,14 +67,6 @@ export const fetchRecommendations = async (options: {
     console.log(error);
     return [];
   }
-};
-
-export const fetchProductData = async (
-  id: string,
-): Promise<ShopProductData | undefined> => {
-  const url = '/api/shop/product';
-  const res = await bring(url, { params: { id  }, next: { revalidate: 60 } });
-  return res[0];
 };
 
 

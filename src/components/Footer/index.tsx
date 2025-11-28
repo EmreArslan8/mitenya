@@ -18,8 +18,6 @@ const Footer = ({ data }: FooterProps) => {
   const router = useRouter();
   const styles = useStyles();
 
-
-  console.log(data, "footer")
   return (
     <Stack sx={styles.container}>
       <Stack sx={styles.innerContainer}>

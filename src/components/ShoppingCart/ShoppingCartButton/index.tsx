@@ -33,7 +33,7 @@ const ShoppingCartButton = () => {
     <Stack>
       <MenuItem onClick={toggleMenuOpen} ref={buttonRef} sx={styles.button}>
         <Icon name="shopping_bag" fontSize={24} weight={400} />
-         {'cart.button.label'}
+    Sepet
         {!isCartReady && <CircularProgress color="secondary" size={13} sx={{ mt: '2px' }} />}
       </MenuItem>
       <Popover

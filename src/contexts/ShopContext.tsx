@@ -39,7 +39,39 @@ interface ShopContextState {
   loadSearchHistory: () => void;
 }
 
-export const ShopContext = createContext<ShopContextState>({} as ShopContextState);
+// Mevcut:
+// export const ShopContext = createContext<ShopContextState>({} as ShopContextState);
+
+// Olması Gereken (Güvenli Yöntem):
+export const ShopContext = createContext<ShopContextState>({
+  isCartReady: false,
+  cart: [],
+  numItems: 0,
+  totalPrice: {},
+  getItemQuantity: () => 0, // <-- Bu satır hatayı önler (Varsayılan olarak 0 döner)
+  handleAddItem: () => false,
+  handleDeleteProduct: () => {},
+  handleDecreaseItemQuantity: () => {},
+  handleIncreaseItemQuantity: () => false,
+  clearCart: () => {},
+  removeItems: () => {},
+  newProductAdded: undefined,
+  selected: [],
+  toggleSelected: () => {},
+  toggleSelectedAll: () => {},
+  numSelected: 0,
+  isSelected: () => false,
+  isSelectedAll: false,
+  totalSelectedPreDiscount: 0,
+  totalSelectedDue: 0,
+  unavailableItems: [],
+  handleDismissUnavailableItem: () => {},
+  searchHistory: [],
+  addSearchQuery: () => {},
+  removeSearchQuery: () => {},
+  clearAllHistory: () => {},
+  loadSearchHistory: () => {},
+} as ShopContextState);
 
 export const isEqProduct = (a: ShopProductData, b: ShopProductData) =>
   a.id === b.id && JSON.stringify(a.variants) === JSON.stringify(b.variants);

@@ -15,6 +15,8 @@ const HomePage = async ({
   const data = await fetchShopIndex(slug);
   if (!data) notFound();
 
+  
+
   return (
     <main>
       <HomePageView data={data} />

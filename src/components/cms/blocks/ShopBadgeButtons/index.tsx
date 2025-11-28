@@ -2,11 +2,11 @@ import { Grid, Stack } from '@mui/material';
 import { BlockComponentBaseProps } from '..';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import { SharedImageType } from '../../shared/cmsTypes';
-
 import ShopBadgeButton from '../../shared/ShopBadgeButton';
+
 export interface ShopBadgeButtonsProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
-  badges: { image: SharedImageType; label?: string; url: string }[];
+  badges: { image: SharedImageType; label?: string; url: string ; title?: string }[];
 }
 
 const ShopBadgeButtons = ({ section, badges }: ShopBadgeButtonsProps) => {
@@ -21,9 +21,11 @@ const ShopBadgeButtons = ({ section, badges }: ShopBadgeButtonsProps) => {
       case 4:
         return { xs: 3, sm: 3 };
       case 5:
-        return { xs: 3, sm: 2.4 };
+        return { xs: 3, sm: 2.4 , md: 2 };
       case 6:
-        return { xs: 3, sm: 4 };
+        return { xs: 3, sm: 4 , md : 2};
+        case 8:
+          return { xs: 3, sm: 2, md: 1.5 }
       default:
         return { xs: 3, sm: 3 };
     }
@@ -35,7 +37,7 @@ const ShopBadgeButtons = ({ section, badges }: ShopBadgeButtonsProps) => {
         {badges.map((e) => (
           <Grid {...getGridSize()} item key={e.url}>
             <Stack alignItems="center">
-              <ShopBadgeButton image={e.image} label={e.label} url={e.url} />
+              <ShopBadgeButton image={e.image} label={e.label} url={e.url} title={e.title}/>
             </Stack>
           </Grid>
         ))}

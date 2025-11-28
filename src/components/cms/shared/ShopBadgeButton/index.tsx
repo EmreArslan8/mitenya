@@ -9,25 +9,34 @@ export interface ShopBadgeButtonProps {
   image: SharedImageType;
   url?: string | null;
   label?: string | null;
+  title?: string | null; 
 }
 
-const ShopBadgeButton = ({ url, image, label }: ShopBadgeButtonProps) => {
+
+const ShopBadgeButton = ({ url, image, label, title }: ShopBadgeButtonProps) => {
   const styles = useStyles();
   const { smDown } = useScreen();
 
   if (!image) return null;
 
   return (
-    <Stack sx={styles.cardContainer}>
-      <Link href={url}>
-        <CMSImage
-          src={image.data.attributes.url}
-          alt={image.data.attributes.alternativeText}
-          width={smDown ? 56 : 80}
-          height={smDown ? 56 : 80}
-          style={{ objectFit: 'contain', borderRadius: '8px' }}
-        />
-      </Link>
+    <Stack alignItems="center" spacing={1}> 
+      <Stack sx={styles.cardContainer}>
+        <Link href={url}>
+          <CMSImage
+            src={image.data.attributes.url}
+            alt={image.data.attributes.alternativeText}
+            width={smDown ? 56 : 100}
+            height={smDown ? 56 : 100}
+            style={{ objectFit: 'contain', borderRadius: '8px' }}
+          />
+        </Link>
+      </Stack>
+      {title && (
+        <Typography variant="body2" sx={styles.title}>
+          {title}
+        </Typography>
+      )}
       {label && (
         <Typography variant="caption" sx={styles.label}>
           {label}

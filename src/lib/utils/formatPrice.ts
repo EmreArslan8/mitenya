@@ -1,25 +1,17 @@
-import getCurrencySymbol from './currencies';
-
-
-const formatPrice = (
-  price?: number,
-  currency?: string,
-  locale?: Locale,
-  hideCurrency?: boolean
-) => {
-  if (price === undefined || price === null) return '--.--';
-  const currencySymbol = !hideCurrency && currency ? `${getCurrencySymbol(currency, locale)} ` : '';
-
-  if (currency === 'UZS')
-    return `${price.toLocaleString('en-US', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    })} ${currencySymbol}`;
-  else
-    return `${currencySymbol}${price.toLocaleString('en-US', {
+export default function formatPrice(
+  value: number,
+  currency: string = 'TRY',
+  locale: string = 'tr-TR'
+): string {
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    })}`;
-};
-
-export default formatPrice;
+    }).format(value);
+  } catch (e) {
+    // Fallback: TRY formatında dön
+    return `${value.toFixed(2)} ${currency}`;
+  }
+}

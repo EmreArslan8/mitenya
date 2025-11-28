@@ -1,8 +1,7 @@
-/*
+
 
 import 'server-only';
 
-import { Locale } from '@/i18n';
 import brands, { brandIds } from './brands';
 import { translateSearchQuery } from './translate';
 
@@ -136,4 +135,3 @@ export const extractBrandsFromQuery = (
 };
 
 export default translateQuery;
-*/

@@ -6,7 +6,9 @@ import 'slick-carousel/slick/slick-theme.css';
 import 'slick-carousel/slick/slick.css';
 import useStyles from './styles';
 
-interface CustomSliderProps extends ReactSlickSliderSettings {}
+interface CustomSliderProps extends ReactSlickSliderSettings {
+  showControls?: boolean;
+}
 
 const CustomSlider = ({
   children,
@@ -16,6 +18,7 @@ const CustomSlider = ({
   slidesToScroll = 1,
   swipe = true,
   touchMove = true,
+  showControls = true,
   ...rest
 }: CustomSliderProps) => {
   const sliderRef = useRef<Slider>(null);
@@ -33,24 +36,28 @@ const CustomSlider = ({
       >
         {children}
       </Slider>
-      <Button
-        color="neutral"
-        size="small"
-        variant="outlined"
-        onClick={goToPrevSlide}
-        sx={styles.prevButton}
-      >
-        <Icon name="chevron_left" color="neutral" fontSize={26} sx={{ mr: '2px' }} />
-      </Button>
-      <Button
-        color="neutral"
-        size="small"
-        variant="outlined"
-        onClick={goToNextSlide}
-        sx={styles.nextButton}
-      >
-        <Icon name="chevron_right" color="neutral" fontSize={26} sx={{ ml: '2px' }} />
-      </Button>
+      {showControls && (
+        <>
+          <Button
+            color="neutral"
+            size="small"
+            variant="outlined"
+            onClick={goToPrevSlide}
+            sx={styles.prevButton}
+          >
+            <Icon name="chevron_left" color="neutral" fontSize={26} sx={{ mr: '2px' }} />
+          </Button>
+          <Button
+            color="neutral"
+            size="small"
+            variant="outlined"
+            onClick={goToNextSlide}
+            sx={styles.nextButton}
+          >
+            <Icon name="chevron_right" color="neutral" fontSize={26} sx={{ ml: '2px' }} />
+          </Button>
+        </>
+      )}
     </Stack>
   );
 };

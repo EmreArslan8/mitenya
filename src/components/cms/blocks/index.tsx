@@ -10,6 +10,7 @@ import ShopInfoAreas from './ShopInfoAreas';
 import ShopInlineProducts from './ShopInlineProducts';
 import ShopRibbon from './ShopRibbon';
 import ShopBadgeButtons from './ShopBadgeButtons';
+import ShopSliderCards from './ShopSliderCards';
 
 /*
  *
@@ -35,6 +36,7 @@ const componentMap = {
   'blocks.shop-info-areas': ShopInfoAreas,
   'blocks.shop-ribbon': ShopRibbon,
   'blocks.shop-badge-button': ShopBadgeButtons,
+  'blocks.shop-slider-cards': ShopSliderCards,
 };
 
 /*

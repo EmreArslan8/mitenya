@@ -6,8 +6,8 @@ This endpoint retrieves product information based on the provided HS code or pro
 
 ## URL
 
-QA Base URL: `https://shop-qa.bringist.com`
-Prod Base URL: `https://shop.bringist.com`
+QA Base URL: `https://shop-qa.kozmedo.com`
+Prod Base URL: `https://shop.kozmedo.com`
 Endpoint Route: `/api/shop/product/classification`
 
 ## Method

@@ -1,8 +1,8 @@
-import useLocale from '@/lib/hooks/useLocale';
+
 import { withPalette } from '@/theme/ThemeRegistry';
 
 const useStyles = withPalette((palette) => {
-  const { direction } = useLocale();
+
   return {
     card: {
       header: { p: 0 },
@@ -52,9 +52,6 @@ const useStyles = withPalette((palette) => {
         pb: '1px',
         height: { xs: 36, sm: 22 },
         fontSize: { xs: 16, sm: 13 },
-        ...(direction === 'rtl'
-          ? { pr: '4px !important', pl: '0 !important' }
-          : { pl: '4px !important', pr: '0 !important' }),
         '&::placeholder': {
           color: `${palette.text.mediumLight} !important`,
           opacity: 1,
@@ -65,7 +62,6 @@ const useStyles = withPalette((palette) => {
         fontSize: { xs: 16, sm: 13 },
         borderRadius: { sm: 0.5 },
         background: palette.bg.light,
-        ...(direction === 'rtl' ? { pr: '6px', pl: 0 } : { pl: '6px', pr: 0 }),
       },
     },
     searchIcon: {

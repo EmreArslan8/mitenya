@@ -1,5 +1,3 @@
-
-import { fetchProductData } from '@/lib/api/shop';
 import { ShopProductData } from '@/lib/api/types';
 import isPreviewBot from '@/lib/utils/isPreviewBot';
 import isSSR from '@/lib/utils/isSSR';
@@ -7,20 +5,17 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import Loading from './loading';
 import SuspensedView from './suspensedView';
+import { fetchProductData } from '@/lib/api/shop';
 
-const ProductPage = async ({
-  params,
-}: {
-  params: { id: string;  };
-}) => {
-  // #SHUTDOWN
-
-  
+const ProductPage = async ({ params }: { params: { id: string } }) => {
   if (await isPreviewBot()) return <></>;
+
+  const { id } = await params; 
+
   return (
     <>
-      <Suspense fallback={<Loading />} key={params.id}>
-        <SuspensedView params={params} />
+      <Suspense fallback={<Loading />} key={id}> 
+        <SuspensedView params={{ id }} />
       </Suspense>
     </>
   );
@@ -28,13 +23,13 @@ const ProductPage = async ({
 
 export const maxDuration = 30;
 
-export const generateMetadata = async ({
-  params: { id },
-}: {
-  params: { id: string; };
-}): Promise<Metadata> => {
+export async function generateMetadata({ params }: any): Promise<Metadata> {
+  const { id } = await params; // ✔ zorunlu çözüm
+
   if (!isSSR() && !isPreviewBot()) return {};
+
   const data = await fetchProductData(id);
+
   return {
     title: { absolute: `${data?.brand ?? ''} ${data?.name ?? ''} | Kozmedo` },
     openGraph: {
@@ -48,12 +43,8 @@ export const generateMetadata = async ({
         },
       ],
     },
-    robots: {
-      index: true,
-      follow: true,
-    },
   };
-};
+}
 
 export const dynamic = 'force-dynamic';
 

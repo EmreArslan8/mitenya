@@ -1,9 +1,12 @@
-import React from 'react'
+import CartPageView from './view';
 
-const page = () => {
-  return (
-    <div>page</div>
-  )
-}
+const CartPage = async () => {
+  return <CartPageView />;
+};
 
-export default page
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const metadata = {
+  title: '🛒',
+};
+export default CartPage;

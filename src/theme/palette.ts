@@ -1,9 +1,10 @@
 export const defaultPalette = {
-  logo: { src: '/static/images/logo.webp', width: 105, height: 30 },
+  logo: { src: '/static/images/logo.png', width: 180, height: 50 },
   primary: {
     main: '#A166FF',
     light: '#F5EFFF',
     dark: '#8051CB',
+    deepDark: '#270163',
     contrastText: '#FFFFFF',
     gradient: 'linear-gradient(102.75deg, #270163 2.2%, #431985 45.17%, #380091 82.3%)',
   },

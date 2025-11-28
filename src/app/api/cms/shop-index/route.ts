@@ -1,4 +1,4 @@
-import { bring } from "@/lib/api/bring";
+import  bring  from "@/lib/api/bring";
 import { NextRequest } from "next/server";
 
 const cmsApiUrl = process.env.NEXT_PUBLIC_STRAPI_URL;

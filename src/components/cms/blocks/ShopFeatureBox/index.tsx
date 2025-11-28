@@ -44,11 +44,31 @@ const ShopFeatureBox = ({
           </Stack>
         </Grid>
         <Grid item xs={12} sm={6}>
-          <Stack sx={styles.text}>
+          <Stack
+            sx={{
+              ...styles.text, // Mevcut stilinizi koruyun
+              // Dikey hizalamayı değiştiriyoruz:
+              // Stack içindeki elemanları dikeyde aşağıya hizalar.
+              // Eğer Stack yeterince uzunsa boşluğu yukarıda bırakır.
+              justifyContent: 'flex-end',
+              // Stack'in içindeki tüm elemanları (başlık, açıklama, buton) yatayda ortalamak isterseniz:
+              // alignItems: 'center',
+            }}
+          >
             {title && <Typography variant="h2">{title}</Typography>}
             {description && <Markdown text={description} />}
             {button && (
-              <Button size="small" {...button} sx={{ mt: 2 }} variant="tonal">
+              <Button
+                size="small"
+                {...button}
+                sx={{
+                  mt: 2,
+                  // alignSelf: 'center' yerine, üst Stack'in alignItems'ını kullanmak daha mantıklı.
+                  // Eğer üst Stack'e alignItems: 'center' vermediyseniz, bu satırı bırakın.
+                  alignSelf: 'center',
+                }}
+                variant="tonal"
+              >
                 {button.label}
               </Button>
             )}

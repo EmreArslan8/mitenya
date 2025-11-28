@@ -1,6 +1,7 @@
 import Footer from "@/components/Footer";
 import MainLayout from "@/components/layouts/MainLayout";
 import Navigation from "@/components/Navigation";
+import { ShopContext, ShopContextProvider } from "@/contexts/ShopContext";
 import { fetchShopFooter, fetchShopHeader } from "@/lib/api/cms";
 import { defaultFontFamily } from "@/theme/theme";
 import ThemeRegistry from "@/theme/ThemeRegistry";
@@ -61,9 +62,11 @@ const footerData = await fetchShopFooter()
 
       <body style={{ fontFamily: defaultFontFamily, overflowX: "hidden" }}>
         <ThemeRegistry>
-          {headerData && <Navigation data={headerData} />}
+          <ShopContextProvider >
+           <Navigation data={headerData} />
           <MainLayout>{children}</MainLayout>
           <Footer  data={footerData} />
+          </ShopContextProvider>
         </ThemeRegistry>
       </body>
     </html>

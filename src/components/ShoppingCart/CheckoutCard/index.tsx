@@ -50,20 +50,14 @@ const CheckoutCard = ({
       <Stack sx={styles.cardBody}>
         <Stack>
           <Typography fontSize={22} fontWeight={700}>
-            {(orderSummary?.totalDue, orderSummary?.currency)}
+            {orderSummary?.totalDue} {orderSummary?.currency}
           </Typography>
           {!!orderSummary?.totalDiscount && (
             <Stack direction="row" gap={0.5} alignItems="center">
               <Icon name="trending_down" fontSize={16} color="success" sx={{ my: -1 }} />
               <Markdown
                 component="span"
-                text= {('totalDiscountNote', {
-                  discount: (
-                    orderSummary.totalDiscount,
-                    orderSummary.currency,
-  
-                  ).trim(),
-                })}
+                text={`You saved ${orderSummary.totalDiscount} ${orderSummary.currency}`}
                 options={styles.discountMdOptions}
                 sx={styles.discount}
               />
@@ -77,13 +71,13 @@ const CheckoutCard = ({
         <Stack>
           {/* <Banner
             variant="success"
-            title= {('finalPriceBanner')}
+            title="Final Price"
             IconProps={{ name: 'handshake', fontSize: 26 }}
             sx={{ mx: -2, borderRadius: 0, p: 2 }}
           />
           <Divider sx={{ mx: -2 }} />
           <Banner
-            title= {('shippingBanner')}
+            title="Shipping"
             IconProps={{ name: 'local_shipping', fontSize: 26 }}
             sx={{ mx: -2, borderRadius: 0, p: 2 }}
           /> */}
@@ -91,7 +85,7 @@ const CheckoutCard = ({
           <Banner
             variant="neutral"
             IconProps={{ name: 'redeem', fontSize: 26 }}
-            title= {('discountCodeLabel')}
+            title="Discount Code"
             collapsible
             defaultCollapsed
             sx={{ mx: -2, borderRadius: 0, p: 2 }}
@@ -101,7 +95,7 @@ const CheckoutCard = ({
                 fullWidth
                 size="small"
                 defaultValue={initialDiscountCode}
-                placeholder= {('discountCodePlaceholder')}
+                placeholder="Enter discount code"
                 onChange={(e) => setCode(e.target.value)}
                 sx={styles.discountInput}
                 InputProps={{
@@ -116,17 +110,11 @@ const CheckoutCard = ({
                 }}
               />
               {!loading && initialDiscountCode && !orderSummary?.discountCode && (
-                <Typography variant="caption"> {('discountCodeError')}</Typography>
+                <Typography variant="caption">Invalid discount code</Typography>
               )}
               {orderSummary?.promotionDiscount && (
                 <Typography variant="caption" mx={1}>
-                   {('discountCodeSuccess', {
-                    totalDiscount: (
-                      orderSummary.promotionDiscount,
-                      orderSummary.currency,
-                     
-                    ),
-                  })}
+                   Discount applied: {orderSummary.promotionDiscount} {orderSummary.currency}
                 </Typography>
               )}
               <Button
@@ -136,40 +124,36 @@ const CheckoutCard = ({
                 type="submit"
                 sx={{ minWidth: 0, px: 2 }}
               >
-                 {('discountCodeSubmit')}
+                 Apply
               </Button>
             </Stack>
           </Banner>
           {/* {!!orderSummary?.totalDiscount && (
               <Banner
-                title= {('discount')}
+                title="Discount"
                 variant="success"
                 IconProps={{ name: 'trending_down' }}
                 collapsible
                 defaultCollapsed
                 action={
                   <Typography variant="cardTitle" whiteSpace="nowrap" sx={styles.discount} mx={1}>
-                    -{(orderSummary.totalDiscount, orderSummary.currency)}
+                    -{orderSummary.totalDiscount} {orderSummary.currency}
                   </Typography>
                 }
               >
                 <Stack sx={styles.priceLine}>
                   <Typography variant="caption">
-                     {('productDiscount', { percent: orderSummary.productDiscountPercent })}
+                     Product Discount {orderSummary.productDiscountPercent}
                   </Typography>
                   <Typography variant="caption" fontWeight={500}>
-                    {(
-                      orderSummary.productCostPreDiscount! - orderSummary.productCost!,
-                      orderSummary.currency,
-                  
-                    )}
+                    {orderSummary.productCostPreDiscount! - orderSummary.productCost!} {orderSummary.currency}
                   </Typography>
                 </Stack>
                 {orderSummary.discountCode && (
                   <Stack sx={styles.priceLine}>
-                    <Typography variant="caption"> {('promotionDiscount')}</Typography>
+                    <Typography variant="caption"> Promotion Discount</Typography>
                     <Typography variant="caption" fontWeight={500}>
-                      {(orderSummary.promotionDiscount, orderSummary.currency)}
+                      {orderSummary.promotionDiscount} {orderSummary.currency}
                     </Typography>
                   </Stack>
                 )}
@@ -200,24 +184,24 @@ export const PriceLines = ({
   return (
     <Stack>
       <Stack sx={styles.priceLine}>
-        <Typography variant="warning"> {'itemsTotal'}</Typography>
+        <Typography variant="warning">Items Total</Typography>
         <Typography variant="warningSemibold">
-          {(orderSummary?.productCost, orderSummary?.currency)}
+          {orderSummary?.productCost} {orderSummary?.currency}
         </Typography>
       </Stack>
       {!!orderSummary?.shipmentCost && (
         <Stack sx={styles.priceLine}>
-          <Typography variant="warning"> {('shipping')}</Typography>
+          <Typography variant="warning">Shipping</Typography>
           <Typography variant="warningSemibold">
-            {(orderSummary?.shipmentCost, orderSummary?.currency)}
+            {orderSummary?.shipmentCost} {orderSummary?.currency}
           </Typography>
         </Stack>
       )}
       {orderSummary?.codServiceFee && (
         <Stack sx={styles.priceLine}>
-          <Typography variant="warning"> {('codServiceFee')}</Typography>
+          <Typography variant="warning">COD Service Fee</Typography>
           <Typography variant="warningSemibold">
-            {(orderSummary?.codServiceFee, orderSummary?.currency)}
+            {orderSummary?.codServiceFee} {orderSummary?.currency}
           </Typography>
         </Stack>
       )}
@@ -225,24 +209,24 @@ export const PriceLines = ({
         <Banner
           variant="neutral"
           IconProps={{ name: 'info' }}
-          title= {('selectCountryForShippingQuote')}
+          title="Select country for shipping quote"
           sx={{ mt: 1 }}
         />
       )}
       {!!orderSummary?.promotionDiscount && (
         <Stack sx={{ ...styles.priceLine, ...styles.discount }}>
-          <Typography variant="warning"> {('discount')}</Typography>
+          <Typography variant="warning">Discount</Typography>
           <Typography variant="warningSemibold">
-            -{(orderSummary?.promotionDiscount, orderSummary?.currency)}
+            -{orderSummary?.promotionDiscount} {orderSummary?.currency}
           </Typography>
         </Stack>
       )}
       <Divider sx={{ my: 1 }} />
       {!!orderSummary?.totalDue && (
         <Stack sx={styles.priceLine}>
-          <Typography variant="warning"> {('totalDue')}</Typography>
+          <Typography variant="warning">Total Due</Typography>
           <Typography variant="warningSemibold">
-            {(orderSummary?.totalDue, orderSummary?.currency)}
+            {orderSummary?.totalDue} {orderSummary?.currency}
           </Typography>
         </Stack>
       )}

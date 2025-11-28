@@ -12,7 +12,6 @@ import { ShopProductData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
-import formatPrice from '@/lib/utils/formatPrice';
 import { Divider, Grid, Rating, Stack, Tab, Tabs, Typography } from '@mui/material';
 import ProductAttributes from './components/ProductAttributes';
 import ProductFaq from './components/ProductFaq';
@@ -24,6 +23,7 @@ import ProductVariants from './components/ProductVariants';
 import ProgressIndicator from './components/ProgressIndicator';
 import useStyles from './styles';
 import { useRouter } from 'next/navigation';
+import formatPrice from '@/lib/utils/formatPrice';
 
 const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
@@ -38,6 +38,8 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
 
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
+
+  console.log("data:", data.price)
 
   const handleSelectOption = (variantName: string, optionValue: string) => {
     setVariants((prev) =>
@@ -159,11 +161,11 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
               <Stack sx={styles.priceContainer}>
                 {hasDiscount && (
                   <Typography sx={styles.originalPrice}>
-                    {(data.price.originalPrice, data.price.currency)}
+                    {formatPrice(data.price.originalPrice, data.price.currency)}
                   </Typography>
                 )}
                 <Typography variant="infoValue" sx={styles.currentPrice}>
-                  {(data.price.currentPrice, data.price.currency)}
+                  {formatPrice(data.price.currentPrice, data.price.currency)}
                 </Typography>
                 {hasDiscount && <Stack sx={styles.discountBadge}>{`-${discountPercent}%`}</Stack>}
               </Stack>
@@ -195,7 +197,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                 <CrossFade
                   components={[
                     { in: showCheck, component: <Icon name="check" /> },
-                    { in: !showCheck, component: t('addToCart') },
+                    { in: !showCheck, component: ('Sepete Ekle') },
                   ]}
                 />
               </Button>
@@ -213,6 +215,8 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
           </Grid>
         </Grid>
       </Stack>
+
+    
       <ProductFaq />
       {!!data.reviews?.length && data.rating && (
         <ProductReviews reviews={data.reviews} rating={data.rating} />
