@@ -14,7 +14,7 @@ const NotFoundPage = () => {
     <Stack gap={2} textAlign="center" alignItems="center" overflow="hidden">
       <Icon name="search_off" fontSize={80} />
       <Typography variant="h2">Sayfa Bulunamadı</Typography>
-      <Markdown text={"ANA SAYAFAYA DÖNÜN"} />
+      <Markdown text={"ANA SAYFAYA DÖNÜN"} />
       <Stack direction={{ sm: 'row' }} gap={1} width="100%" maxWidth={450} sx={{ mt: 1 }}>
         <SupportButton variant="outlined" color="secondary" sx={{ flex: 1 }} />
         <Button
