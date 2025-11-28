@@ -1,3 +1,5 @@
+'use client'
+
 import Icon from '@/components/Icon';
 import { ShopSearchSort } from '@/lib/api/types';
 import searchUrlFromOptions, { searchOptionsFromSearchParams } from '@/lib/shop/searchHelpers';

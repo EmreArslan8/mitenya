@@ -1,3 +1,5 @@
+'use client'
+
 import LoadingOverlay from '@/components/LoadingOverlay';
 import useScreen from '@/lib/hooks/useScreen';
 import { CategoryNode } from '@/lib/shop/categories';
