@@ -6,6 +6,7 @@ import { fetchShopFooter, fetchShopHeader } from "@/lib/api/cms";
 import { defaultFontFamily } from "@/theme/theme";
 import ThemeRegistry from "@/theme/ThemeRegistry";
 import Script from "next/script";
+import { Suspense } from "react";
 
 const isProduction = process.env.NEXT_PUBLIC_HOST_ENV === "production";
 
@@ -62,10 +63,12 @@ const footerData = await fetchShopFooter()
 
       <body style={{ fontFamily: defaultFontFamily, overflowX: "hidden" }}>
         <ThemeRegistry>
-          <ShopContextProvider >
-           <Navigation data={headerData} />
-          <MainLayout>{children}</MainLayout>
-          <Footer  data={footerData} />
+          <ShopContextProvider>
+            <Suspense fallback={null}>
+              <Navigation data={headerData} />
+            </Suspense>
+            <MainLayout>{children}</MainLayout>
+            <Footer data={footerData} />
           </ShopContextProvider>
         </ThemeRegistry>
       </body>
