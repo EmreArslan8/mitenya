@@ -16,7 +16,13 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "kozmedo-cms.onrender.com", // 🔥 kendi render domainin
+        hostname: "funny-animal-09dc5ed329.media.strapiapp.com", 
+        port: "",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "https",
+        hostname: "kozmedo-cms.onrender.com", 
         port: "",
         pathname: "/uploads/**",
       },
