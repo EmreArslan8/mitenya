@@ -17,8 +17,12 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "funny-animal-09dc5ed329.media.strapiapp.com", 
-        port: "",
-        pathname: "/uploads/**",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "funny-animal-09dc5ed329.strapiapp.com",
+        pathname: "/**",
       },
       {
         protocol: "https",
