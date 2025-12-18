@@ -127,7 +127,6 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     };
   });
 
-  console.log("🟪 [SUPABASE] Mapped products:", products.length);
 
   // ============================================================
   // 🎯 CATEGORY FILTERS

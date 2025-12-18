@@ -26,8 +26,8 @@ const ShopBadgeButton = ({ url, image, label, title }: ShopBadgeButtonProps) => 
           <CMSImage
             src={image.data.attributes.url}
             alt={image.data.attributes.alternativeText}
-            width={smDown ? 56 : 200}
-            height={smDown ? 56 : 200}
+            width={smDown ? 100 : 200}
+            height={smDown ? 100 : 200}
             style={{ objectFit: 'contain', borderRadius: '99px' }}
           />
         </Link>

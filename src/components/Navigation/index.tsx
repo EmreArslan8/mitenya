@@ -203,114 +203,69 @@ const Navigation = ({ data }: NavigationProps) => {
             </Stack>
             <Stack sx={styles.secondaryBar}>
               <Stack sx={styles.shopHeaderLinks}>
-                {/* {region === 'uz' && (
-                  <Stack direction="row" gap={1}>
-                    <Stack
-                      sx={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 1,
-                        backgroundColor: '#FC2647',
-                        color: '#fff',
-                        borderRadius: 0.5,
-                        px: 1,
-                        py: 0.5,
-                        cursor: 'pointer',
-                        animation: `${pulseAnimation} 3s infinite`,
-                      }}
-                      onClick={() => router.push('/search?category=181%2C245&ph=30')}
-                    >
-                      <Typography variant="body" fontWeight={600} zIndex={1} noWrap>
-                        {locale === 'ru' ? 'Скидки' : 'Chegirmalar'}
-                      </Typography>
-                    </Stack>
-                    <Stack
-                      sx={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 1,
-                        background: 'linear-gradient(102.11deg, #71A63C 2.24%, #BEDC9F 98.95%)',
-                        color: '#fff',
-                        borderRadius: 0.5,
-                        px: 1,
-                        py: 0.5,
-                        cursor: 'pointer',
-                        animation: `${pulseAnimation} 3s infinite`,
-                      }}
-                      onClick={() => router.push('/supplements-vitamins')}
-                    >
-                      <Typography variant="body" fontWeight={600} zIndex={1} noWrap>
-                        {locale === 'ru' ? 'Добавки и витамины' : "Qo'shimchalar va vitaminlar"}
-                      </Typography>
-                    </Stack>
+                <Stack sx={styles.secondaryBar}>
+                  <Stack sx={styles.shopHeaderLinks}>
+                    {data?.categories?.map((cat, index) => (
+                      <MenuItem
+                        key={cat.id}
+                        sx={styles.shopHeaderLink}
+                        onMouseEnter={() => setActiveCategory(index)}
+                        onClick={() => cat.slug && router.push(`/${cat.slug}`)}
+                      >
+                        {cat.label}
+                      </MenuItem>
+                    ))}
                   </Stack>
-                )} */}
-               <Stack sx={styles.secondaryBar}>
-  <Stack sx={styles.shopHeaderLinks}>
-    {data?.categories?.map((cat, index) => (
-      <MenuItem
-        key={cat.id}
-        sx={styles.shopHeaderLink}
-        onMouseEnter={() => setActiveCategory(index)}
-        onClick={() => cat.slug && router.push(`/${cat.slug}`)}
-      >
-        {cat.label}
-      </MenuItem>
-    ))}
-  </Stack>
-</Stack>
+                </Stack>
 
-{smUp && activeCategory !== null && data?.categories?.[activeCategory] && (
-  <Box
-    onMouseLeave={() => setActiveCategory(null)}
-    sx={{
-      position: "absolute",
-      top: styles.secondaryBar.height || 150,
-      left: 0,
-      width: "100%",
-      background: "#fff",
-      boxShadow: "0 5px 20px rgba(0,0,0,0.10)",
-      zIndex: 2000,
-      p: 4,
-      display: "flex",
-      gap: 4,
-      borderBottom: "1px solid #eee",
-    }}
-  >
-    <Stack
-      sx={{
-        flex: 3,
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: 4,
-      }}
-    >
-      {data.categories[activeCategory].subs?.map((sub) => (
-        <Stack key={sub.id} spacing={1}>
-          <Typography fontWeight={700} fontSize={17} color="primary.main">
-            {sub.label}
-          </Typography>
+                {smUp && activeCategory !== null && data?.categories?.[activeCategory] && (
+                  <Box
+                    onMouseLeave={() => setActiveCategory(null)}
+                    sx={{
+                      position: 'absolute',
+                      top: styles.secondaryBar.height || 150,
+                      left: 0,
+                      width: '100%',
+                      background: '#fff',
+                      boxShadow: '0 5px 20px rgba(0,0,0,0.10)',
+                      zIndex: 2000,
+                      p: 4,
+                      display: 'flex',
+                      gap: 4,
+                      borderBottom: '1px solid #eee',
+                    }}
+                  >
+                    <Stack
+                      sx={{
+                        flex: 3,
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: 4,
+                      }}
+                    >
+                      {data.categories[activeCategory].subs?.map((sub) => (
+                        <Stack key={sub.id} spacing={1}>
+                          <Typography fontWeight={700} fontSize={17} color="primary.main">
+                            {sub.label}
+                          </Typography>
 
-          {sub.items?.map((item) => (
-            <Typography
-              key={item.id}
-              sx={{
-                cursor: "pointer",
-                "&:hover": { color: "primary.main" },
-              }}
-              onClick={() => item.slug && router.push(`/${item.slug}`)}
-            >
-              {item.label}
-            </Typography>
-          ))}
-        </Stack>
-      ))}
-    </Stack>
-
-   
-  </Box>
-)}
-
+                          {sub.items?.map((item) => (
+                            <Typography
+                              key={item.id}
+                              sx={{
+                                cursor: 'pointer',
+                                '&:hover': { color: 'primary.main' },
+                              }}
+                              onClick={() => item.slug && router.push(`/${item.slug}`)}
+                            >
+                              {item.label}
+                            </Typography>
+                          ))}
+                        </Stack>
+                      ))}
+                    </Stack>
+                  </Box>
+                )}
               </Stack>
             </Stack>
           </Stack>
@@ -534,7 +489,7 @@ const SearchBar = ({ onFocus, onBlur }: SearchBarProps) => {
           setQuery(e.target.value);
           setShowHistory(true);
         }}
-        placeholder={'palceholder'}
+        placeholder={''}
         sx={styles.searchBarInput}
         InputProps={{
           endAdornment: (

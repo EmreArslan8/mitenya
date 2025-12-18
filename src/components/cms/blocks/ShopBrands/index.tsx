@@ -4,23 +4,24 @@ import BrandItem from '../../shared/ShopBrand';
 
 import { BlockComponentBaseProps } from '..';
 import CustomSlider from '@/components/CustomSlider';
+import useScreen from '@/lib/hooks/useScreen';
 
 export interface ShopBrandsProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
   brands: {
-    logo: any; // SharedImageType (SVG)
+    logo: any;
     url?: string;
     highlight?: boolean;
   }[];
 }
 
-console.log(SectionBase, "sec")
 
 const ShopBrands = ({ section, brands }: ShopBrandsProps) => {
+  const isMobile = useScreen();
   return (
     <SectionBase {...section}>
      <CustomSlider
-  slidesToShow={5}
+ slidesToShow={isMobile ? 2 : 5}
   slidesToScroll={1}
   infinite
   autoplay

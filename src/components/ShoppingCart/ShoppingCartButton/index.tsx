@@ -50,7 +50,7 @@ const ShoppingCartButton = () => {
             {cart && cart.length > 0 ? (
               <>
                 <Stack sx={styles.menuHeader}>
-                  <Typography variant="body"> {'cart.button.title'}</Typography>
+                  <Typography variant="body"> Sepet </Typography>
                   <Icon name="close" onClick={() => setMenuOpen(false)} />
                 </Stack>
                 <Stack sx={styles.products}>
@@ -72,7 +72,7 @@ const ShoppingCartButton = () => {
                     router.push('/cart');
                   }}
                 >
-                   {('cart.button.continue')}
+             Sepete Git
                 </Button>
               </>
             ) : (
