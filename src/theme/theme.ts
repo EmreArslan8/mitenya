@@ -4,7 +4,7 @@ import { Interpolation, PaletteColorOptions, Theme, createTheme } from '@mui/mat
 import { Barlow, IBM_Plex_Sans, IBM_Plex_Mono, Rubik } from 'next/font/google';
 import { Palette, defaultPalette } from './palette';
 
-export const defaultMaxWidth = 1200;
+export const defaultMaxWidth = 1340;
 export const headerHeight = { xs: 88, sm: 120 };
 export const bannerHeight = 26;
 export const defaultMarginBottom = { xs: 8, sm: 18 };

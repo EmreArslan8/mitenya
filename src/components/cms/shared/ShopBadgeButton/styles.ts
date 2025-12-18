@@ -3,20 +3,13 @@ import { brotliDecompress } from 'zlib';
 
 const useStyles = withPalette((palette) => ({
   cardContainer: {
-    borderRadius: '50%',
-    border: `1px solid`,
+    borderRadius: '0%',
     bordorColor: palette.info,
     padding: { xs: '8px', sm: '12px' },
     justifyContent: 'center',
- 
     transition: 'border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease',
-    width: { xs: '80px', sm: '120px' },
-    height: { xs: '80px', sm: '120px' },
     '&:hover': {
       transform: 'scale(1.05)', 
-      borderColor: palette.secondary.main,
-      boxShadow: `0 4px 12px 0px ${palette.secondary.main}40`, 
-      cursor: 'pointer', 
     },
   },
   title: {

@@ -56,46 +56,96 @@ const CartPageView = ({
   const [buttonLoading, setButtonLoading] = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
-  const { isAuthenticated, openAuthenticator } = useAuth();
+  const { isAuthenticated, openAuthenticator, customerData } = useAuth();
   const isCartPage = pathname?.includes('/cart') ?? false;
+
+  console.log("🧩 CART PAGE LOAD", {
+    isAuthenticated,
+    customerData,
+    selectedCount: selected?.length,
+    cartLength: cart?.length,
+  });
+  
 
   const handleUpdateOrderSummary = useCallback(
     debounce(async (selected, discountCode) => {
-      const data = await getOrderSummary({
-        products: selected,
-        discountCode,
-      });
-      setOrderSummary(data?.orderSummary);
-      setSummaryLoading(false);
+      // 💡 LOG: Sipariş özeti API çağrısı başlıyor
+      //console.log('--- LOG: Order Summary API Call STARTED ---', { selectedItems: selected.length, discountCode });
+
+      try {
+        const data = await getOrderSummary({
+          products: selected,
+          discountCode,
+        });
+
+        // 💡 LOG: API'den gelen veriyi logla
+      //  console.log('--- LOG: Order Summary Data Received ---', data?.orderSummary);
+
+        setOrderSummary(data?.orderSummary);
+        setSummaryLoading(false);
+      } catch (error) {
+        // 💡 LOG: API çağrısında hata oluştu
+      //  console.error('--- LOG: Order Summary API Call ERROR ---', error);
+        setSummaryLoading(false);
+      }
     }, 1000),
     []
   );
 
   const handleContinue = async () => {
-    if (!selected?.length) return;
-    let url = '/checkout';
-    if (discountCode) url += '?dc=' + discountCode;
+    console.log("▶ handleContinue CALLED", {
+      isAuthenticated,
+      hasSelectedItems: (selected?.length ?? 0) > 0,
+    });
+  
+    if (!selected?.length) {
+      console.log("⛔ DEVAM EDİLEMİYOR: Ürün seçili değil");
+      return;
+    }
+  
     if (isAuthenticated === false) {
+      console.log("⚠ Kullanıcı LOGIN DEĞİL → Authenticator açılıyor");
       openAuthenticator({
         onSuccess: () => {
+          console.log("✔ Login başarılı → Checkout’a yönlendiriliyor");
           setButtonLoading(true);
           onContinue?.();
-          router.push(url);
+          router.push('/checkout');
         },
       });
       return;
     }
+  
+    console.log("✔ Kullanıcı ZATEN LOGIN → Checkout’a gidiyor");
     setButtonLoading(true);
     onContinue?.();
-    router.push(url);
+    router.push('/checkout');
   };
-
+  
   useEffect(() => {
-    if (!selected?.length) return setOrderSummary(undefined);
+    // 💡 LOG: useEffect tetiklendi
+   // console.log('--- LOG: useEffect Triggered ---', { selectedCount: selected?.length, isAuthenticated });
+
+    if (!selected?.length) {
+   //   console.log('--- LOG: No selected items, resetting summary ---');
+      return setOrderSummary(undefined);
+    }
+    
     setSummaryLoading(true);
-    if (isAuthenticated === undefined) return;
+    
+    if (isAuthenticated === undefined) {
+     // console.log('--- LOG: Authentication status pending, delaying API call ---');
+      return;
+    }
+    
+    // 💡 LOG: Order Summary API Çağrısı Planlandı (debounce ile)
+   // console.log('--- LOG: Order Summary API Call Scheduled ---');
     handleUpdateOrderSummary(selected, discountCode);
   }, [selected, discountCode, isAuthenticated]);
+
+  // 💡 LOG: CartPageView Rendered
+ // console.log('--- LOG: CartPageView Rendered ---', { summaryLoading, cartLength: cart?.length, orderSummaryStatus: !!orderSummary ? 'LOADED' : 'PENDING' });
+
 
   return (
     <Stack gap={3}>
@@ -129,7 +179,7 @@ const CartPageView = ({
             <Stack mt={3} gap={2}>
               <Divider />
               <Typography variant="cardTitle" sx={styles.unavailableItemsTitle}>
-                Kullanılamayan Ürünler
+                Stokta Yok
               </Typography>
               <Stack sx={styles.products}>
                 {unavailableItems.map((e) => (
@@ -150,7 +200,7 @@ const CartPageView = ({
         <SecondaryColumn>
           {!isMobile && !!cart?.length && (
             <CheckoutCard
-              title= {('cart.page.checkoutCard.title')}
+              title= "Siparişiniz"
               orderSummary={orderSummary}
               numSelected={numSelected}
               discountCode={discountCode}
@@ -166,7 +216,7 @@ const CartPageView = ({
                     disabled={!selected?.length}
                     onClick={handleContinue}
                   >
-                     {('cart.placeOrder')}
+                    Sipariş Ver
                   </Button>
                 )
               }

@@ -1,58 +1,60 @@
-/*
-
-import { fetchProductData } from '@/lib/api/shop';
-import { OrderSummaryRequestData, ShopProductData } from '@/lib/api/types';
-import { NextRequest, NextResponse } from 'next/server';
-import { getOrderSummary } from '../api';
+import { NextRequest, NextResponse } from "next/server";
+import { fetchProductData } from "@/lib/api/shop";
+import { OrderSummaryRequestData, ShopProductData } from "@/lib/api/types";
+import { calculateOrderSummary } from "@/lib/shop/calculateOrderSummary";
 
 export const POST = async (req: NextRequest) => {
-  // #SHUTDOWN
-  return NextResponse.json({ error: 'Service is under maintenance' }, { status: 503 });
-  // let { products, destination, discountCode, draftPaymentMethod, locale, region }: OrderSummaryRequestData =
-  //   await req.json();
-  // if (!products?.length || !locale || !region)
-  //   return NextResponse.json({ error: 'Bad request.' }, { status: 400 });
+  try {
+    const {
+      products,
+      discountCode
+    }: OrderSummaryRequestData = await req.json();
 
-  // // refetch products
-  // const revalidatedProducts: (ShopProductData & { listingId: string })[] = [];
-  // let error = false;
-  // const promises = products.map((e) =>
-  //   fetchProductData(e.id, locale, region).then((data) => {
-  //     if (data)
-  //       revalidatedProducts.push({
-  //         ...data,
-  //         id: e.src ?? e.id,
-  //         listingId: e.id,
-  //         quantity: e.quantity,
-  //         variants: e.variants,
-  //         note: (e.note ?? '') + 'shop.bringist.com' + e.url,
-  //       });
-  //     else error = true;
-  //   })
-  // );
-  
-  // await Promise.all(promises);
+    if (!products?.length) {
+      return NextResponse.json(
+        { error: "Bad request: no products." },
+        { status: 400 }
+      );
+    }
 
-  // if (error)
-  //   return NextResponse.json({ error: 'Internal server error. ID: 1001' }, { status: 500 });
+    // Ürünleri yeniden doğrula (Supabase üzerinden)
+    const revalidatedProducts: (ShopProductData & {
+      listingId: string;
+      quantity: number;
+    })[] = [];
 
-  // const orderSummary = await getOrderSummary({
-  //   products: revalidatedProducts,
-  //   discountCode,
-  //   destination,
-  //   draftPaymentMethod,
-  //   region,
-  // });
+    for (const item of products) {
+      const data = await fetchProductData(item.id);
 
-  // if (!orderSummary)
-  //   return NextResponse.json({ error: 'Internal server error. ID: 1002' }, { status: 500 });
+      if (!data) {
+        return NextResponse.json(
+          { error: "Product not found in database" },
+          { status: 500 }
+        );
+      }
 
-  // if (!destination) return NextResponse.json({ orderSummary });
+      revalidatedProducts.push({
+        ...data,
+        listingId: item.id,
+        quantity: item.quantity ?? 1,
+      });
+    }
 
-  // return NextResponse.json({ orderSummary });
+    // Yeni hesaplama motoru
+    const summary = calculateOrderSummary({
+      products: revalidatedProducts,
+      discountCode,
+    });
+
+    return NextResponse.json({ orderSummary: summary });
+  } catch (err) {
+    console.error("order-summary API ERROR:", err);
+    return NextResponse.json(
+      { error: "Internal server error (order-summary)" },
+      { status: 500 }
+    );
+  }
 };
 
+export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-export const dynamic = 'force-dynamic';
-
-*/

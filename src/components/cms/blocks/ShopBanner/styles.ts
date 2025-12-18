@@ -1,3 +1,4 @@
+import { defaultMaxWidth } from '@/theme/theme';
 import { withPalette } from '@/theme/ThemeRegistry';
 
 const useStyles = withPalette((palette) => ({

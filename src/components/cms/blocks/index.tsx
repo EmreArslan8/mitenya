@@ -11,6 +11,10 @@ import ShopInlineProducts from './ShopInlineProducts';
 import ShopRibbon from './ShopRibbon';
 import ShopBadgeButtons from './ShopBadgeButtons';
 import ShopSliderCards from './ShopSliderCards';
+import ShopCategoryBlocks from './ShopCategoryBlocks';
+import ShopPromoCards from './ShopPromoCards';
+import ShopBrands from './ShopBrands';
+
 
 /*
  *
@@ -37,6 +41,9 @@ const componentMap = {
   'blocks.shop-ribbon': ShopRibbon,
   'blocks.shop-badge-button': ShopBadgeButtons,
   'blocks.shop-slider-cards': ShopSliderCards,
+  'blocks.shop-promo-cards': ShopPromoCards,
+  'blocks.shop-category-blocks': ShopCategoryBlocks,
+  'blocks.shop-brands': ShopBrands,
 };
 
 /*
@@ -70,5 +77,6 @@ const getBlockComponent = (block: CMSBlock, index: number) => {
 const BlockManager = ({ blocks }: { blocks: CMSBlock[] }) => {
   return blocks.map((block, index) => getBlockComponent(block, index));
 };
+
 
 export default BlockManager;

@@ -1,43 +1,63 @@
-import useAxios from '../hooks/useAxios';
-import { CreateCustomerRequestData, CustomerData } from './types';
+import useAxios from "../hooks/useAxios";
+import { mapSupabaseCustomer } from "../utils/customerMapper";
+import { CreateCustomerRequestData, CustomerData, CustomerDB } from "./types";
 
 const useCustomerData = () => {
   const axios = useAxios();
 
+  // ---------------------- GET CUSTOMER ----------------------
   const getCustomerData = async (): Promise<CustomerData | undefined> => {
+    console.log("🟦 [API] Calling GET /customers/v1/me");
+
     try {
-      const url = '/customers/v1/me';
-      const response = await axios.get(url);
+      const response = await axios.get("/customers/v1/me");
+      console.log("🟩 [API] GET RESPONSE:", response.data);
 
-      const data = response.data as CustomerData | CustomerData[] | undefined;
+      const raw = response.data?.customer as CustomerDB | undefined;
+      if (!raw) return undefined;
 
-      if (Array.isArray(data)) return data[0];
-      return data;
+      return mapSupabaseCustomer(raw);
     } catch (error) {
-      console.log(error);
+      console.log("🟥 [API] GET ERROR:", error);
       return undefined;
     }
   };
 
-  const createCustomer = async (
-    data: CreateCustomerRequestData
-  ): Promise<CustomerData | undefined> => {
+  // ---------------------- CREATE OR UPDATE CUSTOMER ----------------------
+  const createCustomer = async (data: CreateCustomerRequestData) => {
+    console.log("🟦 [API] Calling POST /customers/v1/me with:", data);
+  
+    const payload = {
+      name: data.name,
+      surname: data.surname,
+      email: data.email,
+      culture: data.culture,
+      phoneNumber: data.phoneNumber ?? null,
+      phoneCode: data.phoneCode ?? null,
+    };
+  
+    console.log("🟧 [API] Sending Payload:", payload);
+  
     try {
-      const url = '/customers/v1/me/';
-      const response = await axios.post(url, {
-        ...data,
-        warehouseId: '2a6e9f83-06f9-4758-ae0a-43d01fb4a60b',
+      const response = await axios.post("/customers/v1/me", {
+        name: data.name,
+        surname: data.surname,
+        email: data.email,
+        culture: data.culture,
+        phoneNumber: data.phoneNumber,
       });
-
-      const result = response.data as CustomerData | CustomerData[] | undefined;
-
-      if (Array.isArray(result)) return result[0];
-      return result;
-    } catch (error) {
-      console.log(error);
+  
+      const raw = response.data?.customer as CustomerDB | undefined;
+      console.log("🟩 [API] POST RESPONSE:", raw);
+  
+      return raw ? mapSupabaseCustomer(raw) : undefined;
+    } catch (err) {
+      console.log("🟥 [API] POST ERROR:", err);
       return undefined;
     }
   };
+  
+  
 
   return { getCustomerData, createCustomer };
 };

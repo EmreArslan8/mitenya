@@ -21,7 +21,7 @@ const InfoArea = ({ icon, label, description, url }: InfoAreaProps) => {
       alignItems="center"
       sx={{ cursor: url ? 'pointer' : 'default' }}
     >
-      {icon && <Icon name={icon} />}
+      {icon && <Icon name={icon} sx={styles.icon} />}
       {label && <Typography variant="body">{label}</Typography>}
       {description && <Markdown text={description} sx={styles.description} />}
     </Stack>

@@ -1,5 +1,9 @@
-import  bring  from "@/lib/api/bring";
+import bring from "@/lib/api/bring";
 import { NextRequest } from "next/server";
+
+// ISR Ayarı: Bu route'un build sırasında veya sonrasında ne kadar süreyle cache'leneceğini belirler.
+// 60 saniye boyunca veriyi cache'den döner, sonra arka planda günceller.
+export const revalidate = 60; 
 
 const cmsApiUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
 const cmsBearer = process.env.STRAPI_BEARER;
@@ -9,7 +13,7 @@ export const GET = async (req: NextRequest) => {
 
   if (!cmsApiUrl || !cmsBearer) {
     console.error("❌ Missing environment variables:", {
-      NEXT_PUBLIC_API_URL: cmsApiUrl,
+      NEXT_PUBLIC_STRAPI_URL: cmsApiUrl,
       STRAPI_BEARER: cmsBearer,
     });
 
@@ -21,9 +25,6 @@ export const GET = async (req: NextRequest) => {
 
   const url = `${cmsApiUrl}/shops`;
 
-  // -----------------------------------
-  // ✔ params CONST + STRONG TYPE
-  // -----------------------------------
   const params: Record<string, string | number | boolean> = {
     publicationState: "live",
     "pagination[pageSize]": 9999,
@@ -37,9 +38,15 @@ export const GET = async (req: NextRequest) => {
   }
 
   try {
+    // bring fonksiyonu fetch tabanlıysa, ikinci parametreye Next.js fetch opsiyonlarını ekliyoruz.
     const [data, error] = await bring(url, {
       params,
-      headers: { Authorization: `Bearer ${cmsBearer}` },
+      headers: { 
+        Authorization: `Bearer ${cmsBearer}`,
+        "Content-Type": "application/json"
+      },
+      // ISR için fetch seviyesinde revalidate
+      next: { revalidate: 60 } 
     });
 
     if (error) {

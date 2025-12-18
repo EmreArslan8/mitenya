@@ -1,6 +1,5 @@
 'use client';
 
-
 import Authenticator from '@/components/Authenticator';
 import { CustomerData } from '@/lib/api/types';
 import useCustomerData from '@/lib/api/useCustomerData';
@@ -12,17 +11,22 @@ import { getSession, useSession } from 'next-auth/react';
 import React, {
   Dispatch,
   ReactNode,
-  SetStateAction, 
+  SetStateAction,
   useContext,
   useEffect,
   useMemo,
   useState,
 } from 'react';
 
-type IdTokenContents = { name: string; family_name: string; email: string; locale: string };
+type IdTokenContents = {
+  name: string;
+  family_name: string;
+  email: string;
+  locale: string;
+};
 
 interface AuthContextState {
-  isAuthenticated: boolean | undefined; // NOTE: undefined means we don't know if the user is authenticated or not
+  isAuthenticated: boolean | undefined;
   setIsAuthenticated: Dispatch<SetStateAction<boolean | undefined>>;
   customerData: CustomerData | undefined;
   setCustomerData: Dispatch<SetStateAction<CustomerData | undefined>>;
@@ -50,48 +54,90 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const { status } = useSession({ required: false });
 
   const initCustomerData = async () => {
-    if (authenticatorOpen) return;
+    console.log("🔵 [AUTH] initCustomerData() STARTED");
+
     const session = await getSession();
-    if (!session) return setIsAuthenticated(false);
+    console.log("🟣 [AUTH] Session:", session);
 
-    const roles = session.user?.roles ?? [];
-    if (roles.includes('WarehouseAdmin')) return redirectToLogin();
-
-    let data = await getCustomerData();
-
-    if (data) {
-      setCustomerData(data);
-      setIsAuthenticated(Boolean(data));
+    if (!session) {
+      console.log("🔴 [AUTH] No session → NOT AUTHENTICATED");
+      setIsAuthenticated(false);
       return;
     }
 
-    try {
-      // TODO: we can probably modify the jwt and session callbacks to get these via getSession()
-      const {
-        name,
-        family_name: surname,
-        email,
-        locale: culture = 'en',
-      } = jwtDecode<IdTokenContents>(session.idToken);
-      const phone = JSON.parse(getCookie('phone') as string ?? '{}');
-      data = { fullName: `${name} ${surname}`, email, culture, ...phone };
-      const result = await createCustomer({ name, surname, email, culture, ...phone });
+    // EXISTING CUSTOMER CHECK
+    console.log("🟢 [AUTH] Fetching existing customer...");
+    const existing = await getCustomerData();
+    console.log("🟢 [AUTH] getCustomerData() RESULT:", existing);
 
-      if (!result) throw new Error('Error initalizing customer data.');
+    if (existing) {
+      setCustomerData(existing);
+      setIsAuthenticated(true);
+      return;
+    }
+
+    // CREATE CUSTOMER FLOW
+    console.log("🟡 [AUTH] Customer NOT found → creating new one...");
+
+    try {
+      const idData = jwtDecode<IdTokenContents>(session.idToken);
+
+      const name = idData.name ?? "";
+      const surname = idData.family_name ?? "";
+      const email = idData.email;
+      const culture = idData.locale ?? "tr";
+      const phoneCookie = JSON.parse(getCookie("phone") as string ?? "{}");
+
+      const payload = {
+        name,
+        surname,
+        email,
+        culture,
+        phoneNumber: phoneCookie.phoneNumber ?? null,
+        phoneCode: phoneCookie.phoneCode ?? null,
+      };
+
+      console.log("🟠 [AUTH] createCustomer() PAYLOAD:", payload);
+
+      const created = await createCustomer(payload);
+      console.log("🟢 [AUTH] createCustomer() RESULT:", created);
+
+      if (!created) throw new Error("Create customer failed");
+
+      setCustomerData(created);
+      setIsAuthenticated(true);
+
       pushItemToDataLayer({
-        event: 'sign_up',
+        event: "sign_up",
         email_permission: true,
         sms_permission: true,
         userId: session.user.id,
       });
-      setCustomerData(data);
-      setIsAuthenticated(Boolean(data));
-    } catch (error) {
-      console.log('error: ', error);
+
+      console.log("🟢 [AUTH] Customer successfully initialized.");
+    } catch (err) {
+      console.log("🔴 [AUTH] ERROR:", err);
       setIsAuthenticated(false);
-      return;
     }
   };
+
+  useEffect(() => {
+    console.log("🔵 [AUTH] useEffect triggered:", { status });
+
+    if (status === "loading") return;
+
+    if (status === "unauthenticated") {
+      console.log("🔴 [AUTH] Unauthenticated");
+      setIsAuthenticated(false);
+      setCustomerData(undefined);
+      return;
+    }
+
+    if (status === "authenticated") {
+      console.log("🟢 [AUTH] Authenticated → starting init");
+      initCustomerData();
+    }
+  }, [status]);
 
   const setCustomerCulture = (newCulture: string) => {
     if (!customerData) return;
@@ -106,29 +152,8 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
 
   const closeAuthenticator = () => setAuthenticatorOpen(false);
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    else if (status === 'unauthenticated') {
-      setIsAuthenticated(false);
-      setCustomerData(undefined);
-      return;
-    } else if (status === 'authenticated' && customerData) {
-      return setIsAuthenticated(true);
-    }
-    initCustomerData();
-  }, [status, customerData]);
-
   const value = useMemo(
     () => ({
-      customerData,
-      setCustomerData,
-      isAuthenticated,
-      setCustomerCulture,
-      openAuthenticator,
-      closeAuthenticator,
-      setIsAuthenticated
-    }),
-    [
       customerData,
       setCustomerData,
       isAuthenticated,
@@ -136,7 +161,8 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       setCustomerCulture,
       openAuthenticator,
       closeAuthenticator,
-    ]
+    }),
+    [customerData, isAuthenticated]
   );
 
   return (
@@ -145,21 +171,18 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
         <Authenticator
           open={authenticatorOpen}
           onClose={() => {
-            if (onAuthenticatorClose) {
-              onAuthenticatorClose();
-              setOnAuthenticatorClose(undefined);
-            }
+            onAuthenticatorClose?.();
+            setOnAuthenticatorClose(undefined);
             closeAuthenticator();
           }}
           onSuccess={() => {
-            if (onAuthenticatorSuccess) {
-              onAuthenticatorSuccess();
-              setOnAuthenticatorSuccess(undefined);
-            }
+            onAuthenticatorSuccess?.();
+            setOnAuthenticatorSuccess(undefined);
             closeAuthenticator();
           }}
         />
       )}
+
       {children}
     </AuthContext.Provider>
   );

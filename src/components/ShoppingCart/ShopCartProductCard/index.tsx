@@ -28,6 +28,7 @@ const ShopCartProductCard = ({
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
 
+
   return (
     <Card sx={styles.card(unavailable)}>
       <Link href={unavailable ? null : data.url} onClick={onClick}>
@@ -65,13 +66,13 @@ const ShopCartProductCard = ({
           <Stack alignItems="end">
             {hasDiscount && (
               <Typography variant="infoValue" sx={styles.originalPrice}>
-                {(data.price.originalPrice * data.quantity, data.price.currency)}
+                {formatPrice(data.price.originalPrice * data.quantity, data.price.currency)}
               </Typography>
             )}
             <Stack direction="row">
               {hasDiscount && <Stack sx={styles.discountBadge}>{`-${discountPercent}%`}</Stack>}
               <Typography variant="infoValue" sx={styles.price}>
-                {(data.price.currentPrice * data.quantity, data.price.currency)}
+                {formatPrice(data.price.currentPrice * data.quantity, data.price.currency)}
               </Typography>
             </Stack>
           </Stack>

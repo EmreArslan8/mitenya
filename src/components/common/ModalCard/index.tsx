@@ -40,18 +40,21 @@ const ModalCard = ({
       onClose={onClose}
       sx={{ ...styles.modal, ...sx }}
     >
-      <Slide appear={isMobile} in={open} direction="up" unmountOnExit={!keepMounted}>
-        <Card
-          {...cardProps}
-          sx={{ ...styles.card, ...CardProps?.sx }}
-          stickyHeader
-          action={showCloseIcon && <Icon name="close" onClick={onClose} />}
-        >
-          <Stack {...BodyProps} sx={{ ...styles.cardBody, ...BodyProps?.sx }}>
-            {children}
-          </Stack>
-        </Card>
-      </Slide>
+  <Slide appear={isMobile} in={open} direction="up" unmountOnExit={!keepMounted}>
+  <div tabIndex={-1} style={{ outline: "none" }}>
+    <Card
+      {...cardProps}
+      sx={{ ...styles.card, ...CardProps?.sx }}
+      stickyHeader
+      action={showCloseIcon && <Icon name="close" onClick={onClose} />}
+    >
+      <Stack {...BodyProps} sx={{ ...styles.cardBody, ...BodyProps?.sx }}>
+        {children}
+      </Stack>
+    </Card>
+  </div>
+</Slide>
+
     </Modal>
   );
 };

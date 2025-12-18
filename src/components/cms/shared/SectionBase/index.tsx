@@ -12,7 +12,7 @@ export interface SectionBaseProps {
   sectionDescriptionMarkdownOptions?: MarkdownOptions;
   sectionWidth?: string | number;
   sectionBackground?: 'default' | 'primary';
-  sx: SxProps;
+  sx?: SxProps;
   children: ReactNode;
 }
 
@@ -38,15 +38,20 @@ const SectionBase = ({
         height: '100%',
         flexGrow: 1,
         backgroundColor: selectedStyle.sectionBackground?.bg,
-        ...sx,
         padding: 1,
+        ...sx,
       }}
     >
       {(sectionHeader || sectionDescription) && (
         <Stack gap={1}>
-          {sectionHeader && <DynamicTitle title={splitTextWithDynamicSections(sectionHeader)} />}
+          {sectionHeader && (
+            <DynamicTitle title={splitTextWithDynamicSections(sectionHeader)} />
+          )}
           {sectionDescription && (
-            <Markdown text={sectionDescription} options={sectionDescriptionMarkdownOptions} />
+            <Markdown
+              text={sectionDescription}
+              options={sectionDescriptionMarkdownOptions}
+            />
           )}
         </Stack>
       )}
@@ -55,21 +60,22 @@ const SectionBase = ({
   );
 };
 
-const splitTextWithDynamicSections = (text: string): (string | string[])[] => {
+const splitTextWithDynamicSections = (
+  text: string
+): (string | string[])[] => {
   const sections = text.split(/(\[[^\]]+\])/);
   const result: (string | string[])[] = [];
 
-  for (let section of sections) {
+  for (const section of sections) {
     if (section.startsWith('[') && section.endsWith(']')) {
       result.push(
         section
-          .substring(1, section.length - 1)
+          .slice(1, -1)
           .split(',')
           .map((s) => s.trim())
       );
     } else {
-      const words = section.split(/\s+/);
-      words.forEach((word) => result.push(word));
+      section.split(/\s+/).forEach((word) => result.push(word));
     }
   }
 
@@ -78,6 +84,7 @@ const splitTextWithDynamicSections = (text: string): (string | string[])[] => {
 
 const DynamicTitle = ({ title }: { title: (string | string[])[] }) => {
   const styles = useStyles();
+
   return (
     <Box component="h2" m={0}>
       <Stack
@@ -91,12 +98,15 @@ const DynamicTitle = ({ title }: { title: (string | string[])[] }) => {
         {title.map((section) =>
           typeof section === 'string' ? (
             <Markdown
+              key={section}
               text={`${section} `}
               options={styles.dynamicTitleMarkdownOptions}
-              key={section}
             />
           ) : (
-            <DynamicTitleSection section={section} key={section.toString()} />
+            <DynamicTitleSection
+              key={section.toString()}
+              section={section}
+            />
           )
         )}
       </Stack>
@@ -107,52 +117,63 @@ const DynamicTitle = ({ title }: { title: (string | string[])[] }) => {
 const DynamicTitleSection = ({ section }: { section: string[] }) => {
   const styles = useStyles();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const parentRef = useRef<HTMLElement>(null);
-  const itemsRef = useRef<HTMLElement[]>([]);
+
+  // ✅ Doğru DOM tipleri
+  const parentRef = useRef<HTMLSpanElement | null>(null);
+  const itemsRef = useRef<(HTMLSpanElement | null)[]>([]);
+
   const { width: windowWidth } = useWindowSize();
 
+  // 🔹 En geniş kelimeye göre container genişliği
   useEffect(() => {
     if (!parentRef.current) return;
-    let maxWidth = 0;
-    itemsRef.current.forEach((item) => {
-      const width = item.offsetWidth;
-      if (width > maxWidth) {
-        maxWidth = width;
-      }
-    });
-    parentRef.current.style.width = maxWidth + 12 + 'px';
-  }, [parentRef.current, windowWidth]);
 
+    let maxWidth = 0;
+
+    itemsRef.current.forEach((item) => {
+      if (!item) return;
+      maxWidth = Math.max(maxWidth, item.offsetWidth);
+    });
+
+    parentRef.current.style.width = `${maxWidth + 12}px`;
+  }, [windowWidth]);
+
+  // 🔹 Text rotasyonu
   useEffect(() => {
     const intervalId = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % section.length);
     }, 2000);
 
     return () => clearInterval(intervalId);
-  }, [currentIndex]);
+  }, [section.length]);
 
   return (
     <Box
+      component="span"
+      ref={parentRef}
       sx={{
         ...styles.dynamicTitleSectionContainer,
         height: { xs: '31.2px', sm: '41.6px' },
       }}
-      component="span"
-      ref={parentRef}
     >
       <Box sx={styles.dynamicTitleSectionUnderline} />
-      {section.map((section, i) => (
+
+      {section.map((word, i) => (
         <Typography
+          key={word}
           variant="h2"
           component="span"
           sx={{
             ...styles.dynamicTitleSection,
-            ...(currentIndex === i ? styles.dynamicTitleSectionActive : {}),
+            ...(currentIndex === i
+              ? styles.dynamicTitleSectionActive
+              : {}),
           }}
-          key={section}
-          ref={(ref: HTMLElement) => (itemsRef.current[i] = ref)}
+          ref={(el) => {
+            itemsRef.current[i] = el;
+          }}
         >
-          {section}
+          {word}
         </Typography>
       ))}
     </Box>

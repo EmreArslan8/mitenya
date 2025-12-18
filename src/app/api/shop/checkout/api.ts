@@ -8,8 +8,7 @@ import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { getServerSession } from 'next-auth';
 import { decrypt } from '../utils/crypto';
 
-
-export const getOrderSummary = async (data: {
+/* export const getOrderSummary = async (data: {
   virtualSuiteNumber?: string;
   discountCode?: string;
   destination?: AddressData;
@@ -84,6 +83,8 @@ export const getOrderSummary = async (data: {
     return undefined;
   }
 };
+
+*/
 
 export const initializePayment = async (
   id: string,

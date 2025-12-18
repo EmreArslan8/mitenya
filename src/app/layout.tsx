@@ -1,6 +1,8 @@
 import Footer from "@/components/Footer";
 import MainLayout from "@/components/layouts/MainLayout";
 import Navigation from "@/components/Navigation";
+import { AuthContextProvider } from "@/contexts/AuthContext";
+import SessionProvider from "@/contexts/SessionProvider";
 import { ShopContext, ShopContextProvider } from "@/contexts/ShopContext";
 import { fetchShopFooter, fetchShopHeader } from "@/lib/api/cms";
 import { defaultFontFamily } from "@/theme/theme";
@@ -62,15 +64,17 @@ const footerData = await fetchShopFooter()
       </head>
 
       <body style={{ fontFamily: defaultFontFamily, overflowX: "hidden" }}>
-        <ThemeRegistry>
-          <ShopContextProvider>
-            <Suspense fallback={null}>
+<SessionProvider>
+            <ThemeRegistry>
+              <AuthContextProvider>
+                <ShopContextProvider>
               <Navigation data={headerData} />
-            </Suspense>
             <MainLayout>{children}</MainLayout>
             <Footer data={footerData} />
-          </ShopContextProvider>
-        </ThemeRegistry>
+            </ShopContextProvider>
+              </AuthContextProvider>
+            </ThemeRegistry>
+          </SessionProvider>
       </body>
     </html>
   );

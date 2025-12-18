@@ -11,6 +11,7 @@ import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import ShopBannerItem from '../../shared/ShopBannerItem';
 import { SharedImageType } from '../../shared/cmsTypes';
 import useStyles from './styles';
+
 export interface ShopBannersProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
   banners: { image: SharedImageType; mobileImage: SharedImageType; url: string }[];

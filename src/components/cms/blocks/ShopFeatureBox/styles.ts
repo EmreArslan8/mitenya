@@ -6,7 +6,7 @@ const useStyles = withPalette((palette) => ({
     position: 'relative',
     width: '100%',
     height: '100%',
-    minHeight: { xs: 200, sm: 300 },
+    minHeight: { xs: 200, sm: 300 , md: 500 },
   },
   image: (imageFit: 'cover' | 'contain') =>
     ({

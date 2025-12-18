@@ -52,9 +52,6 @@ const pulseAnimation = keyframes`
 
 const getSupportUrl = 'https://api.whatsapp.com';
 
-
-
-
 const accountModalRoutes = [
   { label: 'orders', url: '/orders', icon: 'history' },
   { label: 'settings', url: '/settings', icon: 'settings' },
@@ -79,6 +76,7 @@ const Navigation = ({ data }: NavigationProps) => {
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [logoCollapsed, setLogoCollapsed] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const styles = useStyles();
 
   const toggleCartModalOpen = () => {
@@ -126,8 +124,6 @@ const Navigation = ({ data }: NavigationProps) => {
     prevScrollPosition.current = window.scrollY;
   };
 
-
-
   useEffect(() => {
     isMobileRef.current = smDown;
     if (!smDown || pathname === '/cart') setCartModalOpen(false);
@@ -160,7 +156,7 @@ const Navigation = ({ data }: NavigationProps) => {
                 <a href={getSupportUrl!} target="_blank" style={styles.a}>
                   <MenuItem sx={styles.bannerLink}>
                     <Icon name="support_agent" color="primaryDark" fontSize={15} />
-                   Yardım
+                    Yardım
                   </MenuItem>
                 </a>
               )}
@@ -199,7 +195,7 @@ const Navigation = ({ data }: NavigationProps) => {
                 <Stack sx={styles.actions}>
                   <MenuItem sx={styles.action} onClick={() => handleAccountButtonClick()}>
                     <Icon name="account_circle" fontSize={24} weight={400} />
-                    {isAuthenticated ? ('account') : ('Giriş')}
+                    {isAuthenticated ? 'account' : 'Giriş'}
                   </MenuItem>
                   <ShoppingCartButton />
                 </Stack>
@@ -249,16 +245,72 @@ const Navigation = ({ data }: NavigationProps) => {
                     </Stack>
                   </Stack>
                 )} */}
-                {data?.links?.map((e) => (
-                  <MenuItem
-                    selected={pathname === `/${e.slug}` || (!pathname && !e.slug)}
-                    onClick={() => handleLinkClick(e)}
-                    sx={styles.shopHeaderLink}
-                    key={e.label}
-                  >
-                    {e.label}
-                  </MenuItem>
-                ))}
+               <Stack sx={styles.secondaryBar}>
+  <Stack sx={styles.shopHeaderLinks}>
+    {data?.categories?.map((cat, index) => (
+      <MenuItem
+        key={cat.id}
+        sx={styles.shopHeaderLink}
+        onMouseEnter={() => setActiveCategory(index)}
+        onClick={() => cat.slug && router.push(`/${cat.slug}`)}
+      >
+        {cat.label}
+      </MenuItem>
+    ))}
+  </Stack>
+</Stack>
+
+{smUp && activeCategory !== null && data?.categories?.[activeCategory] && (
+  <Box
+    onMouseLeave={() => setActiveCategory(null)}
+    sx={{
+      position: "absolute",
+      top: styles.secondaryBar.height || 150,
+      left: 0,
+      width: "100%",
+      background: "#fff",
+      boxShadow: "0 5px 20px rgba(0,0,0,0.10)",
+      zIndex: 2000,
+      p: 4,
+      display: "flex",
+      gap: 4,
+      borderBottom: "1px solid #eee",
+    }}
+  >
+    <Stack
+      sx={{
+        flex: 3,
+        display: "grid",
+        gridTemplateColumns: "repeat(3, 1fr)",
+        gap: 4,
+      }}
+    >
+      {data.categories[activeCategory].subs?.map((sub) => (
+        <Stack key={sub.id} spacing={1}>
+          <Typography fontWeight={700} fontSize={17} color="primary.main">
+            {sub.label}
+          </Typography>
+
+          {sub.items?.map((item) => (
+            <Typography
+              key={item.id}
+              sx={{
+                cursor: "pointer",
+                "&:hover": { color: "primary.main" },
+              }}
+              onClick={() => item.slug && router.push(`/${item.slug}`)}
+            >
+              {item.label}
+            </Typography>
+          ))}
+        </Stack>
+      ))}
+    </Stack>
+
+   
+  </Box>
+)}
+
               </Stack>
             </Stack>
           </Stack>
@@ -272,16 +324,16 @@ const Navigation = ({ data }: NavigationProps) => {
               cartModalOpen || pathname === '/checkout'
                 ? '/cart'
                 : accountModalOpen || accountModalRoutes.some((e) => pathname?.startsWith(e.url))
-                ? '/account'
-                : categoriesOpen
-                ? 'categories'
-                : pathname
+                  ? '/account'
+                  : categoriesOpen
+                    ? 'categories'
+                    : pathname
             }
             sx={{ '& .MuiBottomNavigationAction-root': { px: 0, minWidth: 0 } }}
           >
             <BottomNavigationAction
               value="/"
-              label={('home')}
+              label={'home'}
               icon={<Icon name="home" />}
               onClick={() => {
                 if (!((cartModalOpen || accountModalOpen) && pathname === '/')) router.push('/');
@@ -292,7 +344,7 @@ const Navigation = ({ data }: NavigationProps) => {
             />
             <BottomNavigationAction
               value="categories"
-              label={('categories')}
+              label={'categories'}
               icon={<Icon name="manage_search" fontSize={29} weight={330} sx={{ m: '-2.5px' }} />}
               onClick={() => {
                 setAccountModalOpen(false);
@@ -302,19 +354,19 @@ const Navigation = ({ data }: NavigationProps) => {
             />
             <BottomNavigationAction
               value="/cart"
-              label= "cart"
+              label="cart"
               icon={<Icon name="shopping_bag" />}
               onClick={toggleCartModalOpen}
             />
             <BottomNavigationAction
               value="/account"
-              label={('account')}
+              label={'account'}
               icon={<Icon name="account_circle" />}
               onClick={toggleAccountModalOpen}
             />
             <BottomNavigationAction
               value="chat"
-              label={('help')}
+              label={'help'}
               icon={
                 <Badge
                   badgeContent={unreadCount}
@@ -325,8 +377,8 @@ const Navigation = ({ data }: NavigationProps) => {
                 </Badge>
               }
               onClick={() => {
-               // Crisp.chat.show();
-               // Crisp.chat.open();
+                // Crisp.chat.show();
+                // Crisp.chat.open();
               }}
             />
           </BottomNavigation>
@@ -337,7 +389,7 @@ const Navigation = ({ data }: NavigationProps) => {
         open={cartModalOpen}
         onClose={() => setCartModalOpen(false)}
         showCloseIcon
-        title={('cartModalTitle')}
+        title={'cartModalTitle'}
         CardProps={{ sx: { height: '100%', pb: 12 } }}
         sx={{ zIndex: 1297 }}
       >
@@ -349,7 +401,7 @@ const Navigation = ({ data }: NavigationProps) => {
         />
       </ModalCard>
       <ModalCard
-        title={('account')}
+        title={'account'}
         keepMounted={smDown}
         showCloseIcon
         open={accountModalOpen}
@@ -361,11 +413,11 @@ const Navigation = ({ data }: NavigationProps) => {
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               {isAuthenticated ? (
                 <MenuItem onClick={signOut} sx={styles.logoutButton}>
-                  <Icon name="logout" /> {('logout')}
+                  <Icon name="logout" /> {'logout'}
                 </MenuItem>
               ) : (
                 <MenuItem onClick={() => openAuthenticator()} sx={styles.loginButton}>
-                  <Icon name="login" /> {('auth.login')}
+                  <Icon name="login" /> {'auth.login'}
                 </MenuItem>
               )}
             </Stack>
@@ -383,7 +435,7 @@ const Navigation = ({ data }: NavigationProps) => {
                 sx={styles.accountMenuItem}
               >
                 <Icon name={e.icon} fill={pathname?.startsWith(e.url)} />
-                {(`routes.${e.label}`)}
+                {`routes.${e.label}`}
               </MenuItem>
             </Grid>
           ))}
@@ -395,7 +447,7 @@ const Navigation = ({ data }: NavigationProps) => {
                 target="_blank"
                 sx={styles.accountMenuItem}
               >
-                <Icon name="support_agent" /> {('help')}
+                <Icon name="support_agent" /> {'help'}
               </MenuItem>
             </Grid>
           )}
@@ -406,7 +458,7 @@ const Navigation = ({ data }: NavigationProps) => {
               target="_blank"
               sx={styles.accountMenuItem}
             >
-              <Icon name="help" /> {('faq')}
+              <Icon name="help" /> {'faq'}
             </MenuItem>
           </Grid>
         </Grid>
@@ -482,7 +534,7 @@ const SearchBar = ({ onFocus, onBlur }: SearchBarProps) => {
           setQuery(e.target.value);
           setShowHistory(true);
         }}
-        placeholder={"palceholder"}
+        placeholder={'palceholder'}
         sx={styles.searchBarInput}
         InputProps={{
           endAdornment: (
@@ -497,10 +549,10 @@ const SearchBar = ({ onFocus, onBlur }: SearchBarProps) => {
         <Box sx={styles.historyContainer} ref={searchHistoryRef} id="search-history-container">
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="body1" fontWeight="bold">
-              {('searchHistory')}
+              {'searchHistory'}
             </Typography>
             <Button size="small" color="neutral" sx={{ mx: -2 }} onClick={clearAllHistory}>
-              {('clearHistory')}
+              {'clearHistory'}
             </Button>
           </Stack>
           <Stack gap={1}>

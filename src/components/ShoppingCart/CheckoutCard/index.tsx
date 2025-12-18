@@ -57,7 +57,7 @@ const CheckoutCard = ({
               <Icon name="trending_down" fontSize={16} color="success" sx={{ my: -1 }} />
               <Markdown
                 component="span"
-                text={`You saved ${orderSummary.totalDiscount} ${orderSummary.currency}`}
+                text={`Kazancınız ${orderSummary.totalDiscount} ${orderSummary.currency}`}
                 options={styles.discountMdOptions}
                 sx={styles.discount}
               />
@@ -184,14 +184,14 @@ export const PriceLines = ({
   return (
     <Stack>
       <Stack sx={styles.priceLine}>
-        <Typography variant="warning">Items Total</Typography>
+        <Typography variant="warning">Ürünler Toplamı</Typography>
         <Typography variant="warningSemibold">
           {orderSummary?.productCost} {orderSummary?.currency}
         </Typography>
       </Stack>
       {!!orderSummary?.shipmentCost && (
         <Stack sx={styles.priceLine}>
-          <Typography variant="warning">Shipping</Typography>
+          <Typography variant="warning">Kargo</Typography>
           <Typography variant="warningSemibold">
             {orderSummary?.shipmentCost} {orderSummary?.currency}
           </Typography>
@@ -224,7 +224,7 @@ export const PriceLines = ({
       <Divider sx={{ my: 1 }} />
       {!!orderSummary?.totalDue && (
         <Stack sx={styles.priceLine}>
-          <Typography variant="warning">Total Due</Typography>
+          <Typography variant="warning">Ödeme Tutarı</Typography>
           <Typography variant="warningSemibold">
             {orderSummary?.totalDue} {orderSummary?.currency}
           </Typography>

@@ -1,72 +1,116 @@
 import axiosInstance, { CommonAxiosResponse } from '@/lib/simpleAxios';
 import { AuthOptions } from 'next-auth';
 import NextAuth from 'next-auth/next';
+import GoogleProvider from "next-auth/providers/google";
 import qs from 'qs';
+
 import CognitoCredentialsProvider from './cognitoCredentialsProvider';
-import { TOuathProvider, getOauthProvider } from './cognitoOauthProvider';
 
 const COOKIE_PREFIX = 'kozmedo';
-const USE_SECURE_COOKIE = process.env.NODE_ENV != 'development';
-const COOKIE_DOMAIN = process.env.NODE_ENV === 'development' ? 'localhost' : '.kozmedo.com';
+const USE_SECURE_COOKIE = process.env.NODE_ENV !== 'development';
+const COOKIE_DOMAIN =
+  process.env.NODE_ENV === 'development' ? 'localhost' : '.kozmedo.com';
+
+console.log("---- Loading Auth Providers ----");
+
+// GOOGLE PROVIDER
+const googleProvider = GoogleProvider({
+  clientId: process.env.GOOGLE_CLIENT_ID!,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+});
+console.log("Loaded provider:", googleProvider.id);
+
+// COGNITO CREDENTIALS PROVIDER
+console.log("Loaded provider:", CognitoCredentialsProvider.id);
+
+// FINAL PROVIDER LIST
+const providersList = [
+  googleProvider,
+  CognitoCredentialsProvider,
+];
+
+console.log("FINAL provider list:", providersList.map(p => p.id));
 
 export const authOptions: AuthOptions = {
-  providers: [
-    CognitoCredentialsProvider,
-    ...(['Google'].map((provider) => getOauthProvider(provider as TOuathProvider)) as any),
-  ],
-  //DOCUMENTATION: https://next-auth.js.org/configuration/callbacks
-  callbacks: {
-    async signIn({ user }) {
-      // console.log('user', user);
-      // Return true to allow sign in and false to block sign in.
-      if (!user) return false;
+  providers: providersList,
 
+  callbacks: {
+
+    async signIn({ user, account }) {
+      console.log("SIGN-IN callback:", { user, account });
+    
+      // Sadece Google login sonrası çalıştır
+      if (account?.provider === "google") {
+        try {
+          await fetch(`${process.env.NEXTAUTH_URL}/api/auth/google-sync`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider_id: user.id,
+              full_name: user.name,
+              email: user.email,
+            }),
+          });
+    
+          console.log("Google user synced to Supabase");
+        } catch (err) {
+          console.error("Failed to sync Google user →", err);
+        }
+      }
+    
       return true;
     },
-    async redirect({ url, baseUrl }) {
-      // Return the url to redirect to after successful sign in.
+
+    async redirect({ url }) {
       return url;
     },
+
     async jwt({ token, account, user }) {
-      //new login
+      console.log("JWT callback:", { token, account, user });
+
+      // 1) İlk giriş anında token oluştur
       if (account) {
-        token.accessToken = account.access_token ?? user?.tokens?.access_token;
-        token.idToken = account.id_token ?? user?.tokens?.id_token;
-        token.refreshToken = account.id_token ?? user?.tokens?.refresh_token;
-        token.expiresAt = user?.tokens?.expiresAt;
-        token.roles = user.roles;
+        token.provider = account.provider; // google | credentials
+
+        token.sub = account.providerAccountId ?? user?.id;
+
+        token.accessToken = account.access_token;
+        token.idToken = account.id_token;
+        token.refreshToken = account.refresh_token;
+        token.expiresAt = account.expires_at;
 
         return token;
       }
 
-      if (new Date().getTime() < (token.expiresAt as number)) {
-        // Access/Id token are still valid, return them as is.
+      // 2) GOOGLE kullanıcıları için refresh işlemi yok
+      if (token.provider === "google") {
         return token;
       }
 
-      // Access/Id tokens have expired, retrieve new tokens using the
-      // refresh token
+      // 3) Eğer Cognito refresh token yoksa → dokunma
+      if (!token.refreshToken) {
+        return token;
+      }
+
+      if (token.expiresAt && Date.now() < Number(token.expiresAt)) {
+        return token;
+      }
+      
+
+      // 5) Cognito refresh akışı
       try {
-        const {
-          COGNITO_DOMAIN,
-          COGNITO_OAUTH_CLIENT_ID,
-          COGNITO_OAUTH_CLIENT_SECRET,
-          COGNITO_CREDENTIALS_CLIENT_ID,
-          NEXTAUTH_SECRET,
-        } = process.env;
+        console.log("JWT expired → refreshing via Cognito");
 
-        //TODO: oauth ile gelen kullanıcı da bu yöntemle credential alabiliyor mu?
+        const { COGNITO_DOMAIN, COGNITO_CREDENTIALS_CLIENT_ID } = process.env;
+
         const response = (await axiosInstance.post(
           `${COGNITO_DOMAIN}/oauth2/token`,
           qs.stringify({
             client_id: COGNITO_CREDENTIALS_CLIENT_ID,
-            // client_secret: COGNITO_OAUTH_CLIENT_SECRET,
-            grant_type: 'refresh_token',
+            grant_type: "refresh_token",
             refresh_token: token.refreshToken,
           }),
-          {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          }
+          { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
         )) as CommonAxiosResponse;
 
         if (!response.ok) throw response.error;
@@ -75,88 +119,33 @@ export const authOptions: AuthOptions = {
           ...token,
           accessToken: response.access_token,
           idToken: response.id_token,
-          expiresAt: new Date().getTime() + Number(response.expires_in) * 1000,
+          expiresAt: Date.now() + Number(response.expires_in) * 1000,
         };
-      } catch (error) {
-        // Could not refresh tokens, return error
-        console.error('Error refreshing access and id tokens: ', error);
-        return { ...token, error: 'RefreshTokensError' as const };
+      } catch (err) {
+        console.error("JWT Refresh Error:", err);
+        return { ...token, error: "RefreshTokensError" };
       }
     },
+
+    // <— BURADA VİRGÜL ŞART!
     async session({ session, token }) {
-      /* The session callback is called whenever a session is checked. By default, only a subset of 
-      the token is returned for increased security. If you want to make something available you added 
-      to the token (like access_token and user.id from above)  via the jwt() callback, you have to explicitly 
-      forward it here to make it available to the client. */
-      const sessionObj = {
+      return {
         ...session,
         user: {
           ...session.user,
+          id: token.sub, // hem Google hem Cognito için normalize edildi
           roles: token.roles,
-          id: token.sub,
         },
         accessToken: token.accessToken,
         idToken: token.idToken,
         expires: `${token.expiresAt}`,
       };
-      // console.log('sessionObj', sessionObj);
-      return sessionObj;
     },
   },
+
   cookies: {
     sessionToken: {
       name: `${COOKIE_PREFIX}-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: USE_SECURE_COOKIE,
-        domain: COOKIE_DOMAIN,
-      },
-    },
-    callbackUrl: {
-      name: `${COOKIE_PREFIX}-auth.callback-url`,
-      options: {
-        sameSite: 'lax',
-        path: '/',
-        secure: USE_SECURE_COOKIE,
-        domain: COOKIE_DOMAIN,
-      },
-    },
-    csrfToken: {
-      name: `${COOKIE_PREFIX}-auth.csrf-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: USE_SECURE_COOKIE,
-        domain: COOKIE_DOMAIN,
-      },
-    },
-    pkceCodeVerifier: {
-      name: `${COOKIE_PREFIX}-auth.pkce.code_verifier`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: USE_SECURE_COOKIE,
-        maxAge: 900,
-        domain: COOKIE_DOMAIN,
-      },
-    },
-    state: {
-      name: `${COOKIE_PREFIX}-auth.state`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: USE_SECURE_COOKIE,
-        maxAge: 900,
-        domain: COOKIE_DOMAIN,
-      },
-    },
-    nonce: {
-      name: `${COOKIE_PREFIX}-auth.nonce`,
       options: {
         httpOnly: true,
         sameSite: 'lax',

@@ -21,12 +21,24 @@ export type ExchangeRate = {
   rate: number;
 };
 
+export type CustomerDB = {
+  id: string;
+  provider_id: string;
+  full_name: string;
+  email: string;
+  culture: string;
+  phone: string | null;
+  warehouse_id?: string | null;
+  created_at: string;
+};
+
+
 export type CustomerData = {
   fullName: string;
   email: string;
-  phoneCode?: string;
-  phoneNumber?: string;
+  phone: string;
   culture?: string;
+  
 };
 
 export type CreateCustomerRequestData = {
@@ -34,6 +46,8 @@ export type CreateCustomerRequestData = {
   surname: string;
   email: string;
   culture: string;
+  phoneCode?: string;
+  phoneNumber?: string;
 };
 
 export type PagedResults<T> = {
@@ -87,14 +101,14 @@ export type ShopOrderSummaryData = {
   productCost: number;
   productDiscountPercent: number;
   totalDiscount: number;
-  codServiceFee?: number;
+  codServiceFee: null;
   total: number;
   totalDue: number;
   cashOnDeliveryAvailability: {
-    isAvailable: boolean;
-    codBalance: { amount: number; currency: Currency };
-    failureReason: CODFailureReason;
-  };
+    isAvailable: false,
+    codBalance: { amount: 0, currency: "TRY" },
+    failureReason: "NOT_SUPPORTED"
+  },
 };
 
 export type ShopOrderStatus = 'processing' | 'preparing' | 'shipped' | 'cancelled';
@@ -290,6 +304,35 @@ export type ShopSearchResponse = {
 
 export type ShopHeaderLink = { label: string; slug: string | undefined | null };
 
+export type CategorySubItem = {
+  id: number;
+  label: string;
+  slug?: string;
+};
+
+export type CategorySub = {
+  id: number;
+  label: string;
+  slug?: string;
+  items?: CategorySubItem[];
+};
+
+export type CategoryParent = {
+  id: number;
+  label: string;
+  slug?: string;
+  subs?: CategorySub[];
+  brands?: CategoryBrandItem[];
+};
+
+export type CategoryBrandItem = {
+  id: number;
+  label: string;
+  slug?: string;
+  image: SharedSiblingImageType;
+}
+
+
 export type ShopFooterLink = {
   label: string;
   url: string | undefined | null;
@@ -299,7 +342,7 @@ export type SharedSocialButton = {
   platform: 'facebook' | 'x' | 'linkedin' | 'instagram' | 'telegram';
   url: string;
 };
-export type ShopHeaderData = { links?: ShopHeaderLink[]; bannerLinks?: ShopHeaderLink[] };
+export type ShopHeaderData = { links?: ShopHeaderLink[]; bannerLinks?: ShopHeaderLink[];  categories?: CategoryParent[]; };
 
 export type ShopFooterData = {
   links?: ShopFooterLink[];

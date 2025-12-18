@@ -5,17 +5,30 @@ import HomePageView from "./view";
 import isPreviewBot from "@/lib/utils/isPreviewBot";
 
 const HomePage = async ({
-  params: { slug },
+  params,
 }: {
   params: { slug?: string };
 }) => {
+
+
   const bot = await isPreviewBot();
-  if (bot) return null;
+
+
+  if (bot) {
+
+    return null;
+  }
+
+  const slug = params?.slug;
+
 
   const data = await fetchShopIndex(slug);
-  if (!data) notFound();
 
-  
+
+  if (!data) {
+    console.error("❌ No data found, calling notFound()");
+    notFound();
+  }
 
   return (
     <main>
@@ -23,6 +36,7 @@ const HomePage = async ({
     </main>
   );
 };
+
 
 export const generateMetadata = async ({
   params: { slug },
