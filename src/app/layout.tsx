@@ -67,11 +67,21 @@ const footerData = await fetchShopFooter()
 <SessionProvider>
             <ThemeRegistry>
               <AuthContextProvider>
-                <ShopContextProvider>
-              <Navigation data={headerData} />
-            <MainLayout>{children}</MainLayout>
-            <Footer data={footerData} />
-            </ShopContextProvider>
+              <ShopContextProvider>
+        {/* Navigation içinde useSearchParams olduğu için Suspense şart */}
+        <Suspense fallback={<div style={{ height: '100px' }} />}> 
+          <Navigation data={headerData} />
+        </Suspense>
+        
+        <MainLayout>
+          {/* Sayfa içerikleri için de Suspense eklemek iyi bir pratik */}
+          <Suspense fallback={<div>Yükleniyor...</div>}>
+            {children}
+          </Suspense>
+        </MainLayout>
+        
+        <Footer data={footerData} />
+      </ShopContextProvider>
               </AuthContextProvider>
             </ThemeRegistry>
           </SessionProvider>
