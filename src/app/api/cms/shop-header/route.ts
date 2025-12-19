@@ -19,6 +19,7 @@ export const GET = async () => {
     next: { revalidate: 60 },
   });
 
+
   const attributes = res?.data?.[0]?.attributes ?? {};
   const { links, bannerLinks, categories } = attributes;
 

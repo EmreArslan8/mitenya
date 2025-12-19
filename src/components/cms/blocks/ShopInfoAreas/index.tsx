@@ -31,7 +31,7 @@ const ShopInfoAreas = ({ section, infoAreas }: InfoAreasProps) => {
           <Grid
             item
             xs={12}
-            sm={Math.max(4, 12 / infoAreas.length)}
+            sm={Math.max(3, 12 / infoAreas.length)}
             direction="column"
             justifyContent="center"
             alignItems="center"

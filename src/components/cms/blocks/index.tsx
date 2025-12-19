@@ -14,6 +14,8 @@ import ShopSliderCards from './ShopSliderCards';
 import ShopCategoryBlocks from './ShopCategoryBlocks';
 import ShopPromoCards from './ShopPromoCards';
 import ShopBrands from './ShopBrands';
+import ShopFeatureBanner from './ShopFeatureBanner';
+import ShopBlogCards from './ShopBlogCards';
 
 
 /*
@@ -44,6 +46,8 @@ const componentMap = {
   'blocks.shop-promo-cards': ShopPromoCards,
   'blocks.shop-category-blocks': ShopCategoryBlocks,
   'blocks.shop-brands': ShopBrands,
+  'blocks.shop-feature-banners': ShopFeatureBanner,
+  'blocks.shop-blog-card': ShopBlogCards,
 };
 
 /*

@@ -77,7 +77,6 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
   const SORT_OPTIONS: ShopSearchSort[] = ["rct", "asc", "dsc"];
  
   const { data, error, count } = await query;
-  console.log("🟩 [SUPABASE] Raw supabase response:", data, "count:", count);
 
   if (error || !data) {
     console.log("❌ [SUPABASE] error:", error);

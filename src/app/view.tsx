@@ -16,12 +16,11 @@ const HomePageView = ({ data }: { data?: CMSPageData }) => {
     return <p style={{ color: "red" }}>Veri bulunamadı (data undefined)</p>;
   }
 
-
-
   return (
     <Stack gap={gapValues[data?.gap ?? "medium"]}>
       {/* <Banner variant="warning" title={t('navAlert')} sx={{ mb: { xs: -2, sm: -4 } }} /> */}
       {data?.blocks && <BlockManager blocks={data.blocks} />}
+      
     </Stack>
   );
 };

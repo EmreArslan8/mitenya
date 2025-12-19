@@ -15,27 +15,25 @@ export interface ShopBrandsProps extends BlockComponentBaseProps {
   }[];
 }
 
-
 const ShopBrands = ({ section, brands }: ShopBrandsProps) => {
-  const isMobile = useScreen();
+  const { isMobile } = useScreen();
   return (
     <SectionBase {...section}>
-     <CustomSlider
- slidesToShow={isMobile ? 2 : 5}
-  slidesToScroll={1}
-  infinite
-  autoplay
-  autoplaySpeed={1}
-  speed={10000}
-  cssEase="linear"
-  arrows={false}
-  dots={false}
-  pauseOnHover={false}
-  swipe={false}
-  touchMove={false}
-  showControls={false}
->
-
+      <CustomSlider
+        slidesToShow={isMobile ? 2 : 5}
+        slidesToScroll={1}
+        infinite
+        autoplay
+        autoplaySpeed={1}
+        speed={10000}
+        cssEase="linear"
+        arrows={false}
+        dots={false}
+        pauseOnHover={false}
+        swipe={false}
+        touchMove={false}
+        showControls={false}
+      >
         {brands.map((brand, index) => (
           <BrandItem key={index} {...brand} />
         ))}

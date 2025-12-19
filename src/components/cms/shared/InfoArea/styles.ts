@@ -1,13 +1,23 @@
 const styles = {
-  description: {
-    textAlign: 'center',
-    minHeight: '40px',
-    color: 'text.medium',
-  },
   icon: {
-    width: '40px',
-    height: '40px',
+    width: 60,
+    height: 60,
+    flexShrink: 0, 
+    mt: '2px',  
+    color: 'primary.dark', 
+  },
+
+  label: {
+    fontSize: 20,
+    fontWeight: 500,
+    lineHeight: 1.3,
+  },
+
+  description: {
     color: 'text.medium',
+    fontSize: 18,
+    lineHeight: 1.5,
+    maxWidth: 360,
   },
 };
 

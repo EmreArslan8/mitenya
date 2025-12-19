@@ -48,14 +48,14 @@ const ShopInlineProducts = ({
   );
 
   useEffect(() => {
-    console.log('InlineProducts → searchOptions:', searchOptions);
+
   
     fetchProducts(searchOptions)
       .then((res) => {
         // API bazen array, bazen direkt obje olabilir diye esnek yazalım:
         const apiResult = Array.isArray(res) ? res[0] : res;
   
-        console.log('InlineProducts → RAW API RESPONSE:', apiResult);
+  
   
         if (!apiResult?.products || !apiResult.products.length) {
           console.log('InlineProducts → API response has NO products');
@@ -63,7 +63,7 @@ const ShopInlineProducts = ({
           return;
         }
   
-        console.log('InlineProducts → PRODUCTS:', apiResult.products);
+   
         setProducts(apiResult.products);
       })
       .catch((err) => {
