@@ -1,5 +1,5 @@
 export const defaultPalette = {
-  logo: { src: '/static/images/logo.png', width: 180, height: 50 },
+  logo: { src: '/static/images/logo.svg', width: 180, height: 50 },
   primary: {
     main: '#A166FF',
     light: '#F5EFFF',
