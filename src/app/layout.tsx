@@ -91,17 +91,17 @@ const footerData = await fetchShopFooter()
 }
 
 export const generateMetadata = async () => ({
-  title: { template: "%s | Kozmedo", default: "Kozmedo" },
-  description: "Kozmedo",
+  title: { template: "%s | mitenya", default: "mitenya" },
+  description: "mitenya",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_HOST_URL ?? "https://kozmedo.com"
+    process.env.NEXT_PUBLIC_HOST_URL ?? "https://mitenya.com"
   ),
   openGraph: {
-    description: "Kozmedo",
+    description: "mitenya",
     images: [
       {
         url: "/static/images/ogBanner.webp",
-        alt: "Kozmedo",
+        alt: "mitenya",
         width: 1200,
         height: 630,
       },

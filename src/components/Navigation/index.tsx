@@ -178,7 +178,7 @@ const Navigation = ({ data }: NavigationProps) => {
                 >
                   <Image
                     src={styles.logo.src}
-                    alt="kozmedo"
+                    alt="mitenya"
                     width={styles.logo.width}
                     height={styles.logo.height}
                     style={styles.logo}
@@ -409,7 +409,7 @@ const Navigation = ({ data }: NavigationProps) => {
           <Grid item xs={6}>
             <MenuItem
               component="a"
-              href={`https://help.kozmedo.com/`}
+              href={`https://help.mitenya.com/`}
               target="_blank"
               sx={styles.accountMenuItem}
             >

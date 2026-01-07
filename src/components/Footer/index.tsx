@@ -26,7 +26,7 @@ const Footer = ({ data }: FooterProps) => {
             <Stack gap={3}>
               <Image
                 src={styles.logo.src}
-                alt="kozmedo"
+                alt="mitenya"
                 width={styles.logo.width}
                 height={styles.logo.height}
                 style={styles.logo}

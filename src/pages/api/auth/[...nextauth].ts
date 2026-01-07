@@ -6,10 +6,10 @@ import qs from 'qs';
 
 import CognitoCredentialsProvider from './cognitoCredentialsProvider';
 
-const COOKIE_PREFIX = 'kozmedo';
+const COOKIE_PREFIX = 'mitenya';
 const USE_SECURE_COOKIE = process.env.NODE_ENV !== 'development';
 const COOKIE_DOMAIN =
-  process.env.NODE_ENV === 'development' ? 'localhost' : '.kozmedo.com';
+  process.env.NODE_ENV === 'development' ? 'localhost' : '.mitenya.com';
 
 console.log("---- Loading Auth Providers ----");
 
