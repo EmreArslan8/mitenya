@@ -195,7 +195,7 @@ const Navigation = ({ data }: NavigationProps) => {
                 <Stack sx={styles.actions}>
                   <MenuItem sx={styles.action} onClick={() => handleAccountButtonClick()}>
                     <Icon name="account_circle" fontSize={24} weight={400} />
-                    {isAuthenticated ? 'account' : 'Giriş'}
+                    {isAuthenticated ? 'Hesabım' : 'Giriş'}
                   </MenuItem>
                   <ShoppingCartButton />
                 </Stack>

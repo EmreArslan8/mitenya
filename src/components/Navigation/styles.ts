@@ -31,7 +31,6 @@ const useStyles = withPalette((palette) => {
     bannerLinks: { flexDirection: 'row', mr: 'auto' },
     bannerLink: { fontSize: 12, gap: 0.5 },
     innerContainer: {
-      position: 'fixed',
       zIndex: 1297,
       top: 0,
       left: 0,

@@ -3,7 +3,7 @@
 import CustomSlider from '@/components/CustomSlider';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import Button from '@/components/common/Button';
-import { fetchProductData, fetchProducts } from '@/lib/api/shop';
+import { fetchProducts } from '@/lib/api/shop';
 import { ShopProductListItemData, ShopSearchOptions } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
@@ -20,7 +20,6 @@ export interface ShopInlineProductsProps extends BlockComponentBaseProps {
   cta: string;
   displayType: 'slider' | 'grid';
 }
-
 const ShopInlineProducts = ({
   section,
   searchOptions: _searchOptions,
@@ -36,34 +35,24 @@ const ShopInlineProducts = ({
   const styles = useStyles();
 
   useEffect(() => {
-    setSlidesToShow(mdUp ? 5 : smUp ? 4 : 1.9);
-    setSlidesToScroll(mdUp ? 5 : smUp ? 4 : 1);
+    setSlidesToShow(mdUp ? 5.05 : smUp ? 3 : 2);
+    setSlidesToScroll(mdUp ? 5 : smUp ? 3 : 1);
   }, [mdUp, smUp]);
 
- 
   const searchOptions = Object.fromEntries(
-    Object.entries(_searchOptions).filter(([k, v]) =>
-      !['id', 'blockIndex', 'direction', '__component'].includes(k) && Boolean(v)
+    Object.entries(_searchOptions).filter(
+      ([k, v]) => !['id', 'blockIndex', 'direction', '__component'].includes(k) && Boolean(v)
     )
   );
 
   useEffect(() => {
-
-  
     fetchProducts(searchOptions)
       .then((res) => {
-        // API bazen array, bazen direkt obje olabilir diye esnek yazalım:
         const apiResult = Array.isArray(res) ? res[0] : res;
-  
-  
-  
         if (!apiResult?.products || !apiResult.products.length) {
-          console.log('InlineProducts → API response has NO products');
           setError(true);
           return;
         }
-  
-   
         setProducts(apiResult.products);
       })
       .catch((err) => {
@@ -71,24 +60,19 @@ const ShopInlineProducts = ({
         setError(true);
       });
   }, [JSON.stringify(searchOptions)]);
-  
-
 
   if (error) return <></>;
 
- 
-
-
   return (
-    <SectionBase {...section} sx={{ gap: 2 }}>
+    <SectionBase {...section} sectionWidth="100%" sx={{ gap: 2 }}>
       <Stack alignItems="center">
         {displayType === 'grid' ? (
           <Grid container spacing={2} pb={{ xs: 1, sm: 2 }}>
             {products.length
               ? products.slice(0, smUp ? 12 : 8).map((e) => (
-                  <Grid item xs={6} sm={3} md={2} key={e.id}>
+                  <Stack px={{ xs: 0.75, sm: 1 }} key={e.id} sx={{ boxSizing: 'border-box' }}>
                     <ProductCard data={e} />
-                  </Grid>
+                  </Stack>
                 ))
               : Array.from(Array(smUp ? 12 : 8).keys()).map((e) => (
                   <Grid item xs={6} sm={3} md={2} key={e}>
@@ -98,21 +82,27 @@ const ShopInlineProducts = ({
           </Grid>
         ) : (
           <Stack sx={styles.sliderContainer}>
-            <CustomSlider slidesToShow={slidesToShow} slidesToScroll={slidesToScroll} pauseOnHover>
+            <CustomSlider
+              slidesToShow={slidesToShow}
+              slidesToScroll={slidesToScroll}
+              infinite={false}
+              pauseOnHover
+            >
               {products.length
                 ? products.map((e) => (
-                    <Stack pl={2} pr={0.5} key={e.id}>
+                    <Stack key={e.id} p={{ xs: 0.75, sm: 1 }} sx={{ boxSizing: 'border-box' }}>
                       <ProductCard data={e} />
                     </Stack>
                   ))
                 : Array.from(Array(5).keys()).map((e) => (
-                    <Stack pl={2} pr={0.5} key={e}>
+                    <Stack key={e} gap={{ xs: 0.75, sm: 1 }} sx={{ boxSizing: 'border-box' }}>
                       <ProductCardSkeleton />
                     </Stack>
                   ))}
             </CustomSlider>
           </Stack>
         )}
+
         <Button
           color="neutral"
           arrow="end"

@@ -1,32 +1,22 @@
-import { fetchShopIndex } from "@/lib/api/cms";
-import { Metadata } from "next";
-import { notFound } from "next/navigation";
-import HomePageView from "./view";
-import isPreviewBot from "@/lib/utils/isPreviewBot";
+import { fetchShopIndex } from '@/lib/api/cms';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import HomePageView from './view';
+import isPreviewBot from '@/lib/utils/isPreviewBot';
 
-const HomePage = async ({
-  params,
-}: {
-  params: { slug?: string };
-}) => {
-
-
+const HomePage = async ({ params }: { params: { slug?: string } }) => {
   const bot = await isPreviewBot();
 
-
   if (bot) {
-
     return null;
   }
 
   const slug = params?.slug;
 
-
   const data = await fetchShopIndex(slug);
 
-
   if (!data) {
-    console.error("❌ No data found, calling notFound()");
+    console.error('❌ No data found, calling notFound()');
     notFound();
   }
 
@@ -37,7 +27,6 @@ const HomePage = async ({
   );
 };
 
-
 export const generateMetadata = async ({
   params: { slug },
 }: {
@@ -47,12 +36,10 @@ export const generateMetadata = async ({
   if (!data) notFound();
 
   return {
-    title: `${data.title} | Kozmedo`,
+    title: `${data.title} | Mitenya`,
     openGraph: {
-      title: `${data.title} | Kozmedo`,
-      images: [
-        { url: "/static/images/ogBanner.webp", width: 1200, height: 630 },
-      ],
+      title: `${data.title} | Mitenya`,
+      images: [{ url: '/static/images/ogBanner.webp', width: 1200, height: 630 }],
     },
   };
 };

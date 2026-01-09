@@ -31,9 +31,9 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
   const data = await fetchProductData(id);
 
   return {
-    title: { absolute: `${data?.brand ?? ''} ${data?.name ?? ''} | Kozmedo` },
+    title: { absolute: `${data?.brand ?? ''} ${data?.name ?? ''} | Mitenya` },
     openGraph: {
-      title: `${data?.brand ?? ''} ${data?.name ?? ''} | Kozmedo`,
+      title: `${data?.brand ?? ''} ${data?.name ?? ''} | Mitenya`,
       images: [
         {
           url: data?.imgSrc ?? '/static/images/ogBanner.webp',

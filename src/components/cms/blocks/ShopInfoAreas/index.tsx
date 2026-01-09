@@ -1,6 +1,7 @@
+'use client';
+
 import useScreen from '@/lib/hooks/useScreen';
-import { Grid } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { Box, Grid } from '@mui/material';
 import { BlockComponentBaseProps } from '..';
 import InfoArea from '../../shared/InfoArea';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
@@ -12,42 +13,35 @@ export interface InfoAreasProps extends BlockComponentBaseProps {
 }
 
 const ShopInfoAreas = ({ section, infoAreas }: InfoAreasProps) => {
-  const { smDown } = useScreen();
-  const [currentInfoAreaIndex, setCurrentInfoAreaIndex] = useState(0);
-
-  useEffect(() => {
-    if (smDown) {
-      const interval = setInterval(() => {
-        setCurrentInfoAreaIndex((prevIndex) => (prevIndex + 1) % infoAreas.length);
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [infoAreas.length, smDown]);
+  const { mdDown } = useScreen();
 
   return (
     <SectionBase {...section} sx={{ mb: { xs: -3.5, md: -6 } }}>
-      <Grid container spacing={2} justifyContent="space-around" alignItems="center">
-        {infoAreas.map((infoArea, index) => (
-          <Grid
-            item
-            xs={12}
-            sm={Math.max(3, 12 / infoAreas.length)}
-            direction="column"
-            justifyContent="center"
-            alignItems="center"
-            sx={
-              smDown
-                ? index === currentInfoAreaIndex
-                  ? styles.content
-                  : styles.hiddenContent
-                : styles.visibleContent
-            }
-            key={infoArea.label}
-          >
-            <InfoArea {...infoArea} />
+      <Box sx={styles.wrapper}>
+        {mdDown ? (
+          <Box sx={styles.mobileContainer}>
+            {infoAreas.map((infoArea, index) => (
+              <Box key={index} sx={styles.mobileItem}>
+                <InfoArea {...infoArea} />
+              </Box>
+            ))}
+          </Box>
+        ) : (
+          <Grid container spacing={2} justifyContent="space-around" alignItems="center">
+            {infoAreas.map((infoArea, index) => (
+              <Grid
+                item
+                key={`${infoArea.label ?? 'info'}-${index}`}
+                xs={12}
+                sm={Math.max(3, 12 / infoAreas.length)}
+                sx={{ display: 'flex', justifyContent: 'center' }}
+              >
+                <InfoArea {...infoArea} />
+              </Grid>
+            ))}
           </Grid>
-        ))}
-      </Grid>
+        )}
+      </Box>
     </SectionBase>
   );
 };

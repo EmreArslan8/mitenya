@@ -1,7 +1,7 @@
 
 import { ButtonProps, ThemeOptions } from '@mui/material';
 import { Interpolation, PaletteColorOptions, Theme, createTheme } from '@mui/material/styles';
-import { Barlow, IBM_Plex_Sans, IBM_Plex_Mono, Rubik } from 'next/font/google';
+import { Albert_Sans, Barlow, IBM_Plex_Sans, IBM_Plex_Mono, Rubik } from 'next/font/google';
 import { Palette, defaultPalette } from './palette';
 
 export const defaultMaxWidth = 1340;
@@ -68,6 +68,11 @@ declare module '@mui/material/Button' {
     tonal: true;
   }
 }
+const albertSans = Albert_Sans({
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 const barlow = Barlow({
   weight: ['300', '400', '500', '600', '700', '800', '900'],
@@ -97,7 +102,7 @@ const ibmPlexSans = IBM_Plex_Sans({
   fallback: ['Helvetica', 'Arial', 'sans-serif'],
 });
 
-export const defaultFontFamily = `${barlow.style.fontFamily}, ${ibmPlexSans.style.fontFamily}`;
+export const defaultFontFamily = `${albertSans.style.fontFamily}, sans-serif`;
 export const cyrillicFontFamily = ibmPlexSans.style.fontFamily;
 export const hebrewFontFamily = rubik.style.fontFamily;
 

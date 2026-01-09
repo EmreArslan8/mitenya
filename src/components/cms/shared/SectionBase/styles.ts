@@ -28,9 +28,10 @@ const fadeInOut = keyframes`
 
 const useStyles = withPalette((palette) => ({
   title: {
-    color: palette.bg.contrastText,
+    color: palette.primary.deepDark,
     width: 'fit-content',
     textAlign: 'center',
+    pl: 1
   },
   dynamicTitleSectionContainer: {
     display: 'inline-flex',

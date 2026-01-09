@@ -1,14 +1,14 @@
 import { withPalette } from '@/theme/ThemeRegistry';
 
-const useStyles = withPalette((palette) => ({
+const useStyles = withPalette(() => ({
   sliderContainer: {
-    width: { xs: 'calc(100vw + 20px)', sm: 'calc(100% + 16px)' },
-    alignSelf: 'center',
-    alignItems: 'end',
+    width: '100%',
+    alignSelf: 'stretch',
     position: 'relative',
     overflow: 'hidden',
     pb: { xs: 1, sm: 2 },
-    transform: { xs: 'translateX(-10px)', sm: 'translateX(-8)' },
+    transform: 'none',
+    '& .slick-slide > div': { boxSizing: 'border-box' },
   },
 }));
 
