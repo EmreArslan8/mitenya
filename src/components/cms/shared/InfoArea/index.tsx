@@ -18,16 +18,13 @@ const InfoArea = ({ icon, label, description, url }: InfoAreaProps) => {
     <Stack
       direction="row"
       spacing={2}
- alignItems="center"
+      alignItems="center"
       onClick={() => url && router.push(url)}
       sx={{
         cursor: url ? 'pointer' : 'default',
       }}
     >
-      {/* ICON */}
-      {icon && <Icon name={icon} sx={styles.icon} fontSize={48} />}
-
-      {/* TEXT */}
+      {icon && <Icon name={icon} sx={styles.icon} fontSize={36} />}
       <Stack spacing={0.5}>
         {label && (
           <Typography variant="subtitle1" sx={styles.label}>
@@ -35,9 +32,7 @@ const InfoArea = ({ icon, label, description, url }: InfoAreaProps) => {
           </Typography>
         )}
 
-        {description && (
-          <Markdown text={description} sx={styles.description} />
-        )}
+        {description && <Markdown text={description} sx={styles.description} />}
       </Stack>
     </Stack>
   );

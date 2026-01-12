@@ -10,7 +10,7 @@ const styles = {
   },
   secondaryColumn: {
     width: { xs: '100%', md: 312 },
-    minWidth: { md: 312 },
+    minWidth: { md: 382 },
     maxWidth: { sm: 312 },
     gap: { xs: 2, md: 3 },
   },

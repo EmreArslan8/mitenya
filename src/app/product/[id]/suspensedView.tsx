@@ -13,7 +13,7 @@ const SuspensedView = async ({ params }: { params: { id: string } }) => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: getProductJsonLd(data) }}
       />
-      {!isSSR() && <title>{`${data?.brand ?? ''} ${data?.name ?? ''} | Bringist`}</title>}
+      {!isSSR() && <title>{`${data?.brand ?? ''} ${data?.name ?? ''} | Mitenya`}</title>}
       <ProductPageView data={data} />
     </>
   );

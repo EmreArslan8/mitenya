@@ -4,8 +4,8 @@ const styles = {
     borderColor: 'rgba(0,0,0,0.08)',
     borderRadius: 1,
     backgroundColor: '#fff',
-    py: 2,
-    px: 2,
+    py: { xs: 1, md: 1 },
+    px: { xs: 1, md: 2 },
   },
 
   mobileContainer: {
@@ -14,8 +14,8 @@ const styles = {
     overflowX: 'auto',
     scrollSnapType: 'x mandatory',
     WebkitOverflowScrolling: 'touch',
-    px: 2,
-    py: 2,
+    px: {xs: 1, md: 2},
+    py: {xs: 1, md: 2},
 
     '&::-webkit-scrollbar': {
       display: 'none',
@@ -26,7 +26,7 @@ const styles = {
   mobileItem: {
     flex: '0 0 auto',
     scrollSnapAlign: 'start',
-    width: { xs: '65%', sm: '40%', md: '85%' },
+    width: { sm: '40%', md: '85%' },
     maxWidth: 420,
     display: 'flex',
     justifyContent: 'center',
@@ -38,8 +38,6 @@ const styles = {
     alignItems: 'center',
     px: 2,
   },
-
-  /* desktop dikey ayraç */
   divider: {
     borderRight: '1px solid rgba(0,0,0,0.08)',
   },

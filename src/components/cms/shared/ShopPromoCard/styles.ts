@@ -1,70 +1,57 @@
 import { withPalette } from '@/theme/ThemeRegistry';
 
-const useStyles = withPalette(
-  (palette) => (colorway: 'light' | 'dark') => {
-    const isDark = colorway === 'dark';
+const styles = {
+  card: {
+    position: 'relative',
+    height: { xs: 180, sm: 240, md: 300 },
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
 
-    return {
-      container: {
-        position: 'relative',
-        height: { xs: 260, md: 420 },
-        borderRadius: 2,
-        overflow: 'hidden',
-      },
+  media: {
+    position: 'absolute',
+    inset: 0,
+  },
 
-      image: {
-        objectFit: 'cover',
-        zIndex: 0,
-      },
+  image: {
+    objectFit: 'cover',
+  },
 
-      content: {
-        position: 'absolute',
-        inset: 0,
-        zIndex: 1,
-        px: { xs: 3, md: 5 },
-        pb: { xs: 3, md: 6 },
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-        textAlign: 'right',
-        color: isDark ? palette.white.main : palette.primary.deepDark,
-      },
+  content: {
+    position: 'relative',
+    zIndex: 1,
+    height: '100%',
+    px: { xs: 3, md: 5 },
+    py: { xs: 3, md: 5 },
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    maxWidth: { xs: '80%', sm: '60%', md: '70%' },
+  },
 
-      title: {
-        fontFamily: '"Imperial Script", cursive',
-        fontSize: { xs: 28, md: 38 },
-        fontWeight: 600,
-        lineHeight: 1.22,
-        letterSpacing: '0.02em',
-        mb: 2,
-        maxWidth: '80%',
-      },
+  title: {
+    fontSize: { xs: 24, sm: 28, md: 32 },
+    fontWeight: 700,
+    lineHeight: 1.12,
+  
+    mb: 1.5,
+  },
 
-      button: {
-        borderRadius: 999,
-        px: 2.5,
-        py: '6px',
-        fontSize: 13,
-        letterSpacing: '0.08em',
-        textTransform: 'uppercase',
+  description: {
+    fontSize: { xs: 14, sm: 15 },
+    opacity: 0.8,
+    lineHeight: 1.5,
+    mb: 2,
+  },
 
-        ...(isDark
-          ? {
-              backgroundColor: palette.white.main,
-              color: palette.primary.deepDark,
-              '&:hover': {
-                backgroundColor: palette.bg.light,
-              },
-            }
-          : {
-              background: palette.primary.gradient,
-              color: palette.primary.contrastText,
-              '&:hover': {
-                background: palette.primary.dark,
-              },
-            }),
-      },
-    };
-  }
-);
+  cta: {
+    px: 0,
+    minWidth: 'auto',
+    textTransform: 'none',
+    fontWeight: 700,
+    fontSize: 16,
+    color: "black"
+},
+};
 
-export default useStyles;
+
+export default styles;

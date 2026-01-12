@@ -17,6 +17,7 @@
     "@mui/material": "^5.15.0",
     "@portabletext/react": "^5.0.0",
     "@sanity/image-url": "^1.0.2",
+    "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.84.0",
     "amazon-cognito-identity-js": "^6.3.16",
     "axios": "^1.13.2",

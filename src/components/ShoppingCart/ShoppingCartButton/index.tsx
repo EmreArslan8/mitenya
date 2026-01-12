@@ -8,6 +8,7 @@ import { CircularProgress, MenuItem, Popover, Stack, Typography } from '@mui/mat
 import { useContext, useEffect, useRef, useState } from 'react';
 import useStyles from './styles';
 import { useRouter } from 'next/navigation';
+import formatPrice from '@/lib/utils/formatPrice';
 
 const ShoppingCartButton = () => {
   const router = useRouter();
@@ -125,7 +126,7 @@ const Product = ({
         />
       )}
       <Typography sx={styles.productPrice}>
-        {(data.price.currentPrice, data.price.currency)}
+        {formatPrice(data.price.currentPrice, data.price.currency)}
       </Typography>
     </Stack>
   );
