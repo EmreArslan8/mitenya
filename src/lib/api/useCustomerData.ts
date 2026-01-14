@@ -10,10 +10,16 @@ const useCustomerData = () => {
     console.log("🟦 [API] Calling GET /customers/v1/me");
 
     try {
-      const response = await axios.get("/customers/v1/me");
-      console.log("🟩 [API] GET RESPONSE:", response.data);
+      // Axios interceptor [data, error] tuple döndürüyor
+      const [data, error] = await axios.get("/customers/v1/me");
+      console.log("🟩 [API] GET RESPONSE:", data);
 
-      const raw = response.data?.customer as CustomerDB | undefined;
+      if (error) {
+        console.log("🟥 [API] GET ERROR:", error);
+        return undefined;
+      }
+
+      const raw = data?.customer as CustomerDB | undefined;
       if (!raw) return undefined;
 
       return mapSupabaseCustomer(raw);
@@ -24,32 +30,32 @@ const useCustomerData = () => {
   };
 
   // ---------------------- CREATE OR UPDATE CUSTOMER ----------------------
-  const createCustomer = async (data: CreateCustomerRequestData) => {
-    console.log("🟦 [API] Calling POST /customers/v1/me with:", data);
-  
+  const createCustomer = async (reqData: CreateCustomerRequestData) => {
+    console.log("🟦 [API] Calling POST /customers/v1/me with:", reqData);
+
     const payload = {
-      name: data.name,
-      surname: data.surname,
-      email: data.email,
-      culture: data.culture,
-      phoneNumber: data.phoneNumber ?? null,
-      phoneCode: data.phoneCode ?? null,
+      name: reqData.name,
+      surname: reqData.surname,
+      email: reqData.email,
+      culture: reqData.culture,
+      phoneNumber: reqData.phoneNumber ?? null,
+      phoneCode: reqData.phoneCode ?? null,
     };
-  
+
     console.log("🟧 [API] Sending Payload:", payload);
-  
+
     try {
-      const response = await axios.post("/customers/v1/me", {
-        name: data.name,
-        surname: data.surname,
-        email: data.email,
-        culture: data.culture,
-        phoneNumber: data.phoneNumber,
-      });
-  
-      const raw = response.data?.customer as CustomerDB | undefined;
+      // Axios interceptor [data, error] tuple döndürüyor
+      const [data, error] = await axios.post("/customers/v1/me", payload);
+
+      if (error) {
+        console.log("🟥 [API] POST ERROR:", error);
+        return undefined;
+      }
+
+      const raw = data?.customer as CustomerDB | undefined;
       console.log("🟩 [API] POST RESPONSE:", raw);
-  
+
       return raw ? mapSupabaseCustomer(raw) : undefined;
     } catch (err) {
       console.log("🟥 [API] POST ERROR:", err);

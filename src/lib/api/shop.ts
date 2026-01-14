@@ -1,110 +1,97 @@
-
-import { fetchProductsSupabase} from './supabaseShop';
-import { fetchProductDataSupabase } from './supabaseProducts'
+import { fetchProductsSupabase } from './supabaseShop';
+import { fetchProductDataSupabase } from './supabaseProducts';
 import {
-  AddressData,
-  PagedResults,
-  ShopOrderData,
-  ShopOrderListItemData,
   ShopProductData,
   ShopProductListItemData,
   ShopSearchOptions,
-  ShopSearchResponse
+  ShopSearchResponse,
 } from './types';
-import bring from './bring';
+import { supabaseAdmin } from '../supabase/admin';
 
-/*  export const fetchProducts = async (
-  options: Partial<ShopSearchOptions>
-): Promise<ShopSearchResponse | undefined> => {
-
-  try {
-    const url = '/api/shop/search';
-    const res = await bring(url, { params: options });
-    console.log(res, "fetch")
-    return res[0];
-  } catch (error) {
-    console.log(error);
-    return undefined;
-  }
-};
-*/
+// ============================================================
+// 🛍️ PRODUCTS
+// ============================================================
 
 export const fetchProducts = async (
   options: Partial<ShopSearchOptions>
 ): Promise<ShopSearchResponse | undefined> => {
   try {
-    const res = await fetchProductsSupabase(options);
-    return res;
+    return await fetchProductsSupabase(options);
   } catch (error) {
-    console.log(error);
+    console.error('Fetch products error:', error);
     return undefined;
   }
 };
 
-export const fetchProductData = async (
-  id: string
-): Promise<ShopProductData | undefined> => {
+export const fetchProductData = async (id: string): Promise<ShopProductData | undefined> => {
   try {
-    const res = await fetchProductDataSupabase(id);
-    return res ?? undefined;
+    return (await fetchProductDataSupabase(id)) ?? undefined;
   } catch (error) {
-    console.log(error);
+    console.error('Fetch product error:', error);
     return undefined;
   }
 };
 
+export async function fetchProductVariants(productId: string) {
+  const { data, error } = await supabaseAdmin
+    .from('products')
+    .select('attributes_json')
+    .eq('id', productId)
+    .single();
 
+  if (error || !data) return null;
+
+  try {
+    return typeof data.attributes_json === 'string'
+      ? JSON.parse(data.attributes_json)
+      : data.attributes_json;
+  } catch {
+    return [];
+  }
+}
+
+// ============================================================
+// 🎯 RECOMMENDATIONS
+// ============================================================
 
 export const fetchRecommendations = async (options: {
   brandId: string;
   productId: string;
 }): Promise<ShopProductListItemData[]> => {
   try {
-    const url = '/api/shop/recommendations';
-    const res = await bring(url, { params: options });
-    return res[0];
+    // TODO: Supabase'e taşınabilir
+    const { data } = await supabaseAdmin
+      .from('products')
+      .select(
+        `
+        id, slug, name, brand_id, brand_name,
+        current_price, original_price, currency, main_image_url
+      `
+      )
+      .eq('brand_id', options.brandId)
+      .neq('id', options.productId)
+      .limit(8);
+
+    return (data || []).map((p) => ({
+      id: p.id,
+      brand: p.brand_name || '',
+      brandId: p.brand_id || '',
+      name: p.name,
+      url: `/product/${p.slug || p.id}`,
+      imgSrc: p.main_image_url || '',
+      price: {
+        currentPrice: Number(p.current_price) || 0,
+        originalPrice: Number(p.original_price) || Number(p.current_price) || 0,
+        currency: p.currency || 'TRY',
+      },
+    }));
   } catch (error) {
-    console.log(error);
+    console.error('Fetch recommendations error:', error);
     return [];
   }
 };
 
-
-export const fetchOrders = async (): Promise<PagedResults<ShopOrderListItemData> | undefined> => {
-  const url = '/api/shop/orders';
-  const res = await bring(url);
-  return res[0];
-};
-
-export const fetchOrder = async (id: string): Promise<ShopOrderData | undefined> => {
-  const url = `/api/shop/orders/${id}`;
-  const res = await bring(url);
-  return res[0];
-};
-
-export const finalizeCodOrder = async (
-  checkoutUrl: string,
-  vsn: string,
-  selected: ShopProductData[]
-): Promise<boolean> => {
-  try {
-    const pids = selected
-      .map(
-        (e) =>
-          `${e.id}${
-            e.variants?.length
-              ? ' : ' + e.variants.map((v) => v.options.find((o) => o.selected)?.value).join('-')
-              : ''
-          }`
-      )
-      .join(',');
-
-    const params = { checkoutUrl, vsn, pids };
-    const [, err] = await bring('/api/shop/checkout/cod', { params });
-    if (err) return false;
-    return true;
-  } catch (error) {
-    console.error(error);
-    return false;
-  }
-};
+// ============================================================
+// 📦 ORDERS - Server Component'larda kullanım için:
+// import { fetchOrdersSupabase, fetchOrderSupabase } from '@/lib/api/supabaseOrders';
+// ============================================================

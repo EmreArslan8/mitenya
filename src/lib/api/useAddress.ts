@@ -1,55 +1,120 @@
-import useAxios from '../hooks/useAxios';
+import { createSupabaseBrowser } from '../supabase/browser';
 import { AddressData } from './types';
 
 export const EMPTY_TAX_NUMBER = '111111';
 export const EMPTY_EMAIL = '';
 
-/**
- * Backend responses are assumed to be arrays based on your current implementation
- */
-type BackendArrayResponse<T> = [T] | [T, unknown] | [];
+// Database row type
+interface AddressRow {
+  id: string;
+  provider_id: string;
+  name: string;
+  contact_name: string;
+  contact_surname: string;
+  phone_code: string;
+  phone_number: string;
+  city: string;
+  district: string;
+  postcode: string;
+  line1: string;
+  country_code: string;
+  created_at?: string;
+}
 
-/** Safe helper: extract first element from array response */
-const extractFirst = <T,>(res: unknown): T | undefined => {
-  const arr = res as BackendArrayResponse<T>;
-  return Array.isArray(arr) ? (arr[0] as T) : undefined;
-};
+// Convert database row to AddressData
+const rowToAddressData = (row: AddressRow): AddressData => ({
+  id: row.id as unknown as number, // Keep as string internally but type expects number
+  name: row.name,
+  contactName: row.contact_name,
+  contactSurname: row.contact_surname,
+  phoneCode: row.phone_code,
+  phoneNumber: row.phone_number,
+  city: row.city,
+  district: row.district || '',
+  postcode: row.postcode || '',
+  line1: row.line1,
+  line2: '',
+  line3: '',
+  state: '',
+  countryCode: row.country_code as AddressData['countryCode'],
+});
+
+// Convert AddressData to database row format
+const addressDataToRow = (data: AddressData, providerId: string): Omit<AddressRow, 'id' | 'created_at'> => ({
+  provider_id: providerId,
+  name: data.name,
+  contact_name: data.contactName,
+  contact_surname: data.contactSurname,
+  phone_code: data.phoneCode,
+  phone_number: data.phoneNumber,
+  city: data.city,
+  district: data.district || '',
+  postcode: data.postcode || '',
+  line1: data.line1,
+  country_code: data.countryCode || 'TR',
+});
 
 const useAddress = () => {
-  const axios = useAxios();
+  const supabase = createSupabaseBrowser();
+
+  /** Get current user's provider ID */
+  const getProviderId = async (): Promise<string | null> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id || null;
+  };
 
   /** Fetch Address List */
   const fetchAddresses = async (): Promise<AddressData[]> => {
     try {
-      const response = await axios.get(`/customers/v1/me/addressbook/entries`);
+      const providerId = await getProviderId();
+      if (!providerId) {
+        console.log('No user logged in');
+        return [];
+      }
 
-      const list = extractFirst<AddressData[]>(response.data);
+      const { data, error } = await supabase
+        .from('addresses')
+        .select('*')
+        .eq('provider_id', providerId)
+        .order('created_at', { ascending: false });
 
-      if (!list) return [];
+      if (error) {
+        console.error('Fetch addresses error:', error);
+        return [];
+      }
 
-      return list.map((e) => ({
-        ...e,
-        email: e.email === EMPTY_EMAIL ? undefined : e.email,
-        taxNumber: e.taxNumber === EMPTY_TAX_NUMBER ? undefined : e.taxNumber,
-      }));
+      return (data || []).map(rowToAddressData);
     } catch (error) {
-      console.log(error);
+      console.error('Fetch addresses error:', error);
       return [];
     }
   };
 
   /** Add address */
-  const addAddress = async (data: AddressData): Promise<number | undefined> => {
+  const addAddress = async (data: AddressData): Promise<string | undefined> => {
     try {
-      const response = await axios.post(`/customers/v1/me/addressbook/entries`, {
-        ...data,
-        email: data.email || EMPTY_EMAIL,
-        taxNumber: data.taxNumber || EMPTY_TAX_NUMBER,
-      });
+      const providerId = await getProviderId();
+      if (!providerId) {
+        console.error('No user logged in');
+        return undefined;
+      }
 
-      return extractFirst<number>(response.data);
+      const row = addressDataToRow(data, providerId);
+
+      const { data: inserted, error } = await supabase
+        .from('addresses')
+        .insert(row)
+        .select('id')
+        .single();
+
+      if (error) {
+        console.error('Add address error:', error);
+        return undefined;
+      }
+
+      return inserted?.id;
     } catch (error) {
-      console.log(error);
+      console.error('Add address error:', error);
       return undefined;
     }
   };
@@ -59,20 +124,28 @@ const useAddress = () => {
     data: { entryId: string } & AddressData
   ): Promise<boolean> => {
     try {
-      const response = await axios.put(
-        `/customers/v1/me/addressbook/entries/${data.entryId}`,
-        {
-          ...data,
-          email: data.email || EMPTY_EMAIL,
-          taxNumber: data.taxNumber || EMPTY_TAX_NUMBER,
-        }
-      );
+      const providerId = await getProviderId();
+      if (!providerId) {
+        console.error('No user logged in');
+        return false;
+      }
 
-      // If second element exists → it's an error
-      const arr = response.data as BackendArrayResponse<unknown>;
-      return !(arr.length > 1);
+      const row = addressDataToRow(data, providerId);
+
+      const { error } = await supabase
+        .from('addresses')
+        .update(row)
+        .eq('id', data.entryId)
+        .eq('provider_id', providerId); // Security: only update own addresses
+
+      if (error) {
+        console.error('Edit address error:', error);
+        return false;
+      }
+
+      return true;
     } catch (error) {
-      console.log(error);
+      console.error('Edit address error:', error);
       return false;
     }
   };
@@ -80,14 +153,26 @@ const useAddress = () => {
   /** Delete address */
   const deleteAddress = async (id: string): Promise<boolean> => {
     try {
-      const response = await axios.delete(
-        `/customers/v1/me/addressbook/entries/${id}`
-      );
+      const providerId = await getProviderId();
+      if (!providerId) {
+        console.error('No user logged in');
+        return false;
+      }
 
-      const arr = response.data as BackendArrayResponse<unknown>;
-      return !(arr.length > 1);
+      const { error } = await supabase
+        .from('addresses')
+        .delete()
+        .eq('id', id)
+        .eq('provider_id', providerId); // Security: only delete own addresses
+
+      if (error) {
+        console.error('Delete address error:', error);
+        return false;
+      }
+
+      return true;
     } catch (error) {
-      console.log(error);
+      console.error('Delete address error:', error);
       return false;
     }
   };

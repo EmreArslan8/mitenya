@@ -105,10 +105,10 @@ export type ShopOrderSummaryData = {
   total: number;
   totalDue: number;
   cashOnDeliveryAvailability: {
-    isAvailable: false,
-    codBalance: { amount: 0, currency: "TRY" },
-    failureReason: "NOT_SUPPORTED"
-  },
+    isAvailable: boolean;
+    codBalance: { amount: number; currency: string };
+    failureReason: CODFailureReason | "NOT_SUPPORTED" | null;
+  };
 };
 
 export type ShopOrderStatus = 'processing' | 'preparing' | 'shipped' | 'cancelled';
@@ -156,6 +156,7 @@ export type ShopProductListItemData = {
   price: ShopProductPrice;
   rating?: ShopProductRating;
   breadcrumbs?: string;
+  hasVariant?: boolean;
 };
 
 export type ShopProductVariantOptionData = {
@@ -215,7 +216,7 @@ export type ShopProductData = {
   }[];
 };
 
-export type PaymentType = 'Stripe' | 'UniversalBank' | 'COD';
+export type PaymentType = 'Stripe' | 'UniversalBank' | 'COD' ;
 
 export type OrderSummaryRequestData = {
   products: ShopProductData[];
@@ -227,7 +228,6 @@ export type OrderSummaryRequestData = {
 export type CheckoutRequestData = {
   id: string;
   destination: AddressData;
-  locale: Locale;
   paymentType: PaymentType;
 };
 
@@ -277,7 +277,6 @@ export type ShopSearchOptions = {
   query?: string;
   brand?: string;
   category?: string;
-  locale?: Locale;
   gender?: ShopGender;
   size?: string;
   nt?: boolean; // NOTE: stands for No Translation

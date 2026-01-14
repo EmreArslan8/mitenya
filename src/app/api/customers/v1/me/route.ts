@@ -1,23 +1,64 @@
-import { NextRequest } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { NextRequest } from "next/server";
+
+// Helper: Get user from Authorization header
+async function getUserFromToken(req: NextRequest) {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return null;
+  }
+
+  const token = authHeader.replace("Bearer ", "");
+  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+
+  if (error || !user) {
+    console.log("🟥 [BACKEND] Token validation error:", error?.message);
+    return null;
+  }
+
+  return user;
+}
 
 export async function GET(req: NextRequest) {
   console.log("🟦 [BACKEND] GET /api/customers/v1/me");
 
-  const session = await getServerSession(authOptions);
-  console.log("🟪 [BACKEND] Session:", session?.user?.id);
+  const user = await getUserFromToken(req);
+  console.log("🟪 [BACKEND] User:", user?.id, user?.email);
 
-  if (!session || !session.user?.id) {
+  if (!user) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data, error } = await supabaseAdmin
+  // Önce provider_id ile ara
+  let { data, error } = await supabaseAdmin
     .from("customers")
     .select("*")
-    .eq("provider_id", session.user.id)
+    .eq("provider_id", user.id)
     .maybeSingle();
+
+  // provider_id ile bulunamadıysa email ile ara
+  if (!data && user.email) {
+    console.log("🟡 [BACKEND] provider_id ile bulunamadı, email ile aranıyor...");
+    const emailResult = await supabaseAdmin
+      .from("customers")
+      .select("*")
+      .eq("email", user.email)
+      .maybeSingle();
+
+    if (emailResult.data) {
+      // Email ile bulundu, provider_id'yi güncelle
+      console.log("🟢 [BACKEND] Email ile bulundu, provider_id güncelleniyor...");
+      const updateResult = await supabaseAdmin
+        .from("customers")
+        .update({ provider_id: user.id })
+        .eq("email", user.email)
+        .select()
+        .single();
+
+      data = updateResult.data;
+      error = updateResult.error;
+    }
+  }
 
   console.log("🟩 [BACKEND] Supabase GET Result:", data);
 
@@ -30,91 +71,82 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    console.log("🟦 [BACKEND] POST /api/customers/v1/me");
-  
-    const session = await getServerSession(authOptions);
-    console.log("🟪 [BACKEND] Session:", session?.user?.id);
-  
-    if (!session || !session.user?.id) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  
-    const body = await req.json();
-    console.log("🟧 [BACKEND] Incoming Body:", body);
-  
-    // FE → BE payload ile birebir eşleşmesi gereken alanlar
-    const {
-      full_name,   // FE tam olarak bunu gönderiyor
-      email,
-      culture,
-      phone
-    } = body;
-  
-    // Müşteri var mı?
-    const { data: existing, error: existingError } = await supabaseAdmin
+  console.log("🟦 [BACKEND] POST /api/customers/v1/me");
+
+  const user = await getUserFromToken(req);
+  console.log("🟪 [BACKEND] User:", user?.id, user?.email);
+
+  if (!user) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await req.json();
+  console.log("🟧 [BACKEND] Request body:", body);
+
+  // Önce provider_id ile ara
+  let { data: existing } = await supabaseAdmin
+    .from("customers")
+    .select("*")
+    .eq("provider_id", user.id)
+    .maybeSingle();
+
+  // provider_id ile bulunamadıysa email ile ara
+  if (!existing && (body.email || user.email)) {
+    const emailToCheck = body.email || user.email;
+    console.log("🟡 [BACKEND] provider_id ile bulunamadı, email ile aranıyor:", emailToCheck);
+
+    const emailResult = await supabaseAdmin
       .from("customers")
       .select("*")
-      .eq("provider_id", session.user.id)
+      .eq("email", emailToCheck)
       .maybeSingle();
-  
-    if (existingError) {
-      console.log("🟥 [BACKEND] Supabase SELECT ERROR:", existingError);
-      return Response.json({ error: existingError.message }, { status: 500 });
-    }
-  
-    let result;
-  
-    if (!existing) {
-      // CREATE
-      console.log("🟦 [BACKEND] Creating NEW customer...");
-  
-      const insertPayload = {
-        provider_id: session.user.id,
-        full_name,
-        email,
-        culture,
-        phone,
-      };
-  
-      const { data: inserted, error: insertErr } = await supabaseAdmin
-        .from("customers")
-        .insert(insertPayload)
-        .select("*")
-        .single();
-  
-      if (insertErr) {
-        console.log("🟥 INSERT ERROR:", insertErr);
-        return Response.json({ error: insertErr.message }, { status: 500 });
-      }
-  
-      result = inserted;
-    } else {
-      // UPDATE
-      console.log("🟦 [BACKEND] Updating existing customer...");
-  
-      const updatePayload = {
-        full_name,
-        email,
-        culture,
-        phone,
-      };
-  
-      const { data: updated, error: updateErr } = await supabaseAdmin
-        .from("customers")
-        .update(updatePayload)
-        .eq("provider_id", session.user.id)
-        .select("*")
-        .single();
-  
-      if (updateErr) {
-        console.log("🟥 UPDATE ERROR:", updateErr);
-        return Response.json({ error: updateErr.message }, { status: 500 });
-      }
-  
-      result = updated;
-    }
-  
-    console.log("🟩 [BACKEND] Final Customer Response:", result);
-    return Response.json({ customer: result }, { status: 200 });
+
+    existing = emailResult.data;
   }
-  
+
+  let data, error;
+
+  if (existing) {
+    // Update existing customer (provider_id'yi de güncelle)
+    console.log("🟢 [BACKEND] Mevcut müşteri güncelleniyor...");
+    const result = await supabaseAdmin
+      .from("customers")
+      .update({
+        provider_id: user.id, // Her zaman güncel provider_id'yi set et
+        email: body.email || user.email || existing.email,
+        name: body.name || existing.name,
+        surname: body.surname || existing.surname,
+        culture: body.culture || existing.culture,
+      })
+      .eq("id", existing.id)
+      .select()
+      .single();
+    data = result.data;
+    error = result.error;
+  } else {
+    // Insert new customer
+    console.log("🟢 [BACKEND] Yeni müşteri oluşturuluyor...");
+    const result = await supabaseAdmin
+      .from("customers")
+      .insert({
+        provider_id: user.id,
+        email: body.email || user.email,
+        name: body.name || "",
+        surname: body.surname || "",
+        culture: body.culture || "tr",
+      })
+      .select()
+      .single();
+    data = result.data;
+    error = result.error;
+  }
+
+  console.log("🟩 [BACKEND] Supabase Result:", data);
+
+  if (error) {
+    console.log("🟥 [BACKEND] Supabase ERROR:", error);
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+
+  return Response.json({ customer: data }, { status: 200 });
+}

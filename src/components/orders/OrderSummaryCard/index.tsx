@@ -5,30 +5,27 @@ import { Currency } from '@/lib/utils/currencies';
 import formatPrice from '@/lib/utils/formatPrice';
 import { Divider, Stack, Typography } from '@mui/material';
 
-
 interface OrderSummaryCardProps {
   data: ShopOrderSummaryData;
   productCurrency: Currency;
 }
 
 const OrderSummaryCard = ({ data, productCurrency }: OrderSummaryCardProps) => {
-
-
   return (
-    <Card iconName="receipt_long" title={('orders.orderPage.summary.cardTitle')} border>
+    <Card iconName="receipt_long" title="Sipariş Özeti" border>
       <Stack py={2} px={3}>
         <Stack gap={1}>
           <Stack gap={0.5}>
             <Stack gap={1} direction="row" alignItems="center" justifyContent="space-between">
-              <Typography variant="warning">
-                {('orders.orderPage.summary.productsTotal')}
-              </Typography>
+              <Typography variant="warning">Ürünler Toplamı</Typography>
               <Typography fontSize={17} fontWeight={600} whiteSpace="nowrap">
-                {(data.productCost, productCurrency)}
+                {formatPrice(data.productCost, productCurrency)}
               </Typography>
             </Stack>
           </Stack>
+
           <Divider flexItem />
+
           {data.customsCharges?.map((charge) => (
             <Stack
               gap={1}
@@ -38,52 +35,58 @@ const OrderSummaryCard = ({ data, productCurrency }: OrderSummaryCardProps) => {
               key={charge.label}
             >
               <Typography variant="warning">
-                {(`orders.orderPage.summary.customsChargesLabels.${charge.label}`)}
+                {/* İstersen burayı charge.label’a göre Türkçeleştirebiliriz */}
+                {charge.label}
               </Typography>
               <Typography fontSize={17} fontWeight={600} lineHeight="normal" whiteSpace="nowrap">
                 {formatPrice(charge.price, data.currency)}
               </Typography>
             </Stack>
           ))}
+
           {data.codServiceFee && (
             <Stack gap={1} direction="row" alignItems="center" justifyContent="space-between">
               <Typography variant="warning" whiteSpace="nowrap">
-                {('orders.orderPage.summary.codServiceFee')}
+                Kapıda Ödeme Hizmet Bedeli
               </Typography>
               <Typography fontSize={17} fontWeight={600} whiteSpace="nowrap">
-                {(data.codServiceFee, data.currency)}
+                {formatPrice(data.codServiceFee, data.currency)}
               </Typography>
             </Stack>
           )}
+
           <Stack gap={1} direction="row" alignItems="center" justifyContent="space-between">
             <Typography variant="warning" whiteSpace="nowrap">
-              {('orders.orderPage.summary.shipping-handling')}
+              Kargo ve Hizmet Bedeli
             </Typography>
             <Typography fontSize={17} fontWeight={600} whiteSpace="nowrap">
-              {(data.shipmentCost, data.currency)}
+              {formatPrice(data.shipmentCost, data.currency)}
             </Typography>
           </Stack>
+
           {/* TODO: Need to change this to promotionDiscount */}
           {Boolean((data as any).discount) && (
             <>
               <Divider flexItem />
+
               <Stack gap={1} direction="row" alignItems="center" justifyContent="space-between">
                 <Typography variant="warning" fontWeight={600}>
-                  {('orders.orderPage.summary.total')}
+                  Ara Toplam
                 </Typography>
                 <Typography fontSize={17} fontWeight={600}>
-                  {(data.total, data.currency)}
+                  {formatPrice(data.total, data.currency)}
                 </Typography>
               </Stack>
+
               <Banner variant="success" horizontal noIcon sx={{ mx: -1 }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
                   <Stack gap={1} direction="row" alignItems="center">
                     <Typography fontSize={15} fontWeight={600} color="success">
-                      {(`orders.orderPage.summary.discount`)}
+                      İndirim
                     </Typography>
                   </Stack>
                   <Typography fontSize={17} fontWeight={600}>
-                    {`- ${((data as any).discount, data.currency)}`}
+                    - {formatPrice((data as any).discount, data.currency)}
                   </Typography>
                 </Stack>
               </Banner>
@@ -91,13 +94,15 @@ const OrderSummaryCard = ({ data, productCurrency }: OrderSummaryCardProps) => {
           )}
         </Stack>
       </Stack>
+
       <Divider flexItem />
+
       <Stack direction="row" alignItems="center" justifyContent="space-between" py={2} px={3}>
         <Typography fontSize={15} fontWeight={700} lineHeight={1}>
-          {('orders.orderPage.summary.totalDue')}
+          Ödenecek Tutar
         </Typography>
         <Typography fontSize={18} fontWeight={700} lineHeight={1}>
-          {(data.totalDue, data.currency)}
+          {formatPrice(data.totalDue, data.currency)}
         </Typography>
       </Stack>
     </Card>

@@ -1,68 +1,55 @@
 import { ShopSearchOptions } from '@/lib/api/types';
 import { NextRequest, NextResponse } from 'next/server';
-import hunter from './hunters';
+import { fetchProducts } from '@/lib/api/shop'; // <-- projendeki doğru path'e göre düzelt
 
 export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
 
 export const GET = async (req: NextRequest) => {
+  const sp = req.nextUrl.searchParams;
 
-  // 🔴 ÖNEMLİ: Servis kapatma satırı YORUM SATIRINDAN ÇIKARILMALI
-  // return NextResponse.json({ error: 'Service is under maintenance' }, { status: 503 });
-  
-  let {
-    page = '1',
-    query = '',
-    brand = '',
-    category = '',
-    nt = false,
-    ...rest
-  } = Object.fromEntries(req.nextUrl.searchParams.entries());
+  const pageStr = sp.get('page') ?? '1';
+  const query = sp.get('query') ?? '';
+  const brand = sp.get('brand') ?? '';
+  const category = sp.get('category') ?? '';
+  const ntRaw = sp.get('nt') ?? 'false';
 
-  // 🔴 KALDIRILDI: locale ve region okuma/atama işlemleri
-  // const locale = (cookies().get('NEXT_LOCALE')?.value ?? 'en') as Locale;
-  // const region = (cookies().get('NEXT_REGION')?.value ?? 'uz') as Region;
-
-  // 1. PARAMETRE DOĞRULAMA
-  if (
-    typeof page !== 'string' ||
-    typeof parseInt(page) !== 'number' ||
-    typeof query !== 'string' ||
-    typeof brand !== 'string' ||
-    typeof category !== 'string' 
-    // 🔴 KALDIRILDI: locale doğrulama
-  ) {
-    return NextResponse.json({ message: 'Bad request.' }, { status: 400 });
+  // string->number parse (sağlam)
+  const page = Number.parseInt(pageStr, 10);
+  if (!Number.isFinite(page) || page < 1) {
+    return NextResponse.json({ message: 'Bad request: invalid page' }, { status: 400 });
   }
 
-  // 2. PARAMETRELERİ OLUŞTURMA (locale ve region olmadan)
+  // nt parse (string'den boolean'a)
+  const nt = ntRaw === 'true' || ntRaw === '1';
+
+  // geri kalan parametreleri de al (query params -> object)
+  const rest = Object.fromEntries(
+    Array.from(sp.entries()).filter(
+      ([k]) => !['page', 'query', 'brand', 'category', 'nt'].includes(k)
+    )
+  );
+
   const params: ShopSearchOptions = {
-    page: parseInt(page),
+    page,
     query,
     brand,
     category,
-    // 🔴 KALDIRILDI: locale
-    // 🔴 KALDIRILDI: region
-    nt: Boolean(nt),
+    nt,
     ...rest,
-    // locale: 'tr' as any, // İstenirse sabit bir varsayılan dil atanabilir
-    // region: 'TR' as any, // İstenirse sabit bir varsayılan bölge atanabilir
   };
- 
-  // 3. HUNTER ÇAĞRISI
+
   try {
-    const response = await hunter(params);
+    const response = await fetchProducts(params);
+
     if (!response) {
-        console.error("Hunter returned no response, possibly 404 or external error.");
-        // Başarısız/Boş yanıtı 404 olarak döndürebiliriz
-        return NextResponse.json({ message: 'Products not found' }, { status: 404 });
+      return NextResponse.json({ message: 'Products not found' }, { status: 404 });
     }
-    // fetchProducts'ın beklediği dizi formatına sarmalıyoruz
-    return NextResponse.json([response], { status: 200 }); 
+
+    // fetchProducts zaten beklenen formatı dönüyorsa direkt dön
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.error("API Route Error:", error);
-    // Hata mesajını doğru formatta döndürüyoruz
-    return NextResponse.json(error, { status: 500 });
+    console.error('API Route Error:', error);
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 };
-
-export const dynamic = 'force-dynamic';

@@ -5,6 +5,7 @@ const BlogPage = async () => {
 };
 
 export const metadata = {
-  title: 'Blogs',
+  title: 'Blog',
+  description: 'Güzellik ipuçları, cilt bakımı tavsiyeleri ve kozmetik trendleri hakkında yazılar.',
 };
 export default BlogPage;

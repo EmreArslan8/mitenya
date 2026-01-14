@@ -55,7 +55,7 @@ const ShopBlogCards = ({
       <Stack gap={4}>
         {/* Header */}
         <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography variant="h4" fontWeight={700}>
+          <Typography variant="h1" fontWeight={700}>
             {title}
           </Typography>
 

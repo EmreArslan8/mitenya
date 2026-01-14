@@ -3,7 +3,7 @@
 import { CustomerDB , CustomerData } from "../api/types";
 
 export const mapCreateCustomerPayload = (body: any) => {
-    return {
+    return {  
       full_name: `${body.name ?? ""} ${body.surname ?? ""}`.trim(),
       email: body.email ?? null,
       culture: body.culture ?? "en",

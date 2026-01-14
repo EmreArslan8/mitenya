@@ -26,6 +26,20 @@ const bannerProps: Record<ShopOrderStatus, BannerProps> = {
   },
 };
 
+const statusLabels: Record<ShopOrderStatus, string> = {
+  processing: 'Sipariş Alındı',
+  preparing: 'Hazırlanıyor',
+  shipped: 'Kargoya Verildi',
+  cancelled: 'İptal Edildi',
+};
+
+const statusDescriptions: Record<ShopOrderStatus, string> = {
+  processing: 'Siparişiniz alınmıştır ve işleme alınmaktadır.',
+  preparing: 'Siparişiniz hazırlanmaktadır. En kısa sürede kargoya verilecektir.',
+  shipped: 'Siparişiniz kargoya verilmiştir. Kargo sürecini takip edebilirsiniz.',
+  cancelled: 'Siparişiniz iptal edilmiştir. Detaylı bilgi için destek ekibimizle iletişime geçebilirsiniz.',
+};
+
 const OrderStatusCard = ({
   status,
   trackingNumber,
@@ -35,27 +49,38 @@ const OrderStatusCard = ({
   trackingNumber?: string;
   orderId: string;
 }) => {
-
   return (
-    <Banner {...bannerProps[status]} title={(`orders.statuses.${status}.label`)} sx={{ p: 1.5 }}>
+    <Banner
+      {...bannerProps[status]}
+      title={statusLabels[status]}
+      sx={{ p: 1.5 }}
+    >
       <Stack gap={1.5} alignItems="start">
-        <Typography variant="warningSemibold">{('orders.orderId')}: {orderId}</Typography>
         <Typography variant="warningSemibold">
-          {(`orders.statuses.${status}.description`)}
+          Sipariş No: {orderId}
         </Typography>
+
+        <Typography variant="warningSemibold">
+          {statusDescriptions[status]}
+        </Typography>
+
         {status === 'cancelled' && <SupportButton size="small" />}
+
         {status === 'shipped' && trackingNumber && (
           <>
-          <Typography variant="warningSemibold">{('orders.trackingNumber')}: {trackingNumber}</Typography>
+            <Typography variant="warningSemibold">
+              Kargo Takip No: {trackingNumber}
+            </Typography>
+
             <Button
               size="small"
-              color='neutral'
+              color="neutral"
               variant="outlined"
               href={`https://my.fargo.uz/track?id=${trackingNumber}`}
               target="_blank"
               endIcon={<Icon name="open_in_new" fontSize={20} />}
             >
-              {('orders.orderPage.trackShipmentButton')}
+              Kargoyu Takip Et
             </Button>
           </>
         )}

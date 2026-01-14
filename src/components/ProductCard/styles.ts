@@ -49,6 +49,10 @@ const useStyles = withPalette((palette) => ({
     flexWrap: 'wrap',
     alignItems: 'center',
     gap: 0.5,
+    background: '#f3e8ff',
+    borderRadius: 1,
+    px: 1,
+    py: 0.5,
   },
   price: { fontSize: '15px !important', color: palette.primary.main, fontWeight: 700 },
   originalPrice: {

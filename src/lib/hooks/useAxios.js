@@ -1,18 +1,23 @@
-import { defaultAxiosSetup, defaultResponseInterceptor } from '@/lib/axios';
+import { createClient } from '@/lib/supabase/client';
 import axios from 'axios';
-import { getSession } from 'next-auth/react';
+import { defaultAxiosSetup, defaultResponseInterceptor } from '@/lib/axios';
 
 const useAxios = () => {
   const axiosInstance = axios.create(defaultAxiosSetup);
   axiosInstance.interceptors.response.use(...defaultResponseInterceptor());
   axiosInstance.interceptors.request.use(
     async function (config) {
-      const session = await getSession();
-      if (session?.accessToken) config.headers['Authorization'] = `Bearer ${session.accessToken}`;
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      console.log("🔐 [AXIOS] Session:", session?.user?.email);
+      console.log("🔐 [AXIOS] Token:", session?.access_token ? "EXISTS" : "MISSING");
+
+      if (session?.access_token) {
+        config.headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
       return config;
-    },
-    function (err) {
-      return Promise.reject(err);
     }
   );
 

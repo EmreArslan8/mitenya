@@ -1,6 +1,5 @@
 import { AddressData } from '@/lib/api/types';
 import useAddress from '@/lib/api/useAddress';
-import useLocale from '@/lib/hooks/useLocale';
 import useScreen from '@/lib/hooks/useScreen';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -16,7 +15,6 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { useTranslations } from 'next-intl';
 import { ReactNode, useEffect, useState } from 'react';
 import Icon from '../Icon';
 import Card from '../common/Card';
@@ -56,9 +54,7 @@ const AddressCard = ({
   summarized = false,
   skeleton = false,
 }: AddressCardProps) => {
-  const t = useTranslations('common');
   const { deleteAddress } = useAddress();
-  const { direction } = useLocale();
   const [deleteMenuAnchor, setDeleteMenuAnchor] = useState<HTMLElement | null>(null);
   const [deleteMenuOpen, setDeleteMenuOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -93,10 +89,19 @@ const AddressCard = ({
     ...rest
   } = _data;
 
+  const countryLabel = countryCode ? countryCode.toUpperCase() : '—';
+
   const data = {
     email,
     lines: summarized
-      ? [line1, line2, line3, ...Object.values(rest), postcode, t(`countries.${countryCode}`)]
+      ? [
+          line1,
+          line2,
+          line3,
+          ...Object.values(rest),
+          postcode,
+          countryLabel, // özet görünümde ülkeyi de ekle
+        ]
           .filter((e) => e)
           .join(', ')
       : [line1, line2, line3].filter((e) => e).join(', '),
@@ -113,8 +118,10 @@ const AddressCard = ({
   };
 
   const handleDelete = () => {
+    if (id == null) return; // id yoksa silme yapma
+
     setDeleteLoading(true);
-    deleteAddress(id.toString()).then((result) => {
+    deleteAddress(String(id)).then((result) => {
       setDeleteLoading(false);
       if (!result) return;
       handleDeleteMenuClose();
@@ -129,7 +136,7 @@ const AddressCard = ({
         border
         title={
           <Stack sx={styles.cardHeader}>
-            <Typography variant="cardTitle">{name ?? t('address.defaultCardLabel')}</Typography>
+            <Typography variant="cardTitle">{name ?? 'Adresim'}</Typography>
             <Stack direction="row" alignItems="center">
               {!hideEdit && (
                 <IconButton onClick={() => setEditModalOpen(true)} sx={{ my: -1 }}>
@@ -137,7 +144,7 @@ const AddressCard = ({
                 </IconButton>
               )}
               {!hideDelete && (
-                <IconButton onClick={handleDeleteButtonClick} sx={{ my: -1 }}>
+                <IconButton onClick={handleDeleteButtonClick} sx={{ my: -1 }} disabled={id == null}>
                   <Icon name="delete" color="error" fontSize={22} />
                 </IconButton>
               )}
@@ -150,19 +157,17 @@ const AddressCard = ({
           <Grid container columnSpacing={{ xs: 2, md: 6 }} rowSpacing={1.5}>
             <AddressInfoItem
               cols={gridColumns.contactName}
-              label={t('address.contactName')}
+              label="İletişim Kişisi"
               value={contactName}
             />
+
             {taxNumber && !summarized && (
-              <AddressInfoItem
-                cols={gridColumns.taxNumber}
-                label={t('address.taxNumber')}
-                value={taxNumber}
-              />
+              <AddressInfoItem cols={gridColumns.taxNumber} label="Vergi No" value={taxNumber} />
             )}
+
             <AddressInfoItem
               cols={gridColumns.lines}
-              label={t('address.lines')}
+              label="Adres"
               value={data.lines}
               sx={{
                 height: expanded ? 0 : 'fit-content',
@@ -171,6 +176,7 @@ const AddressCard = ({
               }}
             />
           </Grid>
+
           {!summarized && (
             <Accordion
               disableGutters
@@ -198,61 +204,70 @@ const AddressCard = ({
                       />
                     }
                   >
-                    {t('address.viewMore')}
+                    Daha Fazla Göster
                   </Button>
                 </Fade>
               </AccordionSummary>
+
               <AccordionDetails sx={{ ...styles.accordionDetails, mt: -0.5 }}>
                 <Grid container columnSpacing={{ xs: 2, md: 6 }} rowSpacing={1.5}>
                   {(phoneNumber || phoneCode) && (
                     <AddressInfoItem
                       cols={gridColumns.contactPhone}
-                      label={t('address.phoneNumber')}
+                      label="Telefon"
                       value={`${phoneCode ?? ''}${phoneNumber ?? ''}`}
                     />
                   )}
 
                   {data &&
-                    Object.entries(data).map(
-                      ([key, value]) =>
-                        value && (
-                          <AddressInfoItem
-                            cols={gridColumns[key as keyof typeof gridColumns]}
-                            label={t(`address.${key}`)}
-                            value={value}
-                            key={key + value}
-                          />
-                        )
-                    )}
+                    Object.entries(data).map(([key, value]) => {
+                      if (!value) return null;
+
+                      const labelMap: Record<string, string> = {
+                        email: 'E-posta',
+                        lines: 'Adres',
+                        postcode: 'Posta Kodu',
+                        city: 'İl',
+                        district: 'İlçe',
+                        state: 'Semt / Mahalle',
+                        // rest içinden gelebilecek ekstra alanlar varsa buraya ekleyebilirsin
+                      };
+
+                      return (
+                        <AddressInfoItem
+                          cols={gridColumns[key as keyof typeof gridColumns]}
+                          label={labelMap[key] ?? key}
+                          value={value as ReactNode}
+                          key={key + String(value)}
+                        />
+                      );
+                    })}
+
                   <AddressInfoItem
                     cols={gridColumns.countryCode}
-                    label={t('address.countryCode')}
-                    value={t(`regions.${countryCode.toLowerCase()}`)}
-                    key={'countryCode' + countryCode}
+                    label="Ülke"
+                    value={countryLabel}
+                    key={'countryCode' + (countryCode ?? 'unknown')}
                   />
                 </Grid>
               </AccordionDetails>
             </Accordion>
           )}
+
           {children}
         </Stack>
       </Card>
+
       <Menu
         elevation={0}
         open={deleteMenuOpen}
         anchorEl={deleteMenuAnchor}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: direction === 'ltr' ? 'right' : 'left',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: direction === 'ltr' ? 'right' : 'left',
-        }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         PaperProps={{ sx: { boxShadow: '0px 0px 16px 0px #00000040' } }}
         MenuListProps={{ sx: { p: 0 } }}
       >
-        <Card title={t('address.deleteTitle')} sx={{ width: 200 }}>
+        <Card title="Adresi Sil" sx={{ width: 200 }}>
           <Stack p={2} gap={1.5}>
             <Button
               color="secondary"
@@ -260,16 +275,18 @@ const AddressCard = ({
               size="small"
               onClick={handleDeleteMenuClose}
             >
-              {t('address.deleteCancel')}
+              Vazgeç
             </Button>
+
             <LoadingButton
               loading={deleteLoading}
               color="error"
               variant="contained"
               size="small"
               onClick={handleDelete}
+              disabled={id == null}
             >
-              {t('address.deleteConfirm')}
+              Sil
             </LoadingButton>
           </Stack>
         </Card>
@@ -306,24 +323,20 @@ const AddressInfoItem = ({
 };
 
 const AddressSkeleton = ({ children }: { children: ReactNode }) => {
-  const t = useTranslations('common');
   return (
-  <Card
-    iconName="distance"
-      title={
-        <Typography variant="cardTitle">{t('address.defaultCardLabel')}</Typography>
-      }
-    >
+    <Card iconName="distance" title={<Typography variant="cardTitle">Adresim</Typography>}>
       <Stack sx={styles.cardBody}>
         <Grid container columnSpacing={{ xs: 2, md: 6 }} rowSpacing={1.5}>
-          {Object.entries(gridColumns).slice(0, -1).map(([key, cols]) => (
-            <AddressInfoItem
-              cols={cols}
-              label={<Skeleton variant="rectangular" width={48} />}
-              value={<Skeleton variant="rectangular" width={80} height={20} />}
-              key={key}
-            />
-          ))}
+          {Object.entries(gridColumns)
+            .slice(0, -1)
+            .map(([key, cols]) => (
+              <AddressInfoItem
+                cols={cols}
+                label={<Skeleton variant="rectangular" width={48} />}
+                value={<Skeleton variant="rectangular" width={80} height={20} />}
+                key={key}
+              />
+            ))}
         </Grid>
         {children}
       </Stack>

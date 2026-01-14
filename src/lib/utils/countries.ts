@@ -1,16 +1,19 @@
-export const countries = ['NG', 'BE', 'DE', 'GB', 'NL', 'US', 'TR', 'UZ'] as const;
+
+
+export const countries = ['NG', 'BE', 'DE', 'GB', 'NL', 'US', 'TR' ] as const;
 export type Country = (typeof countries)[number];
 
 export const originCountries = ['TR', 'US'] as const;
 export type OriginCountry = (typeof originCountries)[number];
 
-export const destinationCountries = ['NG', 'BE', 'DE', 'GB', 'NL', 'UZ'] as const;
+export const destinationCountries = ['NG', 'BE', 'DE', 'GB', 'NL', 'UZ', 'TR'] as const;
 export type DestinationCountry = (typeof destinationCountries)[number];
 
 const customsLimits: {
   [key in DestinationCountry | 'EU']: { amount: number; currency: string };
 } = {
   GB: { amount: 150, currency: 'EUR' },
+  TR: { amount: 150, currency: 'TRY' },
   EU: { amount: 150, currency: 'EUR' },
   BE: { amount: 150, currency: 'EUR' },
   DE: { amount: 150, currency: 'EUR' },
@@ -31,8 +34,6 @@ export const getCurrencyForCountry = (country?: Country | 'ww' | 'WW') => {
       return 'EUR';
     case 'TR':
       return 'TRY';
-    case 'UZ':
-      return 'UZS';
     case 'NG':
     case 'US':
     default:

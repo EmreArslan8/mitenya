@@ -59,9 +59,9 @@ export function calculateOrderSummary(
     total,
     totalDue,
     cashOnDeliveryAvailability: {
-      isAvailable: false,
+      isAvailable: true,
       codBalance: { amount: 0, currency: "TRY" },
-      failureReason: "NOT_SUPPORTED"
+      failureReason: null
     },
     codServiceFee: null,
   };

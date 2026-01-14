@@ -1,3 +1,5 @@
+/*
+
 import 'server-only';
 
 import { Region } from '@/lib/shop/regions';
@@ -22,3 +24,6 @@ const getMarkup = (region: Region, product: ProductLike) => {
 };
 
 export default getMarkup;
+
+
+*/

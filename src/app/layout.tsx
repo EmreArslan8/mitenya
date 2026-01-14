@@ -2,8 +2,7 @@ import Footer from "@/components/Footer";
 import MainLayout from "@/components/layouts/MainLayout";
 import Navigation from "@/components/Navigation";
 import { AuthContextProvider } from "@/contexts/AuthContext";
-import SessionProvider from "@/contexts/SessionProvider";
-import { ShopContext, ShopContextProvider } from "@/contexts/ShopContext";
+import { ShopContextProvider } from "@/contexts/ShopContext";
 import { fetchShopFooter, fetchShopHeader } from "@/lib/api/cms";
 import { defaultFontFamily } from "@/theme/theme";
 import ThemeRegistry from "@/theme/ThemeRegistry";
@@ -64,10 +63,9 @@ const footerData = await fetchShopFooter()
       </head>
 
       <body style={{ fontFamily: defaultFontFamily, overflowX: "hidden" }}>
-<SessionProvider>
-            <ThemeRegistry>
-              <AuthContextProvider>
-              <ShopContextProvider>
+        <ThemeRegistry>
+          <AuthContextProvider>
+            <ShopContextProvider>
         {/* Navigation içinde useSearchParams olduğu için Suspense şart */}
         <Suspense fallback={<div style={{ height: '100px' }} />}> 
           <Navigation data={headerData} />
@@ -81,30 +79,43 @@ const footerData = await fetchShopFooter()
         </MainLayout>
         
         <Footer data={footerData} />
-      </ShopContextProvider>
-              </AuthContextProvider>
-            </ThemeRegistry>
-          </SessionProvider>
+            </ShopContextProvider>
+          </AuthContextProvider>
+        </ThemeRegistry>
       </body>
     </html>
   );
 }
 
 export const generateMetadata = async () => ({
-  title: { template: "%s | mitenya", default: "mitenya" },
-  description: "mitenya",
+  title: { template: "%s | Mitenya", default: "Mitenya | Kozmetik ve Güzellik Ürünleri" },
+  description: "Mitenya - En kaliteli kozmetik ve güzellik ürünleri. Cilt bakımı, makyaj, parfüm ve kişisel bakım ürünlerinde geniş ürün yelpazesi ve uygun fiyatlar.",
+  keywords: ["kozmetik", "güzellik", "cilt bakımı", "makyaj", "parfüm", "kişisel bakım", "mitenya", "online kozmetik"],
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_HOST_URL ?? "https://mitenya.com"
   ),
   openGraph: {
-    description: "mitenya",
+    type: "website",
+    siteName: "Mitenya",
+    title: "Mitenya | Kozmetik ve Güzellik Ürünleri",
+    description: "En kaliteli kozmetik ve güzellik ürünleri. Cilt bakımı, makyaj, parfüm ve kişisel bakım ürünlerinde geniş ürün yelpazesi.",
+    locale: "tr_TR",
     images: [
       {
         url: "/static/images/ogBanner.webp",
-        alt: "mitenya",
+        alt: "Mitenya - Kozmetik ve Güzellik Ürünleri",
         width: 1200,
         height: 630,
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mitenya | Kozmetik ve Güzellik Ürünleri",
+    description: "En kaliteli kozmetik ve güzellik ürünleri. Cilt bakımı, makyaj, parfüm ve kişisel bakım.",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 });

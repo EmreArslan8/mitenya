@@ -1,4 +1,4 @@
-/*
+
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchOrder } from '../api';
 
@@ -10,4 +10,3 @@ export const GET = async (_: NextRequest, { params }: { params: { id: string } }
 };
 
 
-*/

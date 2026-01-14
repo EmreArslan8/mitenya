@@ -1,12 +1,10 @@
 import 'server-only';
 
-import { bring } from '@/lib/api/bring';
+
 import { AddressData, PaymentType, ShopOrderSummaryData, ShopProductData } from '@/lib/api/types';
 import { EMPTY_EMAIL, EMPTY_TAX_NUMBER } from '@/lib/api/useAddress';
-import { Region } from '@/lib/shop/regions';
-import { authOptions } from '@/pages/api/auth/[...nextauth]';
-import { getServerSession } from 'next-auth';
-import { decrypt } from '../utils/crypto';
+import bring from '@/lib/api/bring';
+
 
 /* export const getOrderSummary = async (data: {
   virtualSuiteNumber?: string;
@@ -89,7 +87,6 @@ import { decrypt } from '../utils/crypto';
 export const initializePayment = async (
   id: string,
   contactAddress: AddressData,
-  locale: Locale,
   paymentType: PaymentType
 ): Promise<{ paymentLink?: string; sessionId?: string } | undefined> => {
   try {

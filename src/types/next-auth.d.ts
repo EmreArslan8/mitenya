@@ -1,4 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+// LEGACY: NextAuth type definitions - Artık kullanılmıyor
+// Supabase Auth'a geçildi - 2026-01-13
+
+/*
+/* eslint-disable @typescript-eslint/no-unused-vars *\/
 import { User } from "next-auth";
 
 declare module "next-auth" {
@@ -13,3 +17,4 @@ declare module "next-auth" {
     accessToken: string;
   }
 }
+*/

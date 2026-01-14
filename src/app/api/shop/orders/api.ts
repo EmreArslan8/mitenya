@@ -1,8 +1,6 @@
-/*
-
 import 'server-only';
 
-
+import bring from '@/lib/api/bring';
 import {
   PagedResults,
   ShopOrderData,
@@ -11,7 +9,6 @@ import {
 } from '@/lib/api/types';
 import { encrypt } from '../utils/crypto';
 import { BFMOrderData, BFMOrderListItemData, BFMOrderStatus } from '../utils/bfmTypes';
-import { bring } from '@/lib/api/bring';
 
 export const fetchOrders = async (
   options: { currentPage?: number; pageSize?: number } = { currentPage: 1, pageSize: 9999 }
@@ -125,5 +122,3 @@ const transformStatus = (status: BFMOrderStatus): ShopOrderStatus => {
       return 'cancelled';
   }
 };
-
-*/

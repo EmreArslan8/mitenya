@@ -1,9 +1,10 @@
-import { supabase } from "../supabase/client";
+import { supabaseAdmin } from "../supabase/admin";
 import { r2Url } from "../utils/r2";
 import { ShopSearchOptions, ShopSearchSort, ShopProductListItemData } from "./types";
 
 export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> = {}) {
  // console.log("🟦 [SUPABASE] fetchProductsSupabase options:", options);
+  const supabase = supabaseAdmin;
 
   const page = Number(options.page ?? 1);
   const limit = 24;
@@ -31,6 +32,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       rating_average,
       rating_count,
       created_at,
+      has_variants,
       product_prices(price_current, price_original, currency),
       product_images(image_url, is_main, sort_order)
     `,
@@ -105,17 +107,17 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       brandId: p.brand_id,
       category: p.category_name,
       name: p.name,
-      url: `/product/${p.id}`,
+      url: `/product/${p.slug || p.id}`,
       images: imagesSorted.map((im) => ({
         url: r2Url(im.image_url)
       })),
-    
       imgSrc: r2Url(imagesSorted[0]?.image_url ?? ""),
       price: {
         currentPrice: Number(priceRow?.price_current ?? 0),
         originalPrice: Number(priceRow?.price_original ?? priceRow?.price_current ?? 0),
         currency: priceRow?.currency ?? "TRY",
       },
+      hasVariant: p.has_variants ?? false,
       rating:
         p.rating_count > 0
           ? {

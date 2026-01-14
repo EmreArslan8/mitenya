@@ -1,4 +1,4 @@
-/*
+
 import { NextResponse } from 'next/server';
 import { fetchOrders } from './api';
 
@@ -10,4 +10,3 @@ export const GET = async () => {
 
 export const dynamic = 'force-dynamic';
 
-*/

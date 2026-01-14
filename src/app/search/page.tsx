@@ -25,8 +25,12 @@ export const generateMetadata = async ({
   searchParams: Promise<Record<string, string>>;
 }) => {
   const params = await searchParams;
+  const query = params.query || '';
   return {
-    title: '🔎' + (params.query ? ` ${params.query}` : ''),
+    title: query ? `"${query}" Arama Sonuçları` : 'Ürün Ara',
+    description: query
+      ? `"${query}" araması için kozmetik ve güzellik ürünleri sonuçları.`
+      : 'Mitenya\'da kozmetik ve güzellik ürünlerini arayın.',
   };
 };
 

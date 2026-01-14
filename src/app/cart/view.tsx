@@ -1,5 +1,6 @@
 'use client';
 
+import FreeShippingBar from '@/components/FreeShippingBar';
 import Icon from '@/components/Icon';
 import InfoItem from '@/components/InfoItem';
 import LoadingOverlay from '@/components/LoadingOverlay';

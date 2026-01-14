@@ -1,10 +1,16 @@
-'use client';
+// LEGACY: NextAuth SessionProvider - Artık kullanılmıyor
+// Supabase Auth'a geçildi - 2026-01-13
 
-import { SessionProvider as _SessionProvider } from 'next-auth/react';
-import { ReactNode } from 'react';
+//'use client';
 
-const SessionProvider = ({ children }: { children: ReactNode }) => {
-  return <_SessionProvider>{children}</_SessionProvider>;
-};
+//import { SessionProvider as _SessionProvider } from 'next-auth/react';
+//import { ReactNode } from 'react';
 
-export default SessionProvider;
+//const SessionProvider = ({ children }: { children: ReactNode }) => {
+//  return <_SessionProvider>{children}</_SessionProvider>;
+//};
+
+//export default SessionProvider;
+
+
+

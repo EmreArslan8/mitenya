@@ -1,10 +1,12 @@
-import { supabase } from "../supabase/client";
+import { supabaseAdmin } from "../supabase/admin";
 import { r2Url } from "../utils/r2"; // 🔹 BUNU EKLEDİK
 
-export async function fetchProductDataSupabase(id: string) {
- // console.log("🟦 [SUPABASE] fetchProductDataSupabase:", id);
+export async function fetchProductDataSupabase(idOrSlug: string) {
+ // console.log("🟦 [SUPABASE] fetchProductDataSupabase:", idOrSlug);
+  const supabase = supabaseAdmin;
 
-  const { data, error } = await supabase
+  // Önce slug ile dene, bulamazsa id ile dene
+  let { data, error } = await supabase
     .from("products")
     .select(`
       id,
@@ -22,10 +24,37 @@ export async function fetchProductDataSupabase(id: string) {
       product_stock(quantity),
       attributes_json
     `)
-    .eq("id", id)
+    .eq("slug", idOrSlug)
     .single();
 
-  if (error) {
+  // Slug ile bulunamadıysa id ile dene (geriye uyumluluk)
+  if (error || !data) {
+    const result = await supabase
+      .from("products")
+      .select(`
+        id,
+        slug,
+        name,
+        brand_id,
+        brand_name,
+        category_id,
+        category_name,
+        rating_average,
+        rating_count,
+        description,
+        product_prices(price_current, price_original, currency),
+        product_images(image_path, image_url, is_main, sort_order),
+        product_stock(quantity),
+        attributes_json
+      `)
+      .eq("id", idOrSlug)
+      .single();
+
+    data = result.data;
+    error = result.error;
+  }
+
+  if (error || !data) {
     console.log("❌ Ürün bulunamadı:", error);
     return null;
   }
@@ -65,15 +94,13 @@ export async function fetchProductDataSupabase(id: string) {
   //console.log("🟩 [SUPABASE] Mapped imageUrls:", imageUrls);
   //console.log("🟩 [SUPABASE] imgSrc:", imgSrc);
 
-
-
   return {
     id: data.id,
     brand: data.brand_name,
     brandId: data.brand_id,
     name: data.name,
     category: data.category_name,
-    url: `/product/${data.id}`,
+    url: `/product/${data.slug || data.id}`,
     images: imageUrls,
     imgSrc,
     description: data.description ?? "",

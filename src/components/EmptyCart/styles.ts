@@ -1,0 +1,113 @@
+import { withPalette } from '@/theme/ThemeRegistry';
+
+const useStyles = withPalette((palette) => ({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    padding: { xs: 4, md: 8 },
+    gap: 4,
+    minHeight: { xs: 450, md: 550 },
+    backgroundColor: palette.bg.light,
+    borderRadius: 3,
+    border: '1px solid',
+    borderColor: palette.tertiary.light,
+  },
+  iconWrapper: {
+    width: { xs: 140, md: 180 },
+    height: { xs: 140, md: 180 },
+    borderRadius: '50%',
+    background: `linear-gradient(135deg, ${palette.primary.light} 0%, ${palette.bg.main} 100%)`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    boxShadow: `0 20px 60px ${palette.primary.main}20`,
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      width: { xs: 160, md: 200 },
+      height: { xs: 160, md: 200 },
+      borderRadius: '50%',
+      border: '2px dashed',
+      borderColor: palette.primary.main + '30',
+      animation: 'spin 20s linear infinite',
+    },
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      width: { xs: 180, md: 220 },
+      height: { xs: 180, md: 220 },
+      borderRadius: '50%',
+      border: '1px solid',
+      borderColor: palette.primary.main + '15',
+    },
+    '@keyframes spin': {
+      '0%': { transform: 'rotate(0deg)' },
+      '100%': { transform: 'rotate(360deg)' },
+    },
+  },
+  icon: {
+    fontSize: { xs: 64, md: 80 },
+    color: palette.primary.main,
+  },
+  textWrapper: {
+    gap: 1.5,
+    maxWidth: 420,
+  },
+  title: {
+    fontSize: { xs: 26, md: 32 },
+    fontWeight: 700,
+    color: palette.secondary.main,
+  },
+  description: {
+    fontSize: { xs: 14, md: 16 },
+    color: palette.tertiary.main,
+    lineHeight: 1.7,
+  },
+  button: {
+    minWidth: { xs: 200, md: 240 },
+    marginTop: 1,
+    py: 1.5,
+    fontSize: 16,
+  },
+  features: {
+    flexDirection: 'row',
+    gap: { xs: 3, md: 6 },
+    marginTop: 4,
+    paddingTop: 4,
+    borderTop: '1px solid',
+    borderColor: palette.tertiary.light,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    width: '100%',
+    maxWidth: 600,
+  },
+  feature: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 1,
+    flex: { xs: '1 1 30%', md: 'unset' },
+  },
+  featureIconWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: '50%',
+    backgroundColor: palette.success.light,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featureIcon: {
+    fontSize: 22,
+    color: palette.success.main,
+  },
+  featureText: {
+    fontSize: 13,
+    color: palette.secondary.main,
+    fontWeight: 500,
+    textAlign: 'center',
+  },
+}));
+
+export default useStyles;
