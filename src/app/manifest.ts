@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Mitenya',
     short_name: 'Mitenya',
-    description: 'Kozmetik ve Güzellik Ürünleri | Mitenya',
+    description: 'Kozmetik ve Güzellik Ürünleri',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',
