@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchProductData } from '@/lib/api/shop';
+import { fetchProductDataSupabase } from '@/lib/api/supabaseProducts';
 
 // GÜVENLİ: Client'tan sadece ürün ID'leri ve miktarları alınır
 // Fiyatlar MUTLAKA veritabanından çekilir
@@ -60,7 +60,7 @@ export const POST = async (req: NextRequest) => {
   let totalAmount = 0;
 
   for (const item of body.products) {
-    const productData = await fetchProductData(item.id);
+    const productData = await fetchProductDataSupabase(item.id);
 
     if (!productData) {
       sLog('PRODUCT_NOT_FOUND', { traceId, productId: item.id });

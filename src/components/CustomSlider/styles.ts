@@ -10,7 +10,7 @@ const useStyles = withPalette((palette) => ({
   prevButton: {
     position: 'absolute',
     top: '50%',
-    left: 10,
+    left: 0,
     transform: 'translateY(-50%)',
     zIndex: 1,
     p: 0,
@@ -22,7 +22,7 @@ const useStyles = withPalette((palette) => ({
   nextButton: {
     position: 'absolute',
     top: '50%',
-    right: 10,
+    right: 0,
     transform: 'translateY(-50%)',
     zIndex: 1,
     p: 0,

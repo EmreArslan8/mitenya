@@ -1,22 +1,29 @@
-import { fetchProductsSupabase } from './supabaseShop';
-import { fetchProductDataSupabase } from './supabaseProducts';
 import {
   ShopProductData,
   ShopProductListItemData,
   ShopSearchOptions,
   ShopSearchResponse,
 } from './types';
-import { supabaseAdmin } from '../supabase/admin';
 
 // ============================================================
-// 🛍️ PRODUCTS
+// 🛍️ PRODUCTS - Client-safe (API route üzerinden)
 // ============================================================
 
 export const fetchProducts = async (
   options: Partial<ShopSearchOptions>
 ): Promise<ShopSearchResponse | undefined> => {
   try {
-    return await fetchProductsSupabase(options);
+    const params = new URLSearchParams();
+    if (options.page) params.set('page', String(options.page));
+    if (options.sort) params.set('sort', options.sort);
+    if (options.brand) params.set('brand', options.brand);
+    if (options.category) params.set('category', options.category);
+    if (options.query) params.set('query', options.query);
+    if (options.price) params.set('price', options.price);
+
+    const res = await fetch(`/api/products?${params.toString()}`);
+    if (!res.ok) throw new Error('Failed to fetch products');
+    return await res.json();
   } catch (error) {
     console.error('Fetch products error:', error);
     return undefined;
@@ -25,7 +32,9 @@ export const fetchProducts = async (
 
 export const fetchProductData = async (id: string): Promise<ShopProductData | undefined> => {
   try {
-    return (await fetchProductDataSupabase(id)) ?? undefined;
+    const res = await fetch(`/api/products/${id}/detail`);
+    if (!res.ok) return undefined;
+    return await res.json();
   } catch (error) {
     console.error('Fetch product error:', error);
     return undefined;
@@ -33,20 +42,13 @@ export const fetchProductData = async (id: string): Promise<ShopProductData | un
 };
 
 export async function fetchProductVariants(productId: string) {
-  const { data, error } = await supabaseAdmin
-    .from('products')
-    .select('attributes_json')
-    .eq('id', productId)
-    .single();
-
-  if (error || !data) return null;
-
   try {
-    return typeof data.attributes_json === 'string'
-      ? JSON.parse(data.attributes_json)
-      : data.attributes_json;
-  } catch {
-    return [];
+    const res = await fetch(`/api/products/${productId}/variants`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (error) {
+    console.error('Fetch variants error:', error);
+    return null;
   }
 }
 
@@ -59,32 +61,11 @@ export const fetchRecommendations = async (options: {
   productId: string;
 }): Promise<ShopProductListItemData[]> => {
   try {
-    // TODO: Supabase'e taşınabilir
-    const { data } = await supabaseAdmin
-      .from('products')
-      .select(
-        `
-        id, slug, name, brand_id, brand_name,
-        current_price, original_price, currency, main_image_url
-      `
-      )
-      .eq('brand_id', options.brandId)
-      .neq('id', options.productId)
-      .limit(8);
-
-    return (data || []).map((p) => ({
-      id: p.id,
-      brand: p.brand_name || '',
-      brandId: p.brand_id || '',
-      name: p.name,
-      url: `/product/${p.slug || p.id}`,
-      imgSrc: p.main_image_url || '',
-      price: {
-        currentPrice: Number(p.current_price) || 0,
-        originalPrice: Number(p.original_price) || Number(p.current_price) || 0,
-        currency: p.currency || 'TRY',
-      },
-    }));
+    const res = await fetch(
+      `/api/products/${options.productId}/recommendations?brandId=${options.brandId}`
+    );
+    if (!res.ok) return [];
+    return await res.json();
   } catch (error) {
     console.error('Fetch recommendations error:', error);
     return [];

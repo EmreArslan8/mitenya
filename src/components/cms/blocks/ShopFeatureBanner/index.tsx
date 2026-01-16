@@ -1,6 +1,5 @@
 'use client';
 
-import useScreen from '@/lib/hooks/useScreen';
 import { Box, Stack, Typography } from '@mui/material';
 import { useRef } from 'react';
 import Slider from 'react-slick';
@@ -40,7 +39,6 @@ const ShopFeatureBanner = ({
   sideBanners = [],
 }: ShopFeatureBannerProps) => {
   const styles = useStyles();
-  const { isMobile } = useScreen();
   const sliderRef = useRef<Slider>(null);
 
   if (!mainBanners.length) return null;
@@ -63,154 +61,152 @@ const ShopFeatureBanner = ({
 
   return (
     <SectionBase {...section}>
-      {isMobile && (
-        <Box sx={styles.mobileSliderContainer}>
-          <Slider {...sliderSettings} ref={sliderRef}>
-            {mainBanners.map((banner, index) => {
-              const image = banner.mobileImage?.data ? banner.mobileImage : banner.image;
+      {/* Mobile Layout - CSS ile göster/gizle */}
+      <Box sx={{ display: { xs: 'block', md: 'none' }, ...styles.mobileSliderContainer }}>
+        <Slider {...sliderSettings} ref={sliderRef}>
+          {mainBanners.map((banner, index) => {
+            const image = banner.mobileImage?.data ? banner.mobileImage : banner.image;
 
-              return (
-                <Box key={index} sx={styles.mobileSlide}>
-                  <Link href={banner.url} style={{ display: 'block', height: '100%' }}>
-                    <Box sx={styles.mediaWrapper}>
-                      <CMSImage
-                        src={image.data.attributes.url}
-                        alt={image.data.attributes.alternativeText}
-                        fill
-                      />
+            return (
+              <Box key={index} sx={styles.mobileSlide}>
+                <Link href={banner.url} style={{ display: 'block', height: '100%' }}>
+                  <Box sx={styles.mediaWrapper}>
+                    <CMSImage
+                      src={image.data.attributes.url}
+                      alt={image.data.attributes.alternativeText}
+                      fill
+                    />
 
-                      <Box sx={styles.overlay}>
-                        <Stack sx={styles.overlayInner} spacing={{ xs: 1, sm: 1.5, md: 2.5 }}>
-                          {banner.title && (
-                            <Typography sx={styles.title} component="h2">
-                              {banner.title}
-                            </Typography>
-                          )}
+                    <Box sx={styles.overlay}>
+                      <Stack sx={styles.overlayInner} spacing={{ xs: 1, sm: 1.5, md: 2.5 }}>
+                        {banner.title && (
+                          <Typography sx={styles.title} component="h2">
+                            {banner.title}
+                          </Typography>
+                        )}
 
-                          {banner.description && (
-                            <Typography sx={{ ...styles.description, ...descriptionVisibilitySx }}>
-                              {banner.description}
-                            </Typography>
-                          )}
+                        {banner.description && (
+                          <Typography sx={{ ...styles.description, ...descriptionVisibilitySx }}>
+                            {banner.description}
+                          </Typography>
+                        )}
 
-                          {banner.button?.label && (
-                            <Box sx={styles.ctaRow}>
-                              <Button
-                                sx={styles.ctaButton}
-                                variant="contained"
-                                size={isMobile ? 'small' : 'medium'}
-                              >
-                                {banner.button.label}
-                              </Button>
-                            </Box>
-                          )}
-                        </Stack>
-                      </Box>
+                        {banner.button?.label && (
+                          <Box sx={styles.ctaRow}>
+                            <Button
+                              sx={styles.ctaButton}
+                              variant="contained"
+                              size="small"
+                            >
+                              {banner.button.label}
+                            </Button>
+                          </Box>
+                        )}
+                      </Stack>
                     </Box>
-                  </Link>
-                </Box>
-              );
-            })}
+                  </Box>
+                </Link>
+              </Box>
+            );
+          })}
+        </Slider>
+      </Box>
+
+      {/* Desktop Layout - CSS ile göster/gizle */}
+      <Stack direction="row" sx={{ display: { xs: 'none', md: 'flex' }, ...styles.container }}>
+        <Box sx={styles.mainSliderWrapper}>
+          <Slider {...sliderSettings}>
+            {mainBanners.map((banner, index) => (
+              <Box key={index} sx={styles.mainSlide}>
+                <Link href={banner.url} style={{ display: 'block', height: '100%' }}>
+                  <Box sx={styles.mediaWrapper}>
+                    <CMSImage
+                      src={banner.image.data.attributes.url}
+                      alt={banner.image.data.attributes.alternativeText}
+                      fill
+                    />
+
+                    <Box sx={styles.overlay}>
+                      <Stack sx={styles.overlayInner} spacing={{ xs: 1, sm: 1.5, md: 2.5 }}>
+                        {banner.title && (
+                          <Typography sx={styles.title} component="h1">
+                            {splitTitle(banner.title, 2)}
+                          </Typography>
+                        )}
+
+                        {banner.description && (
+                          <Typography sx={{ ...styles.description, ...descriptionVisibilitySx }}>
+                            {banner.description}
+                          </Typography>
+                        )}
+
+                        {banner.button?.label && (
+                          <Box sx={styles.ctaRow}>
+                            <Button
+                              sx={styles.ctaButton}
+                              variant="contained"
+                              size="medium"
+                            >
+                              {banner.button.label}
+                            </Button>
+                          </Box>
+                        )}
+                      </Stack>
+                    </Box>
+                  </Box>
+                </Link>
+              </Box>
+            ))}
           </Slider>
         </Box>
-      )}
 
-      {!isMobile && (
-        <Stack direction="row" sx={styles.container}>
-          <Box sx={styles.mainSliderWrapper}>
-            <Slider {...sliderSettings}>
-              {mainBanners.map((banner, index) => (
-                <Box key={index} sx={styles.mainSlide}>
-                  <Link href={banner.url} style={{ display: 'block', height: '100%' }}>
-                    <Box sx={styles.mediaWrapper}>
-                      <CMSImage
-                        src={banner.image.data.attributes.url}
-                        alt={banner.image.data.attributes.alternativeText}
-                        fill
-                      />
+        {sideBanners.length > 0 && (
+          <Stack sx={styles.sideBannersContainer}>
+            {sideBanners.slice(0, 2).map((banner, index) => (
+              <Box key={index} sx={styles.sideBanner}>
+                <Link href={banner.url} style={{ display: 'block', height: '100%' }}>
+                  <Box sx={styles.mediaWrapper}>
+                    <CMSImage
+                      src={banner.image.data.attributes.url}
+                      alt={banner.image.data.attributes.alternativeText}
+                      fill
+                    />
 
-                      <Box sx={styles.overlay}>
-                        <Stack sx={styles.overlayInner} spacing={{ xs: 1, sm: 1.5, md: 2.5 }}>
-                          {banner.title && (
-                            <Typography sx={styles.title} component="h1">
-                              {splitTitle(banner.title, 2)}
-                            </Typography>
-                          )}
+                    <Box sx={styles.sideOverlay}>
+                      <Box sx={styles.sideOverlayInner}>
+                        {banner.title && (
+                          <Typography sx={styles.sideTitle} component="h3">
+                            {banner.title}
+                          </Typography>
+                        )}
 
-                          {banner.description && (
-                            <Typography sx={{ ...styles.description, ...descriptionVisibilitySx }}>
-                              {banner.description}
-                            </Typography>
-                          )}
+                        {banner.description && (
+                          <Typography
+                            sx={{
+                              ...styles.sideDescription,
+                              ...descriptionVisibilitySx,
+                            }}
+                          >
+                            {banner.description}
+                          </Typography>
+                        )}
 
-                          {banner.button?.label && (
-                            <Box sx={styles.ctaRow}>
-                              <Button
-                                sx={styles.ctaButton}
-                                variant="contained"
-                                size={isMobile ? 'small' : 'medium'}
-                              >
-                                {banner.button.label}
-                              </Button>
-                            </Box>
-                          )}
-                        </Stack>
+                        {banner.button?.label && (
+                          <Box sx={styles.sideCtaRow}>
+                            <Button sx={styles.sideCtaButton} variant="text">
+                              {banner.button.label}
+                            </Button>
+                          </Box>
+                        )}
                       </Box>
                     </Box>
-                  </Link>
-                </Box>
-              ))}
-            </Slider>
-          </Box>
-
-          {sideBanners.length > 0 && (
-            <Stack sx={styles.sideBannersContainer}>
-              {sideBanners.slice(0, 2).map((banner, index) => (
-                <Box key={index} sx={styles.sideBanner}>
-                  <Link href={banner.url} style={{ display: 'block', height: '100%' }}>
-                    <Box sx={styles.mediaWrapper}>
-                      <CMSImage
-                        src={banner.image.data.attributes.url}
-                        alt={banner.image.data.attributes.alternativeText}
-                        fill
-                      />
-
-                      <Box sx={styles.sideOverlay}>
-                        <Box sx={styles.sideOverlayInner}>
-                          {banner.title && (
-                            <Typography sx={styles.sideTitle} component="h3">
-                              {banner.title}
-                            </Typography>
-                          )}
-
-                          {banner.description && (
-                            <Typography
-                              sx={{
-                                ...styles.sideDescription,
-                                ...descriptionVisibilitySx,
-                              }}
-                            >
-                              {banner.description}
-                            </Typography>
-                          )}
-
-                          {banner.button?.label && (
-                            <Box sx={styles.sideCtaRow}>
-                              <Button sx={styles.sideCtaButton} variant="text">
-                                {banner.button.label}
-                              </Button>
-                            </Box>
-                          )}
-                        </Box>
-                      </Box>
-                    </Box>
-                  </Link>
-                </Box>
-              ))}
-            </Stack>
-          )}
-        </Stack>
-      )}
+                  </Box>
+                </Link>
+              </Box>
+            ))}
+          </Stack>
+        )}
+      </Stack>
     </SectionBase>
   );
 };

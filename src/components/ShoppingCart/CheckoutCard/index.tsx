@@ -205,14 +205,6 @@ export const PriceLines = ({
           </Typography>
         </Stack>
       )}
-      {!orderSummary?.shipmentCost && (
-        <Banner
-          variant="neutral"
-          IconProps={{ name: 'info' }}
-          title="Select country for shipping quote"
-          sx={{ mt: 1 }}
-        />
-      )}
       {!!orderSummary?.promotionDiscount && (
         <Stack sx={{ ...styles.priceLine, ...styles.discount }}>
           <Typography variant="warning">Discount</Typography>

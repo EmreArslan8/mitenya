@@ -8,6 +8,7 @@ import { Box, Radio, Grid, Stack, TextField, Typography, Checkbox } from '@mui/m
 import { useEffect, useState } from 'react';
 import useStyles from './styles';
 import Button from '@/components/common/Button';
+import { FILTER_TYPE_LABEL_TR } from '@/lib/utils/filters';
 
 const showScrollThreshold = 8;
 
@@ -40,7 +41,7 @@ const FilterCard = ({ index, data, onOptionClicked }: FilterCardProps) => {
       title={
         smUp && (
           <Typography variant="cardTitle" fontWeight={600} textTransform="none">
-            {(`filters.${type}`)}
+         {FILTER_TYPE_LABEL_TR[type]}
           </Typography>
         )
       }

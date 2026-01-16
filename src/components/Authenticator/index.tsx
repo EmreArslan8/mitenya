@@ -1,6 +1,6 @@
 'use client';
 
-import { Checkbox, Snackbar, Stack, TextField, Typography } from '@mui/material';
+import { Box, Checkbox, Divider, Snackbar, Stack, TextField, Typography } from '@mui/material';
 import { useFormik } from 'formik';
 import { FormEvent, useEffect, useState } from 'react';
 // Turnstile import'u şimdilik kaldırıldı
@@ -30,7 +30,6 @@ const Authenticator = ({
   const [error, setError] = useState<string | undefined>();
   const [currentStep, setCurrentStep] = useState<'email' | 'verification'>('email');
   const [isNewUser, setIsNewUser] = useState(false);
-
   const { createCustomer, getCustomerData } = useCustomerData();
   const { setCustomerData, setIsAuthenticated } = useAuth();
   const [email, setEmail] = useState<string>('');
@@ -169,13 +168,14 @@ const EmailModal = ({
 }) => {
   const styles = useStyles();
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin'); // giriş / kayıt modu
 
-  const formik = useFormik<{ email: string }>({
-    initialValues: { email },
+  const formik = useFormik<{ fullName: string; email: string }>({
+    initialValues: { fullName: '', email },
     onSubmit: async (values) => {
       if (!values.email) return;
       setLoading(true);
-      await onSubmit(values.email);
+      await onSubmit(values.email); // Şimdilik sadece e-posta kullanılıyor, mevcut logic korunuyor
       setLoading(false);
     },
   });
@@ -190,7 +190,7 @@ const EmailModal = ({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(
-            currentPath
+            currentPath,
           )}`,
         },
       });
@@ -202,42 +202,133 @@ const EmailModal = ({
     }
   };
 
+  const isSignup = mode === 'signup';
+
   return (
-    <ModalCard title="Giriş Yap" open onClose={onClose}>
+    <ModalCard
+      title={isSignup ? 'Hesap Oluştur' : 'Giriş Yap'}
+      open
+      onClose={onClose}
+    >
       <Stack gap={3}>
-        <Button variant="outlined" onClick={handleGoogleLogin} startIcon={<Icon name="google" />}>
-          Google ile Giriş Yap
+        {/* Başlık + açıklama */}
+        <Stack gap={0.5}>
+          <Typography variant="h2" fontSize={22} fontWeight={700}>
+            {isSignup ? 'Yeni hesabını oluştur' : 'Hesabına giriş yap'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {isSignup
+              ? 'Mitenya hesabınla alışverişini daha hızlı tamamla.'
+              : 'E-posta ile giriş yapabilir veya Google ile devam edebilirsin.'}
+          </Typography>
+        </Stack>
+
+        {/* Google ile devam et */}
+        <Button
+          variant="outlined"
+          onClick={handleGoogleLogin}
+          fullWidth
+          sx={{
+            justifyContent: 'flex-start',
+            py: 1.5,
+            borderRadius: 999,
+            fontWeight: 600,
+          }}
+        >
+          <img width="30" height="30" src="https://img.icons8.com/color/48/google-logo.png" alt="google-logo" style={{marginRight: "24px"}}/>
+                 Google ile devam et
         </Button>
 
-        <Typography align="center">veya e-posta ile devam et</Typography>
+        {/* Ayırıcı */}
+        <Stack direction="row" alignItems="center" gap={2}>
+          <Divider sx={{ flex: 1 }} />
+          <Typography variant="body2" color="text.secondary">
+            veya
+          </Typography>
+          <Divider sx={{ flex: 1 }} />
+        </Stack>
 
+        {/* Form */}
         <Stack component="form" gap={2} onSubmit={formik.handleSubmit}>
+          {isSignup && (
+            <TextField
+              fullWidth
+              name="fullName"
+              label="Ad Soyad"
+              value={formik.values.fullName}
+              onChange={formik.handleChange}
+            />
+          )}
+
           <TextField
             fullWidth
             name="email"
             label="E-posta adresi"
+            type="email"
             value={formik.values.email}
             onChange={formik.handleChange}
           />
 
-          {/* Turnstile geçici olarak devre dışı */}
-
-          <Button loading={loading} variant="contained" arrow="end" type="submit">
+          <Button loading={loading} variant="contained" arrow="end" type="submit" fullWidth>
             Kod Gönder
           </Button>
         </Stack>
 
-        <Typography sx={styles.legacyLogin}>
-          <Link href="/legacy-login" colored>
-            Eski giriş ekranı
-          </Link>
-        </Typography>
+        {/* Giriş / kayıt toggle */}
+        <Box textAlign="center">
+          {isSignup ? (
+            <Typography variant="body2" color="text.secondary">
+              Zaten hesabın var mı?{' '}
+              <Typography
+                component="button"
+                type="button"
+                variant="body2"
+                sx={{
+                  p: 0,
+                  m: 0,
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'primary.main',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+                onClick={() => setMode('signin')}
+              >
+                Giriş Yap
+              </Typography>
+            </Typography>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Hesabın yok mu?{' '}
+              <Typography
+                component="button"
+                type="button"
+                variant="body2"
+                sx={{
+                  p: 0,
+                  m: 0,
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'primary.main',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+                onClick={() => setMode('signup')}
+              >
+                Yeni hesap oluştur
+              </Typography>
+            </Typography>
+          )}
+        </Box>
 
         {!!error && <Banner variant="error" title={error} />}
       </Stack>
     </ModalCard>
   );
 };
+
 
 const VerificationCodeModal = ({
   email,
