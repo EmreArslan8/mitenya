@@ -1,11 +1,11 @@
-import { fetchProductData } from '@/lib/api/shop';
+import { fetchProductDataSupabase } from '@/lib/api/supabaseProducts';
 import isSSR from '@/lib/utils/isSSR';
 import ProductPageView from './view';
 import { ShopProductData } from '@/lib/api/types';
 
 const SuspensedView = async ({ params }: { params: { id: string } }) => {
   const id = (await params).id; 
-  const data = await fetchProductData(id);
+  const data = await fetchProductDataSupabase(id);
   if (!data) throw new Error(`error.products.details: ${id}`);
   return (
     <>

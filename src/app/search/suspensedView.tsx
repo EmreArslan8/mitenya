@@ -4,11 +4,11 @@ import TwoColumnLayout, {
   PrimaryColumn,
 } from '@/components/layouts/TwoColumnLayout';
 import SearchProductsView from './view';
-import { fetchProducts } from '@/lib/api/shop';
+import { fetchProductsSupabase } from '@/lib/api/supabaseShop';
 
 const SuspensedView = async ({ searchParams }: { searchParams: Record<string, string> }) => {
   console.log("🔍 [SEARCH] incoming searchParams:", searchParams);
-  const res = await fetchProducts({ ...searchParams });
+  const res = await fetchProductsSupabase({ ...searchParams });
 
   // fetchProducts ALWAYS returns array [response]
   const data = Array.isArray(res) ? res[0] : res;

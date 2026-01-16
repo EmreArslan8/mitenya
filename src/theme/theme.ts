@@ -145,6 +145,25 @@ export const getDesignTokens = (
         },
         variants: [
           {
+            props: { color: 'primary', variant: 'contained' },
+            style: {
+              background: palette.text.main,          // siyah / near-black
+              color: palette.white.main,
+              border: `1px solid ${palette.text.main}`,
+          
+              '&:hover': {
+                background: palette.primary.main,     // hover kırmızı
+                borderColor: palette.primary.main,
+              },
+          
+              '&.Mui-disabled': {
+                background: palette.text.light,
+                borderColor: palette.text.light,
+                color: palette.text.disabled,
+              },
+            },
+          },          
+          {
             props: { color: 'secondary', variant: 'outlined' },
             style: {
               background: palette.secondary.contrastText,
@@ -211,7 +230,7 @@ export const getDesignTokens = (
             textTransform: 'uppercase',
             fontWeight: 800,
             whiteSpace: 'nowrap',
-            borderRadius: 999,
+            borderRadius: 8,
             boxSizing: 'border-box',
             flexShrink: 0,
           },

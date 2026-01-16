@@ -3,7 +3,7 @@ import { keyframes } from '@mui/system';
 
 export const primaryStyle = withPalette((palette) => ({
   sectionBackground: {
-    bg: palette.primary.light,
+    bg: palette.gray[50],
   },
 }));
 
@@ -28,7 +28,7 @@ const fadeInOut = keyframes`
 
 const useStyles = withPalette((palette) => ({
   title: {
-    color: palette.primary.deepDark,
+    color: palette.gray[900],
     width: 'fit-content',
     textAlign: 'center',
     pl: 1
@@ -63,7 +63,7 @@ const useStyles = withPalette((palette) => ({
     animation: `${fadeInOut} 2s ease-in-out`,
   },
   dynamicTitleMarkdownOptions: {
-    p: { variant: 'h2' },
+    p: { variant: 'h1' },
     strong: {
       variant: 'h2',
       color: palette.primary.main,

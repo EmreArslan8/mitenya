@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchProductData } from "@/lib/api/shop";
+import { fetchProductDataSupabase } from "@/lib/api/supabaseProducts";
 import { OrderSummaryRequestData, ShopProductData } from "@/lib/api/types";
 import { calculateOrderSummary } from "@/lib/shop/calculateOrderSummary";
 
@@ -24,7 +24,7 @@ export const POST = async (req: NextRequest) => {
     })[] = [];
 
     for (const item of products) {
-      const data = await fetchProductData(item.id);
+      const data = await fetchProductDataSupabase(item.id);
 
       if (!data) {
         return NextResponse.json(

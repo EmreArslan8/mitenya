@@ -10,9 +10,19 @@ import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import formatPrice from '@/lib/utils/formatPrice';
 import { ShopContext } from '@/contexts/ShopContext';
-import { CircularProgress, IconButton, Rating, Skeleton, Snackbar, Stack, Tooltip, Typography } from '@mui/material';
+import {
+  CircularProgress,
+  IconButton,
+  Rating,
+  Skeleton,
+  Snackbar,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { useState, useContext } from 'react';
 import useStyles from './styles';
+import Button from '../common/Button';
 
 interface ShopProductCardProps {
   data: ShopProductListItemData;
@@ -123,39 +133,20 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
             </Typography>
 
             {/* Sepete Ekle Icon Button */}
-            <Tooltip title="Sepete Ekle" arrow placement="top">
-              <IconButton
-                onClick={handleQuickAdd}
-                disabled={quickAddLoading}
-                size="medium"
-                sx={{
-                  ml: 'auto',
-                  bgcolor: 'primary.main',
-                  color: '#fff',
-                  width: 28,
-                  height: 28,
-                  borderRadius: 1,
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    bgcolor: 'primary.dark',
-                    transform: 'scale(1.05)',
-                  },
-                  '&:active': {
-                    transform: 'scale(0.95)',
-                  },
-                  '&.Mui-disabled': {
-                    bgcolor: 'primary.main',
-                    color: '#fff',
-                  },
-                }}
-              >
-                {quickAddLoading ? (
-                  <CircularProgress size={14} sx={{ color: '#fff' }} />
-                ) : (
-                  <Icon name="add" fontSize={18} />
-                )}
-              </IconButton>
-            </Tooltip>
+          </Stack>
+          <Stack>
+            <Button
+              onClick={handleQuickAdd}
+              disabled={quickAddLoading}
+              size="small"
+              variant="contained"
+            >
+              {quickAddLoading ? (
+                <CircularProgress size={16} sx={{ color: 'inherit' }} />
+              ) : (
+                'Sepete Ekle'
+              )}
+            </Button>
           </Stack>
         </Card>
       </Link>
