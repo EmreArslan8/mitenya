@@ -12,6 +12,8 @@ import Script from "next/script";
 import { Suspense } from "react";
 
 const isProduction = process.env.NEXT_PUBLIC_HOST_ENV === "production";
+const baseUrl = process.env.NEXT_PUBLIC_HOST_URL ?? "https://mitenya.com";
+const gtmId = "GTM-5CR26XHK";
 
 export default async function RootLayout({
   children,
@@ -19,7 +21,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const headerData = await fetchShopHeader();
-const footerData = await fetchShopFooter()
+  const footerData = await fetchShopFooter();
 
 
   return (
@@ -35,7 +37,7 @@ const footerData = await fetchShopFooter()
               new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
               j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
               'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-              })(window,document,'script','dataLayer','GTM-NQCZV9J');`,
+              })(window,document,'script','dataLayer','${gtmId}');`,
             }}
           />
         )}
@@ -58,9 +60,31 @@ const footerData = await fetchShopFooter()
           name="format-detection"
           content="telephone=no, date=no, email=no, address=no"
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Mitenya",
+              alternateName: "Mitenya",
+              url: baseUrl,
+            }),
+          }}
+        />
       </head>
 
       <body style={{ overflowX: "hidden" }}>
+        {isProduction && (
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
+              height="0"
+              width="0"
+              style={{ display: "none", visibility: "hidden" }}
+            />
+          </noscript>
+        )}
         <ThemeRegistry>
           <AuthContextProvider>
             <ShopContextProvider>
@@ -87,9 +111,13 @@ export const generateMetadata = async () => ({
   title: { template: "%s | Mitenya", default: "Mitenya | Kozmetik ve Güzellik Ürünleri" },
   description: "Mitenya - En kaliteli kozmetik ve güzellik ürünleri. Cilt bakımı, makyaj, parfüm ve kişisel bakım ürünlerinde geniş ürün yelpazesi ve uygun fiyatlar.",
   keywords: ["kozmetik", "güzellik", "cilt bakımı", "makyaj", "parfüm", "kişisel bakım", "mitenya", "online kozmetik"],
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_HOST_URL ?? "https://mitenya.com"
-  ),
+  metadataBase: new URL(baseUrl),
+  applicationName: "Mitenya",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png" }],
+    apple: [{ url: "/apple-icon.png", type: "image/png" }],
+  },
   openGraph: {
     type: "website",
     siteName: "Mitenya",
