@@ -3,16 +3,25 @@ import Icon from '@/components/Icon';
 import { Stack, Typography } from '@mui/material';
 import styles from './styles';
 import { useRouter } from 'next/navigation';
+import useScreen from '@/lib/hooks/useScreen';
 
 export interface InfoAreaProps {
-  icon?: string;
+  index?: number;
   label?: string;
   description?: string;
   url?: string;
 }
 
-const InfoArea = ({ icon, label, description, url }: InfoAreaProps) => {
+const infoAreaIcons = ['truck', 'clock-4', 'badge-percent', 'credit-card'];
+
+const InfoArea = ({ index, label, description, url }: InfoAreaProps) => {
   const router = useRouter();
+  const { smUp, mdUp } = useScreen();
+  const iconSize = mdUp ? 48 : smUp ? 36 : 32;
+  const icon =
+    typeof index === 'number'
+      ? infoAreaIcons[index % infoAreaIcons.length]
+      : undefined;
 
   return (
     <Stack
@@ -24,7 +33,7 @@ const InfoArea = ({ icon, label, description, url }: InfoAreaProps) => {
         cursor: url ? 'pointer' : 'default',
       }}
     >
-      {icon && <Icon name={icon} sx={styles.icon} fontSize={36} />}
+      {icon && <Icon name={icon} fontSize={iconSize} sx={styles.icon} weight={100} />}
       <Stack spacing={0.5}>
         {label && (
           <Typography variant="subtitle1" sx={styles.label}>

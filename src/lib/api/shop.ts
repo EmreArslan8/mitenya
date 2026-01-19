@@ -1,3 +1,5 @@
+
+
 import {
   ShopProductData,
   ShopProductListItemData,
@@ -30,9 +32,13 @@ export const fetchProducts = async (
   }
 };
 
-export const fetchProductData = async (id: string): Promise<ShopProductData | undefined> => {
+export const fetchProductData = async (
+  id: string,
+  baseUrl?: string
+): Promise<ShopProductData | undefined> => {
   try {
-    const res = await fetch(`/api/products/${id}/detail`);
+    const url = baseUrl ? new URL(`/api/products/${id}/detail`, baseUrl).toString() : `/api/products/${id}/detail`;
+    const res = await fetch(url);
     if (!res.ok) return undefined;
     return await res.json();
   } catch (error) {

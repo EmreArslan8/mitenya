@@ -4,6 +4,7 @@ import categories, { CategoryNode } from '@/lib/shop/categories';
 import { MenuItem, Stack } from '@mui/material';
 import { useState } from 'react';
 import useStyles from './styles';
+import { ArrowLeft } from 'lucide-react';
 
 const rootNode = { key: 'categories', children: categories };
 
@@ -36,7 +37,7 @@ const MobileCategories = ({ open, onClose, onOptionClicked }: MobileCategoriesPr
       title={
         history[history.length - 2] ? (
           <MenuItem onClick={handleHistoryPop} sx={styles.back}>
-            <Icon name="arrow_back" fontSize={20} />
+            <ArrowLeft fontSize={20} />
             {(history[history.length - 2].key)}
           </MenuItem>
         ) : (

@@ -1,23 +1,29 @@
-import Icon from '@/components/Icon';
+'use client'; 
+
 import { Grid, Stack, Typography } from '@mui/material';
+import { Truck, ShieldCheck, CreditCard } from 'lucide-react'; 
 import useStyles from './styles';
 
-const features = [
-  { icon: 'local_shipping', label: 'Hızlı & Güvenli Kargo' },
-  { icon: 'workspace_premium', label: '%100 Orijinal Ürün' },
-  { icon: 'payments', label: 'Güvenli Ödeme' },
-];
 
+const features = [
+  { Icon: Truck, label: 'Hızlı & Güvenli Kargo' },
+  { Icon: ShieldCheck, label: '%100 Orijinal Ürün' },
+  { Icon: CreditCard, label: 'Güvenli Ödeme' },
+];
 
 const ProductFeatures = () => {
   const styles = useStyles();
+  
   return (
     <Grid container spacing={1}>
-      {features.map((e) => (
-        <Grid item xs={6} key={e.label}>
+      {features.map((item) => (
+        <Grid item xs={6} key={item.label}>
           <Stack sx={styles.item}>
-            <Icon name={e.icon} fontSize={28} />
-            <Typography variant="warningSemibold">{e.label}</Typography>
+            <item.Icon 
+              size={28} 
+              strokeWidth={1.5} 
+            />
+            <Typography variant="warningSemibold">{item.label}</Typography>
           </Stack>
         </Grid>
       ))}

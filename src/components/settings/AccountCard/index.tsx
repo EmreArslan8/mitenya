@@ -15,13 +15,13 @@ const AccountCard = () => {
   const searchParams = new URLSearchParams({ email: customerData?.email ?? '' });
   const resetPasswordUrl = `${resetPasswordBaseUrl}?${searchParams}&origin=${window.location.href}`;
   return (
-    <Card iconName="lock" title={('account.cardTitle')} border>
+    <Card iconName="lock" title="Hesabım" border>
       <Stack sx={styles.cardBody}>
         {/* <Button size="small" color="secondary" variant="outlined" href={resetPasswordUrl}>
           {t('account.changePassword')}
         </Button> */}
         <Button size="small" color="error" variant="tonal" onClick={signOut}>
-          {('account.logout')}
+          Çıkış Yap
         </Button>
       </Stack>
     </Card>

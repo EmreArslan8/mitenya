@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchProductDataSupabase } from "@/lib/api/supabaseProducts";
+import { fetchProductData } from "@/lib/api/shop";
 import { OrderSummaryRequestData, ShopProductData } from "@/lib/api/types";
 import { calculateOrderSummary } from "@/lib/shop/calculateOrderSummary";
 
@@ -17,14 +17,13 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // Ürünleri yeniden doğrula (Supabase üzerinden)
     const revalidatedProducts: (ShopProductData & {
       listingId: string;
       quantity: number;
     })[] = [];
 
     for (const item of products) {
-      const data = await fetchProductDataSupabase(item.id);
+      const data = await fetchProductData(item.id, req.nextUrl.origin);
 
       if (!data) {
         return NextResponse.json(
@@ -40,7 +39,6 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    // Yeni hesaplama motoru
     const summary = calculateOrderSummary({
       products: revalidatedProducts,
       discountCode,

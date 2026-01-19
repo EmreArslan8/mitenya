@@ -1,7 +1,6 @@
 'use client'; // Add this at the very top of the file
 
 import { useEffect, useState, useRef, useContext } from 'react';
-import Icon from '@/components/Icon';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { CrossFade } from '@/components/common/CrossFade';
@@ -24,6 +23,7 @@ import ProgressIndicator from './components/ProgressIndicator';
 import useStyles from './styles';
 import { useRouter } from 'next/navigation';
 import formatPrice from '@/lib/utils/formatPrice';
+import { Check, SquareArrowOutUpRight } from 'lucide-react';
 
 const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
@@ -135,7 +135,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                 >
                   <Typography component="span" sx={styles.brand}>
                     {data.brand}
-                    <Icon name="open_in_new" fontSize={13} weight={600} sx={{ mt: '2px' }} />
+                    <SquareArrowOutUpRight size={16} strokeWidth={3} style={{ mt: '2px' }} />
                   </Typography>
                 </Link>
                 <Typography variant="h3" sx={styles.productName}>
@@ -196,7 +196,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
               >
                 <CrossFade
                   components={[
-                    { in: showCheck, component: <Icon name="check" /> },
+                    { in: showCheck, component: <Check /> },
                     { in: !showCheck, component: ('Sepete Ekle') },
                   ]}
                 />

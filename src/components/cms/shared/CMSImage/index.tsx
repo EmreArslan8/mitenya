@@ -8,6 +8,8 @@ interface CMSImageProps {
   fill?: boolean;
   sizes?: string;
   priority?: boolean;
+  fetchPriority?: 'high' | 'low' | 'auto';
+  loading?: 'lazy' | 'eager';
   style?: React.CSSProperties;
 }
 

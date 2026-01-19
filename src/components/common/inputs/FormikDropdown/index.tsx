@@ -1,5 +1,6 @@
-import Icon from '@/components/Icon';
+
 import { Stack, Typography, Select, MenuItem } from '@mui/material';
+import { Asterisk } from 'lucide-react';
 
 const FormikDropdown = ({
   formik,
@@ -23,7 +24,7 @@ const FormikDropdown = ({
       {label && (
         <Typography variant="infoLabel" component="label">
           {label}
-          {required && <Icon name="asterisk" color='error' fontSize={8} />}
+          {required && <Asterisk color='error' size={8} />}
         </Typography>
       )}
       <Select

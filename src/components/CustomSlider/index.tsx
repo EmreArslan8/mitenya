@@ -1,10 +1,9 @@
-import Icon from '@/components/Icon';
 import { Button, Stack } from '@mui/material';
-import { ReactNode, useRef } from 'react';
+import { useRef } from 'react';
 import Slider, { Settings as ReactSlickSliderSettings } from 'react-slick';
-import 'slick-carousel/slick/slick-theme.css';
 import 'slick-carousel/slick/slick.css';
 import useStyles from './styles';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CustomSliderProps extends ReactSlickSliderSettings {
   showControls?: boolean;
@@ -22,9 +21,6 @@ const CustomSlider = ({
   ...rest
 }: CustomSliderProps) => {
   const sliderRef = useRef<Slider>(null);
-
-  const goToNextSlide = () => sliderRef.current?.slickNext();
-  const goToPrevSlide = () => sliderRef.current?.slickPrev();
   const styles = useStyles();
 
   return (
@@ -36,25 +32,29 @@ const CustomSlider = ({
       >
         {children}
       </Slider>
+
       {showControls && (
         <>
           <Button
             color="neutral"
             size="small"
             variant="outlined"
-            onClick={goToPrevSlide}
+            onClick={() => sliderRef.current?.slickPrev()}
             sx={styles.prevButton}
+            aria-label="Previous"
           >
-            <Icon name="chevron_left" color="neutral" fontSize={26} sx={{ mr: '2px' }} />
+            <ChevronLeft size={20} />
           </Button>
+
           <Button
             color="neutral"
             size="small"
             variant="outlined"
-            onClick={goToNextSlide}
+            onClick={() => sliderRef.current?.slickNext()}
             sx={styles.nextButton}
+            aria-label="Next"
           >
-            <Icon name="chevron_right" color="neutral" fontSize={26} sx={{ ml: '2px' }} />
+            <ChevronRight size={20} />
           </Button>
         </>
       )}

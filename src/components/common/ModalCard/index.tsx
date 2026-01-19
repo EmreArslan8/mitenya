@@ -1,10 +1,9 @@
 import { Modal, Slide, Stack, SxProps } from '@mui/material';
 import { ReactNode } from 'react';
 import Card, { CardProps } from '../Card';
-
-import Icon from '@/components/Icon';
 import useStyles from './styles';
 import useScreen from '@/lib/hooks/useScreen';
+import { SlidersHorizontal, X } from 'lucide-react';
 
 export interface ModalCardProps extends CardProps {
   open: boolean;
@@ -27,10 +26,20 @@ const ModalCard = ({
   disableAutoFocus,
   CardProps,
   BodyProps,
+  iconName,
+  customIcon,
+  iconProps,
   ...cardProps
 }: ModalCardProps) => {
   const styles = useStyles();
   const { isMobile } = useScreen();
+  const modalIcon =
+    customIcon ||
+    (iconName === 'tune' ? (
+      <Stack component="span" sx={{ color: 'primary.main', display: 'inline-flex' }}>
+        <SlidersHorizontal size={24} color="currentColor" />
+      </Stack>
+    ) : undefined);
 
   return (
     <Modal
@@ -44,9 +53,16 @@ const ModalCard = ({
   <div tabIndex={-1} style={{ outline: "none" }}>
     <Card
       {...cardProps}
+      iconName={iconName === 'tune' ? undefined : iconName}
+      iconProps={iconProps}
+      customIcon={modalIcon}
       sx={{ ...styles.card, ...CardProps?.sx }}
       stickyHeader
-      action={showCloseIcon && <Icon name="close" onClick={onClose} />}
+      action={ showCloseIcon && (
+        <Stack component="span" onClick={onClose}sx={{ cursor: onClose ? 'pointer' : 'default' }} >
+          <X size={20} />
+        </Stack>
+      )}
     >
       <Stack {...BodyProps} sx={{ ...styles.cardBody, ...BodyProps?.sx }}>
         {children}

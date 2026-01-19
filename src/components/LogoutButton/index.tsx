@@ -1,21 +1,19 @@
 'use client';
 
+import { LogOut } from 'lucide-react';
 import { signOut } from '@/lib/utils/signOut';
-import { useTranslations } from 'next-intl';
-import Icon from '../Icon';
 import Button from '../common/Button';
 
 const LogoutButton = (props: any) => {
-  const t = useTranslations('common');
   return (
     <Button
       variant="outlined"
       color="error"
-      startIcon={<Icon name="logout" />}
+      startIcon={<LogOut size={18} strokeWidth={2} />}
       onClick={signOut}
       {...props}
     >
-      {t('logout')}
+      Çıkış Yap
     </Button>
   );
 };

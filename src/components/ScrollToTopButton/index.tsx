@@ -1,7 +1,7 @@
 import useScrollPosition from '@/lib/hooks/useScrollPosition';
 import { Stack } from '@mui/material';
-import Icon from '../Icon';
 import useStyles from './styles';
+import { ChevronUp } from 'lucide-react';
 
 interface ScrollToTopButtonProps {
   threshold?: number;
@@ -12,7 +12,7 @@ const ScrollToTopButton = ({ threshold = 500 }: ScrollToTopButtonProps) => {
   const styles = useStyles()(scrollPosition > threshold);
   return (
     <Stack sx={styles.container} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-      <Icon name="expand_less" color="tertiary" />
+      <ChevronUp color="tertiary" />
     </Stack>
   );
 };

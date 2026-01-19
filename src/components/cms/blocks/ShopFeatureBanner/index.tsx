@@ -10,7 +10,6 @@ import Link from '@/components/common/Link';
 import CMSImage from '../../shared/CMSImage';
 import { BlockComponentBaseProps } from '..';
 import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
 import Button from '@/components/common/Button';
 import { splitTitle } from '@/lib/utils/splitTitle';
 
@@ -56,12 +55,11 @@ const ShopFeatureBanner = ({
   };
 
   const descriptionVisibilitySx = {
-    display: { xs: 'none', sm: 'none', md: 'block' },
+    display: { xs: 'none', sm: 'block', md: 'block' },
   };
 
   return (
     <SectionBase {...section}>
-      {/* Mobile Layout - CSS ile göster/gizle */}
       <Box sx={{ display: { xs: 'block', md: 'none' }, ...styles.mobileSliderContainer }}>
         <Slider {...sliderSettings} ref={sliderRef}>
           {mainBanners.map((banner, index) => {
@@ -75,7 +73,10 @@ const ShopFeatureBanner = ({
                       src={image.data.attributes.url}
                       alt={image.data.attributes.alternativeText}
                       fill
+                      priority={index === 0}
+                      fetchPriority={index === 0 ? 'high' : 'auto'}
                     />
+
 
                     <Box sx={styles.overlay}>
                       <Stack sx={styles.overlayInner} spacing={{ xs: 1, sm: 1.5, md: 2.5 }}>
@@ -124,7 +125,10 @@ const ShopFeatureBanner = ({
                       src={banner.image.data.attributes.url}
                       alt={banner.image.data.attributes.alternativeText}
                       fill
+                      priority={index === 0}
+                      fetchPriority={index === 0 ? 'high' : 'auto'}
                     />
+
 
                     <Box sx={styles.overlay}>
                       <Stack sx={styles.overlayInner} spacing={{ xs: 1, sm: 1.5, md: 2.5 }}>

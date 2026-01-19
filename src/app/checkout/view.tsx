@@ -2,7 +2,6 @@
 
 import NewAddressModal from '@/components/AddressCard/modals/NewAddressModal';
 import AddressSelector from '@/components/AddressSelector';
-import Icon from '@/components/Icon';
 import InfoItem from '@/components/InfoItem';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import CheckoutCard from '@/components/ShoppingCart/CheckoutCard';
@@ -27,6 +26,7 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import useStyles from './styles';
+import { Check, CheckCircle, ChevronDown, CreditCard, ShoppingBag, Truck } from 'lucide-react';
 
 export interface CheckoutPageViewProps {
   initialAddresses?: AddressData[] | null;
@@ -168,8 +168,10 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   );
 
   useEffect(() => {
-    if (isAuthenticated === false) router.push('/cart');
-  }, [isAuthenticated]);
+    if (isAuthenticated === false && !searchParams?.get('allow')) {
+      router.push('/cart');
+    }
+  }, [isAuthenticated, router, searchParams]);
 
   useEffect(() => {
     if (!selected?.length) return setOrderSummary(undefined);
@@ -211,8 +213,11 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
           <PrimaryColumn>
             <Card
               border
-              iconName="local_shipping"
-              iconProps={{ color: 'secondary' }}
+              customIcon={
+                <Box component="span" sx={{ color: 'secondary.main', display: 'inline-flex' }}>
+                  <Truck size={20} />
+                </Box>
+              }
               title={
                 <Typography
                   variant="cardTitle"
@@ -226,7 +231,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                   Teslimat Bilgileri
                   {destination && (
                     <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
-                      <Icon name="check" color="neutral" fontSize={16} weight={500} />
+                    <Check size={16} strokeWidth={3} />
                       <Typography
                         variant="cardTitle"
                         color="text.medium"
@@ -258,7 +263,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                     <Banner
                       title="Ücretsiz kargo avantajı"
                       variant="neutral"
-                      IconProps={{ name: 'check' }}
+                      icon={<CheckCircle size={20} />}
                     />
                   </Card>
                 </Stack>
@@ -266,8 +271,11 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
             </Card>
             <Card
               border
-              iconName="payment"
-              iconProps={{ color: 'secondary' }}
+              customIcon={
+                <Box component="span" sx={{ color: 'secondary.main', display: 'inline-flex' }}>
+                  <CreditCard size={20} />
+                </Box>
+              }
               title={
                 <Typography
                   variant="cardTitle"
@@ -286,7 +294,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                       maxWidth: { xs: 150, md: 'unset' },
                     }}
                   >
-                    <Icon name="check" color="neutral" fontSize={16} weight={500} />
+                    <Check size={16} strokeWidth={3} />
                     <Typography
                       variant="cardTitle"
                       color="text.medium"
@@ -358,9 +366,9 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                     }}
                   >
                     <Stack direction="row" gap={1.5}>
-                      {['visa', 'mastercard', 'amex', 'apple_pay', 'google_pay'].map((e) => (
+                      {['visa', 'mastercard', 'troy'].map((e) => (
                         <Image
-                          src={`/static/images/${e}.png`}
+                          src={`/static/images/${e}.svg`}
                           alt={e}
                           width={36}
                           height={28}
@@ -375,7 +383,11 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
             {!isMobile && (
               <Card
                 border
-                iconName="shopping_bag"
+                customIcon={
+                  <Box component="span" sx={{ color: 'primary.main', display: 'inline-flex' }}>
+                    <ShoppingBag size={20} />
+                  </Box>
+                }
                 title={`Sepetinizdeki Ürünler (${numSelected})`}
                 collapsible
                 defaultCollapsed
@@ -447,7 +459,11 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
             {isMobile && (
               <Card
                 border
-                iconName="shopping_bag"
+                customIcon={
+                  <Box component="span" sx={{ color: 'primary.main', display: 'inline-flex' }}>
+                    <ShoppingBag size={20} />
+                  </Box>
+                }
                 title={`Sepetinizdeki Ürünler (${numSelected})`}
                 collapsible
                 defaultCollapsed={!isMobile}
@@ -471,7 +487,9 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                     value={
                       <Stack direction="row" alignItems="center" gap={1} sx={{ cursor: 'pointer' }}>
                         {formatPrice(orderSummary?.totalDue ?? 0, orderSummary?.currency ?? 'TRY')}
-                        <Icon name="expand_more" sx={styles.expandIcon(summaryModalOpen)} />
+                        <Box component="span" sx={styles.expandIcon(summaryModalOpen)}>
+                          <ChevronDown size={18} />
+                        </Box>
                       </Stack>
                     }
                   />

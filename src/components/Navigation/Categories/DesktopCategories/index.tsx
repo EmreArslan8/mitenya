@@ -41,7 +41,7 @@ const DesktopCategories = ({ open, onClose, onOptionClicked }: DesktopCategories
               onClick={() => setCurrentCategory(i)}
               key={e.key}
             >
-              {e.icon && <Icon name={e.icon} />}
+              {e.icon && <Icon name={e.icon} fontSize={18} />}
               {(e.key)}
             </MenuItem>
           ))}

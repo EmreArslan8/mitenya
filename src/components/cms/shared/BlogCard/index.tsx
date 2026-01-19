@@ -1,9 +1,9 @@
 'use client';
 
-import Icon from '@/components/Icon';
 import Link from '@/components/common/Link';
 import CMSImage from '@/components/cms/shared/CMSImage';
 import { Box, Chip, Stack, Typography } from '@mui/material';
+import { ArrowRight, Clock } from 'lucide-react';
 
 export interface BlogCardProps {
   slug: string;
@@ -187,7 +187,9 @@ const BlogCard = ({
             }}
           >
             <Stack direction="row" alignItems="center" gap={0.5}>
-              <Icon name="schedule" fontSize={14} sx={{ color: 'text.secondary' }} />
+              <Box component="span" sx={{ color: 'text.secondary', display: 'inline-flex' }}>
+                <Clock size={14} color="currentColor" />
+              </Box>
               <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
                 {readTime || 3} dk
               </Typography>
@@ -203,7 +205,9 @@ const BlogCard = ({
                 </>
               )}
             </Stack>
-            <Icon name="arrow_forward" fontSize={16} sx={{ color: 'primary.main' }} />
+            <Box component="span" sx={{ color: 'primary.main', display: 'inline-flex' }}>
+              <ArrowRight size={16} color="currentColor" />
+            </Box>
           </Stack>
 
           {/* Mobile: Read time */}
@@ -213,7 +217,9 @@ const BlogCard = ({
             gap={0.5}
             sx={{ display: { xs: 'flex', md: 'none' } }}
           >
-            <Icon name="schedule" fontSize={12} sx={{ color: 'text.secondary' }} />
+            <Box component="span" sx={{ color: 'text.secondary', display: 'inline-flex' }}>
+              <Clock size={12} color="currentColor" />
+            </Box>
             <Typography sx={{ color: 'text.secondary', fontSize: 11 }}>
               {readTime || 3} dk okuma
             </Typography>

@@ -1,7 +1,6 @@
 'use client';
 
 import FreeShippingBar from '@/components/FreeShippingBar';
-import Icon from '@/components/Icon';
 import InfoItem from '@/components/InfoItem';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import CheckoutCard, { PriceLines } from '@/components/ShoppingCart/CheckoutCard';
@@ -23,6 +22,7 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 import useStyles from './styles';
 import { usePathname, useRouter } from 'next/navigation';
 import ProductRecommendations from '../product/[id]/components/ProductRecommendations';
+import { ChevronDown, Trash2, User } from 'lucide-react';
 
 
 export interface CartPageViewProps {
@@ -57,7 +57,7 @@ const CartPageView = ({
   const [buttonLoading, setButtonLoading] = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
-  const { isAuthenticated, openAuthenticator, customerData } = useAuth();
+  const { isAuthenticated, openAuthenticator } = useAuth();
   const isCartPage = pathname?.includes('/cart') ?? false;
   const recommendationTarget = selected?.[0] ?? cart?.[0];
 
@@ -87,33 +87,12 @@ const CartPageView = ({
   );
 
   const handleContinue = async () => {
-    console.log('▶ handleContinue CALLED', {
-      isAuthenticated,
-      hasSelectedItems: (selected?.length ?? 0) > 0,
-    });
-
     if (!selected?.length) {
-      console.log('⛔ DEVAM EDİLEMİYOR: Ürün seçili değil');
       return;
     }
-
-    if (isAuthenticated === false) {
-      console.log('⚠ Kullanıcı LOGIN DEĞİL → Authenticator açılıyor');
-      openAuthenticator({
-        onSuccess: () => {
-          console.log('✔ Login başarılı → Checkout’a yönlendiriliyor');
-          setButtonLoading(true);
-          onContinue?.();
-          router.push('/checkout');
-        },
-      });
-      return;
-    }
-
-    console.log('✔ Kullanıcı ZATEN LOGIN → Checkout’a gidiyor');
     setButtonLoading(true);
     onContinue?.();
-    router.push('/checkout');
+    router.push('/checkout?allow=guest');
   };
 
   useEffect(() => {
@@ -156,11 +135,11 @@ const CartPageView = ({
                 py: 1.25,
                 mb: 1.5,
                 borderRadius: 2,
-                backgroundColor: '#FFFEF2', // çok açık sarı arka plan
-                border: '1px solid #F0E4C0', // çok hafif sarı çerçeve
+                backgroundColor: '#FFFEF2', 
+                border: '1px solid #F0E4C0', 
               }}
             >
-              <Icon name="person" fontSize={22} />
+              <User size={22} />
 
               <Typography variant="body" sx={{ fontSize: 14, color: 'text.primary' }}>
                 Alışverişini daha hızlı tamamlamak için{' '}
@@ -219,12 +198,12 @@ const CartPageView = ({
               <Stack sx={styles.products}>
                 {unavailableItems.map((e) => (
                   <Stack direction="row" pr={2} alignItems="center" key={JSON.stringify(e)}>
-                    <Icon
-                      name="delete"
-                      color="error"
-                      sx={{ px: 1 }}
+                    <Box
+                      sx={{ px: 1, color: 'error.main', cursor: 'pointer' }}
                       onClick={() => handleDismissUnavailableItem(e)}
-                    />
+                    >
+                      <Trash2 size={18} />
+                    </Box>
                     <ShopCartProductCard data={e} unavailable />
                   </Stack>
                 ))}
@@ -275,12 +254,12 @@ const CartPageView = ({
               <Banner
                 variant="success"
                 title="Toplam tutar"
-                IconProps={{ name: 'handshake', fontSize: 26 }}
+                IconProps={{ name: 'handshake', size: 26 }}
                 sx={{ p: 2 }}
               />
               <Banner
                 title="Kargo ücretsiz"
-                IconProps={{ name: 'volunteer_activism', fontSize: 26 }}
+                IconProps={{ name: 'volunteer_activism', size: 26 }}
                 sx={{ p: 2 }}
               />
             </Stack>
@@ -298,7 +277,9 @@ const CartPageView = ({
                 value={
                   <Stack direction="row" alignItems="center" gap={1} sx={{ cursor: 'pointer' }}>
                     {(orderSummary?.totalDue, orderSummary?.currency)}
-                    <Icon name="expand_more" sx={styles.expandIcon(summaryModalOpen)} />
+                    <Box component="span" sx={styles.expandIcon(summaryModalOpen)}>
+                      <ChevronDown size={18} />
+                    </Box>
                   </Stack>
                 }
               />

@@ -1,10 +1,12 @@
+
+
 import Footer from "@/components/Footer";
 import MainLayout from "@/components/layouts/MainLayout";
 import Navigation from "@/components/Navigation";
 import { AuthContextProvider } from "@/contexts/AuthContext";
 import { ShopContextProvider } from "@/contexts/ShopContext";
 import { fetchShopFooter, fetchShopHeader } from "@/lib/api/cms";
-import { defaultFontFamily } from "@/theme/theme";
+import { albertSans } from "@/lib/fonts";
 import ThemeRegistry from "@/theme/ThemeRegistry";
 import Script from "next/script";
 import { Suspense } from "react";
@@ -21,7 +23,7 @@ const footerData = await fetchShopFooter()
 
 
   return (
-    <html lang="tr">
+  <html lang="tr" className={albertSans.variable}>
       <head>
         {/* ✅ Google Tag Manager */}
         {isProduction && (
@@ -38,7 +40,7 @@ const footerData = await fetchShopFooter()
           />
         )}
 
-        {/* ✅ Google Search Console doğrulama meta etiketi */}
+    
         {isProduction && (
           <meta
             name="google-site-verification"
@@ -46,7 +48,7 @@ const footerData = await fetchShopFooter()
           />
         )}
 
-        {/* Emotion / Viewport / Format ayarları */}
+
         <meta
           name="emotion-insertion-point"
           content="emotion-insertion-point"
@@ -56,23 +58,17 @@ const footerData = await fetchShopFooter()
           name="format-detection"
           content="telephone=no, date=no, email=no, address=no"
         />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=swap"
-        />
       </head>
 
-      <body style={{ fontFamily: defaultFontFamily, overflowX: "hidden" }}>
+      <body style={{ overflowX: "hidden" }}>
         <ThemeRegistry>
           <AuthContextProvider>
             <ShopContextProvider>
-        {/* Navigation içinde useSearchParams olduğu için Suspense şart */}
         <Suspense fallback={<div style={{ height: '100px' }} />}> 
           <Navigation data={headerData} />
         </Suspense>
         
         <MainLayout>
-          {/* Sayfa içerikleri için de Suspense eklemek iyi bir pratik */}
           <Suspense fallback={<div>Yükleniyor...</div>}>
             {children}
           </Suspense>

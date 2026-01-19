@@ -1,21 +1,21 @@
 'use client';
 
-import Icon from '../Icon';
 import Button from '../common/Button';
+import { Headset } from 'lucide-react';
 
-const SUPPORT_URL = "https://t.me/yourSupportChannel"; // veya WhatsApp linki
+const SUPPORT_URL = "https://t.me/yourSupportChannel";
 
 interface SupportButtonProps {
   size?: 'small' | 'medium' | 'large';
   text?: string;
-  [key: string]: any; // props genişlemesi için
+  [key: string]: any; 
 }
 
-const SupportButton = ({ size = 'medium', text = 'Contact Support', ...props }: SupportButtonProps) => {
+const SupportButton = ({ size = 'medium', text = 'İletişime Geçin', ...props }: SupportButtonProps) => {
   return (
     <Button
       variant="outlined"
-      startIcon={<Icon name="support_agent" />}
+      startIcon={<Headset size={18} strokeWidth={2} />}
       href={SUPPORT_URL}
       target="_blank"
       size={size}

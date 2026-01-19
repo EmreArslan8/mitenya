@@ -1,4 +1,3 @@
-import Icon from '@/components/Icon';
 import Card from '@/components/common/Card';
 import Markdown from '@/components/common/Markdown';
 import {
@@ -14,6 +13,7 @@ import { useEffect, useState } from 'react';
 import { BlockComponentBaseProps } from '..';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import styles from './styles';
+import { ChevronDown } from 'lucide-react';
 
 export interface FAQProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
@@ -77,7 +77,7 @@ const FAQItem = ({
     <Card border>
       <Accordion sx={styles.accordion} disableGutters elevation={0}>
         <AccordionSummary
-          expandIcon={<Icon name="expand_more" color="tertiary" />}
+          expandIcon={<ChevronDown color="tertiary" />}
           onClick={() => setExpanded(!expanded)}
         >
           <Typography variant="warningSemibold" mx={1}>

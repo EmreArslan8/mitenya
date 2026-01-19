@@ -1,10 +1,10 @@
 'use client';
 
-import Icon from '@/components/Icon';
 import Button from '@/components/common/Button';
 import { Stack, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import useStyles from './styles';
+import { RefreshCw, ShieldCheck, ShoppingBag, Truck } from 'lucide-react';
 
 interface EmptyCartProps {
   onStartShopping?: () => void;
@@ -25,7 +25,7 @@ const EmptyCart = ({ onStartShopping }: EmptyCartProps) => {
   return (
     <Stack sx={styles.container}>
       <Stack sx={styles.iconWrapper}>
-        <Icon name="shopping_bag" fontSize={80} color="primary" />
+        <ShoppingBag size={80} color="primary" />
       </Stack>
 
       <Stack sx={styles.textWrapper}>
@@ -49,19 +49,19 @@ const EmptyCart = ({ onStartShopping }: EmptyCartProps) => {
       <Stack sx={styles.features}>
         <Stack sx={styles.feature}>
           <Stack sx={styles.featureIconWrapper}>
-            <Icon name="local_shipping" fontSize={22} color="success" />
+            <Truck size={22} color="success" />
           </Stack>
           <Typography sx={styles.featureText}>750 TL üzeri<br />ücretsiz kargo</Typography>
         </Stack>
         <Stack sx={styles.feature}>
           <Stack sx={styles.featureIconWrapper}>
-            <Icon name="autorenew" fontSize={22} color="success" />
+            <RefreshCw  size={22} color="success" />
           </Stack>
           <Typography sx={styles.featureText}>14 gün<br />kolay iade</Typography>
         </Stack>
         <Stack sx={styles.feature}>
           <Stack sx={styles.featureIconWrapper}>
-            <Icon name="verified_user" fontSize={22} color="success" />
+            <ShieldCheck size={22} color="success" />
           </Stack>
           <Typography sx={styles.featureText}>Güvenli<br />ödeme</Typography>
         </Stack>

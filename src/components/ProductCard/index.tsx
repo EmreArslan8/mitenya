@@ -1,7 +1,6 @@
 'use client';
 
 import Card from '@/components/common/Card';
-import Icon from '@/components/Icon';
 import Link from '@/components/common/Link';
 import QuickAddModal from '@/components/QuickAddModal';
 import { ShopProductData, ShopProductListItemData } from '@/lib/api/types';

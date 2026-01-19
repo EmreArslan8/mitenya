@@ -1,7 +1,6 @@
 'use client';
 
 import EditAddressModal from '@/components/AddressCard/modals/EditAddressModal';
-import Icon from '@/components/Icon';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { AddressData } from '@/lib/api/types';
@@ -9,6 +8,7 @@ import useAddress from '@/lib/api/useAddress';
 import { IconButton, Menu, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import styles from './styles';
+import { Pencil, Trash } from 'lucide-react';
 
 const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => void }) => {
   const { deleteAddress } = useAddress();
@@ -52,10 +52,10 @@ const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => vo
         </Stack>
         <Stack sx={styles.addressSection} flexShrink={0}>
           <IconButton onClick={() => setEditModalOpen(true)}>
-            <Icon name="edit" fontSize={20} />
+            <Pencil size={20} />
           </IconButton>
           <IconButton onClick={handleDeleteButtonClick}>
-            <Icon name="delete" color="error" fontSize={22} />
+            <Trash name="delete" color="error" size={22} />
           </IconButton>
         </Stack>
       </Stack>
@@ -80,7 +80,7 @@ const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => vo
         PaperProps={{ sx: { boxShadow: '0px 0px 16px 0px #00000040' } }}
         MenuListProps={{ sx: { p: 0 } }}
       >
-        <Card title={('address.deleteTitle')} sx={{ width: 200 }}>
+        <Card title="Sil?" sx={{ width: 200 }}>
           <Stack p={2} gap={1.5}>
             <Button
               color="secondary"
@@ -88,16 +88,19 @@ const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => vo
               size="small"
               onClick={handleDeleteMenuClose}
             >
-              {('address.deleteCancel')}
+             İptal
             </Button>
             <Button
               loading={deleteLoading}
               color="error"
+              disabled={data.id === undefined}
               variant="contained"
               size="small"
-              onClick={() => handleDelete(data.id)}
+              onClick={() => {
+                if (data.id !== undefined) handleDelete(data.id);
+              }}
             >
-              {('address.deleteConfirm')}
+              Sil
             </Button>
           </Stack>
         </Card>

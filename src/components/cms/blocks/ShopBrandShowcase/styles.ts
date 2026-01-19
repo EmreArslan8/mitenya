@@ -2,66 +2,84 @@ import { withPalette } from '@/theme/ThemeRegistry';
 
 const useStyles = withPalette((palette) => ({
   wrapper: {
-    gap: { xs: 1.5, md: 2 },
     width: '100%',
-    px: { xs: 1, md: 1.5 },
+    px: { xs: 1, md: 2 },
+    py: { xs: 1.5, md: 2.5 },
   },
+
+  // Ana grid:
+  // xs/sm: 1 kolon → image → header → products
+  // md+:  2 kolon → üstte header (2 kolonu kaplar), altta image | products
+  body: {
+    display: 'grid',
+    gridTemplateColumns: {
+      xs: '1fr',
+      sm: '1fr',
+      md: 'minmax(0, 1.4fr) minmax(0, 1fr)',
+    },
+    gridTemplateAreas: {
+      xs: `"image"
+           "header"
+           "products"`,
+      sm: `"image"
+           "header"
+           "products"`,
+      md: `"header header"
+           "image  products"`,
+    },
+    columnGap: { xs: 0, md: 3 },
+    rowGap: { xs: 2, sm: 2.5, md: 3 },
+    alignItems: 'stretch',
+  },
+
+  imageWrapper: {
+    gridArea: 'image',
+    position: 'relative',
+    width: '100%',
+    aspectRatio: '16 / 9',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+
   header: {
+    gridArea: 'header',
+    display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'flex-start',
+    justifyContent: 'space-between',
     gap: 2,
   },
+  
   headerText: {
+    display: 'flex',
+    flexDirection: 'column', // ⬅️ KRİTİK
     gap: 0.25,
+    maxWidth: '75%',
   },
+  
+  headerButton: {
+    alignSelf: 'flex-start',
+    flexShrink: 0,
+  },
+  
+
   title: {
     fontSize: { xs: '1.125rem', md: '1.25rem' },
     fontWeight: 700,
     color: palette.text.main,
     lineHeight: 1.3,
   },
+
   description: {
     fontSize: { xs: '0.875rem', md: '1rem' },
-    fontWeight: 500,
-    color: palette.text.main,
+    fontWeight: 400,
+    color: palette.text.secondary ?? palette.text.main,
     lineHeight: 1.4,
   },
-  body: {
-    flexDirection: { xs: 'column', md: 'row' },
-    gap: { xs: 1.5, md: 2 },
-    alignItems: 'stretch',
-  },
-  imageWrapper: {
-    position: 'relative',
-    width: { xs: '100%', md: '70%' },
-    aspectRatio: '3/2',
-    borderRadius: 1,
-    overflow: 'hidden',
-    cursor: 'pointer',
-    flexShrink: 0,
-  },
+
+ 
   productsContainer: {
-    flex: 1,
-    minWidth: 0,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sliderWrapper: {
-    width: '100%',
-    maxWidth: 220,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    '& .slick-slide > div': { boxSizing: 'border-box' },
-  },
-  sliderCardWrapper: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    px: 0.5,
-    boxSizing: 'border-box',
+    gridArea: 'products',
   },
 }));
 

@@ -7,12 +7,8 @@ import SearchProductsView from './view';
 import { fetchProductsSupabase } from '@/lib/api/supabaseShop';
 
 const SuspensedView = async ({ searchParams }: { searchParams: Record<string, string> }) => {
-  console.log("🔍 [SEARCH] incoming searchParams:", searchParams);
   const res = await fetchProductsSupabase({ ...searchParams });
-
-  // fetchProducts ALWAYS returns array [response]
   const data = Array.isArray(res) ? res[0] : res;
-  console.log("📦 [SEARCH] fetchProducts result:", data);
   if (!data?.products) throw new Error('error.products.list');
 
   return (

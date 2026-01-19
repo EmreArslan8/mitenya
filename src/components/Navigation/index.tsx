@@ -1,7 +1,6 @@
 'use client';
 
-import CartPageView from '@/app/cart/view';
-import Icon from '@/components/Icon';
+import CartPageView from '@/app/cart/view'
 import Button from '@/components/common/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
@@ -33,7 +32,9 @@ import LoadingOverlay from '../LoadingOverlay';
 import ShoppingCartButton from '../ShoppingCart/ShoppingCartButton';
 import { CrossFade } from '../common/CrossFade';
 import ModalCard from '../common/ModalCard';
+import CategoriesDrawer from './CategoriesDrawer';
 import useStyles from './styles';
+import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, Home, History, Settings, Menu, Heart, User } from 'lucide-react';
 
 const pulseAnimation = keyframes`
   0% {
@@ -53,8 +54,8 @@ const pulseAnimation = keyframes`
 const getSupportUrl = 'https://api.whatsapp.com';
 
 const accountModalRoutes = [
-  { label: 'orders', url: '/orders', icon: 'history' },
-  { label: 'settings', url: '/settings', icon: 'settings' },
+  { label: 'orders', labelTr: 'Siparişler', url: '/orders', icon: History },
+  { label: 'settings', labelTr: 'Ayarlar', url: '/settings', icon: Settings },
 ];
 
 interface NavigationProps {
@@ -76,14 +77,14 @@ const Navigation = ({ data }: NavigationProps) => {
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [logoCollapsed, setLogoCollapsed] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const styles = useStyles();
 
   const toggleCartModalOpen = () => {
     if (pathname === '/checkout') return;
-    if (cartModalOpen && pathname !== '/cart') history.back();
-    if (!smDown || pathname === '/cart' || cartModalOpen) return setCartModalOpen(false);
-    history.pushState({}, '', '/cart');
+    if (!smDown) return;
+    if (cartModalOpen) return setCartModalOpen(false);
     setCategoriesOpen(false);
     setAccountModalOpen(false);
     setCartModalOpen(true);
@@ -94,6 +95,12 @@ const Navigation = ({ data }: NavigationProps) => {
     setCategoriesOpen(false);
     setAccountModalOpen(true);
     setCartModalOpen(false);
+  };
+  const toggleCategoriesModalOpen = () => {
+    if (categoriesOpen) return setCategoriesOpen(false);
+    setAccountModalOpen(false);
+    setCartModalOpen(false);
+    setCategoriesOpen(true);
   };
 
   const handleAccountButtonClick = (destination: string = '/orders') => {
@@ -126,7 +133,7 @@ const Navigation = ({ data }: NavigationProps) => {
 
   useEffect(() => {
     isMobileRef.current = smDown;
-    if (!smDown || pathname === '/cart') setCartModalOpen(false);
+    if (!smDown) setCartModalOpen(false);
   }, [smDown, pathname, cartModalOpen]);
 
   useEffect(() => {
@@ -155,7 +162,7 @@ const Navigation = ({ data }: NavigationProps) => {
               {getSupportUrl && (
                 <a href={getSupportUrl!} target="_blank" style={styles.a}>
                   <MenuItem sx={styles.bannerLink}>
-                    <Icon name="support_agent" color="primaryDark" fontSize={15} />
+                    <Headset color="primaryDark" size={15} />
                     Yardım
                   </MenuItem>
                 </a>
@@ -166,59 +173,107 @@ const Navigation = ({ data }: NavigationProps) => {
             <Stack sx={styles.primaryBar}>
               {isMobileApp && pathname?.includes('/product/') ? (
                 <MenuItem onClick={() => router.back()} sx={styles.backButton}>
-                  <Icon name="arrow_back" fontSize={24} />
+                  <ArrowLeft size={24} />
                 </MenuItem>
               ) : (
-                <Collapse
-                  in={!logoCollapsed || smUp}
-                  orientation="horizontal"
-                  sx={{ pr: !logoCollapsed || smUp ? 4 : 0, mr: { sm: 2 } }}
-                  unmountOnExit
-                  onClick={() => router.push('/')}
-                >
-                  <Image
-                    src={styles.logo.src}
-                    alt="mitenya"
-                    width={styles.logo.width}
-                    height={styles.logo.height}
-                    style={styles.logo}
-                  />
-                </Collapse>
+                <Stack direction="row" alignItems="center" gap={1}>
+                  {smDown && (
+                    <IconButton onClick={toggleCategoriesModalOpen} aria-label="Kategoriler">
+                      <Menu size={24} />
+                    </IconButton>
+                  )}
+                  <Collapse
+                    in={!logoCollapsed || smUp}
+                    orientation="horizontal"
+                    unmountOnExit
+                    onClick={() => router.push('/')}
+                    sx={{
+                      pr: !logoCollapsed || smUp ? 4 : 0,
+                      mr: { sm: 2 },
+
+                      '& .MuiCollapse-wrapperInner': {
+                        height: 40,              // 🔴 SABİT YÜKSEKLİK
+                        display: 'flex',
+                        alignItems: 'center',    // logo dikey ortalanır
+                      },
+
+                      '& .MuiCollapse-wrapper': {
+                        height: 40,
+                      },
+                    }}
+                  >
+                    <Image
+                      src={styles.logo.src}
+                      alt="mitenya"
+                      width={styles.logo.width}
+                      height={styles.logo.height}
+                      style={styles.logo}
+                    />
+                  </Collapse>
+                </Stack>
               )}
-              <Stack direction="row" gap={1} width="100%" justifyContent="center">
-                <SearchBar
-                  onFocus={() => setLogoCollapsed(true)}
-                  onBlur={() => setLogoCollapsed(false)}
-                />
+              <Stack
+                direction="row"
+                gap={1}
+                width="100%"
+                justifyContent={smDown && !searchOpen ? 'flex-end' : 'center'}
+              >
+                {smDown ? (
+                  searchOpen ? (
+                    <Stack direction="row" alignItems="center" width="100%" gap={1}>
+                      <SearchBar
+                        autoFocus
+                        onFocus={() => setLogoCollapsed(true)}
+                        onBlur={() => setLogoCollapsed(false)}
+                      />
+                      <IconButton
+                        onClick={() => {
+                          setSearchOpen(false);
+                          setLogoCollapsed(false);
+                        }}
+                        aria-label="Aramayi kapat"
+                      >
+                        <X size={20} />
+                      </IconButton>
+                    </Stack>
+                  ) : (
+                    <IconButton onClick={() => setSearchOpen(true)} aria-label="Ara">
+                      <Search size={22} />
+                    </IconButton>
+                  )
+                ) : (
+                  <SearchBar
+                    onFocus={() => setLogoCollapsed(true)}
+                    onBlur={() => setLogoCollapsed(false)}
+                  />
+                )}
               </Stack>
               {smUp && (
                 <Stack sx={styles.actions}>
                   <MenuItem sx={styles.action} onClick={() => handleAccountButtonClick()}>
-                    <Icon name="account_circle" fontSize={24} weight={400} />
-                    {isAuthenticated ? 'Hesabım' : 'Giriş'}
+                    <User />
+                    {isAuthenticated ? 'Hesabım' : 'Giriş Yap'}
                   </MenuItem>
                   <ShoppingCartButton />
                 </Stack>
               )}
             </Stack>
-            <Stack sx={styles.secondaryBar}>
-              <Stack sx={styles.shopHeaderLinks}>
-                <Stack sx={styles.secondaryBar}>
-                  <Stack sx={styles.shopHeaderLinks}>
-                    {data?.categories?.map((cat, index) => (
-                      <MenuItem
-                        key={cat.id}
-                        sx={styles.shopHeaderLink}
-                        onMouseEnter={() => setActiveCategory(index)}
-                        onClick={() => cat.slug && router.push(`/${cat.slug}`)}
-                      >
-                        {cat.label}
-                      </MenuItem>
-                    ))}
-                  </Stack>
+            {smUp && (
+              <Stack sx={styles.secondaryBar}>
+                <Stack sx={styles.shopHeaderLinks}>
+                  {data?.categories?.map((cat, index) => (
+                    <MenuItem
+                      key={cat.id}
+                      sx={styles.shopHeaderLink}
+                      onMouseEnter={() => setActiveCategory(index)}
+                      onClick={() => cat.slug && router.push(`/${cat.slug}`)}
+                    >
+                      {cat.label}
+                    </MenuItem>
+                  ))}
                 </Stack>
 
-                {smUp && activeCategory !== null && data?.categories?.[activeCategory] && (
+                {activeCategory !== null && data?.categories?.[activeCategory] && (
                   <Box
                     onMouseLeave={() => setActiveCategory(null)}
                     sx={{
@@ -267,7 +322,7 @@ const Navigation = ({ data }: NavigationProps) => {
                   </Box>
                 )}
               </Stack>
-            </Stack>
+            )}
           </Stack>
         </Stack>
       </Stack>
@@ -280,16 +335,14 @@ const Navigation = ({ data }: NavigationProps) => {
                 ? '/cart'
                 : accountModalOpen || accountModalRoutes.some((e) => pathname?.startsWith(e.url))
                   ? '/account'
-                  : categoriesOpen
-                    ? 'categories'
-                    : pathname
+                  : pathname
             }
             sx={{ '& .MuiBottomNavigationAction-root': { px: 0, minWidth: 0 } }}
           >
             <BottomNavigationAction
               value="/"
-              label={'home'}
-              icon={<Icon name="home" />}
+              label="AnaSayfa"
+              icon={<Home />}
               onClick={() => {
                 if (!((cartModalOpen || accountModalOpen) && pathname === '/')) router.push('/');
                 setAccountModalOpen(false);
@@ -298,37 +351,32 @@ const Navigation = ({ data }: NavigationProps) => {
               }}
             />
             <BottomNavigationAction
-              value="categories"
-              label={'categories'}
-              icon={<Icon name="manage_search" fontSize={29} weight={330} sx={{ m: '-2.5px' }} />}
-              onClick={() => {
-                setAccountModalOpen(false);
-                setCartModalOpen(false);
-                setCategoriesOpen((prev) => !prev);
-              }}
+              value="favorites"
+              label={'Favoriler'}
+              icon={<Heart size={24} />}
             />
             <BottomNavigationAction
               value="/cart"
-              label="cart"
-              icon={<Icon name="shopping_bag" />}
+              label="Sepet"
+              icon={<ShoppingBag />}
               onClick={toggleCartModalOpen}
             />
             <BottomNavigationAction
               value="/account"
-              label={'account'}
-              icon={<Icon name="account_circle" />}
+              label="Hesap"
+              icon={<CircleUser />}
               onClick={toggleAccountModalOpen}
             />
             <BottomNavigationAction
               value="chat"
-              label={'help'}
+              label="İletişim"
               icon={
                 <Badge
                   badgeContent={unreadCount}
                   color="error"
                   sx={{ '& .MuiBadge-badge': { minWidth: 18, height: 18, mt: '2px', px: 0.5 } }}
                 >
-                  <Icon name="support_agent" />
+                  <Headset />
                 </Badge>
               }
               onClick={() => {
@@ -344,7 +392,7 @@ const Navigation = ({ data }: NavigationProps) => {
         open={cartModalOpen}
         onClose={() => setCartModalOpen(false)}
         showCloseIcon
-        title={'cartModalTitle'}
+        title="Sepet"
         CardProps={{ sx: { height: '100%', pb: 12 } }}
         sx={{ zIndex: 1297 }}
       >
@@ -368,11 +416,11 @@ const Navigation = ({ data }: NavigationProps) => {
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               {isAuthenticated ? (
                 <MenuItem onClick={signOut} sx={styles.logoutButton}>
-                  <Icon name="logout" /> {'logout'}
+                  <LogOut /> Çıkış
                 </MenuItem>
               ) : (
                 <MenuItem onClick={() => openAuthenticator()} sx={styles.loginButton}>
-                  <Icon name="login" /> {'auth.login'}
+                  <LogIn /> Giriş Yap
                 </MenuItem>
               )}
             </Stack>
@@ -389,8 +437,8 @@ const Navigation = ({ data }: NavigationProps) => {
                 }}
                 sx={styles.accountMenuItem}
               >
-                <Icon name={e.icon} fill={pathname?.startsWith(e.url)} />
-                {`routes.${e.label}`}
+                <e.icon size={18} />
+                {e.labelTr}
               </MenuItem>
             </Grid>
           ))}
@@ -402,7 +450,7 @@ const Navigation = ({ data }: NavigationProps) => {
                 target="_blank"
                 sx={styles.accountMenuItem}
               >
-                <Icon name="support_agent" /> {'help'}
+                <Headset /> Yardım
               </MenuItem>
             </Grid>
           )}
@@ -413,11 +461,21 @@ const Navigation = ({ data }: NavigationProps) => {
               target="_blank"
               sx={styles.accountMenuItem}
             >
-              <Icon name="help" /> {'faq'}
+              <HelpCircle /> SSS
             </MenuItem>
           </Grid>
         </Grid>
       </ModalCard>
+      <CategoriesDrawer
+        open={categoriesOpen}
+        onClose={() => setCategoriesOpen(false)}
+        categories={data?.categories}
+        isAuthenticated={isAuthenticated ?? undefined}
+        onAccount={() => handleAccountButtonClick('/orders')}
+        onOrders={() => handleAccountButtonClick('/orders')}
+        onFavorites={() => router.push('/favorites')}
+        onNavigate={(slug) => router.push(`/${slug}`)}
+      />
     </>
   );
 };
@@ -425,9 +483,10 @@ const Navigation = ({ data }: NavigationProps) => {
 interface SearchBarProps {
   onFocus?: () => void;
   onBlur?: () => void;
+  autoFocus?: boolean;
 }
 
-const SearchBar = ({ onFocus, onBlur }: SearchBarProps) => {
+const SearchBar = ({ onFocus, onBlur, autoFocus }: SearchBarProps) => {
   const styles = useStyles();
   const router = useRouter();
   const { smUp } = useScreen();
@@ -436,9 +495,16 @@ const SearchBar = ({ onFocus, onBlur }: SearchBarProps) => {
   const [query, setQuery] = useState((!searchParams.get('nt') && searchParams.get('query')) || '');
   const [loading, setLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
   const { searchHistory, addSearchQuery, removeSearchQuery, clearAllHistory } =
     useContext(ShopContext);
   const searchHistoryRef = useRef<HTMLDivElement>(null);
+  const placeholderPhrases = [
+    'Bugun kendini simart, favorini kesfet.',
+    'Sepetine ekle, pariltiyi hemen hisset.',
+    'Yeni gelenleri kacirma, tukenmeden yakala.',
+  ];
 
   useEffect(() => {
     setQuery('');
@@ -456,6 +522,44 @@ const SearchBar = ({ onFocus, onBlur }: SearchBarProps) => {
   useEffect(() => {
     setLoading(false);
   }, [searchParams, pathname]);
+
+  useEffect(() => {
+    if (!smUp || isFocused || query) {
+      setAnimatedPlaceholder('');
+      return;
+    }
+
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let deleting = false;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const tick = () => {
+      const phrase = placeholderPhrases[phraseIndex];
+
+      if (!deleting) {
+        charIndex += 1;
+        setAnimatedPlaceholder(phrase.slice(0, charIndex));
+        if (charIndex === phrase.length) {
+          deleting = true;
+          timeoutId = setTimeout(tick, 1200);
+          return;
+        }
+      } else {
+        charIndex -= 1;
+        setAnimatedPlaceholder(phrase.slice(0, charIndex));
+        if (charIndex === 0) {
+          deleting = false;
+          phraseIndex = (phraseIndex + 1) % placeholderPhrases.length;
+        }
+      }
+
+      timeoutId = setTimeout(tick, deleting ? 40 : 80);
+    };
+
+    timeoutId = setTimeout(tick, 400);
+    return () => clearTimeout(timeoutId);
+  }, [smUp, isFocused, query]);
   const handleHistoryClick = (historyItem: string) => {
     setQuery(historyItem);
     setShowHistory(false);
@@ -481,20 +585,27 @@ const SearchBar = ({ onFocus, onBlur }: SearchBarProps) => {
         fullWidth
         size="small"
         autoComplete="off"
+        autoFocus={autoFocus}
         value={query}
-        onFocus={onFocus}
-        onBlur={onBlur}
+        onFocus={() => {
+          setIsFocused(true);
+          onFocus?.();
+        }}
+        onBlur={() => {
+          setIsFocused(false);
+          onBlur?.();
+        }}
         onClick={() => setShowHistory(true)}
         onChange={(e) => {
           setQuery(e.target.value);
           setShowHistory(true);
         }}
-        placeholder={''}
+        placeholder={smUp && !query && !isFocused ? animatedPlaceholder : ''}
         sx={styles.searchBarInput}
         InputProps={{
           endAdornment: (
             <IconButton type="submit" size="small">
-              <Icon name="search" color="primary" fontSize={20} weight={500} />
+              <Search color="primary" fontSize={20} strokeWidth={2.5} />
             </IconButton>
           ),
         }}
@@ -504,10 +615,10 @@ const SearchBar = ({ onFocus, onBlur }: SearchBarProps) => {
         <Box sx={styles.historyContainer} ref={searchHistoryRef} id="search-history-container">
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="body1" fontWeight="bold">
-              {'searchHistory'}
+              Arama Geçmişi
             </Typography>
             <Button size="small" color="neutral" sx={{ mx: -2 }} onClick={clearAllHistory}>
-              {'clearHistory'}
+              Temizle
             </Button>
           </Stack>
           <Stack gap={1}>
@@ -529,7 +640,7 @@ const SearchBar = ({ onFocus, onBlur }: SearchBarProps) => {
                     {item}
                   </Typography>
                   <IconButton onClick={() => removeSearchQuery(item)} size="small">
-                    <Icon name="close" color="neutral" />
+                    <X color="neutral" />
                   </IconButton>
                 </Stack>
               ))}

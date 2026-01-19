@@ -8,7 +8,7 @@ const useStyles = withPalette((palette) => {
   const isMobileApp = useIsMobileApp();
   return {
     container: {
-      height: { xs: headerHeight.xs + bannerHeight, sm: headerHeight.sm + bannerHeight },
+      height: { xs: 'auto', sm: headerHeight.sm + bannerHeight },
     },
     banner: {
       justifyContent: 'center',
@@ -35,7 +35,7 @@ const useStyles = withPalette((palette) => {
       top: 0,
       left: 0,
       right: 0,
-      height: { xs: headerHeight.xs + bannerHeight, sm: headerHeight.sm + bannerHeight },
+      height: { xs: 'auto', sm: headerHeight.sm + bannerHeight },
       background: palette.bg.main,
       transition: 'top 0.2s, box-shadow 0.2s ease-in',
       px: { xs: 2, sm: 3 },

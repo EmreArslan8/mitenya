@@ -1,11 +1,13 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { AddressData } from '@/lib/api/types';
+import useAddress from '@/lib/api/useAddress';
 import { Divider, MenuItem, Select, SelectChangeEvent, Stack, Typography } from '@mui/material';
-import { useState } from 'react';
-import NewAddressModal from '../AddressCard/modals/NewAddressModal';
-import Icon from '../Icon';
+import { LoadingButton } from '@mui/lab';
+import { useEffect, useState } from 'react';
+import AddressForm from '../AddressCard/AddressForm';
 import Button from '../common/Button';
 import useStyles from './styles';
+import { ChevronDown, Plus } from 'lucide-react';
 
 interface AddressSelectorProps {
   value?: AddressData;
@@ -16,10 +18,32 @@ interface AddressSelectorProps {
 
 const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSelectorProps) => {
   const { isAuthenticated, openAuthenticator } = useAuth();
+  const { addAddress } = useAddress();
   const styles = useStyles();
   // TODO: Read the locale from cookie in the redirect helper.
 
-  const [newAddressModalOpen, setNewAddressModalOpen] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [submitTrigger, setSubmitTrigger] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (options.length === 0 && isAuthenticated) setShowForm(true);
+  }, [options.length, isAuthenticated]);
+
+  const handleSubmit = (address: AddressData) => {
+    setSaving(true);
+    setError(false);
+    addAddress(address).then((id) => {
+      setSaving(false);
+      if (!id) {
+        setError(true);
+        return;
+      }
+      onAddressAdded?.({ ...address, id });
+      setShowForm(false);
+    });
+  };
 
   return (
     <Stack gap={0.5}>
@@ -29,7 +53,7 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
           value={value?.id?.toString() ?? ''}
           IconComponent={(props) => (
             <Stack {...props}>
-              <Icon name="expand_more" />
+              <ChevronDown />
             </Stack>
           )}
           MenuProps={{ PaperProps: { sx: styles.paper } }}
@@ -61,35 +85,74 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
               </MenuItem>,
               <Divider flexItem sx={styles.divider} key={`${option.name}-divider`} />,
             ])}
-          <Button
-            fullWidth
-            size="small"
-            color="tertiary"
-            startIcon={<Icon name="add" />}
-            onClick={() => setNewAddressModalOpen(true)}
-            sx={{ mt: 0.5 }}
-          >
-             {('address.addAddress')}
-          </Button>
+          {!showForm && (
+            <Button
+              fullWidth
+              size="small"
+              variant="contained"
+              color="primary"
+              startIcon={<Plus />}
+              onClick={() => {
+                if (!isAuthenticated) return openAuthenticator();
+                setShowForm(true);
+              }}
+              sx={{ mt: 0.5 }}
+            >
+              Yeni adres ekle
+            </Button>
+          )}
         </Select>
       ) : (
-        <Button
-          fullWidth
-          size="small"
-          variant="outlined"
-          startIcon={<Icon name="add" />}
-          onClick={() => (isAuthenticated ? setNewAddressModalOpen(true) : openAuthenticator())}
-          sx={{ mt: 0.5 }}
-        >
-           {('address.addAddress')}
-        </Button>
+        <Stack gap={1}>
+          {!showForm && (
+            <Button
+              fullWidth
+              size="small"
+              variant="contained"
+              color="primary"
+              startIcon={<Plus />}
+              onClick={() => (isAuthenticated ? setShowForm(true) : openAuthenticator())}
+              sx={{ mt: 0.5 }}
+            >
+              Yeni adres ekle
+            </Button>
+          )}
+        </Stack>
       )}
-      <NewAddressModal
-        open={newAddressModalOpen}
-        onClose={() => setNewAddressModalOpen(false)}
-        onAddressAdded={onAddressAdded}
-        defaultName= {('address.nameDefaultValue') + ' ' + (options.length + 1)}
-      />
+      {showForm && (
+        <Stack gap={1.5} mt={1}>
+          <AddressForm
+            onSubmit={handleSubmit}
+            submitTrigger={submitTrigger}
+            initialValues={{ name: `Adres ${options.length + 1}` }}
+          />
+          {error && (
+            <Typography variant="body" color="error.main">
+              Adres eklenemedi, tekrar deneyin.
+            </Typography>
+          )}
+          <Stack direction="row" gap={1}>
+            <LoadingButton
+              fullWidth
+              loading={saving}
+              variant="contained"
+              onClick={() => setSubmitTrigger((prev) => prev + 1)}
+            >
+              Adresi Kaydet
+            </LoadingButton>
+            {options.length > 0 && (
+              <Button
+                fullWidth
+                variant="outlined"
+                color="secondary"
+                onClick={() => setShowForm(false)}
+              >
+                Vazgeç
+              </Button>
+            )}
+          </Stack>
+        </Stack>
+      )}
     </Stack>
   );
 };

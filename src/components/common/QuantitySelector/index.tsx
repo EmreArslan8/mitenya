@@ -1,6 +1,6 @@
 import { IconButton, Stack, SxProps } from '@mui/material';
 import useStyles from './styles';
-import Icon from '@/components/Icon';
+import { Minus, Plus, Trash } from 'lucide-react';
 
 interface QuantitySelectorProps {
   value: number;
@@ -16,12 +16,19 @@ const QuantitySelector = ({ value, onIncrease, onDecrease, max, sx }: QuantitySe
   return (
     <Stack sx={{ ...styles.itemQuantitySelector, ...sx } as SxProps}>
       <IconButton sx={styles.itemQuantityButton} onClick={onDecrease}>
-        <Icon
-          fontSize={20}
-          name={value === 1 ? 'delete' : 'remove'}
-          weight={300}
-          color={styles.decreaseButton(value)}
-        />
+        {value === 1 ? (
+          <Trash
+            size={20}
+            color={styles.decreaseButton(value)}
+            strokeWidth={1.5}
+          />
+        ) : (
+          <Minus
+            size={20}
+            color={styles.decreaseButton(value)}
+            strokeWidth={1.5}
+          />
+        )}
       </IconButton>
       <Stack sx={styles.itemQuantityValue}>{value}</Stack>
       <IconButton
@@ -29,7 +36,7 @@ const QuantitySelector = ({ value, onIncrease, onDecrease, max, sx }: QuantitySe
         disabled={Boolean(max && value >= max)}
         onClick={!max || value < max ? onIncrease : undefined}
       >
-        <Icon name="add" fontSize={20} weight={300} />
+        <Plus fontSize={20} strokeWidth={1} />
       </IconButton>
     </Stack>
   );

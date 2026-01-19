@@ -15,7 +15,6 @@ import useCustomerData from '@/lib/api/useCustomerData';
 import { pushItemToDataLayer } from '@/lib/utils/googleAnalytics';
 import { setCookie } from 'cookies-next';
 import Link from '../common/Link';
-import Icon from '../Icon';
 import { useSupabase } from '@/lib/supabase/client';
 
 const Authenticator = ({
@@ -180,28 +179,27 @@ const EmailModal = ({
     },
   });
 
+
+
   const supabaseClient = useSupabase();
   const [error, setError] = useState<string | undefined>();
 
   const handleGoogleLogin = async () => {
     try {
-      const currentPath = window.location.pathname;
-      const { error } = await supabaseClient.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(
-            currentPath,
-          )}`,
-        },
-      });
-
-      if (error) throw error;
+      const currentPath = window.location.pathname || '/';
+      console.log('[GoogleLogin] click', { currentPath });
+  
+      const target = `/auth/google/login?next=${encodeURIComponent(currentPath)}`;
+      console.log('[GoogleLogin] redirecting to', target);
+  
+      window.location.href = target;
     } catch (err) {
-      console.error('Google login error:', err);
+      console.error('Google login error (client):', err);
       setError('Google ile giriş yapılırken hata oluştu');
     }
   };
-
+  
+  
   const isSignup = mode === 'signup';
 
   return (

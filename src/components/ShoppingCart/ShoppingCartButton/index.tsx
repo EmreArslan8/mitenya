@@ -1,16 +1,16 @@
-import Icon from '@/components/Icon';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import QuantitySelector from '@/components/common/QuantitySelector';
 import { ShopContext } from '@/contexts/ShopContext';
 import { ShopProductData } from '@/lib/api/types';
 import { CircularProgress, MenuItem, Popover, Stack, Typography } from '@mui/material';
+import { ShoppingBag, X } from 'lucide-react';
 import { useContext, useEffect, useRef, useState } from 'react';
 import useStyles from './styles';
 import { useRouter } from 'next/navigation';
 import formatPrice from '@/lib/utils/formatPrice';
 
-const ShoppingCartButton = () => {
+const ShoppingCartButton = ({ compact = false }: { compact?: boolean }) => {
   const router = useRouter();
   const buttonRef = useRef<HTMLLIElement>(null);
   const {
@@ -22,9 +22,14 @@ const ShoppingCartButton = () => {
     newProductAdded,
   } = useContext(ShopContext);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const styles = useStyles();
 
   const toggleMenuOpen = () => setMenuOpen((prev) => !prev);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (newProductAdded) setMenuOpen(true);
@@ -32,10 +37,17 @@ const ShoppingCartButton = () => {
 
   return (
     <Stack>
-      <MenuItem onClick={toggleMenuOpen} ref={buttonRef} sx={styles.button}>
-        <Icon name="shopping_bag" fontSize={24} weight={400} />
-    Sepet
-        {!isCartReady && <CircularProgress color="secondary" size={13} sx={{ mt: '2px' }} />}
+      <MenuItem
+        onClick={toggleMenuOpen}
+        ref={buttonRef}
+        sx={[styles.button, compact && styles.buttonCompact]}
+        aria-label={compact ? 'Sepet' : undefined}
+      >
+        <ShoppingBag size={20} strokeWidth={2} />
+        {!compact && 'Sepet'}
+        {isMounted && !isCartReady && (
+          <CircularProgress color="secondary" size={13} sx={{ mt: '2px' }} />
+        )}
       </MenuItem>
       <Popover
         elevation={0}
@@ -52,7 +64,7 @@ const ShoppingCartButton = () => {
               <>
                 <Stack sx={styles.menuHeader}>
                   <Typography variant="body"> Sepet </Typography>
-                  <Icon name="close" onClick={() => setMenuOpen(false)} />
+                  <X size={18} strokeWidth={2} onClick={() => setMenuOpen(false)} />
                 </Stack>
                 <Stack sx={styles.products}>
                   {cart?.map((p) => (
@@ -79,9 +91,9 @@ const ShoppingCartButton = () => {
             ) : (
               <Stack sx={styles.menuHeader}>
                 <Typography variant="body" sx={{ px: 1, pb: 0.5 }}>
-                   {('cart.button.shoppingCartEmpty')}
+                Sepet Boş
                 </Typography>
-                <Icon name="close" onClick={() => setMenuOpen(false)} />
+                <X size={18} strokeWidth={2} onClick={() => setMenuOpen(false)} />
               </Stack>
             )}
           </Stack>

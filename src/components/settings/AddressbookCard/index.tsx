@@ -1,16 +1,15 @@
 'use client';
 
 import NewAddressModal from '@/components/AddressCard/modals/NewAddressModal';
-import Icon from '@/components/Icon';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { AddressData } from '@/lib/api/types';
 import { Divider, Stack } from '@mui/material';
-
 import { useState } from 'react';
 import AddressLine from './AddressLine';
 import styles from './styles';
 import LoadingOverlay from '@/components/LoadingOverlay';
+import { Plus } from 'lucide-react';
 
 const AddressbookCard = ({ addresses }: { addresses: AddressData[] }) => {
   const [newAddressModalOpen, setNewAddressModalOpen] = useState(false);
@@ -23,7 +22,7 @@ const AddressbookCard = ({ addresses }: { addresses: AddressData[] }) => {
 
   return (
     <>
-      <Card iconName="menu_book" title={('address.addresses')} border>
+      <Card iconName="menu_book" title="Adreslerim" border>
         <Stack sx={styles.cardBody}>
           {addresses?.map((e) => [
             <AddressLine data={e} onChange={handleChange} key={e.name} />,
@@ -33,20 +32,18 @@ const AddressbookCard = ({ addresses }: { addresses: AddressData[] }) => {
             fullWidth
             size="small"
             color="tertiary"
-            startIcon={<Icon name="add" />}
+            startIcon={<Plus />}
             onClick={() => setNewAddressModalOpen(true)}
             sx={{ mt: 1 }}
           >
-            {('address.addAddress')}
+          Adres Ekle
           </Button>
         </Stack>
         <NewAddressModal
           open={newAddressModalOpen}
           onClose={() => setNewAddressModalOpen(false)}
           onAddressAdded={handleChange}
-          defaultName={`${('address.nameDefaultValue', { ns: 'common' })} ${
-            (addresses?.length ?? 0) + 1
-          }`}
+          defaultName={`Adres ${(addresses?.length ?? 0) + 1}`}
         />
       </Card>
       <LoadingOverlay loading={loading} />
