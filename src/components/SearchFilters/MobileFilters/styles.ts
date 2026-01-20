@@ -1,10 +1,10 @@
 import { withPalette } from '@/theme/ThemeRegistry';
-import { bannerHeight } from '@/theme/theme';
+import { bannerHeight, headerHeight } from '@/theme/theme';
 
 const useStyles = withPalette((palette) => ({
   mobileFiltersBar: {
     position: 'fixed',
-    top: 88 + bannerHeight + 56,
+    top: headerHeight.xs  ,
     left: 0,
     right: 0,
     zIndex: 1296,

@@ -1,4 +1,7 @@
-import { supabaseAdmin } from '@/lib/supabase/admin';
+import { ApiErrors } from '@/lib/api/errors';
+import { getSupabaseAnon } from '@/lib/supabase/anon';
+import { ProductIdSchema, BrandIdSchema } from '@/lib/validations/products';
+import { RECOMMENDATIONS_LIMIT } from '@/lib/constants/shop';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -10,11 +13,19 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const brandId = searchParams.get('brandId');
 
-    if (!brandId) {
-      return NextResponse.json({ error: 'brandId is required' }, { status: 400 });
+    // Validate inputs
+    const productValidation = ProductIdSchema.safeParse(productId);
+    if (!productValidation.success) {
+      return ApiErrors.validationError(productValidation.error.issues);
     }
 
-    const { data } = await supabaseAdmin
+    const brandValidation = BrandIdSchema.safeParse(brandId);
+    if (!brandValidation.success) {
+      return ApiErrors.badRequest('brandId is required and must be valid');
+    }
+
+    const supabase = getSupabaseAnon();
+    const { data } = await supabase
       .from('products')
       .select(
         `
@@ -22,9 +33,9 @@ export async function GET(
         current_price, original_price, currency, main_image_url
       `
       )
-      .eq('brand_id', brandId)
-      .neq('id', productId)
-      .limit(8);
+      .eq('brand_id', brandValidation.data)
+      .neq('id', productValidation.data)
+      .limit(RECOMMENDATIONS_LIMIT);
 
     const recommendations = (data || []).map((p) => ({
       id: p.id,
@@ -43,6 +54,6 @@ export async function GET(
     return NextResponse.json(recommendations);
   } catch (error) {
     console.error('API /products/[id]/recommendations error:', error);
-    return NextResponse.json({ error: 'Failed to fetch recommendations' }, { status: 500 });
+    return ApiErrors.internalError('Failed to fetch recommendations');
   }
 }

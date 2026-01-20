@@ -1,4 +1,6 @@
-import { supabaseAdmin } from '@/lib/supabase/admin';
+import { ApiErrors } from '@/lib/api/errors';
+import { getSupabaseAnon } from '@/lib/supabase/anon';
+import { ProductIdSchema } from '@/lib/validations/products';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -8,14 +10,21 @@ export async function GET(
   try {
     const { id: productId } = await params;
 
-    const { data, error } = await supabaseAdmin
+    // Validate product ID
+    const validation = ProductIdSchema.safeParse(productId);
+    if (!validation.success) {
+      return ApiErrors.validationError(validation.error.issues);
+    }
+
+    const supabase = getSupabaseAnon();
+    const { data, error } = await supabase
       .from('products')
       .select('attributes_json')
-      .eq('id', productId)
+      .eq('id', validation.data)
       .single();
 
     if (error || !data) {
-      return NextResponse.json(null);
+      return NextResponse.json([]);
     }
 
     const variants = typeof data.attributes_json === 'string'
@@ -25,6 +34,6 @@ export async function GET(
     return NextResponse.json(variants || []);
   } catch (error) {
     console.error('API /products/[id]/variants error:', error);
-    return NextResponse.json({ error: 'Failed to fetch variants' }, { status: 500 });
+    return ApiErrors.internalError('Failed to fetch variants');
   }
 }

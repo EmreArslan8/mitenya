@@ -66,8 +66,8 @@ const useStyles = withPalette((palette) => ({
     px: 1,
   },
   discountBadge: {
-    background: palette.primary.main,
-    color: palette.primary.light,
+    background: palette.accentRed.main,
+    color: palette.primary.contrastText,
     p: 0.5,
     fontSize: 10,
     fontWeight: 700,

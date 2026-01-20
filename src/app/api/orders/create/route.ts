@@ -1,5 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { createSupabaseServer } from "@/lib/supabase/server";
+import { fetchProductDataSupabase } from "@/lib/api/supabaseProducts";
+import { validateSameOrigin, validateCsrfToken } from "@/lib/api/security";
+import { rateLimit } from "@/lib/api/rateLimit";
 
 // Order number generator: ORD-2026-00001
 async function generateOrderNumber(): Promise<string> {
@@ -62,12 +66,33 @@ interface CreateOrderRequest {
   currency?: string;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const csrfError = validateSameOrigin(req);
+    if (csrfError) return csrfError;
+    const csrfTokenError = validateCsrfToken(req);
+    if (csrfTokenError) return csrfTokenError;
+
+    const forwarded = req.headers.get("x-forwarded-for");
+    const userIp = forwarded?.split(",")[0]?.trim() || "unknown";
+    if (!(await rateLimit(`orders_create:${userIp}`))) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
+    const supabase = await createSupabaseServer();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body: CreateOrderRequest = await req.json();
 
     const {
-      user_email,
+      user_email: _user_email,
       items,
       shipping_address,
       billing_address,
@@ -80,7 +105,7 @@ export async function POST(req: Request) {
     } = body;
 
     // Validasyon
-    if (!user_email) {
+    if (!user.email) {
       return NextResponse.json({ error: "user_email gerekli" }, { status: 400 });
     }
     if (!items || items.length === 0) {
@@ -91,8 +116,33 @@ export async function POST(req: Request) {
     }
 
     // Hesaplamalar
-    const subtotal = calculateSubtotal(items);
-    const total_amount = subtotal + shipping_cost - discount_amount;
+    // Ürün fiyatlarını/verisini DB'den çekerek yeniden hesapla
+    const productResults = await Promise.all(
+      items.map(async (item) => {
+        const product = await fetchProductDataSupabase(item.product_id);
+        return { item, product };
+      })
+    );
+
+    if (productResults.some(({ product }) => !product)) {
+      return NextResponse.json({ error: "Geçersiz ürün" }, { status: 400 });
+    }
+
+    const sanitizedItems = productResults.map(({ item, product }) => {
+      const price = product!.price.currentPrice ?? 0;
+      return {
+        ...item,
+        product_name: product!.name || item.product_name,
+        price,
+        currency: product!.price.currency,
+      };
+    });
+
+    const orderCurrency = sanitizedItems[0]?.currency ?? currency;
+    const safeShippingCost = Math.max(shipping_cost, 0);
+    const safeDiscount = Math.max(discount_amount, 0);
+    const subtotal = calculateSubtotal(sanitizedItems);
+    const total_amount = subtotal + safeShippingCost - safeDiscount;
     const order_number = await generateOrderNumber();
 
     // 1. Order oluştur
@@ -100,15 +150,16 @@ export async function POST(req: Request) {
       .from("orders")
       .insert({
         order_number,
-        user_email,
+        user_id: user.id,
+        user_email: user.email ?? _user_email,
         status: "processing",
         payment_status: "pending",
         payment_method,
-        currency,
+        currency: orderCurrency,
         subtotal,
         product_cost: subtotal,
-        shipping_cost,
-        discount_amount,
+        shipping_cost: safeShippingCost,
+        discount_amount: safeDiscount,
         discount_code,
         total_amount,
         shipping_address: JSON.stringify(shipping_address),
@@ -124,7 +175,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Order items oluştur
-    const orderItems = items.map((item) => ({
+    const orderItems = sanitizedItems.map((item) => ({
       order_id: order.id,
       product_id: item.product_id,
       product_name: item.product_name,

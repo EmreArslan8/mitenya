@@ -27,7 +27,6 @@ export default async function RootLayout({
   return (
   <html lang="tr" className={albertSans.variable}>
       <head>
-        {/* ✅ Google Tag Manager */}
         {isProduction && (
           <Script
             id="gtm-init"

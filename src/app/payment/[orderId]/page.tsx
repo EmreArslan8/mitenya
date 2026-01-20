@@ -7,6 +7,7 @@ import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material
 import { BadgeTurkishLira, CreditCard } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { withCsrfHeaders } from '@/lib/utils/csrf';
 
 interface OrderData {
   id: string;
@@ -80,6 +81,7 @@ const PaymentPage = () => {
     try {
       const res = await fetch(`/api/orders/${orderId}/pay`, {
         method: 'POST',
+        ...withCsrfHeaders(),
       });
 
       if (res.ok) {

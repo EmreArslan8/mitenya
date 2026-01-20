@@ -9,54 +9,62 @@ const useStyles = withPalette(
       horizontal: boolean,
       withWhiteBg: boolean,
       border: boolean
-    ): { [key: string]: SxProps } => ({
-      banner: {
-        p: 1,
-        borderRadius: 1,
-        border: border ? 1 : 'none',
-        borderColor: (palette as any)[variant]?.main,
-        backgroundColor: withWhiteBg ? '#fff' : (palette as any)[variant]?.light,
+    ): { [key: string]: SxProps } => {
+      const isPrimary = variant === 'primary';
+      const variantPalette = (palette as any)[variant];
+      const bannerMain = isPrimary ? palette.text.main : variantPalette?.main;
+      const bannerLight = isPrimary ? palette.bg.light : variantPalette?.light;
+      const bannerBorder = isPrimary ? palette.tertiary.light : variantPalette?.main;
+
+      return {
+        banner: {
+          p: 1,
+          borderRadius: 1,
+          border: border ? 1 : 'none',
+          borderColor: bannerBorder,
+          backgroundColor: withWhiteBg ? '#fff' : bannerLight,
         gap: 2,
         flexDirection: horizontal ? 'row' : 'column',
         alignItems: horizontal ? 'center' : 'start',
         height: 'fit-content',
-      },
-      header: {
-        color: (palette as any)[variant]?.main,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 1.5,
-        width: '100%',
-      },
-      button: {
-        width: horizontal ? 'max-content' : '100%',
-        alignSelf: 'center',
-        mt: horizontal ? 0 : 2,
-        flexShrink: 0,
-      },
-      accordion: {
-        '&::before': { display: 'none' },
-        background: 'transparent',
-        width: '100%',
-      },
-      accordionSummary: {
-        px: 0,
-        minHeight: 0,
-        '& .MuiAccordionSummary-content': {
-          alignItems: 'center',
-          gap: 2,
-          m: 0,
         },
-      },
-      accordionDetails: {
-        p: 0,
-        display: 'flex',
-        flexDirection: 'column',
-      },
-      icon: {
-        color: (palette as any)[variant]?.main,
-      },
-    })
+        header: {
+          color: bannerMain,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 1.5,
+          width: '100%',
+        },
+        button: {
+          width: horizontal ? 'max-content' : '100%',
+          alignSelf: 'center',
+          mt: horizontal ? 0 : 2,
+          flexShrink: 0,
+        },
+        accordion: {
+          '&::before': { display: 'none' },
+          background: 'transparent',
+          width: '100%',
+        },
+        accordionSummary: {
+          px: 0,
+          minHeight: 0,
+          '& .MuiAccordionSummary-content': {
+            alignItems: 'center',
+            gap: 2,
+            m: 0,
+          },
+        },
+        accordionDetails: {
+          p: 0,
+          display: 'flex',
+          flexDirection: 'column',
+        },
+        icon: {
+          color: bannerMain,
+        },
+      };
+    }
 );
 
 export default useStyles;

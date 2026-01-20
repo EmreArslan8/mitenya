@@ -19,6 +19,8 @@ import { ShopContext } from '@/contexts/ShopContext';
 import { getOrderSummary } from '@/lib/api/checkout';
 import { AddressData, PaymentType, ShopOrderSummaryData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
+import { bannerHeight, headerHeight } from '@/theme/theme';
+import { withCsrfHeaders } from '@/lib/utils/csrf';
 import formatPrice from '@/lib/utils/formatPrice';
 import { useCheckoutAnalytics } from '@/lib/utils/googleAnalytics';
 import { Box, Checkbox, Divider, Snackbar, Stack, Typography, debounce } from '@mui/material';
@@ -119,20 +121,24 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
       };
 
       // Sipariş oluştur
-      const response = await fetch('/api/orders/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_email: customerData.email,
-          items: orderItems,
-          shipping_address: shippingAddress,
-          payment_method: paymentType === 'COD' ? 'cod' : paymentType === 'Stripe' ? 'stripe' : 'paytr',
-          shipping_cost: orderSummary?.shipmentCost || 0,
-          discount_amount: orderSummary?.totalDiscount || 0,
-          discount_code: discountCode,
-          currency: 'TRY',
-        }),
-      });
+      const response = await fetch(
+        '/api/orders/create',
+        withCsrfHeaders({
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_email: customerData.email,
+            items: orderItems,
+            shipping_address: shippingAddress,
+            payment_method:
+              paymentType === 'COD' ? 'cod' : paymentType === 'Stripe' ? 'stripe' : 'paytr',
+            shipping_cost: orderSummary?.shipmentCost || 0,
+            discount_amount: orderSummary?.totalDiscount || 0,
+            discount_code: discountCode,
+            currency: 'TRY',
+          }),
+        })
+      );
 
       const data = await response.json();
 
@@ -208,7 +214,16 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         </Snackbar>
       )}
       {!orderSummary && <LoadingOverlay loading />}
-      <Stack gap={3}>
+      <Stack
+        gap={3}
+        sx={{
+          mt: {
+            xs: `${headerHeight.xs + bannerHeight - 32}px`,
+            sm: `${headerHeight.sm + bannerHeight - 48}px`,
+            md: 0,
+          },
+        }}
+      >
         <TwoColumnLayout sx={{ pb: 3, gap: { xs: 2, sm: 3 } }}>
           <PrimaryColumn>
             <Card

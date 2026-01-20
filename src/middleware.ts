@@ -31,6 +31,18 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Protected routes
+  const protectedRoutes = ['/account', '/orders', '/settings'];
+  const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route));
+
+  if (!user && isProtectedRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/';
+    // open login modal
+    url.searchParams.set('login', 'true');
+    return NextResponse.redirect(url);
+  }
  
   return supabaseResponse;
 }

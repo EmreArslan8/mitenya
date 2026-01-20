@@ -64,10 +64,10 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
           <Button
             fullWidth
             size="small"
-            color="tertiary"
+            color="warning"
             startIcon={<Plus />}
             onClick={() => setNewAddressModalOpen(true)}
-            sx={{ mt: 0.5 }}
+            sx={{ mt: 0.5  }}
           >
             Yeni adres ekle
           </Button>

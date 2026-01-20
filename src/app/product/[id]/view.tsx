@@ -35,6 +35,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const [currentImg, setCurrentImg] = useState(data.imgSrc);
   const [variants, setVariants] = useState(data.variants);
   const [showCheck, setShowCheck] = useState(false);
+  const checkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
@@ -59,9 +60,11 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
   };
 
   const handleAddToCart = () => {
+    const success = handleAddItem({ ...data, variants: variants });
+    if (!success) return;
     setShowCheck(true);
-    setTimeout(() => setShowCheck(false), 1000);
-    handleAddItem({ ...data, variants: variants });
+    if (checkTimeoutRef.current) clearTimeout(checkTimeoutRef.current);
+    checkTimeoutRef.current = setTimeout(() => setShowCheck(false), 1000);
   };
 
   const handleScroll = () => {
@@ -74,6 +77,12 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (checkTimeoutRef.current) clearTimeout(checkTimeoutRef.current);
+    };
   }, []);
 
   return (
@@ -135,7 +144,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                 >
                   <Typography component="span" sx={styles.brand}>
                     {data.brand}
-                    <SquareArrowOutUpRight size={16} strokeWidth={3} style={{ mt: '2px' }} />
+                    <SquareArrowOutUpRight size={16} strokeWidth={3} style={{ marginTop: '2px' }} />
                   </Typography>
                 </Link>
                 <Typography variant="h3" sx={styles.productName}>
@@ -196,7 +205,17 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
               >
                 <CrossFade
                   components={[
-                    { in: showCheck, component: <Check /> },
+                    {
+                      in: showCheck,
+                      component: smUp ? (
+                        <Stack direction="row" alignItems="center" gap={1}>
+                          <Check />
+                          Eklendi
+                        </Stack>
+                      ) : (
+                        <Check />
+                      ),
+                    },
                     { in: !showCheck, component: ('Sepete Ekle') },
                   ]}
                 />

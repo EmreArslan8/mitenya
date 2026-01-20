@@ -9,6 +9,7 @@ import useScreen from '@/lib/hooks/useScreen';
 import { Grid, Stack, Typography } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { bannerHeight, headerHeight } from '@/theme/theme';
 
 interface SearchProductsViewProps {
   initialData: ShopSearchResponse;
@@ -19,6 +20,7 @@ const SearchProductsView = ({ initialData }: SearchProductsViewProps) => {
   const endOfPageMarkerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams()!;
   const { _, ...searchOptions } = Object.fromEntries(searchParams?.entries() ?? []);
+  const query = searchParams?.get('query')?.trim() ?? '';
   const [products, setProducts] = useState<ShopProductListItemData[]>(initialData.products);
   const [page, setPage] = useState(parseInt(searchOptions.page ?? 2));
   const [loading, setLoading] = useState(false);
@@ -68,11 +70,32 @@ const SearchProductsView = ({ initialData }: SearchProductsViewProps) => {
 
   return (
     <>
-      <Stack gap={2} mt={{ xs: 3.5, sm: 0 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Typography variant="h3">
-        {initialData.totalCount} adet ürün gösteriliyor
-          </Typography>
+      <Stack gap={{ xs: 1.25, sm: 1.5 }} mt={{ xs: `${headerHeight.xs + bannerHeight + 20}px`, sm: 0 }}>
+        {smUp && (
+          <Stack
+            gap={{ xs: 0.5, sm: 0.75, md: 1 }}
+            alignItems="center"
+            sx={{ textAlign: 'center', mb: { xs: 1.5, sm: 2, md: 2.5 } }}
+          >
+            {query && (
+              <Typography
+                variant="h2"
+                sx={{ color: 'accentRed.main', fontWeight: 800, fontSize: { xs: 26, sm: 30 } }}
+              >
+                “{query}”
+              </Typography>
+            )}
+            <Typography variant="warningSemibold">Arama Sonuçları</Typography>
+          </Stack>
+        )}
+        <Stack
+          direction="row"
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
+          justifyContent="space-between"
+          flexWrap="wrap"
+          rowGap={1}
+        >
+          <Typography variant="h3">{initialData.totalCount} adet ürün gösteriliyor</Typography>
           {smUp && initialData.sortOptions && initialData.sortOptions.length > 1 && (
             <SearchSort sortOptions={initialData.sortOptions} />
           )}

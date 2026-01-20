@@ -1,21 +1,30 @@
+import { ApiErrors } from '@/lib/api/errors';
 import { fetchProductDataSupabase } from '@/lib/api/supabaseProducts';
+import { ProductIdSchema } from '@/lib/validations/products';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-    const result = await fetchProductDataSupabase(id);
+
+    // Validate product ID
+    const validation = ProductIdSchema.safeParse(id);
+    if (!validation.success) {
+      return ApiErrors.validationError(validation.error.issues);
+    }
+
+    const result = await fetchProductDataSupabase(validation.data);
 
     if (!result) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return ApiErrors.notFound('Product');
     }
 
     return NextResponse.json(result);
   } catch (error) {
     console.error('API /products/[id]/detail error:', error);
-    return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 });
+    return ApiErrors.internalError('Failed to fetch product');
   }
 }

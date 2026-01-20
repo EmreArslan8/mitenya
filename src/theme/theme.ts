@@ -412,7 +412,15 @@ export const getDesignTokens = (
         styleOverrides: { root: { padding: 4 } },
       },
       MuiCheckbox: {
-        styleOverrides: { root: { height: 'min-content', width: 'min-content' } },
+        styleOverrides: {
+          root: {
+            height: 'min-content',
+            width: 'min-content',
+            '&.Mui-checked, &.MuiCheckbox-indeterminate': {
+              color: palette.successVivid.main,
+            },
+          },
+        },
       },
       MuiCssBaseline: {
         styleOverrides: {

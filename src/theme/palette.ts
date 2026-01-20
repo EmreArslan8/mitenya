@@ -61,11 +61,18 @@ export const defaultPalette = {
   },
 
   success: {
-    main: '#6B705C',
+    main: '#226B3A',
     dark: '#4A4E42',
     light: '#EEF0EB',
     contrastText: '#FFFFFF',
     gradient: 'linear-gradient(102.11deg, #4A4E42 2.24%, #6B705C 98.95%)',
+  },
+  successVivid: {
+    main: '##22bb33',
+    dark: '#226B3A',
+    light: '#E6F4EC',
+    contrastText: '#FFFFFF',
+    gradient: 'linear-gradient(102.11deg, #226B3A 2.24%, #2F8F4E 98.95%)',
   },
 
   /**

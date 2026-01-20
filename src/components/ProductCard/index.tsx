@@ -1,11 +1,14 @@
 'use client';
 
 import Card from '@/components/common/Card';
+import Banner from '@/components/common/Banner';
+import { CrossFade } from '@/components/common/CrossFade';
 import Link from '@/components/common/Link';
 import QuickAddModal from '@/components/QuickAddModal';
 import { ShopProductData, ShopProductListItemData } from '@/lib/api/types';
 import { fetchProductData } from '@/lib/api/shop';
 import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
+import useScreen from '@/lib/hooks/useScreen';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import formatPrice from '@/lib/utils/formatPrice';
 import { ShopContext } from '@/contexts/ShopContext';
@@ -19,7 +22,8 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useState, useContext } from 'react';
+import { Check } from 'lucide-react';
+import { useEffect, useRef, useState, useContext } from 'react';
 import useStyles from './styles';
 import Button from '../common/Button';
 
@@ -29,6 +33,7 @@ interface ShopProductCardProps {
 
 const ProductCard = ({ data }: ShopProductCardProps) => {
   const isMobileApp = useIsMobileApp();
+  const { smUp } = useScreen();
   const styles = useStyles();
   const { handleAddItem } = useContext(ShopContext);
   const [isNavigatingToDetails, setIsNavigatingToDetails] = useState(false);
@@ -36,9 +41,24 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
   const [quickAddLoading, setQuickAddLoading] = useState(false);
   const [productDetail, setProductDetail] = useState<ShopProductData | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [showAdded, setShowAdded] = useState(false);
+  const addedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
+
+  useEffect(() => {
+    return () => {
+      if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
+    };
+  }, []);
+
+  const triggerAddedFeedback = () => {
+    if (!smUp) return;
+    setShowAdded(true);
+    if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
+    addedTimeoutRef.current = setTimeout(() => setShowAdded(false), 1200);
+  };
 
   const handleQuickAdd = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -59,7 +79,11 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
       if (!data.hasVariant) {
         const success = handleAddItem({ ...detail, quantity: 1 });
         if (success) {
-          setSnackbarOpen(true);
+          if (smUp) {
+            triggerAddedFeedback();
+          } else {
+            setSnackbarOpen(true);
+          }
         }
         setQuickAddLoading(false);
         return;
@@ -136,12 +160,27 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
           <Stack>
             <Button
               onClick={handleQuickAdd}
-              disabled={quickAddLoading}
+              disabled={quickAddLoading || showAdded}
               size="small"
               variant="contained"
             >
               {quickAddLoading ? (
                 <CircularProgress size={16} sx={{ color: 'inherit' }} />
+              ) : smUp ? (
+                <CrossFade
+                  components={[
+                    {
+                      in: showAdded,
+                      component: (
+                        <Stack direction="row" alignItems="center" gap={1}>
+                          <Check size={16} />
+                          Eklendi
+                        </Stack>
+                      ),
+                    },
+                    { in: !showAdded, component: 'Sepete Ekle' },
+                  ]}
+                />
               ) : (
                 'Sepete Ekle'
               )}
@@ -163,9 +202,10 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
         open={snackbarOpen}
         autoHideDuration={2000}
         onClose={() => setSnackbarOpen(false)}
-        message="Ürün sepete eklendi"
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      />
+      >
+        <Banner variant="success" title="Ürün sepete eklendi" sx={{ width: '100%' }} />
+      </Snackbar>
     </>
   );
 };

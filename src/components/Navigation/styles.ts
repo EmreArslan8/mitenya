@@ -32,6 +32,7 @@ const useStyles = withPalette((palette) => {
     bannerLink: { fontSize: 12, gap: 0.5 },
     innerContainer: {
       zIndex: 1297,
+      position: { xs: 'fixed', md: 'relative' },
       top: 0,
       left: 0,
       right: 0,
@@ -121,8 +122,8 @@ const useStyles = withPalette((palette) => {
       width: 'fit-content',
     },
     loginButton: {
-      background: palette.primary.light,
-      color: palette.primary.main,
+      background: palette.success.main,
+      color: palette.primary.contrastText,
       width: 'fit-content',
     },
     searchBar: {

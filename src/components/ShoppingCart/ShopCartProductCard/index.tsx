@@ -40,7 +40,7 @@ const ShopCartProductCard = ({
         <Link href={unavailable ? null : data.url} onClick={onClick}>
           <Stack sx={styles.header}>
             <Typography variant="warningSemibold" sx={styles.title}>
-              {data.brand} {data.name}
+            {data.name}
             </Typography>
             <Typography sx={styles.variants}>
               {data.variants
@@ -60,7 +60,7 @@ const ShopCartProductCard = ({
             />
           ) : (
             <Typography sx={styles.variants}>
-              {'quantity'}
+             Adet
             </Typography>
           )}
           <Stack alignItems="end">

@@ -17,15 +17,14 @@ const useStyles = withPalette((palette) => ({
     color: palette.text.medium,
     width: 20,
     height: 20,
+    p: 0,
   },
-  decreaseButton: (value: number) => ({
-    color: value === 1 ? palette.error.main : 'inherit',
-  }),
+  decreaseButtonColor: (value: number) => (value === 1 ? palette.error.main : 'currentColor'),
   itemQuantityValue: {
     alignItems: 'center',
     justifyContent: 'center',
     color: palette.text.main,
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: 700,
     height: 24,
     width: 24,

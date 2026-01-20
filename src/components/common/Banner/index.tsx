@@ -14,7 +14,6 @@ import { ChevronDown } from 'lucide-react';
 
 export type BannerVariant =
   | 'primary'
-  | 'primaryDark'
   | 'info'
   | 'warning'
   | 'error'
@@ -25,12 +24,11 @@ type BannerVariantProps = {
 };
 
 const BannerVariants: BannerVariantProps = {
-  primary: { IconProps: { name: 'sparkles', fontSize: 20 } },      // stars -> sparkles
-  primaryDark: { IconProps: { name: 'sparkles', fontSize: 20 } },
-  info: { IconProps: { name: 'info', fontSize: 20 } },             // info -> info
-  warning: { IconProps: { name: 'alert-triangle', fontSize: 20 } },// warning -> alert-triangle
-  error: { IconProps: { name: 'alert-circle', fontSize: 20 } },    // error için alert-circle daha uygundur
-  success: { IconProps: { name: 'check-circle-2', fontSize: 20 } },// task_alt -> check-circle-2
+  primary: { IconProps: { name: 'sparkles', fontSize: 20 } },    
+  info: { IconProps: { name: 'info', fontSize: 20 } },            
+  warning: { IconProps: { name: 'alert-triangle', fontSize: 20 } },
+  error: { IconProps: { name: 'alert-circle', fontSize: 20 } },    
+  success: { IconProps: { name: 'check-circle-2', fontSize: 20 } },
   neutral: { IconProps: { name: 'check-circle-2', fontSize: 20 } },
 };
 

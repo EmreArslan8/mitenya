@@ -54,7 +54,7 @@ const CheckoutCard = ({
           </Typography>
           {!!orderSummary?.totalDiscount && (
             <Stack direction="row" gap={0.5} alignItems="center">
-              <TrendingDown  color="success" style={{ marginTop: -1, marginBottom: -1 }} />
+              <TrendingDown color="green" style={{ marginTop: -1, marginBottom: -1 }} />
               <Markdown
                 component="span"
                 text={`Kazancınız ${orderSummary.totalDiscount} ${orderSummary.currency}`}
@@ -85,7 +85,7 @@ const CheckoutCard = ({
           <Banner
             variant="neutral"
             IconProps={{ name: 'redeem', fontSize: 26 }}
-            title="Discount Code"
+            title="İndirim Kodu"
             collapsible
             defaultCollapsed
             sx={{ mx: -2, borderRadius: 0, p: 2 }}
@@ -95,7 +95,7 @@ const CheckoutCard = ({
                 fullWidth
                 size="small"
                 defaultValue={initialDiscountCode}
-                placeholder="Enter discount code"
+                placeholder="İndirim kodunu girin"
                 onChange={(e) => setCode(e.target.value)}
                 sx={styles.discountInput}
                 InputProps={{
@@ -110,11 +110,11 @@ const CheckoutCard = ({
                 }}
               />
               {!loading && initialDiscountCode && !orderSummary?.discountCode && (
-                <Typography variant="caption">Invalid discount code</Typography>
+                <Typography variant="caption">Geçersiz İndirim Kodu</Typography>
               )}
               {orderSummary?.promotionDiscount && (
                 <Typography variant="caption" mx={1}>
-                   Discount applied: {orderSummary.promotionDiscount} {orderSummary.currency}
+                   İndirim Uygulandı: {orderSummary.promotionDiscount} {orderSummary.currency}
                 </Typography>
               )}
               <Button
@@ -124,7 +124,7 @@ const CheckoutCard = ({
                 type="submit"
                 sx={{ minWidth: 0, px: 2 }}
               >
-                 Apply
+                 Uygula
               </Button>
             </Stack>
           </Banner>

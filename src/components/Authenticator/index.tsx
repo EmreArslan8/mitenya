@@ -221,7 +221,6 @@ const EmailModal = ({
           </Typography>
         </Stack>
 
-        {/* Google ile devam et */}
         <Button
           variant="outlined"
           onClick={handleGoogleLogin}
@@ -231,6 +230,13 @@ const EmailModal = ({
             py: 1.5,
             borderRadius: 999,
             fontWeight: 600,
+            color: 'common.black',
+            backgroundColor: 'common.white',
+             borderColor: 'common.black',
+            '&:hover': {
+             backgroundColor: 'grey.100',
+               borderColor: 'common.black',
+          },
           }}
         >
           <img width="30" height="30" src="https://img.icons8.com/color/48/google-logo.png" alt="google-logo" style={{marginRight: "24px"}}/>

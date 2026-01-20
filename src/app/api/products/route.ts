@@ -1,26 +1,32 @@
+import { ApiErrors } from '@/lib/api/errors';
 import { fetchProductsSupabase } from '@/lib/api/supabaseShop';
-import { ShopSearchSort } from '@/lib/api/types';
+import { ProductsQuerySchema } from '@/lib/validations/products';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const pageParam = searchParams.get('page');
-    const sortParam = searchParams.get('sort') as ShopSearchSort | null;
-    const options = {
-      page: pageParam ? Number(pageParam) : undefined,
-      sort: sortParam || undefined,
-      brand: searchParams.get('brand') || undefined,
-      category: searchParams.get('category') || undefined,
-      query: searchParams.get('query') || undefined,
-      price: searchParams.get('price') || undefined,
+    // Validate query parameters
+    const rawParams = {
+      page: searchParams.get('page') ?? undefined,
+      sort: searchParams.get('sort') ?? undefined,
+      brand: searchParams.get('brand') ?? undefined,
+      category: searchParams.get('category') ?? undefined,
+      query: searchParams.get('query') ?? undefined,
+      price: searchParams.get('price') ?? undefined,
     };
 
-    const result = await fetchProductsSupabase(options);
+    const validation = ProductsQuerySchema.safeParse(rawParams);
+
+    if (!validation.success) {
+      return ApiErrors.validationError(validation.error.issues);
+    }
+
+    const result = await fetchProductsSupabase(validation.data);
     return NextResponse.json(result);
   } catch (error) {
     console.error('API /products error:', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    return ApiErrors.internalError('Failed to fetch products');
   }
 }

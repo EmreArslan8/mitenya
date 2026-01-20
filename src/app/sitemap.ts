@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
-const baseUrl = process.env.NEXT_PUBLIC_HOST_URL ?? 'https://mitenya.com';
+const baseUrl = (process.env.NEXT_PUBLIC_HOST_URL ?? 'https://mitenya.com').replace(/\/$/, '');
 const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
 
 type BlogEntity = {
