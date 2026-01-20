@@ -24,12 +24,12 @@ const ProductRecommendations = ({ brandId, productId }: { brandId: string; produ
   if (recommendations?.length === 0) return <></>;
 
   return (
-    <Stack gap={2}>
-      <Typography variant="h3">{'shop.recommendations'}</Typography>
+    <Stack gap={2} >
+      <Typography variant="h3">Benzer Ürünler</Typography>
       <Grid container spacing={2}>
         {recommendations
           ? recommendations.map((e) => (
-              <Grid item xs={6} sm={3} md={2} key={e.id}>
+              <Grid item xs={6} sm={3} md={3} key={e.id}>
                 <ProductCard data={e} />
               </Grid>
             ))

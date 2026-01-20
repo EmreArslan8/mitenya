@@ -1,6 +1,6 @@
 'use client';
 
-import Icon from '@/components/Icon';
+
 import Card from '@/components/common/Card';
 import { ShopFilter, ShopFilterType } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
@@ -8,6 +8,8 @@ import { Box, Radio, Grid, Stack, TextField, Typography, Checkbox } from '@mui/m
 import { useEffect, useState } from 'react';
 import useStyles from './styles';
 import Button from '@/components/common/Button';
+import { FILTER_TYPE_LABEL_TR } from '@/lib/utils/filters';
+import { Search, SearchX } from 'lucide-react';
 
 const showScrollThreshold = 8;
 
@@ -40,7 +42,7 @@ const FilterCard = ({ index, data, onOptionClicked }: FilterCardProps) => {
       title={
         smUp && (
           <Typography variant="cardTitle" fontWeight={600} textTransform="none">
-            {(`filters.${type}`)}
+         {FILTER_TYPE_LABEL_TR[type]}
           </Typography>
         )
       }
@@ -57,16 +59,16 @@ const FilterCard = ({ index, data, onOptionClicked }: FilterCardProps) => {
           sx={{ alignSelf: 'start', mx: -1.5, '&:hover': { background: 'transparent' } }}
           onClick={() => onOptionClicked({ ...data[0], selected: true, allowMultiple: true })}
         >
-          {('filters.backToPreviousCategories')}
+          Önceki kategorilere dön
         </Button>
       )}
       {scrollable && (
         <TextField
           size="small"
           value={query}
-          InputProps={{ startAdornment: <Icon name="search" sx={styles.searchIcon} /> }}
+          InputProps={{ startAdornment: <Search style={styles.searchIcon} /> }}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={'filters.searchPlaceholder'}
+          placeholder="Ara..."
           sx={styles.searchInput}
         />
       )}
@@ -97,14 +99,14 @@ const FilterCard = ({ index, data, onOptionClicked }: FilterCardProps) => {
                         <Checkbox size="small" defaultChecked={e.selected} sx={styles.checkbox} />
                       )
                     )}
-                    {type === 'gender' ? (`filters.genders.${e.text}`) : e.text}
+                    {e.text}
                   </Stack>
                 </Grid>
               ))
             ) : (
               <Stack textAlign="center" mt={1}>
-                <Icon name="search_off" color="tertiary" fontSize={40} />
-                <Typography variant="warning">{('filters.noOptionsFound')}</Typography>
+                <SearchX  color="tertiary" size={40} />
+                <Typography variant="warning">Seçenek bulunamadı</Typography>
               </Stack>
             )}
           </Grid>

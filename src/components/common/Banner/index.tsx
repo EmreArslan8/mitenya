@@ -10,6 +10,7 @@ import {
 import { ReactNode, forwardRef, useEffect, useState } from 'react';
 import Button from '../Button';
 import useStyles from './styles';
+import { ChevronDown } from 'lucide-react';
 
 export type BannerVariant =
   | 'primary'
@@ -24,13 +25,13 @@ type BannerVariantProps = {
 };
 
 const BannerVariants: BannerVariantProps = {
-  primary: { IconProps: { name: 'stars', fontSize: 20 } },
-  primaryDark: { IconProps: { name: 'stars', fontSize: 20 } },
-  info: { IconProps: { name: 'info', fontSize: 20 } },
-  warning: { IconProps: { name: 'warning', fontSize: 20 } },
-  error: { IconProps: { name: 'warning', fontSize: 20 } },
-  success: { IconProps: { name: 'task_alt', fontSize: 20 } },
-  neutral: { IconProps: { name: 'task_alt', fontSize: 20 } },
+  primary: { IconProps: { name: 'sparkles', fontSize: 20 } },      // stars -> sparkles
+  primaryDark: { IconProps: { name: 'sparkles', fontSize: 20 } },
+  info: { IconProps: { name: 'info', fontSize: 20 } },             // info -> info
+  warning: { IconProps: { name: 'alert-triangle', fontSize: 20 } },// warning -> alert-triangle
+  error: { IconProps: { name: 'alert-circle', fontSize: 20 } },    // error için alert-circle daha uygundur
+  success: { IconProps: { name: 'check-circle-2', fontSize: 20 } },// task_alt -> check-circle-2
+  neutral: { IconProps: { name: 'check-circle-2', fontSize: 20 } },
 };
 
 export interface BannerProps {
@@ -65,16 +66,16 @@ const Banner = forwardRef<HTMLDivElement, BannerProps>(
       horizontal = false,
       withWhiteBg = false,
       collapsible = false,
-      defaultCollapsed = false,
-      action,
-      children,
-      sx,
-    },
-    ref
-  ) => {
-    const props = BannerVariants[variant];
-    const styles = useStyles()(variant, horizontal, withWhiteBg, border);
-    const [expanded, setExpanded] = useState(!defaultCollapsed);
+    defaultCollapsed = false,
+    action,
+    children,
+    sx,
+  },
+  ref
+) => {
+  const props = BannerVariants[variant];
+  const styles = useStyles()(variant, horizontal, withWhiteBg, border);
+  const [expanded, setExpanded] = useState(!defaultCollapsed);
 
     useEffect(() => {
       if (!collapsible) setExpanded(true);
@@ -82,7 +83,8 @@ const Banner = forwardRef<HTMLDivElement, BannerProps>(
     }, [collapsible, defaultCollapsed]);
 
     const icon =
-      !noIcon && (customIcon || <Icon sx={styles.icon} {...props.IconProps} {...IconProps} />);
+      !noIcon &&
+      (customIcon || <Icon sx={styles.icon} {...props.IconProps} {...IconProps} />);
     const button = buttonLabel && (
       <Button
         size="small"
@@ -113,7 +115,7 @@ const Banner = forwardRef<HTMLDivElement, BannerProps>(
                   <Stack
                     sx={{ width: 20, height: 20, alignItems: 'center', justifyContent: 'center' }}
                   >
-                    <Icon name="expand_more" sx={styles.icon} />
+                    <ChevronDown style={styles.icon} />
                   </Stack>
                 )
               }

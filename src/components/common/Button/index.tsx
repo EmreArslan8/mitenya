@@ -1,9 +1,9 @@
 'use client';
 
 import { LoadingButton } from '@mui/lab';
-import Icon from '../../Icon';
 import styles from './styles';
 import { useRouter } from 'next/navigation';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 const arrowSizes = {
   small: 20,
@@ -40,8 +40,12 @@ const Arrow = ({
   position: 'end' | 'start';
   size?: 'small' | 'medium' | 'large';
 }) => {
-  const iconName = position === 'start' ? 'arrow_back' : 'arrow_forward';
-  return <Icon name={iconName} fontSize={arrowSizes[size]} />;
+  const iconSize = arrowSizes[size];
+  return position === 'start' ? (
+    <ArrowLeft size={iconSize} />
+  ) : (
+    <ArrowRight size={iconSize} />
+  );
 };
 
 export default Button;

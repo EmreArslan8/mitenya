@@ -34,7 +34,7 @@ const styles = {
 
   gridItem: {
     display: 'flex',
-    justifyContent: 'center',
+    justifyContent: 'start',
     alignItems: 'center',
     px: 2,
   },

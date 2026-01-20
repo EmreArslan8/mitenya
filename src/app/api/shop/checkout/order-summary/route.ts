@@ -17,14 +17,13 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // Ürünleri yeniden doğrula (Supabase üzerinden)
     const revalidatedProducts: (ShopProductData & {
       listingId: string;
       quantity: number;
     })[] = [];
 
     for (const item of products) {
-      const data = await fetchProductData(item.id);
+      const data = await fetchProductData(item.id, req.nextUrl.origin);
 
       if (!data) {
         return NextResponse.json(
@@ -40,7 +39,6 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    // Yeni hesaplama motoru
     const summary = calculateOrderSummary({
       products: revalidatedProducts,
       discountCode,

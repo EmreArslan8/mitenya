@@ -9,7 +9,7 @@ import styles from './styles';
 
 export interface InfoAreasProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
-  infoAreas: { icon: string; label?: string; description: string; url?: string }[];
+  infoAreas: { label?: string; description: string; url?: string }[];
 }
 
 const ShopInfoAreas = ({ section, infoAreas }: InfoAreasProps) => {
@@ -22,7 +22,7 @@ const ShopInfoAreas = ({ section, infoAreas }: InfoAreasProps) => {
           <Box sx={styles.mobileContainer}>
             {infoAreas.map((infoArea, index) => (
               <Box key={index} sx={styles.mobileItem}>
-                <InfoArea {...infoArea} />
+                <InfoArea {...infoArea} index={index} />
               </Box>
             ))}
           </Box>
@@ -30,13 +30,13 @@ const ShopInfoAreas = ({ section, infoAreas }: InfoAreasProps) => {
           <Grid container spacing={2} justifyContent="space-around" alignItems="center">
             {infoAreas.map((infoArea, index) => (
               <Grid
-                item
+              item
                 key={`${infoArea.label ?? 'info'}-${index}`}
                 xs={12}
                 sm={Math.max(3, 12 / infoAreas.length)}
-                sx={{ display: 'flex', justifyContent: 'center' }}
+                sx={{ display: 'flex', justifyContent: 'center', }}
               >
-                <InfoArea {...infoArea} />
+                <InfoArea {...infoArea} index={index} />
               </Grid>
             ))}
           </Grid>

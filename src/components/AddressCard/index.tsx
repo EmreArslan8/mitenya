@@ -16,10 +16,10 @@ import {
   Typography,
 } from '@mui/material';
 import { ReactNode, useEffect, useState } from 'react';
-import Icon from '../Icon';
 import Card from '../common/Card';
 import EditAddressModal from './modals/EditAddressModal';
 import styles from './styles';
+import { ChevronDown, MapPin, Pencil, Trash2 } from 'lucide-react';
 
 const gridColumns = {
   contactName: { xs: 6 },
@@ -132,7 +132,11 @@ const AddressCard = ({
   return (
     <>
       <Card
-        iconName="distance"
+        customIcon={
+          <Stack component="span" sx={{ color: 'primary.main', display: 'inline-flex' }}>
+            <MapPin size={20} />
+          </Stack>
+        }
         border
         title={
           <Stack sx={styles.cardHeader}>
@@ -140,12 +144,16 @@ const AddressCard = ({
             <Stack direction="row" alignItems="center">
               {!hideEdit && (
                 <IconButton onClick={() => setEditModalOpen(true)} sx={{ my: -1 }}>
-                  <Icon name="edit" fontSize={22} />
+                  <Pencil size={20} />
                 </IconButton>
               )}
               {!hideDelete && (
-                <IconButton onClick={handleDeleteButtonClick} sx={{ my: -1 }} disabled={id == null}>
-                  <Icon name="delete" color="error" fontSize={22} />
+                <IconButton
+                  onClick={handleDeleteButtonClick}
+                  sx={{ my: -1, color: 'error.main' }}
+                  disabled={id == null}
+                >
+                  <Trash2 size={20} color="currentColor" />
                 </IconButton>
               )}
             </Stack>
@@ -197,11 +205,17 @@ const AddressCard = ({
                   <Button
                     size="small"
                     endIcon={
-                      <Icon
-                        name="expand_more"
-                        color="primary"
-                        sx={{ rotate: expanded ? '180deg' : '0deg', transition: 'rotate 0.2s' }}
-                      />
+                      <Stack
+                        component="span"
+                        sx={{
+                          color: 'primary.main',
+                          display: 'inline-flex',
+                          rotate: expanded ? '180deg' : '0deg',
+                          transition: 'rotate 0.2s',
+                        }}
+                      >
+                        <ChevronDown size={16} />
+                      </Stack>
                     }
                   >
                     Daha Fazla Göster
@@ -324,7 +338,14 @@ const AddressInfoItem = ({
 
 const AddressSkeleton = ({ children }: { children: ReactNode }) => {
   return (
-    <Card iconName="distance" title={<Typography variant="cardTitle">Adresim</Typography>}>
+    <Card
+      customIcon={
+        <Stack component="span" sx={{ color: 'primary.main', display: 'inline-flex' }}>
+          <MapPin size={20} />
+        </Stack>
+      }
+      title={<Typography variant="cardTitle">Adresim</Typography>}
+    >
       <Stack sx={styles.cardBody}>
         <Grid container columnSpacing={{ xs: 2, md: 6 }} rowSpacing={1.5}>
           {Object.entries(gridColumns)

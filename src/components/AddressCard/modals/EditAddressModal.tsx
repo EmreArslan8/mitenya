@@ -4,9 +4,9 @@ import useAddress from '@/lib/api/useAddress';
 import { LoadingButton } from '@mui/lab';
 import { Button, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
-import Icon from '../../Icon';
 import AddressForm from '../AddressForm';
 import styles from '../styles';
+import { CircleCheckBig, TriangleAlert } from 'lucide-react';
 
 interface EditAddressModalProps {
   initialData: AddressData;
@@ -34,6 +34,10 @@ const EditAddressModal = ({ initialData, open, onEdited, onClose }: EditAddressM
   };
 
   const handleSubmit = (values: AddressData) => {
+    if (!id) {
+      setError(true);
+      return;
+    }
     setLoading(true);
     editAddress({ entryId: id.toString(), ...(values as AddressData) }).then((result) => {
       if (result) {
@@ -50,14 +54,14 @@ const EditAddressModal = ({ initialData, open, onEdited, onClose }: EditAddressM
       onClose={handleClose}
       iconName="edit"
       showCloseIcon
-      title= {('address.editTitle')}
+      title= "Adres Düzenle"
       CardProps={{ sx: styles.modalCard }}
     >
       <Stack sx={{ display: success || error ? 'none' : 'flex' }}>
         <AddressForm
           onSubmit={handleSubmit}
           submitTrigger={submitTrigger}
-          initialValues={{ ...initialValues, dateOfBirth: formattedDate }} // Formda doğru tarih formatını gösterme
+          initialValues={{ ...initialValues, dateOfBirth: formattedDate }} 
         />
         <LoadingButton
           fullWidth
@@ -66,28 +70,28 @@ const EditAddressModal = ({ initialData, open, onEdited, onClose }: EditAddressM
           onClick={() => setSubmitTrigger((prev) => prev + 1)}
           sx={{ width: { sm: '75%' }, mt: { xs: 2, md: 3 }, mx: 'auto' }}
         >
-          {('address.editSaveButton')}
+          Değişiklikleri kaydet
         </LoadingButton>
       </Stack>
       {success && (
         <Stack sx={styles.cardBody} alignItems="center" textAlign="center" minWidth={300}>
           <Stack gap={1} pb={2}>
-            <Icon name="task_alt" fontSize={80} color="success" />
-            <Typography> {('address.editSuccess')}</Typography>
+            <CircleCheckBig size={80} color="success" />
+            <Typography> Adres değiştirildi. </Typography>
           </Stack>
           <Button fullWidth variant="contained" onClick={handleClose}>
-            {('address.ok')}
+          Tamam
           </Button>
         </Stack>
       )}
       {error && (
         <Stack sx={styles.cardBody} alignItems="center" textAlign="center" minWidth={300}>
           <Stack gap={1} pb={2}>
-            <Icon name="warning" fontSize={80} color="error" />
-            <Typography> {('address.editError')}</Typography>
+            <TriangleAlert size={80} color="error" />
+            <Typography> Bir sunucu hatası oluştu, lütfen tekrar deneyin. </Typography>
           </Stack>
           <Button fullWidth variant="contained" onClick={() => setError(false)}>
-            {('address.goBack')}
+          Geri Dön
           </Button>
         </Stack>
       )}

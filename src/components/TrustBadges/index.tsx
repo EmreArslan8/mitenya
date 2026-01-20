@@ -51,7 +51,7 @@ const TrustBadges = ({
       {badges.map((badge, index) => (
         <Stack key={index} sx={styles.badge(variant)}>
           <Stack sx={styles.iconWrapper}>
-            <Icon name={badge.icon} fontSize={26} color="info" fill />
+            <Icon name={badge.icon} size={26} color="info" />
           </Stack>
           <Stack sx={styles.textWrapper}>
             <Typography sx={styles.title}>{badge.title}</Typography>

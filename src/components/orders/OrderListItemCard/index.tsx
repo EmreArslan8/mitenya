@@ -1,12 +1,12 @@
 import { ShopOrderListItemData } from '@/lib/api/types';
 import parseDate from '@/lib/utils/parseDate';
 import { Grid } from '@mui/material';
-import Icon from '../../Icon';
 import InfoItem from '../../InfoItem';
 import SupportButton from '../../SupportButtonSimple';
 import Card from '../../common/Card';
 import styles from './styles';
 import { useRouter } from 'next/navigation';
+import { ChevronRight } from 'lucide-react';
 
 const statusColors: Record<string, 'text' | 'success' | 'error'> = {
   processing: 'text',
@@ -69,7 +69,7 @@ const OrderListItemCard = ({ data }: { data: ShopOrderListItemData }) => {
         )}
       </Grid>
 
-      <Icon name="chevron_right" />
+      <ChevronRight />
     </Card>
   );
 };

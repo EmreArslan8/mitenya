@@ -3,9 +3,9 @@ import { AddressData } from '@/lib/api/types';
 import { Divider, MenuItem, Select, SelectChangeEvent, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 import NewAddressModal from '../AddressCard/modals/NewAddressModal';
-import Icon from '../Icon';
 import Button from '../common/Button';
 import useStyles from './styles';
+import { ChevronDown, Plus } from 'lucide-react';
 
 interface AddressSelectorProps {
   value?: AddressData;
@@ -29,7 +29,7 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
           value={value?.id?.toString() ?? ''}
           IconComponent={(props) => (
             <Stack {...props}>
-              <Icon name="expand_more" />
+              <ChevronDown />
             </Stack>
           )}
           MenuProps={{ PaperProps: { sx: styles.paper } }}
@@ -65,11 +65,11 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
             fullWidth
             size="small"
             color="tertiary"
-            startIcon={<Icon name="add" />}
+            startIcon={<Plus />}
             onClick={() => setNewAddressModalOpen(true)}
             sx={{ mt: 0.5 }}
           >
-             {('address.addAddress')}
+            Yeni adres ekle
           </Button>
         </Select>
       ) : (
@@ -77,18 +77,18 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
           fullWidth
           size="small"
           variant="outlined"
-          startIcon={<Icon name="add" />}
+          startIcon={<Plus />}
           onClick={() => (isAuthenticated ? setNewAddressModalOpen(true) : openAuthenticator())}
           sx={{ mt: 0.5 }}
         >
-           {('address.addAddress')}
+          Yeni adres ekle
         </Button>
       )}
       <NewAddressModal
         open={newAddressModalOpen}
         onClose={() => setNewAddressModalOpen(false)}
         onAddressAdded={onAddressAdded}
-        defaultName= {('address.nameDefaultValue') + ' ' + (options.length + 1)}
+        defaultName={`Adres ${options.length + 1}`}
       />
     </Stack>
   );

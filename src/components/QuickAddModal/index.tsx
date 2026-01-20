@@ -12,9 +12,9 @@ import {
 } from '@mui/material';
 import { useState, useContext } from 'react';
 import Button from '@/components/common/Button';
-import Icon from '@/components/Icon';
 import { ShopContext } from '@/contexts/ShopContext';
 import formatPrice from '@/lib/utils/formatPrice';
+import { ShoppingBag, X } from 'lucide-react';
 
 interface QuickAddModalProps {
   open: boolean;
@@ -122,7 +122,7 @@ const QuickAddModal = ({ open, onClose, product, loading }: QuickAddModalProps) 
               Hızlı Ekle
             </Typography>
             <IconButton onClick={handleClose} size="small">
-              <Icon name="close" />
+              <X />
             </IconButton>
           </Stack>
 
@@ -200,7 +200,7 @@ const QuickAddModal = ({ open, onClose, product, loading }: QuickAddModalProps) 
               variant="contained"
               fullWidth
               onClick={handleAddToCart}
-              startIcon={<Icon name="shopping_cart" />}
+              startIcon={<ShoppingBag />}
             >
               Sepete Ekle
             </Button>

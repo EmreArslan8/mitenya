@@ -2,7 +2,6 @@
 
 import AddressCard from '@/components/AddressCard';
 import Button from '@/components/common/Button';
-import Icon from '@/components/Icon';
 import TwoColumnLayout, {
   PrimaryColumn,
   SecondaryColumn,
@@ -12,6 +11,7 @@ import OrderStatusCard from '@/components/orders/OrderStatusCard';
 import OrderSummaryCard from '@/components/orders/OrderSummaryCard';
 import { ShopOrderData } from '@/lib/api/types';
 import { Stack } from '@mui/material';
+import { ReceiptTurkishLira } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const OrderDetailsPageView = ({ data }: { data: ShopOrderData }) => {
@@ -27,7 +27,7 @@ const OrderDetailsPageView = ({ data }: { data: ShopOrderData }) => {
         onClick={() => router.push('/orders')}
         sx={{ alignSelf: 'start', mx: -1 }}
       >
-        {('back')}
+       Geri
       </Button>
       <TwoColumnLayout>
         <PrimaryColumn>
@@ -41,7 +41,7 @@ const OrderDetailsPageView = ({ data }: { data: ShopOrderData }) => {
         <SecondaryColumn>
           <OrderSummaryCard
             data={data.paymentSummary}
-            productCurrency={data.products[0].price.currency}
+            productCurrency="TRY"
           />
           {data.invoiceUrl && (
             <Button
@@ -49,9 +49,9 @@ const OrderDetailsPageView = ({ data }: { data: ShopOrderData }) => {
               color="neutral"
               variant="tonal"
               href={data.invoiceUrl}
-              startIcon={<Icon name="receipt_long" />}
+              startIcon={<ReceiptTurkishLira />}
             >
-              {('viewInvoice')}
+          Faturayı Gör
             </Button>
           )}
           <AddressCard hideDelete hideEdit data={data.address} />

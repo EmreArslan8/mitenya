@@ -6,6 +6,10 @@ const styles = withPalette((palette) => ({
   button: {
     color: palette.bg.contrastText,
   },
+  buttonCompact: {
+    px: 1,
+    minWidth: 0,
+  },
   container: (direction: Direction) => ({
     position: 'fixed',
     bottom: { xs: 8, sm: 16 },

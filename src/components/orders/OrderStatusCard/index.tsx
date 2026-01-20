@@ -5,7 +5,7 @@ import Banner, { BannerProps } from '../../common/Banner';
 import { Stack, Typography } from '@mui/material';
 import SupportButton from '../../SupportButtonSimple';
 import Button from '../../common/Button';
-import Icon from '../../Icon';
+import { SquareArrowOutUpRight } from 'lucide-react';
 
 const bannerProps: Record<ShopOrderStatus, BannerProps> = {
   processing: {
@@ -78,7 +78,7 @@ const OrderStatusCard = ({
               variant="outlined"
               href={`https://my.fargo.uz/track?id=${trackingNumber}`}
               target="_blank"
-              endIcon={<Icon name="open_in_new" fontSize={20} />}
+              endIcon={<SquareArrowOutUpRight size={20} />}
             >
               Kargoyu Takip Et
             </Button>

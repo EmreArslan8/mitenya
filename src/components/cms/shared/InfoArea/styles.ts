@@ -4,7 +4,7 @@ const styles = {
     height: { xs:36, sm:54, md:60 },
     flexShrink: 0, 
     mt: '2px',  
-    color: 'primary.deepDark', 
+
   },
 
   label: {

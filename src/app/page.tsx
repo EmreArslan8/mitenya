@@ -11,6 +11,7 @@ const HomePage = async ({ params }: { params: { slug?: string } }) => {
     return null;
   }
 
+
   const slug = params?.slug;
 
   const data = await fetchShopIndex(slug);

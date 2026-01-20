@@ -1,9 +1,10 @@
 'use client';
 
-import Icon from '@/components/Icon';
+
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material';
+import { BadgeTurkishLira, CreditCard } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -123,7 +124,7 @@ const PaymentPage = () => {
               justifyContent: 'center',
             }}
           >
-            <Icon name="payment" fontSize={30} sx={{ color: 'primary.main' }} />
+            <BadgeTurkishLira size={30} color= "primary.main" />
           </Box>
           <Typography variant="h5" fontWeight={700}>
             Odeme
@@ -163,7 +164,7 @@ const PaymentPage = () => {
               size="large"
               onClick={handlePayWithPayTR}
               loading={processingPayment}
-              startIcon={<Icon name="credit_card" />}
+              startIcon={<CreditCard />}
             >
               PayTR ile Ode
             </Button>

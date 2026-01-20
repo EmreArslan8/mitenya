@@ -27,8 +27,8 @@ export const GET = async (req: NextRequest) => {
 
   const params: Record<string, string | number | boolean> = {
     publicationState: "live",
-    "pagination[pageSize]": 9999,
-    populate: "deep,10",
+    "pagination[pageSize]": 1,
+    populate: "deep,5",
   };
 
   if (slug) {

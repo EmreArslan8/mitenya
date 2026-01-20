@@ -1,7 +1,6 @@
 'use client';
 
 import FreeShippingBar from '@/components/FreeShippingBar';
-import Icon from '@/components/Icon';
 import InfoItem from '@/components/InfoItem';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import CheckoutCard, { PriceLines } from '@/components/ShoppingCart/CheckoutCard';
@@ -22,7 +21,8 @@ import { Box, Checkbox, Divider, Portal, Stack, Typography, debounce } from '@mu
 import { useCallback, useContext, useEffect, useState } from 'react';
 import useStyles from './styles';
 import { usePathname, useRouter } from 'next/navigation';
-
+import ProductRecommendations from '../product/[id]/components/ProductRecommendations';
+import { ChevronDown, Trash2, User } from 'lucide-react';
 
 
 export interface CartPageViewProps {
@@ -41,7 +41,7 @@ const CartPageView = ({
   const { isMobile } = useScreen();
   const styles = useStyles();
   const router = useRouter();
-  const pathname = usePathname()
+  const pathname = usePathname();
   const {
     cart,
     numItems,
@@ -57,16 +57,9 @@ const CartPageView = ({
   const [buttonLoading, setButtonLoading] = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
-  const { isAuthenticated, openAuthenticator, customerData } = useAuth();
+  const { isAuthenticated, openAuthenticator } = useAuth();
   const isCartPage = pathname?.includes('/cart') ?? false;
-
-  console.log("🧩 CART PAGE LOAD", {
-    isAuthenticated,
-    customerData,
-    selectedCount: selected?.length,
-    cartLength: cart?.length,
-  });
-  
+  const recommendationTarget = selected?.[0] ?? cart?.[0];
 
   const handleUpdateOrderSummary = useCallback(
     debounce(async (selected, discountCode) => {
@@ -80,13 +73,13 @@ const CartPageView = ({
         });
 
         // 💡 LOG: API'den gelen veriyi logla
-      //  console.log('--- LOG: Order Summary Data Received ---', data?.orderSummary);
+        //  console.log('--- LOG: Order Summary Data Received ---', data?.orderSummary);
 
         setOrderSummary(data?.orderSummary);
         setSummaryLoading(false);
       } catch (error) {
         // 💡 LOG: API çağrısında hata oluştu
-      //  console.error('--- LOG: Order Summary API Call ERROR ---', error);
+        //  console.error('--- LOG: Order Summary API Call ERROR ---', error);
         setSummaryLoading(false);
       }
     }, 1000),
@@ -94,59 +87,37 @@ const CartPageView = ({
   );
 
   const handleContinue = async () => {
-    console.log("▶ handleContinue CALLED", {
-      isAuthenticated,
-      hasSelectedItems: (selected?.length ?? 0) > 0,
-    });
-  
     if (!selected?.length) {
-      console.log("⛔ DEVAM EDİLEMİYOR: Ürün seçili değil");
       return;
     }
-  
-    if (isAuthenticated === false) {
-      console.log("⚠ Kullanıcı LOGIN DEĞİL → Authenticator açılıyor");
-      openAuthenticator({
-        onSuccess: () => {
-          console.log("✔ Login başarılı → Checkout’a yönlendiriliyor");
-          setButtonLoading(true);
-          onContinue?.();
-          router.push('/checkout');
-        },
-      });
-      return;
-    }
-  
-    console.log("✔ Kullanıcı ZATEN LOGIN → Checkout’a gidiyor");
     setButtonLoading(true);
     onContinue?.();
-    router.push('/checkout');
+    router.push('/checkout?allow=guest');
   };
-  
+
   useEffect(() => {
     // 💡 LOG: useEffect tetiklendi
-   // console.log('--- LOG: useEffect Triggered ---', { selectedCount: selected?.length, isAuthenticated });
+    // console.log('--- LOG: useEffect Triggered ---', { selectedCount: selected?.length, isAuthenticated });
 
     if (!selected?.length) {
-   //   console.log('--- LOG: No selected items, resetting summary ---');
+      //   console.log('--- LOG: No selected items, resetting summary ---');
       return setOrderSummary(undefined);
     }
-    
+
     setSummaryLoading(true);
-    
+
     if (isAuthenticated === undefined) {
-     // console.log('--- LOG: Authentication status pending, delaying API call ---');
+      // console.log('--- LOG: Authentication status pending, delaying API call ---');
       return;
     }
-    
+
     // 💡 LOG: Order Summary API Çağrısı Planlandı (debounce ile)
-   // console.log('--- LOG: Order Summary API Call Scheduled ---');
+    // console.log('--- LOG: Order Summary API Call Scheduled ---');
     handleUpdateOrderSummary(selected, discountCode);
   }, [selected, discountCode, isAuthenticated]);
 
   // 💡 LOG: CartPageView Rendered
- // console.log('--- LOG: CartPageView Rendered ---', { summaryLoading, cartLength: cart?.length, orderSummaryStatus: !!orderSummary ? 'LOADED' : 'PENDING' });
-
+  // console.log('--- LOG: CartPageView Rendered ---', { summaryLoading, cartLength: cart?.length, orderSummaryStatus: !!orderSummary ? 'LOADED' : 'PENDING' });
 
   return (
     <Stack gap={3}>
@@ -154,6 +125,47 @@ const CartPageView = ({
       {!hideTitle && <Typography variant="h1">Sepet</Typography>}
       <TwoColumnLayout sx={{ pb: 3, gap: 3 }}>
         <PrimaryColumn sx={{ gap: 0.5 }}>
+          {isAuthenticated === false && !!cart?.length && (
+            <Stack
+              direction="row"
+              alignItems="center"
+              gap={1.5}
+              sx={{
+                px: 2,
+                py: 1.25,
+                mb: 1.5,
+                borderRadius: 2,
+                backgroundColor: '#FFFEF2', 
+                border: '1px solid #F0E4C0', 
+              }}
+            >
+              <User size={22} />
+
+              <Typography variant="body" sx={{ fontSize: 14, color: 'text.primary' }}>
+                Alışverişini daha hızlı tamamlamak için{' '}
+                <Typography
+                  component="span"
+                  sx={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: 'warning.main',
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() =>
+                    openAuthenticator?.({
+                      onSuccess: () => {
+                        // Sadece login olsun diye bırakıyoruz;
+                        // istersen burada otomatik /checkout yönlendirmesi de ekleyebilirsin.
+                      },
+                    })
+                  }
+                >
+                  Giriş Yap
+                </Typography>
+              </Typography>
+            </Stack>
+          )}
           <Stack sx={styles.products}>
             {cart &&
               (cart.length ? (
@@ -172,10 +184,11 @@ const CartPageView = ({
                 ))
               ) : (
                 <Typography variant="body" px={1}>
-                   Sepet Boş
+                  Sepet Boş
                 </Typography>
               ))}
           </Stack>
+          
           {unavailableItems.length > 0 && (
             <Stack mt={3} gap={2}>
               <Divider />
@@ -185,23 +198,35 @@ const CartPageView = ({
               <Stack sx={styles.products}>
                 {unavailableItems.map((e) => (
                   <Stack direction="row" pr={2} alignItems="center" key={JSON.stringify(e)}>
-                    <Icon
-                      name="delete"
-                      color="error"
-                      sx={{ px: 1 }}
+                    <Box
+                      sx={{ px: 1, color: 'error.main', cursor: 'pointer' }}
                       onClick={() => handleDismissUnavailableItem(e)}
-                    />
+                    >
+                      <Trash2 size={18} />
+                    </Box>
                     <ShopCartProductCard data={e} unavailable />
                   </Stack>
                 ))}
               </Stack>
             </Stack>
           )}
+        {/*
+        {recommendationTarget?.brandId && (
+          <Stack sx={{ my: 10 }}>
+            <ProductRecommendations
+              brandId={recommendationTarget.brandId}
+              productId={recommendationTarget.id}
+            />
+          </Stack>
+        )}
+        */}
+   
         </PrimaryColumn>
+       
         <SecondaryColumn>
           {!isMobile && !!cart?.length && (
             <CheckoutCard
-              title= "Siparişiniz"
+              title="Siparişiniz"
               orderSummary={orderSummary}
               numSelected={numSelected}
               discountCode={discountCode}
@@ -228,18 +253,19 @@ const CartPageView = ({
               <PriceLines numSelected={numSelected} orderSummary={orderSummary} />
               <Banner
                 variant="success"
-                title= {('cart.page.checkoutCard.finalPriceBanner')}
-                IconProps={{ name: 'handshake', fontSize: 26 }}
+                title="Toplam tutar"
+                IconProps={{ name: 'handshake', size: 26 }}
                 sx={{ p: 2 }}
               />
               <Banner
-                title= {('cart.page.checkoutCard.shippingBanner')}
-                IconProps={{ name: 'volunteer_activism', fontSize: 26 }}
+                title="Kargo ücretsiz"
+                IconProps={{ name: 'volunteer_activism', size: 26 }}
                 sx={{ p: 2 }}
               />
             </Stack>
           )}
         </SecondaryColumn>
+       
       </TwoColumnLayout>
       {isMobile && (
         <Portal disablePortal={!visible}>
@@ -247,11 +273,13 @@ const CartPageView = ({
             <Box onClick={() => setSummaryModalOpen((prev) => !prev)}>
               <InfoItem
                 sx={{ gap: 0 }}
-                label= {('cart.page.checkoutCard.totalDue')}
+                label="Ödenecek tutar"
                 value={
                   <Stack direction="row" alignItems="center" gap={1} sx={{ cursor: 'pointer' }}>
                     {(orderSummary?.totalDue, orderSummary?.currency)}
-                    <Icon name="expand_more" sx={styles.expandIcon(summaryModalOpen)} />
+                    <Box component="span" sx={styles.expandIcon(summaryModalOpen)}>
+                      <ChevronDown size={18} />
+                    </Box>
                   </Stack>
                 }
               />
@@ -264,7 +292,7 @@ const CartPageView = ({
               disabled={!selected?.length}
               onClick={handleContinue}
             >
-               {('cart.placeOrder')}
+              Sipariş Ver
             </Button>
           </Stack>
         </Portal>

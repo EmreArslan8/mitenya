@@ -1,6 +1,6 @@
 import { ShopSearchOptions } from '@/lib/api/types';
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchProducts } from '@/lib/api/shop'; // <-- projendeki doğru path'e göre düzelt
+import { fetchProductsSupabase } from '@/lib/api/supabaseShop';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -40,7 +40,7 @@ export const GET = async (req: NextRequest) => {
   };
 
   try {
-    const response = await fetchProducts(params);
+    const response = await fetchProductsSupabase(params);
 
     if (!response) {
       return NextResponse.json({ message: 'Products not found' }, { status: 404 });

@@ -54,9 +54,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     const styles = useStyles()(border, stickyHeader, expanded);
     const icon =
       customIcon ||
-      (iconName && (
-        <Icon name={iconName} fontSize={24} {...IconProps} color={IconProps?.color ?? 'primary'} />
-      ));
+      (iconName && <Icon name={iconName} fontSize={24} {...IconProps} color={IconProps?.color} />);
 
     useEffect(() => {
       if (!collapsible) setExpanded(true);

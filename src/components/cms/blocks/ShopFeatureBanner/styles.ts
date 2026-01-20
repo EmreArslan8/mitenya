@@ -5,11 +5,57 @@ const useStyles = withPalette((palette) => ({
     gap: 2,
     width: '100%',
     alignItems: 'stretch',
+    
   },
 
   mainSliderWrapper: {
     flex: '0 0 65%',
     maxWidth: '65%',
+    '& .slick-slider': { maxWidth: '100vw' },
+
+    '& .slick-dots': {
+      position: 'absolute',
+      bottom: 30,
+      left: 0,
+      right: 0,
+      display: 'flex !important',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: '8px',
+      margin: 0,
+      padding: 0,
+      listStyle: 'none',
+      zIndex: 2,
+
+      '& li': {
+        margin: 0,
+        padding: 0,
+        width: 8,
+        height: 8,
+      },
+
+      '& li button': {
+        width: 8,
+        height: 8,
+        padding: 0,
+        border: 'none',
+        borderRadius: '50%',
+        backgroundColor: 'rgba(255,255,255,0.5)',
+        cursor: 'pointer',
+        transition: 'all 0.25s ease',
+        fontSize: 0,
+        lineHeight: 0,
+        color: 'transparent',
+        '&:before': {
+          display: 'none',
+        },
+      },
+
+      '& li.slick-active button': {
+        backgroundColor: '#FFFFFF',
+        transform: 'scale(1.25)',
+      },
+    },
   },
 
   mainSlide: {
@@ -42,15 +88,60 @@ const useStyles = withPalette((palette) => ({
     position: 'relative',
     overflow: 'hidden',
     borderRadius: 1.5,
+    '& .slick-dots': {
+      position: 'absolute',
+      bottom: 12,
+      left: 0,
+      right: 0,
+      display: 'flex !important',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: '6px',
+      margin: 0,
+      padding: 0,
+      listStyle: 'none',
+      zIndex: 2,
+
+      '& li': {
+        margin: 0,
+        padding: 0,
+        width: 6,
+        height: 6,
+      },
+
+      '& li button': {
+        width: 6,
+        height: 6,
+        padding: 0,
+        border: 'none',
+        borderRadius: '50%',
+        backgroundColor: 'rgba(255,255,255,0.5)',
+        cursor: 'pointer',
+        transition: 'all 0.25s ease',
+        fontSize: 0,
+        lineHeight: 0,
+        color: 'transparent',
+        '&:before': {
+          display: 'none',
+        },
+      },
+
+      '& li.slick-active button': {
+        backgroundColor: '#FFFFFF',
+        transform: 'scale(1.25)',
+      },
+    },
   },
+
   mobileSlide: {
     position: 'relative',
-    aspectRatio: '5/3',
+    aspectRatio: { xs: '5/3', sm: '16/9' },
     width: '100%',
     borderRadius: 1.5,
     overflow: 'hidden',
     '& img': { objectFit: 'cover' },
   },
+
   mediaWrapper: {
     position: 'relative',
     width: '100%',
@@ -63,29 +154,29 @@ const useStyles = withPalette((palette) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    padding: { xs: 2.5, md: 5 },
+    padding: { xs: 2.5, sm: 4, md: 4, lg: 5 },
     pointerEvents: 'none',
   },
 
   overlayInner: {
-    maxWidth: { xs: '100%', md: 460 },
+    maxWidth: { xs: '100%', sm: 360, md: 360, lg: 460 },
     color: '#000000',
   },
 
   title: {
     fontWeight: 500,
-    fontSize: { xs: 20, sm: 24, md: 36 },
-    lineHeight: { xs: 1.2, md: 1.04 },
-    maxWidth: { xs: 180, sm: 320, md: 460 },
+    fontSize: { xs: 18, sm: 42, md: 36, lg: 42 },
+    lineHeight: { xs: 1.2, sm: 1.15, md: 1.1, lg: 1.04 },
+    maxWidth: { xs: 160, sm: 360, md: 280, lg: 400 },
     whiteSpace: 'normal',
     wordBreak: 'break-word',
   },
 
   description: {
-    fontSize: { xs: 12, sm: 6, md: 16 },
+    fontSize: { xs: 11, sm: 18, md: 16, lg: 18 },
     opacity: 0.92,
-    mb: 3,
-    maxWidth: 360,
+    mb: { xs: 1.5, sm: 2, md: 2, lg: 3 },
+    maxWidth: { xs: 200, sm: 300, md: 280, lg: 360 },
   },
 
   ctaRow: {
@@ -95,10 +186,11 @@ const useStyles = withPalette((palette) => ({
   ctaButton: {
     textTransform: 'none',
     borderRadius: 999,
-    px: 3,
-    py: 1.2,
+    px: { xs: 2, sm: 4, md: 2.5, lg: 4 },
+    py: { xs: 0.8, sm: 3, md: 1, lg: 2 },
     fontWeight: 700,
-    mt: { xs: 2, md: 3 },
+    fontSize: { xs: 12, sm: 18, md: 13, lg: 18 },
+    mt: { xs: 1.5, sm: 2.5, md: 2, lg: 2 },
     boxShadow: 'none',
     backgroundColor: '#000000',
     color: '#FFFFFF',
@@ -130,11 +222,11 @@ const useStyles = withPalette((palette) => ({
     fontWeight: 500,
     lineHeight: 1.05,
     letterSpacing: '-0.02em',
-    fontSize: { xs: 18, md: 34 },
+    fontSize: { xs: 18, md: 30, lg: 36 },
   },
 
   sideDescription: {
-    fontSize: { xs: 16, md: 32 },
+    fontSize: { xs: 16, md: 28, lg: 32 },
     opacity: 0.85,
     mb: 1.25,
     maxWidth: 260,
@@ -143,6 +235,7 @@ const useStyles = withPalette((palette) => ({
   sideCtaRow: {
     pointerEvents: 'auto',
   },
+
   sideCtaButton: {
     textTransform: 'none',
     p: 0,

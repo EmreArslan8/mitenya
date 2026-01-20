@@ -1,8 +1,8 @@
 'use client';
 
-import Icon from '@/components/Icon';
 import { Box, LinearProgress, Stack, Typography } from '@mui/material';
 import useStyles from './styles';
+import Icon from '../Icon';
 
 interface FreeShippingBarProps {
   currentTotal: number;

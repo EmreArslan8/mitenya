@@ -1,6 +1,6 @@
-import Icon from '@/components/Icon';
 import { Autocomplete, Stack, TextField, Typography } from '@mui/material';
-import styles from './styles'; // Import your styles file
+import styles from './styles'; 
+import { Asterisk } from 'lucide-react';
 
 const FormikAutocomplete = ({
   formik,
@@ -25,7 +25,7 @@ const FormikAutocomplete = ({
       {label && (
         <Typography variant="infoLabel" component="label">
           {label}
-          {required && <Icon name="asterisk" color="error" fontSize={8} />}
+          {required && <Asterisk color="error" size={8} />}
         </Typography>
       )}
       <Autocomplete

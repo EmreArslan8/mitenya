@@ -4,15 +4,11 @@ import TwoColumnLayout, {
   PrimaryColumn,
 } from '@/components/layouts/TwoColumnLayout';
 import SearchProductsView from './view';
-import { fetchProducts } from '@/lib/api/shop';
+import { fetchProductsSupabase } from '@/lib/api/supabaseShop';
 
 const SuspensedView = async ({ searchParams }: { searchParams: Record<string, string> }) => {
-  console.log("🔍 [SEARCH] incoming searchParams:", searchParams);
-  const res = await fetchProducts({ ...searchParams });
-
-  // fetchProducts ALWAYS returns array [response]
+  const res = await fetchProductsSupabase({ ...searchParams });
   const data = Array.isArray(res) ? res[0] : res;
-  console.log("📦 [SEARCH] fetchProducts result:", data);
   if (!data?.products) throw new Error('error.products.list');
 
   return (

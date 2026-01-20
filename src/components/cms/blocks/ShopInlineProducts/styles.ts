@@ -7,9 +7,17 @@ const useStyles = withPalette(() => ({
     position: 'relative',
     overflow: 'hidden',
     pb: { xs: 1, sm: 2 },
-    transform: 'none',
-    '& .slick-slide > div': { boxSizing: 'border-box' },
+  
+    '& .slick-slide > div': {
+      boxSizing: 'border-box',
+    },
+  
+    // 🔥 slick'in kendi arrow DOM'unu tamamen kaldır
+    '& .slick-arrow': {
+      display: 'none !important',
+    },
   },
+  
 }));
 
 export default useStyles;

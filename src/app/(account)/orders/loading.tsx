@@ -1,10 +1,10 @@
 'use client';
 
-import Icon from '@/components/Icon';
 import InfoItem from '@/components/InfoItem';
 import Card from '@/components/common/Card';
 import { Skeleton, Stack, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid';
+import { ChevronRight } from 'lucide-react';
 
 const Loading = () => {
   return (
@@ -27,7 +27,7 @@ const Loading = () => {
             </Grid>
           </Grid>
 
-          <Icon name="chevron_right" />
+        <ChevronRight />
         </Card>
 
         <Skeleton variant="rounded" sx={{ height: { xs: 185, sm: 76 } }} />

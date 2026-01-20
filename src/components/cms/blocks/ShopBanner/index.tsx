@@ -1,16 +1,15 @@
-import Icon from '@/components/Icon';
 import useScreen from '@/lib/hooks/useScreen';
 import { Stack } from '@mui/material';
 import Button from '@mui/material/Button';
 import { useRef } from 'react';
 import Slider from 'react-slick';
-import 'slick-carousel/slick/slick-theme.css';
 import 'slick-carousel/slick/slick.css';
 import { BlockComponentBaseProps } from '..';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import ShopBannerItem from '../../shared/ShopBannerItem';
 import { SharedImageType } from '../../shared/cmsTypes';
 import useStyles from './styles';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface ShopBannersProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
@@ -62,7 +61,7 @@ const ShopBanner = ({ section, banners }: ShopBannersProps) => {
             onClick={goToPrevSlide}
             sx={styles.prevButton}
           >
-            <Icon name="chevron_left" color="white" fontSize={26} sx={{ mr: '2px' }} />
+            <ChevronLeft color="white" size={26} style={{ marginRight: '2px' }} />
           </Button>
           <Button
             color="neutral"
@@ -71,7 +70,7 @@ const ShopBanner = ({ section, banners }: ShopBannersProps) => {
             onClick={goToNextSlide}
             sx={styles.nextButton}
           >
-            <Icon name="chevron_right" color="white" fontSize={26} sx={{ ml: '2px' }} />
+            <ChevronRight color="white" size={26} style={{ marginLeft: '2px' }} />
           </Button>
         </Stack>
       ) : (

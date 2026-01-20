@@ -1,9 +1,9 @@
 'use client';
 
 import LoadingOverlay from '@/components/LoadingOverlay';
-import { Box, Modal, Stack, IconButton, Typography } from '@mui/material';
-import Icon from '@/components/Icon';
+import { Box, Modal, Stack, IconButton, Typography } from '@mui/material'
 import { useEffect, useState } from 'react';
+import { ShieldCheck, Lock, X } from 'lucide-react';
 
 interface PayTRPortalProps {
   token: string;
@@ -81,13 +81,13 @@ const PayTRPortal = ({ token, open, onClose, onSuccess, onError }: PayTRPortalPr
           }}
         >
           <Stack direction="row" alignItems="center" gap={1}>
-            <Icon name="lock" color="success" fontSize={20} />
+          <Lock color="success" size={20} />
             <Typography variant="subtitle2" fontWeight={600}>
               Güvenli Ödeme
             </Typography>
           </Stack>
           <IconButton size="small" onClick={onClose}>
-            <Icon name="close" fontSize={20} />
+            <X size={20} />
           </IconButton>
         </Stack>
 
@@ -121,7 +121,7 @@ const PayTRPortal = ({ token, open, onClose, onSuccess, onError }: PayTRPortalPr
             bgcolor: 'grey.50',
           }}
         >
-          <Icon name="verified_user" color="success" fontSize={16} />
+          <ShieldCheck color="success" fontSize={16} />
           <Typography variant="caption" color="text.secondary">
             256-bit SSL ile şifrelenmiş güvenli bağlantı
           </Typography>

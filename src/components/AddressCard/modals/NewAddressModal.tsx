@@ -4,9 +4,9 @@ import useAddress from '@/lib/api/useAddress';
 import { LoadingButton } from '@mui/lab';
 import { Button, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
-import Icon from '../../Icon';
 import AddressForm from '../AddressForm';
 import styles from '../styles';
+import { AlertTriangle, CheckCircle2, MapPinPlus } from 'lucide-react';
 
 interface NewAddressModalProps {
   open: boolean;
@@ -51,9 +51,9 @@ const NewAddressModal = ({
     <ModalCard
       open={open}
       onClose={handleClose}
-      iconName="add_location_alt"
+      customIcon={<MapPinPlus size={22} />}
       showCloseIcon
-      title= {('address.addAddress')}
+      title="Adres Ekle"
       CardProps={{ sx: styles.modalCard }}
     >
       <Stack sx={{ display: success || error ? 'none' : 'flex' }}>
@@ -69,28 +69,28 @@ const NewAddressModal = ({
           onClick={() => setSubmitTrigger((prev) => prev + 1)}
           sx={{ width: { sm: '75%' }, mt: { xs: 2, md: 3 }, mx: 'auto' }}
         >
-           {('address.addAddressSubmitButton')}
+          Adresi Kaydet
         </LoadingButton>
       </Stack>
       {success && (
         <Stack sx={styles.cardBody} alignItems="center" textAlign="center" minWidth={300}>
           <Stack gap={1} pb={2}>
-            <Icon name="task_alt" fontSize={80} color="success" />
-            <Typography> {('address.addAddressSuccess')}</Typography>
+            <CheckCircle2 size={80} color="var(--mui-palette-success-main)" />
+            <Typography>Adres eklendi</Typography>
           </Stack>
           <Button fullWidth variant="contained" onClick={handleClose}>
-             {('address.ok')}
+            Tamam
           </Button>
         </Stack>
       )}
       {error && (
         <Stack sx={styles.cardBody} alignItems="center" textAlign="center" minWidth={300}>
           <Stack gap={1} pb={2}>
-            <Icon name="warning" fontSize={80} color="error" />
-            <Typography> {('address.addAddressError')}</Typography>
+            <AlertTriangle size={80} color="error.main" />
+            <Typography>Adres eklenemedi</Typography>
           </Stack>
           <Button fullWidth variant="contained" onClick={() => setError(false)}>
-             {('address.goBack')}
+            Geri
           </Button>
         </Stack>
       )}

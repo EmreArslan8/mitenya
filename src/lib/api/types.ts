@@ -59,7 +59,7 @@ export type PagedResults<T> = {
 };
 
 export type AddressData = {
-  id?: number;
+  id?: string | number;
   name: string;
   contactName: string;
   contactSurname: string;
@@ -352,66 +352,3 @@ export type ShopFooterData = {
 
 export type PhoneNumber = { phoneCode: string; phoneNumber: string };
 
-/* --- Sanity veri tipi
-export interface SanityProductData {
-  _id: string;
-  title: string;
-  slug: { current: string };
-  priceCents: number;
-  currency?: string;
-  brand?: string;
-  category?: string;
-  shortDesc?: string;
-  description?: any[];
-  badges?: string[];
-  images?: {
-    _type: 'image';
-    asset: { _ref: string; _type: 'reference' };
-  }[];
-}
-
-
-*/
-
-// src/lib/api/types.ts
-
-export interface ImageRef {
-  _type: 'image';
-  asset: { _ref: string; _type: 'reference' };
-}
-
-export interface BrandData {
-  _id: string;
-  name?: string;
-  title?: string;
-  slug?: { current: string };
-  logo?: ImageRef;
-}
-
-export interface CategoryData {
-  _id: string;
-  title: string;
-  slug: { current: string };
-  parent?: { _ref: string };
-  image?: ImageRef;
-  heroImage?: ImageRef;
-  children?: CategoryData[];
-}
-
-/*
-export interface ProductData {
-  _id: string;
-  slug: { current: string };
-  title: string;
-  priceCents: number;
-  currency?: string;
-  image?: ImageRef;
-  brand?: string;
-  category?: string;
-  shortDesc?: string;
-  description?: string | any[];
-  badges?: string[];
-  specs?: { label: string; value: string }[];
-}
-
-*/

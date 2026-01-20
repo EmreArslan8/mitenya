@@ -1,6 +1,5 @@
 'use client';
 
-import Icon from '@/components/Icon';
 import FormikDropdown from '@/components/common/inputs/FormikDropdown';
 import PhoneNumberInput from '@/components/common/inputs/FormikPhoneNumberInput';
 import FormikTextField from '@/components/common/inputs/FormikTextField';
@@ -8,6 +7,7 @@ import { AddressData } from '@/lib/api/types';
 import tokenize from '@/lib/utils/tokenize';
 import { Stack, Typography } from '@mui/material';
 import { useFormik } from 'formik';
+import { Asterisk } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 
 type AddressFormFields = {
@@ -126,7 +126,7 @@ const AddressForm = ({
         {/* Phone Number */}
         <Stack>
           <Typography variant="infoLabel">
-            Phone Number <Icon name="asterisk" color="error" fontSize={8} />
+            Phone Number <Asterisk color="error" size={8} />
           </Typography>
           <PhoneNumberInput formik={formik} fullWidth />
         </Stack>

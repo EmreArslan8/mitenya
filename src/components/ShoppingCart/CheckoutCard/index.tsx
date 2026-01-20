@@ -1,4 +1,3 @@
-import Icon from '@/components/Icon';
 import Banner from '@/components/common/Banner';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
@@ -7,6 +6,7 @@ import { CircularProgress, Divider, Stack, TextField, Typography } from '@mui/ma
 import { FormEvent, ReactNode, useState } from 'react';
 import useStyles from './styles';
 import Markdown from '@/components/common/Markdown';
+import { Delete, TrendingDown } from 'lucide-react';
 
 const CheckoutCard = ({
   title,
@@ -54,7 +54,7 @@ const CheckoutCard = ({
           </Typography>
           {!!orderSummary?.totalDiscount && (
             <Stack direction="row" gap={0.5} alignItems="center">
-              <Icon name="trending_down" fontSize={16} color="success" sx={{ my: -1 }} />
+              <TrendingDown  color="success" style={{ marginTop: -1, marginBottom: -1 }} />
               <Markdown
                 component="span"
                 text={`Kazancınız ${orderSummary.totalDiscount} ${orderSummary.currency}`}
@@ -100,7 +100,7 @@ const CheckoutCard = ({
                 sx={styles.discountInput}
                 InputProps={{
                   endAdornment: (
-                    <Icon
+                    <Delete
                       name="clear"
                       fontSize={18}
                       color="tertiary"
@@ -204,14 +204,6 @@ export const PriceLines = ({
             {orderSummary?.codServiceFee} {orderSummary?.currency}
           </Typography>
         </Stack>
-      )}
-      {!orderSummary?.shipmentCost && (
-        <Banner
-          variant="neutral"
-          IconProps={{ name: 'info' }}
-          title="Select country for shipping quote"
-          sx={{ mt: 1 }}
-        />
       )}
       {!!orderSummary?.promotionDiscount && (
         <Stack sx={{ ...styles.priceLine, ...styles.discount }}>

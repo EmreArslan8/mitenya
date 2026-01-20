@@ -1,6 +1,6 @@
-import Icon from '@/components/Icon';
 import { usePalette } from '@/theme/ThemeRegistry';
 import { Box, InputAdornment, Stack, TextField, Typography } from '@mui/material';
+import { Asterisk } from 'lucide-react';
 import { ChangeEvent, ReactNode, useMemo, useState } from 'react';
 
 const FormikTextField = ({
@@ -52,7 +52,7 @@ const FormikTextField = ({
           color={formik.touched[fieldKey] && Boolean(formik.errors[fieldKey]) && palette.error.main}
         >
           {label}
-          {required && <Icon name="asterisk" color="error" fontSize={8} />}
+          {required && <Asterisk color="error" size={8} />}
         </Typography>
       )}
       <TextField

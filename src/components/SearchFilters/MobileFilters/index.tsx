@@ -1,4 +1,4 @@
-import Icon from '@/components/Icon';
+
 import SearchSort from '@/components/SearchSort';
 import Button from '@/components/common/Button';
 import ModalCard from '@/components/common/ModalCard';
@@ -8,6 +8,8 @@ import { Stack } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import FilterCard from '../FilterCard';
 import useStyles from './styles';
+import { SlidersHorizontal } from 'lucide-react';
+import { FILTER_TYPE_LABEL_TR } from '@/lib/utils/filters';
 
 interface MobileFiltersProps {
   filters: {
@@ -58,21 +60,21 @@ const MobileFilters = ({ filters, sortOptions, onOptionClicked }: MobileFiltersP
           size="small"
           variant={e.some((k) => k.selected) ? 'outlined' : 'tonal'}
           color={e.some((k) => k.selected) ? 'primary' : 'neutral'}
-          startIcon={<Icon name="tune" fontSize={20} />}
+          startIcon={<SlidersHorizontal  size={20} />}
           onClick={() => {
             setCurrentFilter(e);
             setModalOpen(true);
           }}
           key={e[0].type}
         >
-          {(`filters.${e[0].type}`)}
+          {FILTER_TYPE_LABEL_TR[e[0].type]}
         </Button>
       ))}
       <ModalCard
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         showCloseIcon
-        title={(`filters.${currentFilter![0].type}`)}
+        title={FILTER_TYPE_LABEL_TR[currentFilter![0].type]}
         iconName="tune"
         sx={styles.modal}
       >

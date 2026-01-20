@@ -16,6 +16,7 @@ import ShopPromoCards from './ShopPromoCards';
 import ShopBrands from './ShopBrands';
 import ShopFeatureBanner from './ShopFeatureBanner';
 import ShopBlogCards from './ShopBlogCards';
+import ShopBrandShowcase from './ShopBrandShowcase';
 
 
 /*
@@ -48,6 +49,7 @@ const componentMap = {
   'blocks.shop-brands': ShopBrands,
   'blocks.shop-feature-banners': ShopFeatureBanner,
   'blocks.shop-blog-card': ShopBlogCards,
+  'blocks.shop-brand-showcase': ShopBrandShowcase,
 };
 
 /*

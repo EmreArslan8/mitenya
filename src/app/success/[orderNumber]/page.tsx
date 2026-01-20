@@ -1,9 +1,10 @@
 'use client';
 
-import Icon from '@/components/Icon';
+
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material';
+import { Check } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -79,7 +80,7 @@ const SuccessPage = () => {
               justifyContent: 'center',
             }}
           >
-            <Icon name="check" fontSize={40} sx={{ color: 'success.main' }} />
+            <Check size={40} sx={{ color: 'success.main' }} />
           </Box>
           <Typography variant="h5" fontWeight={700} textAlign="center">
             Siparissiniz Alindi!

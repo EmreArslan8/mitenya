@@ -1,7 +1,6 @@
 
 import { ButtonProps, ThemeOptions } from '@mui/material';
 import { Interpolation, PaletteColorOptions, Theme, createTheme } from '@mui/material/styles';
-import { Albert_Sans, Barlow, IBM_Plex_Sans, IBM_Plex_Mono, Rubik } from 'next/font/google';
 import { Palette, defaultPalette } from './palette';
 
 export const defaultMaxWidth = 1340;
@@ -68,43 +67,11 @@ declare module '@mui/material/Button' {
     tonal: true;
   }
 }
-const albertSans = Albert_Sans({
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
-  subsets: ['latin'],
-  display: 'swap',
-});
 
-const barlow = Barlow({
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
-  subsets: ['latin'],
-  display: 'swap',
-  adjustFontFallback: false,
-});
 
-const rubik = Rubik({
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
-  subsets: ['latin', 'hebrew', 'cyrillic'],
-  display: 'swap',
-  fallback: ['Helvetica', 'Arial', 'sans-serif'],
-});
-
-export const ibmPlexMono = IBM_Plex_Mono({
-  weight: ['300', '400', '500', '600', '700'],
-  subsets: ['latin', 'cyrillic'],
-  display: 'swap',
-  fallback: ['monospace', 'Helvetica', 'Arial', 'sans-serif'],
-});
-
-const ibmPlexSans = IBM_Plex_Sans({
-  weight: ['300', '400', '500', '600', '700'],
-  subsets: ['latin', 'cyrillic'],
-  display: 'swap',
-  fallback: ['Helvetica', 'Arial', 'sans-serif'],
-});
-
-export const defaultFontFamily = `${albertSans.style.fontFamily}, sans-serif`;
-export const cyrillicFontFamily = ibmPlexSans.style.fontFamily;
-export const hebrewFontFamily = rubik.style.fontFamily;
+export const defaultFontFamily = 'var(--font-albert-sans), -apple-system, system-ui, sans-serif';
+export const cyrillicFontFamily = defaultFontFamily;
+export const hebrewFontFamily = defaultFontFamily;
 
 export const getFontFamily = defaultFontFamily
 
@@ -136,7 +103,7 @@ export const getDesignTokens = (
     },
     palette,
     typography: {
-      fontFamily: defaultFontFamily,
+      fontFamily: 'var(--font-albert-sans), system-ui, sans-serif',
     },
     components: {
       MuiButton: {
@@ -144,6 +111,25 @@ export const getDesignTokens = (
           disableElevation: true,
         },
         variants: [
+          {
+            props: { color: 'primary', variant: 'contained' },
+            style: {
+              background: palette.text.main,          // siyah / near-black
+              color: palette.white.main,
+              border: `1px solid ${palette.text.main}`,
+          
+              '&:hover': {
+                background: palette.primary.main,     // hover kırmızı
+                borderColor: palette.primary.main,
+              },
+          
+              '&.Mui-disabled': {
+                background: palette.text.light,
+                borderColor: palette.text.light,
+                color: palette.text.disabled,
+              },
+            },
+          },          
           {
             props: { color: 'secondary', variant: 'outlined' },
             style: {
@@ -211,7 +197,7 @@ export const getDesignTokens = (
             textTransform: 'uppercase',
             fontWeight: 800,
             whiteSpace: 'nowrap',
-            borderRadius: 999,
+            borderRadius: 8,
             boxSizing: 'border-box',
             flexShrink: 0,
           },

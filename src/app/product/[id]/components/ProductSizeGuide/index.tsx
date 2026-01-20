@@ -1,9 +1,9 @@
-import Icon from '@/components/Icon';
 import Banner from '@/components/common/Banner';
 import ModalCard from '@/components/common/ModalCard';
 import { Button, Stack } from '@mui/material';
 import { useState } from 'react';
 import Image from 'next/image';
+import { RulerDimensionLine } from 'lucide-react';
 
 const ProductSizeGuide = ({
   sizeRecommendation,
@@ -22,11 +22,11 @@ const ProductSizeGuide = ({
           <Button
             size="small"
             color="tertiary"
-            startIcon={<Icon name="checkroom" fontSize={17} />}
+            startIcon={<RulerDimensionLine  size={17} />}
             onClick={() => setSizeGuideOpen(true)}
             sx={{ width: 'max-content', alignSelf: 'end', mx: -1, mb: -1.5 }}
           >
-            {('shop.sizeGuide')}
+            Beden Rehberi
           </Button>
           <ModalCard
             showCloseIcon

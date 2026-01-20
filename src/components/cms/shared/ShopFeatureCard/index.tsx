@@ -1,6 +1,5 @@
 import Card from '@/components/common/Card';
 import Link from '@/components/common/Link';
-import Icon from '@/components/Icon';
 import { ShopSearchOptions } from '@/lib/api/types';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
 import { Stack, Typography } from '@mui/material';
@@ -9,6 +8,7 @@ import CMSImage from '../CMSImage';
 import { SharedImageType } from '../cmsTypes';
 import useStyles from './styles';
 import { usePathname } from 'next/navigation';
+import { ChevronRight } from 'lucide-react';
 
 export interface ShopFeatureCardProps {
   image: SharedImageType;
@@ -81,7 +81,7 @@ const ShopFeatureCard = ({
                   {description}
                 </Typography>
               </Stack>
-              <Icon name="chevron_right" fontSize={20} />
+              <ChevronRight size={20} />
             </Stack>
           )}
         </Stack>
