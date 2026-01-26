@@ -1,11 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit } from '@/lib/api/rateLimit';
+import { getClientIp } from '@/lib/api/getClientIp';
 
 const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
 
 export async function GET(
-  _req: Request,
+  req: NextRequest,
   { params }: { params: { slug: string } }
 ) {
+  // Rate limiting
+  const userIp = getClientIp(req);
+  if (!(await rateLimit(`blog_detail:${userIp}`))) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   if (!strapiUrl) return NextResponse.json({ error: 'STRAPI_URL missing' }, { status: 500 });
 
   try {

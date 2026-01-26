@@ -41,12 +41,14 @@ export async function POST(req: NextRequest) {
       .order("created_at", { ascending: false });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("Orders list error:", error.code);
+      return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
     }
 
     return NextResponse.json({ orders: data });
 
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    console.error("Orders list error:", err instanceof Error ? err.message : "Unknown error");
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

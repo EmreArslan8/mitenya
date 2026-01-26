@@ -2,9 +2,17 @@ import { ApiErrors } from '@/lib/api/errors';
 import { fetchProductsSupabase } from '@/lib/api/supabaseShop';
 import { ProductsQuerySchema } from '@/lib/validations/products';
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit } from '@/lib/api/rateLimit';
+import { getClientIp } from '@/lib/api/getClientIp';
 
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting
+    const userIp = getClientIp(request);
+    if (!(await rateLimit(`products_list:${userIp}`))) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const { searchParams } = new URL(request.url);
 
     // Validate query parameters

@@ -4,6 +4,41 @@ import { createSupabaseServer } from "@/lib/supabase/server";
 import { fetchProductDataSupabase } from "@/lib/api/supabaseProducts";
 import { validateSameOrigin, validateCsrfToken } from "@/lib/api/security";
 import { rateLimit } from "@/lib/api/rateLimit";
+import { z } from "zod";
+
+// Input validation schemas
+const shippingAddressSchema = z.object({
+  contactName: z.string().min(2).max(100),
+  line1: z.string().min(5).max(200),
+  line2: z.string().max(200).optional(),
+  city: z.string().min(2).max(100),
+  district: z.string().max(100).optional(),
+  postalCode: z.string().max(20).optional(),
+  country: z.string().max(50).optional(),
+  phone: z.string().max(20).optional(),
+});
+
+const orderItemSchema = z.object({
+  product_id: z.string().min(1),
+  product_name: z.string().max(200),
+  quantity: z.number().int().positive().max(100),
+  price: z.number().nonnegative(),
+  image_url: z.string().url().optional(),
+  variant_data: z.record(z.string()).optional(),
+});
+
+const createOrderSchema = z.object({
+  user_email: z.string().email().optional(),
+  items: z.array(orderItemSchema).min(1).max(50),
+  shipping_address: shippingAddressSchema,
+  billing_address: shippingAddressSchema.optional(),
+  payment_method: z.enum(["stripe", "paytr", "cod", "bank_transfer"]),
+  shipping_cost: z.number().nonnegative().max(10000).optional(),
+  discount_amount: z.number().nonnegative().max(100000).optional(),
+  discount_code: z.string().max(50).optional(),
+  notes: z.string().max(500).optional(),
+  currency: z.string().length(3).optional(),
+});
 
 // Order number generator: ORD-2026-00001
 async function generateOrderNumber(): Promise<string> {
@@ -89,7 +124,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body: CreateOrderRequest = await req.json();
+    // Input validation with Zod
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+
+    const validation = createOrderSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: validation.error.flatten() },
+        { status: 400 }
+      );
+    }
 
     const {
       user_email: _user_email,
@@ -102,17 +151,11 @@ export async function POST(req: NextRequest) {
       discount_code,
       notes,
       currency = "TRY",
-    } = body;
+    } = validation.data;
 
-    // Validasyon
-    if (!user.email) {
-      return NextResponse.json({ error: "user_email gerekli" }, { status: 400 });
-    }
-    if (!items || items.length === 0) {
-      return NextResponse.json({ error: "En az 1 ürün gerekli" }, { status: 400 });
-    }
-    if (!shipping_address) {
-      return NextResponse.json({ error: "shipping_address gerekli" }, { status: 400 });
+    // Email kontrolü
+    if (!user.email && !_user_email) {
+      return NextResponse.json({ error: "Email gerekli" }, { status: 400 });
     }
 
     // Hesaplamalar
@@ -170,8 +213,8 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (orderError) {
-      console.error("Order oluşturma hatası:", orderError);
-      return NextResponse.json({ error: orderError.message }, { status: 500 });
+      console.error("Order oluşturma hatası:", orderError.code);
+      return NextResponse.json({ error: "Sipariş oluşturulamadı" }, { status: 500 });
     }
 
     // 2. Order items oluştur
@@ -190,10 +233,10 @@ export async function POST(req: NextRequest) {
       .insert(orderItems);
 
     if (itemsError) {
-      console.error("Order items oluşturma hatası:", itemsError);
+      console.error("Order items oluşturma hatası:", itemsError.code);
       // Order'ı sil (rollback)
       await supabaseAdmin.from("orders").delete().eq("id", order.id);
-      return NextResponse.json({ error: itemsError.message }, { status: 500 });
+      return NextResponse.json({ error: "Sipariş kalemleri oluşturulamadı" }, { status: 500 });
     }
 
     // 3. Order event oluştur (sipariş geçmişi için)
@@ -218,9 +261,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-  } catch (err: any) {
-    console.error("Order API hatası:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    console.error("Order API hatası:", err instanceof Error ? err.message : "Unknown");
+    return NextResponse.json({ error: "Sunucu hatası oluştu" }, { status: 500 });
   }
 }
 

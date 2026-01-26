@@ -117,15 +117,13 @@ const CartPageView = ({
     handleUpdateOrderSummary(selected, discountCode);
   }, [selected, discountCode, isAuthenticated]);
 
-  // 💡 LOG: CartPageView Rendered
-  // console.log('--- LOG: CartPageView Rendered ---', { summaryLoading, cartLength: cart?.length, orderSummaryStatus: !!orderSummary ? 'LOADED' : 'PENDING' });
 
   return (
     <Stack
       gap={3}
       sx={{
         mt: {
-          sm: `${headerHeight.sm + bannerHeight - 56}px`,
+          xs: isCartPage ? `${headerHeight.sm + bannerHeight - 56}px` : 0,
           md: 0,
         },
       }}

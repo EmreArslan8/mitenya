@@ -4,6 +4,26 @@ import { createSupabaseServer } from "@/lib/supabase/server";
 import { validateSameOrigin, validateCsrfToken } from "@/lib/api/security";
 import { rateLimit } from "@/lib/api/rateLimit";
 import { getClientIp } from "@/lib/api/getClientIp";
+import { z } from "zod";
+
+// Input validation schema
+const updateProfileSchema = z.object({
+  name: z
+    .string()
+    .min(2, "İsim en az 2 karakter olmalı")
+    .max(100, "İsim en fazla 100 karakter olabilir")
+    .regex(
+      /^[a-zA-ZğüşıöçĞÜŞİÖÇ\s'-]+$/,
+      "İsim sadece harf ve boşluk içerebilir"
+    )
+    .optional(),
+  avatar_url: z
+    .string()
+    .url("Geçerli bir URL giriniz")
+    .max(500, "URL çok uzun")
+    .nullable()
+    .optional(),
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,7 +47,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, avatar_url } = await req.json();
+    // Input validation with Zod
+    const body = await req.json();
+    const validationResult = updateProfileSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: validationResult.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { name, avatar_url } = validationResult.data;
 
     const { data, error } = await supabaseAdmin
       .from("customers")

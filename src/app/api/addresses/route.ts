@@ -1,6 +1,8 @@
 import { AddressData } from '@/lib/api/types';
 import { createSupabaseServer } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit } from '@/lib/api/rateLimit';
+import { getClientIp } from '@/lib/api/getClientIp';
 
 type AddressRow = {
   id: string;
@@ -35,8 +37,14 @@ const rowToAddressData = (row: AddressRow): AddressData => ({
   countryCode: row.country_code as AddressData['countryCode'],
 });
 
-export const GET = async () => {
+export const GET = async (req: NextRequest) => {
   try {
+    // Rate limiting
+    const userIp = getClientIp(req);
+    if (!(await rateLimit(`addresses_get:${userIp}`))) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const supabase = await createSupabaseServer();
     const {
       data: { user },

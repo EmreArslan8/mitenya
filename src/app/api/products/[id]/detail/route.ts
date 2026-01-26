@@ -2,12 +2,20 @@ import { ApiErrors } from '@/lib/api/errors';
 import { fetchProductDataSupabase } from '@/lib/api/supabaseProducts';
 import { ProductIdSchema } from '@/lib/validations/products';
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit } from '@/lib/api/rateLimit';
+import { getClientIp } from '@/lib/api/getClientIp';
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limiting
+    const userIp = getClientIp(request);
+    if (!(await rateLimit(`product_detail:${userIp}`))) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const { id } = await params;
 
     // Validate product ID

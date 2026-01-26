@@ -1,10 +1,26 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import CategoryView from './view';
-import { ShopSearchResponse, ShopSearchSort } from '@/lib/api/types';
-import { fetchCategoryBySlug } from '@/lib/api/categories';
+import { fetchProductsSupabase } from '@/lib/api/supabaseShop';
+import { ShopSearchSort } from '@/lib/api/types';
+import { createClient } from '@supabase/supabase-js';
 
 const host = (process.env.NEXT_PUBLIC_HOST_URL ?? 'https://mitenya.com').replace(/\/$/, '');
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+const fetchCategoryBySlug = async (slug: string) => {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('id, name, slug')
+    .eq('slug', slug)
+    .single();
+  if (error || !data) return null;
+  return data;
+};
 
 export default async function CategoryPage({
   params,
@@ -20,16 +36,7 @@ export default async function CategoryPage({
   const page = Number(searchParams.page ?? 1);
   const sort = (searchParams.sort as ShopSearchSort) || undefined;
 
-  const qs = new URLSearchParams();
-  qs.set('category', categoryRow.id);
-  qs.set('page', String(page));
-  if (sort) qs.set('sort', sort);
-
-  const res = await fetch(`${host}/api/products?${qs.toString()}`, {
-    next: { revalidate: 300 },
-  });
-  if (!res.ok) notFound();
-  const data = (await res.json()) as ShopSearchResponse;
+  const data = await fetchProductsSupabase({ category: categoryRow.id, page, sort });
   if (!data?.products?.length) notFound();
 
   return <CategoryView category={categoryRow.name} initialData={data} />;
@@ -46,14 +53,14 @@ export async function generateMetadata({
   const categoryTitle = categoryRow?.name ?? params.slug;
   const url = `${host}/category/${params.slug}`;
   const sort = (searchParams.sort as string | undefined) ?? '';
-  const description = `${categoryTitle} ürünleri: yeni eklenenler, kampanyalar ve fırsatlar Mitenya'da.`;
+  const description = `${categoryTitle} kategorisindeki ürünleri keşfedin. En yeni ürünler ve fırsatlar Mitenya'da.`;
 
   return {
-    title: `${categoryTitle} • Mitenya`,
+    title: `${categoryTitle} | Mitenya`,
     description,
     alternates: { canonical: url },
     openGraph: {
-      title: `${categoryTitle} • Mitenya`,
+      title: `${categoryTitle} | Mitenya`,
       description,
       url: sort ? `${url}?sort=${sort}` : url,
       images: [

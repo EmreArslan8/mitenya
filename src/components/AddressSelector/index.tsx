@@ -64,10 +64,9 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
           <Button
             fullWidth
             size="small"
-            color="warning"
             startIcon={<Plus />}
             onClick={() => setNewAddressModalOpen(true)}
-            sx={{ mt: 0.5  }}
+            sx={styles.addButton}
           >
             Yeni adres ekle
           </Button>
@@ -79,7 +78,7 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
           variant="outlined"
           startIcon={<Plus />}
           onClick={() => (isAuthenticated ? setNewAddressModalOpen(true) : openAuthenticator())}
-          sx={{ mt: 0.5 }}
+          sx={styles.addButton}
         >
           Yeni adres ekle
         </Button>
