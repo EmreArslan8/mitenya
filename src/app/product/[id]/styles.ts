@@ -19,14 +19,31 @@ const useStyles = withPalette((palette) => ({
     alignSelf: { xs: 'center', sm: 'unset' },
     width: { xs: '100vw', sm: '100%' },
   },
-  imageGridItem: { zIndex: 0, position: 'relative' },
-  imageCard: { width: '100%', alignSelf: 'center', gap: 2 },
+  imageGridItem: {
+    zIndex: 0,
+    position: 'relative',
+  },
+  imageCard: {
+    width: '100%',
+    alignSelf: 'center',
+    gap: 2,
+    position: 'relative',
+  },
   imageContainer: {
     width: '100%',
     maxHeight: { xs: 468, sm: 440, md: 600 },
     border: `1px solid ${palette.text.light}`,
     borderRadius: 1,
     overflow: 'hidden',
+  },
+  magnifierWrapper: {
+    position: 'relative',
+    width: '100%',
+    height: { sm: 440, md: 500 },
+    border: `1px solid ${palette.text.light}`,
+    borderRadius: 1,
+    overflow: 'hidden',
+    backgroundColor: palette.bg.main,
   },
   image: {
     overflow: 'hidden',

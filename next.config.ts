@@ -113,9 +113,14 @@ const nextConfig = {
             
       {
         protocol: "https",
-        hostname: "kozmedo-cms.onrender.com", 
+        hostname: "kozmedo-cms.onrender.com",
         port: "",
         pathname: "/uploads/**",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
       },
     ],
   },

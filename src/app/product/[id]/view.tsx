@@ -1,4 +1,4 @@
-'use client'; // Add this at the very top of the file
+'use client';
 
 import { useEffect, useState, useRef, useContext } from 'react';
 import Button from '@/components/common/Button';
@@ -11,7 +11,7 @@ import { ShopProductData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
-import { Divider, Grid, Rating, Stack, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Divider, Grid, Rating, Stack, Tab, Tabs, Typography } from '@mui/material';
 import ProductAttributes from './components/ProductAttributes';
 import ProductFaq from './components/ProductFaq';
 import ProductFeatures from './components/ProductFeatures';
@@ -21,14 +21,13 @@ import ProductSizeGuide from './components/ProductSizeGuide';
 import ProductVariants from './components/ProductVariants';
 import ProgressIndicator from './components/ProgressIndicator';
 import useStyles from './styles';
-import { useRouter } from 'next/navigation';
 import formatPrice from '@/lib/utils/formatPrice';
 import { Check, SquareArrowOutUpRight } from 'lucide-react';
+import ProductImageMagnifier from './components/ProductImageMagnifier';
 
 const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
   const styles = useStyles();
-  const router = useRouter();
   const { smUp } = useScreen();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const imgContainerRef = useRef<HTMLDivElement>(null);
@@ -39,8 +38,6 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
 
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
-
-  console.log("data:", data.price)
 
   const handleSelectOption = (variantName: string, optionValue: string) => {
     setVariants((prev) =>
@@ -92,9 +89,13 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
           <Grid item xs={12} sm={6} sx={styles.imageGridItem} ref={smUp ? null : imgContainerRef}>
             {smUp ? (
               <Card sx={styles.imageCard}>
-                <Stack sx={styles.imageContainer}>
-                  <img src={currentImg} alt={data.name} style={styles.image} />
-                </Stack>
+                <Box sx={styles.magnifierWrapper}>
+                  <ProductImageMagnifier
+                    src={currentImg}
+                    alt={data.name}
+                    zoomLevel={2.5}
+                  />
+                </Box>
                 {data.images && data.images.length > 1 && (
                   <Tabs
                     variant="scrollable"
@@ -133,7 +134,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
               </>
             )}
           </Grid>
-          <Grid item xs={12} sm={6} zIndex={2}>
+          <Grid item xs={12} sm={6}>
             <Stack sx={styles.details}>
               <Stack gap={1}>
                 <Link
