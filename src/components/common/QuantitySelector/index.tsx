@@ -18,14 +18,14 @@ const QuantitySelector = ({ value, onIncrease, onDecrease, max, sx }: QuantitySe
       <IconButton sx={styles.itemQuantityButton} onClick={onDecrease}>
         {value === 1 ? (
           <Trash
-            size={20}
-            color={styles.decreaseButton(value)}
+            size={16}
+            color={styles.decreaseButtonColor(value)}
             strokeWidth={1.5}
           />
         ) : (
           <Minus
-            size={20}
-            color={styles.decreaseButton(value)}
+            size={16}
+            color={styles.decreaseButtonColor(value)}
             strokeWidth={1.5}
           />
         )}
@@ -36,7 +36,7 @@ const QuantitySelector = ({ value, onIncrease, onDecrease, max, sx }: QuantitySe
         disabled={Boolean(max && value >= max)}
         onClick={!max || value < max ? onIncrease : undefined}
       >
-        <Plus fontSize={20} strokeWidth={1} />
+        <Plus size={20} strokeWidth={1.5} />
       </IconButton>
     </Stack>
   );

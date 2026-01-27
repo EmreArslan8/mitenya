@@ -1,5 +1,22 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { NextRequest } from "next/server";
+import { rateLimit } from "@/lib/api/rateLimit";
+import { getClientIp } from "@/lib/api/getClientIp";
+import { z } from "zod";
+
+// Input validation schema for POST
+const customerUpdateSchema = z.object({
+  email: z.string().email().max(255).optional(),
+  name: z.string().min(1).max(100).regex(/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s'-]*$/).optional(),
+  surname: z.string().min(1).max(100).regex(/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s'-]*$/).optional(),
+  culture: z.enum(["tr", "en", "de", "fr"]).optional(),
+});
+
+// Production-safe logging (only in development)
+const isDev = process.env.NODE_ENV === "development";
+const safeLog = (...args: unknown[]) => {
+  if (isDev) console.log(...args);
+};
 
 // Helper: Get user from Authorization header
 async function getUserFromToken(req: NextRequest) {
@@ -12,7 +29,7 @@ async function getUserFromToken(req: NextRequest) {
   const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
 
   if (error || !user) {
-    console.log("🟥 [BACKEND] Token validation error:", error?.message);
+    safeLog("Token validation error");
     return null;
   }
 
@@ -20,10 +37,15 @@ async function getUserFromToken(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  console.log("🟦 [BACKEND] GET /api/customers/v1/me");
+  // Rate limiting
+  const userIp = getClientIp(req);
+  if (!(await rateLimit(`customers_me_get:${userIp}`))) {
+    return Response.json({ error: "Too many requests" }, { status: 429 });
+  }
+
+  safeLog("GET /api/customers/v1/me");
 
   const user = await getUserFromToken(req);
-  console.log("🟪 [BACKEND] User:", user?.id, user?.email);
 
   if (!user) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -38,7 +60,7 @@ export async function GET(req: NextRequest) {
 
   // provider_id ile bulunamadıysa email ile ara
   if (!data && user.email) {
-    console.log("🟡 [BACKEND] provider_id ile bulunamadı, email ile aranıyor...");
+    safeLog("provider_id ile bulunamadı, email ile aranıyor...");
     const emailResult = await supabaseAdmin
       .from("customers")
       .select("*")
@@ -47,7 +69,7 @@ export async function GET(req: NextRequest) {
 
     if (emailResult.data) {
       // Email ile bulundu, provider_id'yi güncelle
-      console.log("🟢 [BACKEND] Email ile bulundu, provider_id güncelleniyor...");
+      safeLog("Email ile bulundu, provider_id güncelleniyor...");
       const updateResult = await supabaseAdmin
         .from("customers")
         .update({ provider_id: user.id })
@@ -60,28 +82,46 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  console.log("🟩 [BACKEND] Supabase GET Result:", data);
-
   if (error) {
-    console.log("🟥 [BACKEND] Supabase GET ERROR:", error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error("Supabase GET ERROR:", error.code);
+    return Response.json({ error: "Failed to fetch customer data" }, { status: 500 });
   }
 
   return Response.json({ customer: data ?? null }, { status: 200 });
 }
 
 export async function POST(req: NextRequest) {
-  console.log("🟦 [BACKEND] POST /api/customers/v1/me");
+  // Rate limiting
+  const userIp = getClientIp(req);
+  if (!(await rateLimit(`customers_me_post:${userIp}`))) {
+    return Response.json({ error: "Too many requests" }, { status: 429 });
+  }
+
+  safeLog("POST /api/customers/v1/me");
 
   const user = await getUserFromToken(req);
-  console.log("🟪 [BACKEND] User:", user?.id, user?.email);
 
   if (!user) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
-  console.log("🟧 [BACKEND] Request body:", body);
+  // Input validation
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const validation = customerUpdateSchema.safeParse(body);
+  if (!validation.success) {
+    return Response.json(
+      { error: "Validation failed", details: validation.error.flatten() },
+      { status: 400 }
+    );
+  }
+
+  const validatedData = validation.data;
 
   // Önce provider_id ile ara
   let { data: existing } = await supabaseAdmin
@@ -91,9 +131,9 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   // provider_id ile bulunamadıysa email ile ara
-  if (!existing && (body.email || user.email)) {
-    const emailToCheck = body.email || user.email;
-    console.log("🟡 [BACKEND] provider_id ile bulunamadı, email ile aranıyor:", emailToCheck);
+  if (!existing && (validatedData.email || user.email)) {
+    const emailToCheck = validatedData.email || user.email;
+    safeLog("provider_id ile bulunamadı, email ile aranıyor");
 
     const emailResult = await supabaseAdmin
       .from("customers")
@@ -108,15 +148,15 @@ export async function POST(req: NextRequest) {
 
   if (existing) {
     // Update existing customer (provider_id'yi de güncelle)
-    console.log("🟢 [BACKEND] Mevcut müşteri güncelleniyor...");
+    safeLog("Mevcut müşteri güncelleniyor...");
     const result = await supabaseAdmin
       .from("customers")
       .update({
-        provider_id: user.id, // Her zaman güncel provider_id'yi set et
-        email: body.email || user.email || existing.email,
-        name: body.name || existing.name,
-        surname: body.surname || existing.surname,
-        culture: body.culture || existing.culture,
+        provider_id: user.id,
+        email: validatedData.email || user.email || existing.email,
+        name: validatedData.name || existing.name,
+        surname: validatedData.surname || existing.surname,
+        culture: validatedData.culture || existing.culture,
       })
       .eq("id", existing.id)
       .select()
@@ -125,15 +165,15 @@ export async function POST(req: NextRequest) {
     error = result.error;
   } else {
     // Insert new customer
-    console.log("🟢 [BACKEND] Yeni müşteri oluşturuluyor...");
+    safeLog("Yeni müşteri oluşturuluyor...");
     const result = await supabaseAdmin
       .from("customers")
       .insert({
         provider_id: user.id,
-        email: body.email || user.email,
-        name: body.name || "",
-        surname: body.surname || "",
-        culture: body.culture || "tr",
+        email: validatedData.email || user.email,
+        name: validatedData.name || "",
+        surname: validatedData.surname || "",
+        culture: validatedData.culture || "tr",
       })
       .select()
       .single();
@@ -141,11 +181,9 @@ export async function POST(req: NextRequest) {
     error = result.error;
   }
 
-  console.log("🟩 [BACKEND] Supabase Result:", data);
-
   if (error) {
-    console.log("🟥 [BACKEND] Supabase ERROR:", error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error("Supabase ERROR:", error.code);
+    return Response.json({ error: "Failed to update customer data" }, { status: 500 });
   }
 
   return Response.json({ customer: data }, { status: 200 });

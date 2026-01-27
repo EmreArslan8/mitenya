@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchProductData } from "@/lib/api/shop";
+import { fetchProductDataSupabase } from "@/lib/api/supabaseProducts";
 import { OrderSummaryRequestData, ShopProductData } from "@/lib/api/types";
 import { calculateOrderSummary } from "@/lib/shop/calculateOrderSummary";
 
@@ -9,6 +9,12 @@ export const POST = async (req: NextRequest) => {
       products,
       discountCode
     }: OrderSummaryRequestData = await req.json();
+
+    console.log("order-summary request:", {
+      count: products?.length ?? 0,
+      productIds: products?.map((p) => p.id),
+      discountCode,
+    });
 
     if (!products?.length) {
       return NextResponse.json(
@@ -23,7 +29,7 @@ export const POST = async (req: NextRequest) => {
     })[] = [];
 
     for (const item of products) {
-      const data = await fetchProductData(item.id, req.nextUrl.origin);
+      const data = await fetchProductDataSupabase(item.id);
 
       if (!data) {
         return NextResponse.json(
@@ -42,6 +48,12 @@ export const POST = async (req: NextRequest) => {
     const summary = calculateOrderSummary({
       products: revalidatedProducts,
       discountCode,
+    });
+
+    console.log("order-summary response:", {
+      totalDue: summary.totalDue,
+      shipmentCost: summary.shipmentCost,
+      promotionDiscount: summary.promotionDiscount,
     });
 
     return NextResponse.json({ orderSummary: summary });

@@ -90,7 +90,6 @@ const useAddress = () => {
     }
   };
 
-  /** Add address */
   const addAddress = async (data: AddressData): Promise<string | undefined> => {
     try {
       const providerId = await getProviderId();

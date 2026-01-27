@@ -16,6 +16,7 @@ const useStyles = withPalette((palette) => (show: boolean) => {
       boxShadow: `0 0 10px ${palette.bg.contrastText}20`,
       transition: 'bottom 0.3s',
     },
+    iconColor: palette.accentRed.main,
   };
 });
 

@@ -3,9 +3,8 @@ import SearchSort from '@/components/SearchSort';
 import Button from '@/components/common/Button';
 import ModalCard from '@/components/common/ModalCard';
 import { ShopFilter, ShopFilterType, ShopSearchSort } from '@/lib/api/types';
-import { bannerHeight } from '@/theme/theme';
 import { Stack } from '@mui/material';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import FilterCard from '../FilterCard';
 import useStyles from './styles';
 import { SlidersHorizontal } from 'lucide-react';
@@ -28,32 +27,9 @@ const MobileFilters = ({ filters, sortOptions, onOptionClicked }: MobileFiltersP
   const [currentFilter, setCurrentFilter] = useState<ShopFilter<ShopFilterType>[]>(
     Object.values(filters)[0]
   );
-  const prevScrollPosition = useRef(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const isMobileRef = useRef(true);
-
-  const handleScroll = () => {
-    if (!ref.current) return;
-    const headerHidden = window.scrollY > 120 && window.scrollY > prevScrollPosition.current;
-    const scrolled = window.scrollY > 0;
-    if (isMobileRef.current) {
-      ref.current.style.top = (headerHidden ? 44 : scrolled ? 88 : 88 + bannerHeight) + 'px';
-      ref.current.style.boxShadow = scrolled ? '0 0 5px #00000010' : 'none';
-    } else {
-      ref.current.style.top = headerHidden ? '86px' : '146px';
-      ref.current.style.maxHeight = `calc(100vh - ${headerHidden ? 86 : 146}px - 8px)`;
-    }
-    prevScrollPosition.current = window.scrollY;
-  };
-
-  useEffect(() => {
-    handleScroll();
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   return (
-    <Stack sx={styles.mobileFiltersBar} ref={ref}>
+    <Stack sx={styles.mobileFiltersBar}>
       {sortOptions && sortOptions.length > 1 && <SearchSort sortOptions={sortOptions} />}
       {Object.values(filters).map((e) => (
         <Button

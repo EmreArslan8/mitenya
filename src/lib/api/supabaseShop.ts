@@ -1,14 +1,14 @@
-import { supabaseAdmin } from "../supabase/admin";
+import { getSupabaseAnon } from "../supabase/anon";
+import { getFilterAggregations } from "../cache/filterCache";
 import { r2Url } from "../utils/r2";
-import { ShopSearchOptions, ShopSearchSort, ShopProductListItemData } from "./types";
+import { ShopSearchOptions, ShopSearchSort, ShopProductListItemData, ShopFilter } from "./types";
+import { PRODUCTS_PER_PAGE, SORT_OPTIONS } from "../constants/shop";
 
 export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> = {}) {
- // console.log("🟦 [SUPABASE] fetchProductsSupabase options:", options);
-  const supabase = supabaseAdmin;
+  const supabase = getSupabaseAnon();
 
   const page = Number(options.page ?? 1);
-  const limit = 24;
-  const offset = (page - 1) * limit;
+  const offset = (page - 1) * PRODUCTS_PER_PAGE;
 
   const sort: ShopSearchSort = (options.sort as ShopSearchSort) ?? "rct";
 
@@ -38,7 +38,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     `,
       { count: "exact" }
     )
-    .range(offset, offset + limit - 1);
+    .range(offset, offset + PRODUCTS_PER_PAGE - 1);
 
   // category filter
   if (selectedCategoryIds.length) query = query.in("category_id", selectedCategoryIds);
@@ -58,7 +58,6 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     if (max) {
       query = query.gte("product_prices.price_current", min).lte("product_prices.price_current", max);
     } else {
-      // infinite max
       query = query.gte("product_prices.price_current", min);
     }
   }
@@ -76,12 +75,16 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       break;
   }
 
-  const SORT_OPTIONS: ShopSearchSort[] = ["rct", "asc", "dsc"];
- 
-  const { data, error, count } = await query;
+  // Run product query and filter aggregations in parallel
+  const [productResult, filterAggregations] = await Promise.all([
+    query,
+    getFilterAggregations(),
+  ]);
+
+  const { data, error, count } = productResult;
 
   if (error || !data) {
-    console.log("❌ [SUPABASE] error:", error);
+    console.error("[SUPABASE] fetchProductsSupabase error:", error);
     return {
       products: [],
       totalCount: 0,
@@ -98,9 +101,9 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
   const products: ShopProductListItemData[] = data.map((p) => {
     const priceRow = p.product_prices?.[0];
     const imagesSorted = [...(p.product_images ?? [])].sort(
-        (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
-      );
-      const mainImage = imagesSorted[0];
+      (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+    );
+
     return {
       id: p.id,
       brand: p.brand_name,
@@ -109,7 +112,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       name: p.name,
       url: `/product/${p.slug || p.id}`,
       images: imagesSorted.map((im) => ({
-        url: r2Url(im.image_url)
+        url: r2Url(im.image_url),
       })),
       imgSrc: r2Url(imagesSorted[0]?.image_url ?? ""),
       price: {
@@ -128,102 +131,34 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     };
   });
 
+  // ---------------------------------------------------
+  // BUILD FILTERS FROM CACHE
+  // ---------------------------------------------------
+  const categoryFilters: ShopFilter<'category'>[] = filterAggregations.categories.map((c) => ({
+    type: "category" as const,
+    text: `${c.name} (${c.count})`,
+    searchOptions: { category: c.id },
+    selected: selectedCategoryIds.includes(c.id),
+    allowMultiple: true,
+  }));
 
-  // ============================================================
-  // 🎯 CATEGORY FILTERS
-  // ============================================================
-  const categoryAgg = await supabase.from("products").select("category_id, category_name");
+  const brandFilters: ShopFilter<'brand'>[] = filterAggregations.brands.map((b) => ({
+    type: "brand" as const,
+    text: `${b.name} (${b.count})`,
+    searchOptions: { brand: b.id },
+    selected: selectedBrandIds.includes(b.id),
+    allowMultiple: true,
+  }));
 
-  let categoryFilters: any[] = [];
-  if (categoryAgg.data) {
-    const grouped = Object.values(
-      categoryAgg.data.reduce((acc: any, row: any) => {
-        if (!acc[row.category_id]) {
-          acc[row.category_id] = {
-            id: row.category_id,
-            name: row.category_name,
-            count: 0,
-          };
-        }
-        acc[row.category_id].count += 1;
-        return acc;
-      }, {})
-    );
-
-    categoryFilters = grouped.map((c: any) => ({
-      type: "category",
-      text: `${c.name} (${c.count})`,
-      searchOptions: { category: c.id },
-      selected: selectedCategoryIds.includes(c.id),
-      allowMultiple: true,
-    }));
-  }
-
-  // ============================================================
-  // 🎯 BRAND FILTERS
-  // ============================================================
-  const brandAgg = await supabase.from("products").select("brand_id, brand_name");
-
-  let brandFilters: any[] = [];
-  if (brandAgg.data) {
-    const groupedBrands = Object.values(
-      brandAgg.data.reduce((acc: any, row: any) => {
-        if (!acc[row.brand_id]) {
-          acc[row.brand_id] = {
-            id: row.brand_id,
-            name: row.brand_name,
-            count: 0,
-          };
-        }
-        acc[row.brand_id].count += 1;
-        return acc;
-      }, {})
-    );
-
-    brandFilters = groupedBrands.map((b: any) => ({
-      type: "brand",
-      text: `${b.name} (${b.count})`,
-      searchOptions: { brand: b.id },
-      selected: selectedBrandIds.includes(b.id),
-      allowMultiple: true,
-    }));
-  }
-
-  // ============================================================
-  // 🎯 PRICE RANGE FILTERS
-  // ============================================================
-  const priceData = await supabase.from("product_prices").select("price_current");
-
-  let priceFilters: any[] = [];
-  if (priceData.data) {
-    const prices = priceData.data.map((p) => Number(p.price_current));
-
-    const ranges = [
-      { label: "0 - 250 TL", min: 0, max: 250 },
-      { label: "250 - 500 TL", min: 250, max: 500 },
-      { label: "500 - 750 TL", min: 500, max: 750 },
-      { label: "750 - 1000 TL", min: 750, max: 1000 },
-      { label: "1000 TL ve üzeri", min: 1000, max: Infinity },
-    ];
-
-    priceFilters = ranges.map((r) => {
-      const count = prices.filter((p) => p >= r.min && p < r.max).length;
-
-      return {
-        type: "price",
-        text: `${r.label} (${count})`,
-        searchOptions: {
-          price: `${r.min}-${r.max === Infinity ? "" : r.max}`,
-        },
-        selected: options.price === `${r.min}-${r.max === Infinity ? "" : r.max}`,
-        allowMultiple: false,
-      };
-    });
-  }
-
-  // ============================================================
-  // 🎇 FINAL RETURN
-  // ============================================================
+  const priceFilters: ShopFilter<'price'>[] = filterAggregations.priceRanges.map((r) => ({
+    type: "price" as const,
+    text: `${r.label} (${r.count})`,
+    searchOptions: {
+      price: `${r.min}-${r.max === Infinity ? "" : r.max}`,
+    },
+    selected: options.price === `${r.min}-${r.max === Infinity ? "" : r.max}`,
+    allowMultiple: false,
+  }));
 
   return {
     products,
@@ -233,7 +168,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       selectedOptions: options,
       categories: categoryFilters,
       brands: brandFilters,
-      priceRanges: priceFilters, // 👈 FİYAT FİLTRESİ EKLENDİ
+      priceRanges: priceFilters,
     },
     sortOptions: SORT_OPTIONS,
     session: { _S1: "supabase" },

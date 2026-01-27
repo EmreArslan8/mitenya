@@ -11,12 +11,12 @@ import { ArrowUpDown, ChevronDown } from 'lucide-react';
 const SearchSort = ({ sortOptions }: { sortOptions: ShopSearchSort[] }) => {
 
   const searchParams = useSearchParams();
-  const currentSearchOptions = searchOptionsFromSearchParams(searchParams!);
   const router = useRouter();
-  const [sort, setSort] = useState((currentSearchOptions.sort as ShopSearchSort) ?? 'rcc');
+  const [sort, setSort] = useState<ShopSearchSort>('rcc');
   const [loading, setLoading] = useState(false);
 
   const handleSelect = (sort: ShopSearchSort) => {
+    const currentSearchOptions = searchOptionsFromSearchParams(searchParams);
     setSort(sort);
     setLoading(true);
     setTimeout(() => setLoading(false), 5000);
@@ -24,6 +24,8 @@ const SearchSort = ({ sortOptions }: { sortOptions: ShopSearchSort[] }) => {
   };
 
   useEffect(() => {
+    const currentSearchOptions = searchOptionsFromSearchParams(searchParams);
+    setSort((currentSearchOptions.sort as ShopSearchSort) ?? 'rcc');
     setLoading(false);
   }, [searchParams]);
 

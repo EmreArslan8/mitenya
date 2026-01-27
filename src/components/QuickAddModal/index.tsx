@@ -1,6 +1,7 @@
 'use client';
 
 import { ShopProductData } from '@/lib/api/types';
+import { CrossFade } from '@/components/common/CrossFade';
 import {
   Box,
   CircularProgress,
@@ -10,11 +11,12 @@ import {
   Typography,
   Chip,
 } from '@mui/material';
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect, useRef } from 'react';
 import Button from '@/components/common/Button';
 import { ShopContext } from '@/contexts/ShopContext';
 import formatPrice from '@/lib/utils/formatPrice';
-import { ShoppingBag, X } from 'lucide-react';
+import useScreen from '@/lib/hooks/useScreen';
+import { Check, ShoppingBag, X } from 'lucide-react';
 
 interface QuickAddModalProps {
   open: boolean;
@@ -25,8 +27,11 @@ interface QuickAddModalProps {
 
 const QuickAddModal = ({ open, onClose, product, loading }: QuickAddModalProps) => {
   const { handleAddItem } = useContext(ShopContext);
+  const { smUp } = useScreen();
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
+  const [showAdded, setShowAdded] = useState(false);
+  const addedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Varyantları kontrol et (variants veya attributes'dan)
   const variants = product?.variants;
@@ -76,17 +81,29 @@ const QuickAddModal = ({ open, onClose, product, loading }: QuickAddModalProps) 
 
     const success = handleAddItem(productToAdd);
     if (success) {
-      onClose();
-      setSelectedVariants({});
-      setError(null);
+      if (smUp) {
+        setShowAdded(true);
+        if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
+        addedTimeoutRef.current = setTimeout(() => handleClose(), 700);
+      } else {
+        handleClose();
+      }
     }
   };
 
   const handleClose = () => {
+    if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
     onClose();
     setSelectedVariants({});
     setError(null);
+    setShowAdded(false);
   };
+
+  useEffect(() => {
+    return () => {
+      if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
+    };
+  }, []);
 
   return (
     <Dialog
@@ -200,9 +217,30 @@ const QuickAddModal = ({ open, onClose, product, loading }: QuickAddModalProps) 
               variant="contained"
               fullWidth
               onClick={handleAddToCart}
-              startIcon={<ShoppingBag />}
+              disabled={showAdded}
             >
-              Sepete Ekle
+              <CrossFade
+                components={[
+                  {
+                    in: showAdded,
+                    component: (
+                      <Stack direction="row" alignItems="center" gap={1}>
+                        <Check size={18} />
+                        Eklendi
+                      </Stack>
+                    ),
+                  },
+                  {
+                    in: !showAdded,
+                    component: (
+                      <Stack direction="row" alignItems="center" gap={1}>
+                        <ShoppingBag size={18} />
+                        Sepete Ekle
+                      </Stack>
+                    ),
+                  },
+                ]}
+              />
             </Button>
           </Stack>
         </Stack>

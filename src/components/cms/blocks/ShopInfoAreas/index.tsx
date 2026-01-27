@@ -16,7 +16,13 @@ const ShopInfoAreas = ({ section, infoAreas }: InfoAreasProps) => {
   const { mdDown } = useScreen();
 
   return (
-    <SectionBase {...section} sx={{ mb: { xs: -3.5, md: -6 } }}>
+    <SectionBase
+      {...section}
+      sx={{
+        mb: { xs: -3.5, md: -6 },
+        mt: { xs: -4, sm: -4, md: -3 },
+      }}
+    >
       <Box sx={styles.wrapper}>
         {mdDown ? (
           <Box sx={styles.mobileContainer}>

@@ -14,6 +14,7 @@ import { Suspense } from "react";
 const isProduction = process.env.NEXT_PUBLIC_HOST_ENV === "production";
 const baseUrl = process.env.NEXT_PUBLIC_HOST_URL ?? "https://mitenya.com";
 const gtmId = "GTM-5CR26XHK";
+const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-W2DHP8ZRJN";
 
 export default async function RootLayout({
   children,
@@ -27,7 +28,6 @@ export default async function RootLayout({
   return (
   <html lang="tr" className={albertSans.variable}>
       <head>
-        {/* ✅ Google Tag Manager */}
         {isProduction && (
           <Script
             id="gtm-init"
@@ -40,6 +40,26 @@ export default async function RootLayout({
               })(window,document,'script','dataLayer','${gtmId}');`,
             }}
           />
+        )}
+
+        {isProduction && gaMeasurementId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+              strategy="afterInteractive"
+            />
+            <Script
+              id="ga4-init"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', '${gaMeasurementId}');`,
+              }}
+            />
+          </>
         )}
 
     

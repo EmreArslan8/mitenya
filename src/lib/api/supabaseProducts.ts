@@ -2,10 +2,8 @@ import { supabaseAdmin } from "../supabase/admin";
 import { r2Url } from "../utils/r2"; // 🔹 BUNU EKLEDİK
 
 export async function fetchProductDataSupabase(idOrSlug: string) {
- // console.log("🟦 [SUPABASE] fetchProductDataSupabase:", idOrSlug);
   const supabase = supabaseAdmin;
 
-  // Önce slug ile dene, bulamazsa id ile dene
   let { data, error } = await supabase
     .from("products")
     .select(`

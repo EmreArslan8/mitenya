@@ -1,14 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
+import { rateLimit } from "@/lib/api/rateLimit";
+import { getClientIp } from "@/lib/api/getClientIp";
 
 const PAYTR_MERCHANT_KEY = process.env.PAYTR_MERCHANT_KEY!;
 const PAYTR_MERCHANT_SALT = process.env.PAYTR_MERCHANT_SALT!;
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const PAYTR_IP_ALLOWLIST = (process.env.PAYTR_IP_ALLOWLIST || '')
+  .split(',')
+  .map((ip) => ip.trim())
+  .filter(Boolean);
 
 export async function POST(req: NextRequest) {
+  // IP / rate limit throttling
+  const caller = getClientIp(req);
+  if (!(await rateLimit(`paytr_callback:${caller}`))) {
+    return new NextResponse("Too many requests", { status: 429 });
+  }
+
+  if (PAYTR_IP_ALLOWLIST.length) {
+    const clientIp = caller;
+    if (!clientIp || !PAYTR_IP_ALLOWLIST.includes(clientIp)) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
+  }
+
   // PayTR callback genelde form-urlencoded gönderir (örneklerde Request.Form) :contentReference[oaicite:5]{index=5}
   const raw = await req.text();
   const params = new URLSearchParams(raw);

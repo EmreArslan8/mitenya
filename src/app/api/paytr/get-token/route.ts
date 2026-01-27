@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchProductDataSupabase } from '@/lib/api/supabaseProducts';
+import { createSupabaseServer } from '@/lib/supabase/server';
+import { validateSameOrigin } from '@/lib/api/security';
+import { validateCsrfToken } from '@/lib/api/security';
+import { rateLimit } from '@/lib/api/rateLimit';
+import { getClientIp } from '@/lib/api/getClientIp';
 
 // GÜVENLİ: Client'tan sadece ürün ID'leri ve miktarları alınır
 // Fiyatlar MUTLAKA veritabanından çekilir
@@ -27,6 +32,26 @@ const sLog = (...args: any[]) => {
 };
 
 export const POST = async (req: NextRequest) => {
+  const csrfError = validateSameOrigin(req);
+  if (csrfError) return csrfError;
+  const csrfTokenError = validateCsrfToken(req);
+  if (csrfTokenError) return csrfTokenError;
+
+  const userIp = getClientIp(req);
+  if (!(await rateLimit(`paytr_token:${userIp}`))) {
+    return NextResponse.json({ ok: false, error: 'Too many requests' }, { status: 429 });
+  }
+
+  const supabase = await createSupabaseServer();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
   const traceId = req.headers.get('x-trace-id') ?? `srv_${Date.now()}`;
   sLog('INCOMING', { traceId });
 

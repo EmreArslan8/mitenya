@@ -29,5 +29,13 @@ const useStyles = withPalette((palette) => ({
     borderRadius: 0.5,
   },
   divider: { my: '4px !important' },
+  addButton: {
+    mt: 0.5,
+    background: palette.text.primary,
+    color: palette.bg.main,
+    '&:hover': {
+      background: palette.text.medium,
+    },
+  },
 }));
 export default useStyles;

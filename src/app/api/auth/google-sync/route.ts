@@ -1,13 +1,31 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { randomUUID } from "crypto";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const expectedSecret = process.env.GOOGLE_SYNC_SECRET;
+    const authHeader = req.headers.get("authorization");
+
+    if (!expectedSecret) {
+      console.warn("⚠️ GOOGLE_SYNC_SECRET missing");
+      return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
+    }
+
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const provided = authHeader.replace("Bearer ", "").trim();
+    if (provided !== expectedSecret) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const body = await req.json();
     const { provider_id, full_name, email } = body;
 
     if (!provider_id || !email) {
-      return Response.json({ error: "Missing provider_id or email" }, { status: 400 });
+      return NextResponse.json({ error: "Missing provider_id or email" }, { status: 400 });
     }
 
     // Var olan kullanıcıyı bul
@@ -18,7 +36,7 @@ export async function POST(req: Request) {
       .single();
 
     if (existing) {
-      return Response.json({ supabase_id: existing.id }, { status: 200 });
+      return NextResponse.json({ supabase_id: existing.id }, { status: 200 });
     }
 
     // Yeni kullanıcı oluştur
@@ -39,14 +57,14 @@ export async function POST(req: Request) {
       
     if (error) {
       console.error("Supabase error:", error);
-      return Response.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return Response.json({ supabase_id: data.id }, { status: 201 });
+    return NextResponse.json({ supabase_id: data.id }, { status: 201 });
     
 
   } catch (err) {
     console.error("Google Sync error:", err);
-    return Response.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

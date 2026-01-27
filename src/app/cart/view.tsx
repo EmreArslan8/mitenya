@@ -17,12 +17,13 @@ import { ShopContext } from '@/contexts/ShopContext';
 import { getOrderSummary } from '@/lib/api/checkout';
 import { ShopOrderSummaryData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
+import { bannerHeight, headerHeight } from '@/theme/theme';
 import { Box, Checkbox, Divider, Portal, Stack, Typography, debounce } from '@mui/material';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import useStyles from './styles';
 import { usePathname, useRouter } from 'next/navigation';
 import ProductRecommendations from '../product/[id]/components/ProductRecommendations';
-import { ChevronDown, Trash2, User } from 'lucide-react';
+import { ChevronDown, Trash, Trash2, User } from 'lucide-react';
 
 
 export interface CartPageViewProps {
@@ -116,11 +117,17 @@ const CartPageView = ({
     handleUpdateOrderSummary(selected, discountCode);
   }, [selected, discountCode, isAuthenticated]);
 
-  // 💡 LOG: CartPageView Rendered
-  // console.log('--- LOG: CartPageView Rendered ---', { summaryLoading, cartLength: cart?.length, orderSummaryStatus: !!orderSummary ? 'LOADED' : 'PENDING' });
 
   return (
-    <Stack gap={3}>
+    <Stack
+      gap={3}
+      sx={{
+        mt: {
+          xs: isCartPage ? `${headerHeight.sm + bannerHeight - 56}px` : 0,
+          md: 0,
+        },
+      }}
+    >
       {visible && <LoadingOverlay loading={summaryLoading} />}
       {!hideTitle && <Typography variant="h1">Sepet</Typography>}
       <TwoColumnLayout sx={{ pb: 3, gap: 3 }}>
@@ -202,7 +209,7 @@ const CartPageView = ({
                       sx={{ px: 1, color: 'error.main', cursor: 'pointer' }}
                       onClick={() => handleDismissUnavailableItem(e)}
                     >
-                      <Trash2 size={18} />
+                      <Trash size={18} color='red' />
                     </Box>
                     <ShopCartProductCard data={e} unavailable />
                   </Stack>
@@ -252,14 +259,15 @@ const CartPageView = ({
             <Stack gap={2}>
               <PriceLines numSelected={numSelected} orderSummary={orderSummary} />
               <Banner
-                variant="success"
-                title="Toplam tutar"
-                IconProps={{ name: 'handshake', size: 26 }}
-                sx={{ p: 2 }}
-              />
-              <Banner
-                title="Kargo ücretsiz"
-                IconProps={{ name: 'volunteer_activism', size: 26 }}
+                variant="info"
+                title={
+                  orderSummary?.productCost && orderSummary.productCost >= 1000
+                    ? 'Kargo ücretsiz'
+                    : `Ücretsiz kargo için ${
+                        Math.max(1000 - (orderSummary?.productCost ?? 0), 0)
+                      } ${orderSummary?.currency ?? 'TRY'} değerinde daha ürün ekleyin`
+                }
+                IconProps={{ name: 'truck', size: 26 }}
                 sx={{ p: 2 }}
               />
             </Stack>
@@ -271,17 +279,17 @@ const CartPageView = ({
         <Portal disablePortal={!visible}>
           <Stack sx={styles.mobileCheckoutBar} zIndex={isCartPage ? 0 : 1300}>
             <Box onClick={() => setSummaryModalOpen((prev) => !prev)}>
-              <InfoItem
-                sx={{ gap: 0 }}
-                label="Ödenecek tutar"
-                value={
-                  <Stack direction="row" alignItems="center" gap={1} sx={{ cursor: 'pointer' }}>
-                    {(orderSummary?.totalDue, orderSummary?.currency)}
-                    <Box component="span" sx={styles.expandIcon(summaryModalOpen)}>
-                      <ChevronDown size={18} />
-                    </Box>
-                  </Stack>
-                }
+                  <InfoItem
+                    sx={{ gap: 0 }}
+                    label="Ödenecek tutar"
+                    value={
+                      <Stack direction="row" alignItems="center" gap={1} sx={{ cursor: 'pointer' }}>
+                        {orderSummary?.totalDue} {orderSummary?.currency}
+                        <Box component="span" sx={styles.expandIcon(summaryModalOpen)}>
+                          <ChevronDown size={18} />
+                        </Box>
+                      </Stack>
+                    }
               />
             </Box>
             <Button

@@ -2,6 +2,11 @@
 
 import { fetchProductData } from '@/lib/api/shop';
 import { ShopProductData } from '@/lib/api/types';
+import {
+  CART_MAX_QUANTITY_PER_ITEM,
+  CART_MIN_QUANTITY,
+  SEARCH_HISTORY_MAX_ITEMS,
+} from '@/lib/constants/shop';
 import useAnalytics from '@/lib/hooks/useAnalytics';
 import clamp from '@/lib/utils/clamp';
 import { Currency } from '@/lib/utils/currencies';
@@ -122,7 +127,7 @@ export const ShopContextProvider = ({ children }: ShopContextProviderProps) => {
 
   const loadSearchHistory = () => {
     const fullHistory = getSearchHistory();
-    const limitedHistory = fullHistory.slice(-10);
+    const limitedHistory = fullHistory.slice(-SEARCH_HISTORY_MAX_ITEMS);
     setSearchHistory(limitedHistory);
   };
 
@@ -186,22 +191,26 @@ export const ShopContextProvider = ({ children }: ShopContextProviderProps) => {
   const handleDecreaseItemQuantity = (product: ShopProductData) => {
     if (!cart) return;
     const currentQuantity = getItemQuantity(product);
-    if (currentQuantity === 1) return handleDeleteProduct(product);
+    if (currentQuantity === CART_MIN_QUANTITY) return handleDeleteProduct(product);
 
     setCart((prev) =>
       prev!.map((p) =>
-        isEqProduct(p, product) ? { ...p, quantity: clamp(1, p.quantity - 1, 5) } : p
+        isEqProduct(p, product)
+          ? { ...p, quantity: clamp(CART_MIN_QUANTITY, p.quantity - 1, CART_MAX_QUANTITY_PER_ITEM) }
+          : p
       )
     );
   };
 
   const handleIncreaseItemQuantity = (product: ShopProductData) => {
     if (!cart) return false;
-    if (getItemQuantity(product) > 4) return false;
+    if (getItemQuantity(product) >= CART_MAX_QUANTITY_PER_ITEM) return false;
 
     setCart((prev) =>
       prev!.map((p) =>
-        isEqProduct(p, product) ? { ...p, quantity: clamp(1, p.quantity + 1, 5) } : p
+        isEqProduct(p, product)
+          ? { ...p, quantity: clamp(CART_MIN_QUANTITY, p.quantity + 1, CART_MAX_QUANTITY_PER_ITEM) }
+          : p
       )
     );
     return true;

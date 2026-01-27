@@ -1,5 +1,6 @@
 import { Stack, Typography } from '@mui/material';
 import CMSImage from '@/components/cms/shared/CMSImage';
+import DOMPurify from 'isomorphic-dompurify';
 
 interface BlogEntity {
   id: number;
@@ -17,6 +18,28 @@ interface BlogEntity {
       };
     };
   };
+}
+
+// XSS koruması için güvenli HTML sanitize ayarları
+const sanitizeConfig = {
+  ALLOWED_TAGS: [
+    'p', 'br', 'strong', 'b', 'em', 'i', 'u', 's',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'ul', 'ol', 'li',
+    'a', 'img',
+    'blockquote', 'pre', 'code',
+    'table', 'thead', 'tbody', 'tr', 'th', 'td',
+    'div', 'span'
+  ],
+  ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel'],
+  ALLOW_DATA_ATTR: false,
+  ADD_ATTR: ['target'],
+  FORBID_TAGS: ['script', 'style', 'iframe', 'form', 'input', 'object', 'embed'],
+  FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur']
+};
+
+function sanitizeHtml(dirty: string): string {
+  return DOMPurify.sanitize(dirty, sanitizeConfig);
 }
 
 async function getBlog(slug: string): Promise<BlogEntity | null> {
@@ -65,7 +88,7 @@ const BlogDetailPageView = async ({ slug }: { slug: string }) => {
         />
       )}
 
-      <div dangerouslySetInnerHTML={{ __html: content }} />
+      <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
     </Stack>
   );
 };

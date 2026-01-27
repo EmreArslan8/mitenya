@@ -1,11 +1,19 @@
 import { ShopSearchOptions } from '@/lib/api/types';
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchProductsSupabase } from '@/lib/api/supabaseShop';
+import { rateLimit } from '@/lib/api/rateLimit';
+import { getClientIp } from '@/lib/api/getClientIp';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 export const GET = async (req: NextRequest) => {
+  // Rate limiting - arama isteklerini sınırla
+  const userIp = getClientIp(req);
+  if (!(await rateLimit(`shop_search:${userIp}`))) {
+    return NextResponse.json({ message: 'Too many requests' }, { status: 429 });
+  }
+
   const sp = req.nextUrl.searchParams;
 
   const pageStr = sp.get('page') ?? '1';

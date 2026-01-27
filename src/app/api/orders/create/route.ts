@@ -1,5 +1,44 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { createSupabaseServer } from "@/lib/supabase/server";
+import { fetchProductDataSupabase } from "@/lib/api/supabaseProducts";
+import { validateSameOrigin, validateCsrfToken } from "@/lib/api/security";
+import { rateLimit } from "@/lib/api/rateLimit";
+import { z } from "zod";
+
+// Input validation schemas
+const shippingAddressSchema = z.object({
+  contactName: z.string().min(2).max(100),
+  line1: z.string().min(5).max(200),
+  line2: z.string().max(200).optional(),
+  city: z.string().min(2).max(100),
+  district: z.string().max(100).optional(),
+  postalCode: z.string().max(20).optional(),
+  country: z.string().max(50).optional(),
+  phone: z.string().max(20).optional(),
+});
+
+const orderItemSchema = z.object({
+  product_id: z.string().min(1),
+  product_name: z.string().max(200),
+  quantity: z.number().int().positive().max(100),
+  price: z.number().nonnegative(),
+  image_url: z.string().url().optional(),
+  variant_data: z.record(z.string()).optional(),
+});
+
+const createOrderSchema = z.object({
+  user_email: z.string().email().optional(),
+  items: z.array(orderItemSchema).min(1).max(50),
+  shipping_address: shippingAddressSchema,
+  billing_address: shippingAddressSchema.optional(),
+  payment_method: z.enum(["stripe", "paytr", "cod", "bank_transfer"]),
+  shipping_cost: z.number().nonnegative().max(10000).optional(),
+  discount_amount: z.number().nonnegative().max(100000).optional(),
+  discount_code: z.string().max(50).optional(),
+  notes: z.string().max(500).optional(),
+  currency: z.string().length(3).optional(),
+});
 
 // Order number generator: ORD-2026-00001
 async function generateOrderNumber(): Promise<string> {
@@ -62,12 +101,47 @@ interface CreateOrderRequest {
   currency?: string;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const body: CreateOrderRequest = await req.json();
+    const csrfError = validateSameOrigin(req);
+    if (csrfError) return csrfError;
+    const csrfTokenError = validateCsrfToken(req);
+    if (csrfTokenError) return csrfTokenError;
+
+    const forwarded = req.headers.get("x-forwarded-for");
+    const userIp = forwarded?.split(",")[0]?.trim() || "unknown";
+    if (!(await rateLimit(`orders_create:${userIp}`))) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
+    const supabase = await createSupabaseServer();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Input validation with Zod
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+
+    const validation = createOrderSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: validation.error.flatten() },
+        { status: 400 }
+      );
+    }
 
     const {
-      user_email,
+      user_email: _user_email,
       items,
       shipping_address,
       billing_address,
@@ -77,22 +151,41 @@ export async function POST(req: Request) {
       discount_code,
       notes,
       currency = "TRY",
-    } = body;
+    } = validation.data;
 
-    // Validasyon
-    if (!user_email) {
-      return NextResponse.json({ error: "user_email gerekli" }, { status: 400 });
-    }
-    if (!items || items.length === 0) {
-      return NextResponse.json({ error: "En az 1 ürün gerekli" }, { status: 400 });
-    }
-    if (!shipping_address) {
-      return NextResponse.json({ error: "shipping_address gerekli" }, { status: 400 });
+    // Email kontrolü
+    if (!user.email && !_user_email) {
+      return NextResponse.json({ error: "Email gerekli" }, { status: 400 });
     }
 
     // Hesaplamalar
-    const subtotal = calculateSubtotal(items);
-    const total_amount = subtotal + shipping_cost - discount_amount;
+    // Ürün fiyatlarını/verisini DB'den çekerek yeniden hesapla
+    const productResults = await Promise.all(
+      items.map(async (item) => {
+        const product = await fetchProductDataSupabase(item.product_id);
+        return { item, product };
+      })
+    );
+
+    if (productResults.some(({ product }) => !product)) {
+      return NextResponse.json({ error: "Geçersiz ürün" }, { status: 400 });
+    }
+
+    const sanitizedItems = productResults.map(({ item, product }) => {
+      const price = product!.price.currentPrice ?? 0;
+      return {
+        ...item,
+        product_name: product!.name || item.product_name,
+        price,
+        currency: product!.price.currency,
+      };
+    });
+
+    const orderCurrency = sanitizedItems[0]?.currency ?? currency;
+    const safeShippingCost = Math.max(shipping_cost, 0);
+    const safeDiscount = Math.max(discount_amount, 0);
+    const subtotal = calculateSubtotal(sanitizedItems);
+    const total_amount = subtotal + safeShippingCost - safeDiscount;
     const order_number = await generateOrderNumber();
 
     // 1. Order oluştur
@@ -100,15 +193,16 @@ export async function POST(req: Request) {
       .from("orders")
       .insert({
         order_number,
-        user_email,
+        user_id: user.id,
+        user_email: user.email ?? _user_email,
         status: "processing",
         payment_status: "pending",
         payment_method,
-        currency,
+        currency: orderCurrency,
         subtotal,
         product_cost: subtotal,
-        shipping_cost,
-        discount_amount,
+        shipping_cost: safeShippingCost,
+        discount_amount: safeDiscount,
         discount_code,
         total_amount,
         shipping_address: JSON.stringify(shipping_address),
@@ -119,12 +213,12 @@ export async function POST(req: Request) {
       .single();
 
     if (orderError) {
-      console.error("Order oluşturma hatası:", orderError);
-      return NextResponse.json({ error: orderError.message }, { status: 500 });
+      console.error("Order oluşturma hatası:", orderError.code);
+      return NextResponse.json({ error: "Sipariş oluşturulamadı" }, { status: 500 });
     }
 
     // 2. Order items oluştur
-    const orderItems = items.map((item) => ({
+    const orderItems = sanitizedItems.map((item) => ({
       order_id: order.id,
       product_id: item.product_id,
       product_name: item.product_name,
@@ -139,10 +233,10 @@ export async function POST(req: Request) {
       .insert(orderItems);
 
     if (itemsError) {
-      console.error("Order items oluşturma hatası:", itemsError);
+      console.error("Order items oluşturma hatası:", itemsError.code);
       // Order'ı sil (rollback)
       await supabaseAdmin.from("orders").delete().eq("id", order.id);
-      return NextResponse.json({ error: itemsError.message }, { status: 500 });
+      return NextResponse.json({ error: "Sipariş kalemleri oluşturulamadı" }, { status: 500 });
     }
 
     // 3. Order event oluştur (sipariş geçmişi için)
@@ -167,9 +261,9 @@ export async function POST(req: Request) {
       },
     });
 
-  } catch (err: any) {
-    console.error("Order API hatası:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    console.error("Order API hatası:", err instanceof Error ? err.message : "Unknown");
+    return NextResponse.json({ error: "Sunucu hatası oluştu" }, { status: 500 });
   }
 }
 

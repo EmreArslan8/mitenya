@@ -1,12 +1,23 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { createSupabaseServer } from "@/lib/supabase/server";
 
 export async function GET(
   req: Request,
   { params }: { params: { orderNumber: string } }
 ) {
   try {
-    const { orderNumber } = await params;
+    const supabase = await createSupabaseServer();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { orderNumber } = params;
 
     if (!orderNumber) {
       return NextResponse.json({ error: "Order number gerekli" }, { status: 400 });
@@ -30,6 +41,14 @@ export async function GET(
 
     if (orderError || !order) {
       return NextResponse.json({ error: "Siparis bulunamadi" }, { status: 404 });
+    }
+
+    const isOwner =
+      order.user_id === user.id ||
+      (!!order.user_email && !!user.email && order.user_email === user.email);
+
+    if (!isOwner) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Order items'ları çek

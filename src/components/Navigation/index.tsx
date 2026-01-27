@@ -68,6 +68,7 @@ const Navigation = ({ data }: NavigationProps) => {
   const pathname = usePathname();
   const { isAuthenticated, openAuthenticator } = useAuth();
   const { numItems, newProductAdded } = useContext(ShopContext);
+  const isCartEmpty = !numItems;
   const { smDown, smUp } = useScreen();
   const prevScrollPosition = useRef(0);
   const navbarRef = useRef<HTMLDivElement>(null);
@@ -79,7 +80,12 @@ const Navigation = ({ data }: NavigationProps) => {
   const [logoCollapsed, setLogoCollapsed] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
   const styles = useStyles();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleCartModalOpen = () => {
     if (pathname === '/checkout') return;
@@ -248,7 +254,7 @@ const Navigation = ({ data }: NavigationProps) => {
                   />
                 )}
               </Stack>
-              {smUp && (
+              {mounted && smUp && (
                 <Stack sx={styles.actions}>
                   <MenuItem sx={styles.action} onClick={() => handleAccountButtonClick()}>
                     <User />
@@ -258,7 +264,7 @@ const Navigation = ({ data }: NavigationProps) => {
                 </Stack>
               )}
             </Stack>
-            {smUp && (
+            {mounted && smUp && (
               <Stack sx={styles.secondaryBar}>
                 <Stack sx={styles.shopHeaderLinks}>
                   {data?.categories?.map((cat, index) => (
@@ -393,7 +399,14 @@ const Navigation = ({ data }: NavigationProps) => {
         onClose={() => setCartModalOpen(false)}
         showCloseIcon
         title="Sepet"
-        CardProps={{ sx: { height: '100%', pb: 12 } }}
+        CardProps={{
+          sx: {
+            height: '100%',
+            pb: 12,
+            width: { sm: isCartEmpty ? '100%' : undefined },
+            maxWidth: { sm: isCartEmpty ? '100%' : undefined },
+          },
+        }}
         sx={{ zIndex: 1297 }}
       >
         <CartPageView
@@ -404,7 +417,7 @@ const Navigation = ({ data }: NavigationProps) => {
         />
       </ModalCard>
       <ModalCard
-        title={'account'}
+        title="Hesap"
         keepMounted={smDown}
         showCloseIcon
         open={accountModalOpen}

@@ -12,7 +12,8 @@ const useStyles = withPalette((palette) => ({
     flex: '0 0 65%',
     maxWidth: '65%',
     '& .slick-slider': { maxWidth: '100vw' },
-
+    '& .slick-slide': { lineHeight: 0 },
+    '& .slick-slide > div': { display: 'block' },
     '& .slick-dots': {
       position: 'absolute',
       bottom: 30,
@@ -64,6 +65,7 @@ const useStyles = withPalette((palette) => ({
     width: '100%',
     borderRadius: 2,
     overflow: 'hidden',
+    display: 'block',
     '& img': { objectFit: 'cover' },
   },
 
@@ -88,6 +90,8 @@ const useStyles = withPalette((palette) => ({
     position: 'relative',
     overflow: 'hidden',
     borderRadius: 1.5,
+    '& .slick-slide': { lineHeight: 0 },
+    '& .slick-slide > div': { display: 'block' },
     '& .slick-dots': {
       position: 'absolute',
       bottom: 12,
