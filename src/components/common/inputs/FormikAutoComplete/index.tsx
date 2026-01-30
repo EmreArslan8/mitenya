@@ -1,5 +1,4 @@
-import { Autocomplete, Stack, TextField, Typography } from '@mui/material';
-import styles from './styles'; 
+import { Autocomplete, Stack, TextField, Typography, SxProps } from '@mui/material';
 import { Asterisk } from 'lucide-react';
 
 const FormikAutocomplete = ({
@@ -10,6 +9,7 @@ const FormikAutocomplete = ({
   disabled = false,
   label,
   options,
+  textFieldSx,
 }: {
   formik: any;
   width?: string | number;
@@ -18,6 +18,7 @@ const FormikAutocomplete = ({
   disabled?: boolean;
   label?: string;
   options: { label: string; value: string | number | undefined }[];
+  textFieldSx?: SxProps;
 }) => {
 
   return (
@@ -31,11 +32,13 @@ const FormikAutocomplete = ({
       <Autocomplete
         options={options}
         getOptionLabel={(option) => option.label}
+        isOptionEqualToValue={(option, value) => option.value === value.value}
         value={options.find((option) => option.value === formik.values[fieldKey]) || null}
         onChange={(event, newValue) => {
           formik.setFieldValue(fieldKey, newValue ? newValue.value : '');
         }}
         disabled={disabled}
+        renderOption={(props, option) => <li {...props}>{option.label}</li>}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -44,9 +47,17 @@ const FormikAutocomplete = ({
             size="small"
             error={formik.touched[fieldKey] && Boolean(formik.errors[fieldKey])}
             helperText={formik.touched[fieldKey] && formik.errors[fieldKey]}
-            InputProps={{
-              ...params.InputProps,
-              sx: styles.autocompleteInput,
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 1,
+                backgroundColor: '#F7F7F8',
+              },
+              '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.12)' },
+              '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#C1121F',
+                borderWidth: 1,
+              },
+              ...textFieldSx,
             }}
           />
         )}

@@ -410,7 +410,7 @@ const VerificationCodeModal = ({
                 onChange={(e) => setTermsAccepted(e.target.checked)}
               />
               <Typography>
-                <Link href="/terms-of-service">Kullanım Şartları</Link> ve
+                <Link href="/uyelik-ve-kullanim-sartlari">Kullanım Şartları</Link> ve
                 <Link href="/privacy-policy"> Gizlilik Politikası</Link>’nı kabul ediyorum
               </Typography>
             </Stack>

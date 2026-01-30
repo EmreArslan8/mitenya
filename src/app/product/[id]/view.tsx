@@ -38,7 +38,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
 
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
-
+console.log(data.price, "fiyat ")
   const handleSelectOption = (variantName: string, optionValue: string) => {
     setVariants((prev) =>
       prev?.map((v) =>

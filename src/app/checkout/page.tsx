@@ -11,5 +11,6 @@ export const revalidate = 0;
 export const metadata = {
   title: 'Ödeme',
   description: 'Güvenli ödeme ile siparişinizi tamamlayın.',
+  robots: { index: false, follow: false },
 };
 export default CheckoutPage;

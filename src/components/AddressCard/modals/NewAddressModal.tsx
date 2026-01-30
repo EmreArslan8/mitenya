@@ -55,6 +55,7 @@ const NewAddressModal = ({
       showCloseIcon
       title="Adres Ekle"
       CardProps={{ sx: styles.modalCard }}
+      BodyProps={{ sx: { maxHeight: 'min(78vh, 720px)', overflowY: 'auto' } }}
     >
       <Stack sx={{ display: success || error ? 'none' : 'flex' }}>
         <AddressForm

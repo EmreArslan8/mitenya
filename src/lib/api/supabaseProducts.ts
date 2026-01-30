@@ -1,12 +1,10 @@
 import { supabaseAdmin } from "../supabase/admin";
-import { r2Url } from "../utils/r2"; // 🔹 BUNU EKLEDİK
+import { r2Url } from "../utils/r2"; 
 
 export async function fetchProductDataSupabase(idOrSlug: string) {
   const supabase = supabaseAdmin;
 
-  let { data, error } = await supabase
-    .from("products")
-    .select(`
+  const selectQuery = `
       id,
       slug,
       name,
@@ -17,11 +15,18 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
       rating_average,
       rating_count,
       description,
+      current_price,
+      original_price,
+      currency,
       product_prices(price_current, price_original, currency),
       product_images(image_path, image_url, is_main, sort_order),
       product_stock(quantity),
       attributes_json
-    `)
+    `;
+
+  let { data, error } = await supabase
+    .from("products")
+    .select(selectQuery)
     .eq("slug", idOrSlug)
     .single();
 
@@ -29,22 +34,7 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
   if (error || !data) {
     const result = await supabase
       .from("products")
-      .select(`
-        id,
-        slug,
-        name,
-        brand_id,
-        brand_name,
-        category_id,
-        category_name,
-        rating_average,
-        rating_count,
-        description,
-        product_prices(price_current, price_original, currency),
-        product_images(image_path, image_url, is_main, sort_order),
-        product_stock(quantity),
-        attributes_json
-      `)
+      .select(selectQuery)
       .eq("id", idOrSlug)
       .single();
 
@@ -67,7 +57,12 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
 
     */
 
-  const price = data.product_prices?.[0];
+  const priceRow = data.product_prices?.[0];
+  const price = priceRow ?? {
+    price_current: data.current_price,
+    price_original: data.original_price,
+    currency: data.currency,
+  };
 
   // 🔍 DEBUG: DB'den gelen ham image verisini görelim
  // console.log("🟨 [SUPABASE] product_images RAW:", data.product_images);
@@ -103,9 +98,9 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
     imgSrc,
     description: data.description ?? "",
     price: {
-      currentPrice: price?.price_current ?? 0,
-      originalPrice: price?.price_original ?? price?.price_current ?? 0,
-      currency: price?.currency ?? "TRY",
+      currentPrice: Number(price.price_current) || 0,
+      originalPrice: Number(price.price_original) || Number(price.price_current) || 0,
+      currency: price.currency || "TRY",
     },
     quantity: data.product_stock?.[0]?.quantity ?? 0,
     attributes: attributes,

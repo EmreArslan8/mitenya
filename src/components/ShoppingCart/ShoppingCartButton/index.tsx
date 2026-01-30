@@ -3,7 +3,7 @@ import Card from '@/components/common/Card';
 import QuantitySelector from '@/components/common/QuantitySelector';
 import { ShopContext } from '@/contexts/ShopContext';
 import { ShopProductData } from '@/lib/api/types';
-import { CircularProgress, MenuItem, Popover, Stack, Typography } from '@mui/material';
+import { Badge, CircularProgress, MenuItem, Popover, Stack, Typography } from '@mui/material';
 import { ShoppingBag, X } from 'lucide-react';
 import { useContext, useEffect, useRef, useState } from 'react';
 import useStyles from './styles';
@@ -43,7 +43,13 @@ const ShoppingCartButton = ({ compact = false }: { compact?: boolean }) => {
         sx={[styles.button, compact && styles.buttonCompact]}
         aria-label={compact ? 'Sepet' : undefined}
       >
-        <ShoppingBag size={20} strokeWidth={2} />
+        <Badge
+          badgeContent={isMounted ? numItems : 0}
+          color="error"
+          sx={{ '& .MuiBadge-badge': { minWidth: 18, height: 18, fontSize: 11, px: 0.5 } }}
+        >
+          <ShoppingBag size={20} strokeWidth={2} />
+        </Badge>
         {!compact && 'Sepet'}
         {isMounted && !isCartReady && (
           <CircularProgress color="secondary" size={13} sx={{ mt: '2px' }} />

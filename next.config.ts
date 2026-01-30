@@ -57,22 +57,33 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(), payment=(self)'
           },
-          {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "img-src 'self' data: https: blob: https://pub-46ecb5f9254d4e0c9e5f3f098fac9887.r2.dev",
-              "font-src 'self' data: https://fonts.gstatic.com",
-              "connect-src 'self' https://*.supabase.co https://www.paytr.com https://www.google-analytics.com https://challenges.cloudflare.com",
-              "frame-src https://www.paytr.com https://challenges.cloudflare.com",
-              "frame-ancestors 'self'",
-              "form-action 'self'",
-              "base-uri 'self'",
-              "object-src 'none'"
-            ].join('; ')
-          }
+          (() => {
+            const isDev = process.env.NODE_ENV !== 'production';
+            const imgSrc = [
+              "img-src 'self' data: https: blob:",
+              isDev ? "http://localhost:1337" : null,
+              "https://pub-46ecb5f9254d4e0c9e5f3f098fac9887.r2.dev",
+            ]
+              .filter(Boolean)
+              .join(' ');
+
+            return {
+              key: 'Content-Security-Policy',
+              value: [
+                "default-src 'self'",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com",
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+                imgSrc,
+                "font-src 'self' data: https://fonts.gstatic.com",
+                "connect-src 'self' https://*.supabase.co https://www.paytr.com https://www.google-analytics.com https://challenges.cloudflare.com",
+                "frame-src https://www.paytr.com https://challenges.cloudflare.com",
+                "frame-ancestors 'self'",
+                "form-action 'self'",
+                "base-uri 'self'",
+                "object-src 'none'"
+              ].join('; ')
+            };
+          })()
         ]
       }
     ];

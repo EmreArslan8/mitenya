@@ -56,6 +56,7 @@ const EditAddressModal = ({ initialData, open, onEdited, onClose }: EditAddressM
       showCloseIcon
       title= "Adres Düzenle"
       CardProps={{ sx: styles.modalCard }}
+      BodyProps={{ sx: { maxHeight: 'min(78vh, 720px)', overflowY: 'auto' } }}
     >
       <Stack sx={{ display: success || error ? 'none' : 'flex' }}>
         <AddressForm

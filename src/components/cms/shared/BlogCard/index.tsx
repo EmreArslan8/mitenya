@@ -2,8 +2,9 @@
 
 import Link from '@/components/common/Link';
 import CMSImage from '@/components/cms/shared/CMSImage';
-import { Box, Chip, Stack, Typography } from '@mui/material';
-import { ArrowRight, Clock } from 'lucide-react';
+import { Box, Stack, Typography } from '@mui/material';
+import { ArrowRight, Calendar } from 'lucide-react';
+import styles from './styles';
 
 export interface BlogCardProps {
   slug: string;
@@ -15,7 +16,7 @@ export interface BlogCardProps {
   };
   publishedAt?: string;
   category?: string;
-  readTime?: number;
+  featured?: boolean;
 }
 
 const BlogCard = ({
@@ -25,204 +26,83 @@ const BlogCard = ({
   coverImage,
   publishedAt,
   category,
-  readTime,
+  featured = false,
 }: BlogCardProps) => {
+  const formattedDate = publishedAt
+    ? new Date(publishedAt).toLocaleDateString('tr-TR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+    : null;
+
   return (
     <Link href={`/blog/${slug}`} style={{ textDecoration: 'none' }}>
       <Stack
-        direction={{ xs: 'row', md: 'column' }}
-        sx={{
-          height: '100%',
-          borderRadius: 2,
-          overflow: 'hidden',
-          bgcolor: '#fff',
-          transition: 'all 0.3s ease',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-          border: '1px solid',
-          borderColor: 'rgba(0,0,0,0.06)',
-          '&:hover': {
-            transform: { xs: 'none', md: 'translateY(-4px)' },
-            boxShadow: { xs: '0 2px 8px rgba(0,0,0,0.08)', md: '0 12px 24px rgba(0,0,0,0.1)' },
-            '& .blog-image': {
-              transform: 'scale(1.05)',
-            },
-            '& .blog-title': {
-              color: 'primary.main',
-            },
-          },
-        }}
+        direction={featured ? { xs: 'column', md: 'row' } : { xs: 'row', md: 'column' }}
+        sx={styles.card(featured)}
       >
-        {/* Image Container */}
-        <Box
-          sx={{
-            position: 'relative',
-            overflow: 'hidden',
-            width: { xs: 100, md: '100%' },
-            minWidth: { xs: 100, md: 'auto' },
-            aspectRatio: { xs: '1/1', md: '16/9' },
-          }}
-        >
-          {coverImage && (
+        {/* Image */}
+        <Box sx={styles.imageWrapper(featured)}>
+          {coverImage ? (
             <Box
               className="blog-image"
-              sx={{
-                position: 'absolute',
-                width: '100%',
-                height: '100%',
-                transition: 'transform 0.4s ease',
-              }}
+              sx={styles.image}
             >
               <CMSImage
                 src={coverImage.url}
                 alt={coverImage.alternativeText}
                 fill
+                style={{ objectFit: 'cover' }}
               />
+            </Box>
+          ) : (
+            <Box sx={styles.imageFallback}>
+              <Typography sx={styles.imageFallbackText}>M</Typography>
             </Box>
           )}
 
-          {/* Category Badge - Desktop only */}
+          {/* Category badge */}
           {category && (
-            <Chip
-              label={category}
-              size="small"
-              sx={{
-                display: { xs: 'none', md: 'flex' },
-                position: 'absolute',
-                top: 8,
-                left: 8,
-                bgcolor: 'primary.main',
-                color: '#fff',
-                fontWeight: 600,
-                fontSize: 10,
-                height: 22,
-                '& .MuiChip-label': { px: 1 },
-              }}
-            />
+            <Box sx={styles.categoryBadge}>
+              {category}
+            </Box>
           )}
         </Box>
 
         {/* Content */}
-        <Stack
-          sx={{
-            p: { xs: 1.5, md: 2 },
-            gap: { xs: 0.5, md: 1 },
-            flex: 1,
-            justifyContent: { xs: 'center', md: 'flex-start' },
-          }}
-        >
-          {/* Mobile: Category + Date row */}
-          <Stack
-            direction="row"
-            alignItems="center"
-            gap={1}
-            sx={{ display: { xs: 'flex', md: 'none' } }}
-          >
-            {category && (
-              <Typography
-                sx={{
-                  color: 'primary.main',
-                  fontSize: 11,
-                  fontWeight: 600,
-                }}
-              >
-                {category}
+        <Stack sx={styles.content(featured)}>
+          {/* Date */}
+          {formattedDate && (
+            <Stack direction="row" alignItems="center" gap={0.75}>
+              <Calendar size={13} color="#8E8E93" />
+              <Typography sx={styles.dateText(featured)}>
+                {formattedDate}
               </Typography>
-            )}
-            {publishedAt && (
-              <Typography sx={{ color: 'text.secondary', fontSize: 11 }}>
-                {new Date(publishedAt).toLocaleDateString('tr-TR', {
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </Typography>
-            )}
-          </Stack>
-
-          {/* Title */}
-          <Typography
-            className="blog-title"
-            sx={{
-              fontWeight: 600,
-              fontSize: { xs: 14, md: 16 },
-              lineHeight: 1.35,
-              color: 'text.primary',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              transition: 'color 0.2s ease',
-            }}
-          >
-            {title}
-          </Typography>
-
-          {/* Excerpt - Desktop only */}
+            </Stack>
+          )}
+          <Typography sx={styles.title(featured)}> {title}</Typography>
           {excerpt && (
-            <Typography
-              sx={{
-                display: { xs: 'none', md: '-webkit-box' },
-                color: 'text.secondary',
-                fontSize: 13,
-                lineHeight: 1.5,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-              }}
-            >
+            <Typography sx={styles.excerpt(featured)}>
               {excerpt}
             </Typography>
           )}
-
-          {/* Footer - Desktop only */}
           <Stack
             direction="row"
             alignItems="center"
-            justifyContent="space-between"
-            sx={{
-              display: { xs: 'none', md: 'flex' },
-              mt: 'auto',
-              pt: 1,
-            }}
+            gap={0.75}
+            sx={styles.readMore(featured)}
           >
-            <Stack direction="row" alignItems="center" gap={0.5}>
-              <Box component="span" sx={{ color: 'text.secondary', display: 'inline-flex' }}>
-                <Clock size={14} color="currentColor" />
-              </Box>
-              <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
-                {readTime || 3} dk
-              </Typography>
-              {publishedAt && (
-                <>
-                  <Typography sx={{ color: 'text.disabled', mx: 0.5 }}>•</Typography>
-                  <Typography sx={{ color: 'text.secondary', fontSize: 12 }}>
-                    {new Date(publishedAt).toLocaleDateString('tr-TR', {
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </Typography>
-                </>
-              )}
-            </Stack>
-            <Box component="span" sx={{ color: 'primary.main', display: 'inline-flex' }}>
-              <ArrowRight size={16} color="currentColor" />
-            </Box>
-          </Stack>
-
-          {/* Mobile: Read time */}
-          <Stack
-            direction="row"
-            alignItems="center"
-            gap={0.5}
-            sx={{ display: { xs: 'flex', md: 'none' } }}
-          >
-            <Box component="span" sx={{ color: 'text.secondary', display: 'inline-flex' }}>
-              <Clock size={12} color="currentColor" />
-            </Box>
-            <Typography sx={{ color: 'text.secondary', fontSize: 11 }}>
-              {readTime || 3} dk okuma
+            <Typography sx={styles.readMoreText}>
+              Devamını Oku
             </Typography>
+            <Box
+              className="blog-arrow"
+              component="span"
+              sx={styles.readMoreArrow}
+            >
+              <ArrowRight size={16} />
+            </Box>
           </Stack>
         </Stack>
       </Stack>

@@ -6,7 +6,7 @@ import { validateSameOrigin, validateCsrfToken } from "@/lib/api/security";
 import { rateLimit } from "@/lib/api/rateLimit";
 import { z } from "zod";
 
-// Input validation schemas
+
 const shippingAddressSchema = z.object({
   contactName: z.string().min(2).max(100),
   line1: z.string().min(5).max(200),
@@ -24,7 +24,18 @@ const orderItemSchema = z.object({
   quantity: z.number().int().positive().max(100),
   price: z.number().nonnegative(),
   image_url: z.string().url().optional(),
-  variant_data: z.record(z.string()).optional(),
+  variant_data: z.record(z.string(), z.string()).optional(),
+});
+
+const consentsSchema = z.object({
+  pre_info_accepted: z.boolean().refine((v) => v === true, {
+    message: "Ön bilgilendirme formu kabul edilmelidir",
+  }),
+  distance_sale_accepted: z.boolean().refine((v) => v === true, {
+    message: "Mesafeli satış sözleşmesi kabul edilmelidir",
+  }),
+  pre_info_html: z.string().min(1).max(500000),
+  distance_sale_html: z.string().min(1).max(500000),
 });
 
 const createOrderSchema = z.object({
@@ -35,9 +46,10 @@ const createOrderSchema = z.object({
   payment_method: z.enum(["stripe", "paytr", "cod", "bank_transfer"]),
   shipping_cost: z.number().nonnegative().max(10000).optional(),
   discount_amount: z.number().nonnegative().max(100000).optional(),
-  discount_code: z.string().max(50).optional(),
+  discount_code: z.string().max(50).nullable().optional(),
   notes: z.string().max(500).optional(),
   currency: z.string().length(3).optional(),
+  consents: consentsSchema.optional(),
 });
 
 // Order number generator: ORD-2026-00001
@@ -88,18 +100,7 @@ interface ShippingAddress {
   phone?: string;
 }
 
-interface CreateOrderRequest {
-  user_email: string;
-  items: OrderItem[];
-  shipping_address: ShippingAddress;
-  billing_address?: ShippingAddress;
-  payment_method: "stripe" | "paytr" | "cod" | "bank_transfer";
-  shipping_cost?: number;
-  discount_amount?: number;
-  discount_code?: string;
-  notes?: string;
-  currency?: string;
-}
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -121,6 +122,11 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -151,6 +157,7 @@ export async function POST(req: NextRequest) {
       discount_code,
       notes,
       currency = "TRY",
+      consents,
     } = validation.data;
 
     // Email kontrolü
@@ -188,70 +195,127 @@ export async function POST(req: NextRequest) {
     const total_amount = subtotal + safeShippingCost - safeDiscount;
     const order_number = await generateOrderNumber();
 
-    // 1. Order oluştur
-    const { data: order, error: orderError } = await supabaseAdmin
-      .from("orders")
-      .insert({
-        order_number,
-        user_id: user.id,
-        user_email: user.email ?? _user_email,
-        status: "processing",
-        payment_status: "pending",
-        payment_method,
-        currency: orderCurrency,
-        subtotal,
-        product_cost: subtotal,
-        shipping_cost: safeShippingCost,
-        discount_amount: safeDiscount,
-        discount_code,
-        total_amount,
-        shipping_address: JSON.stringify(shipping_address),
-        billing_address: billing_address ? JSON.stringify(billing_address) : null,
-        notes,
-      })
-      .select()
-      .single();
-
-    if (orderError) {
-      console.error("Order oluşturma hatası:", orderError.code);
-      return NextResponse.json({ error: "Sipariş oluşturulamadı" }, { status: 500 });
-    }
-
-    // 2. Order items oluştur
     const orderItems = sanitizedItems.map((item) => ({
-      order_id: order.id,
       product_id: item.product_id,
       product_name: item.product_name,
       quantity: item.quantity,
       price: item.price,
       image_url: item.image_url,
-      variant_data: item.variant_data ? JSON.stringify(item.variant_data) : null,
+      variant_data: item.variant_data ?? null,
+      currency: item.currency ?? orderCurrency,
+      total_price: item.price * item.quantity,
     }));
 
-    const { error: itemsError } = await supabaseAdmin
-      .from("order_items")
-      .insert(orderItems);
+    const eventDescription = `Sipariş oluşturuldu. Ödeme yöntemi: ${
+      payment_method === "cod" ? "Kapıda Ödeme" :
+      payment_method === "paytr" ? "Kredi Kartı (PayTR)" :
+      payment_method === "stripe" ? "Kredi Kartı (Stripe)" : "Banka Transferi"
+    }`;
 
-    if (itemsError) {
-      console.error("Order items oluşturma hatası:", itemsError.code);
-      // Order'ı sil (rollback)
-      await supabaseAdmin.from("orders").delete().eq("id", order.id);
-      return NextResponse.json({ error: "Sipariş kalemleri oluşturulamadı" }, { status: 500 });
+    const documents = consents
+      ? [
+          {
+            doc_type: "pre_info",
+            doc_version: "1.0",
+            content_html: consents.pre_info_html,
+          },
+          {
+            doc_type: "distance_sale",
+            doc_version: "1.0",
+            content_html: consents.distance_sale_html,
+          },
+        ]
+      : null;
+
+    const consentsRows = consents
+      ? [
+          {
+            doc_type: "pre_info",
+            doc_version: "1.0",
+            accepted_at: new Date().toISOString(),
+            ip: userIp,
+            user_agent: req.headers.get("user-agent") || "",
+            user_id: user.id,
+            user_email: user.email ?? _user_email,
+          },
+          {
+            doc_type: "distance_sale",
+            doc_version: "1.0",
+            accepted_at: new Date().toISOString(),
+            ip: userIp,
+            user_agent: req.headers.get("user-agent") || "",
+            user_id: user.id,
+            user_email: user.email ?? _user_email,
+          },
+        ]
+      : null;
+
+    const edgePayload = {
+      order_number,
+      user_id: user.id,
+      user_email: user.email ?? _user_email,
+      status: "processing",
+      payment_status: "pending",
+      payment_method,
+      currency: orderCurrency,
+      subtotal,
+      product_cost: subtotal,
+      shipping_cost: safeShippingCost,
+      discount_amount: safeDiscount,
+      discount_code: discount_code ?? null,
+      total_amount,
+      shipping_address,
+      billing_address: billing_address ?? null,
+      notes: notes ?? null,
+      order_items: orderItems,
+      event_status: "created",
+      event_description: eventDescription,
+      documents,
+      consents: consentsRows,
+    };
+
+    const edgeResponse = await fetch(
+      "https://iimmsbvyxizrdfresfcb.functions.supabase.co/create-order",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+        },
+        body: JSON.stringify(edgePayload),
+      }
+    );
+
+    const edgeText = await edgeResponse.text();
+    let edgeData: any = {};
+    try {
+      edgeData = edgeText ? JSON.parse(edgeText) : {};
+    } catch {
+      edgeData = {};
     }
 
-    // 3. Order event oluştur (sipariş geçmişi için)
-    await supabaseAdmin.from("order_events").insert({
-      order_id: order.id,
-      status: "created",
-      description: `Sipariş oluşturuldu. Ödeme yöntemi: ${
-        payment_method === "cod" ? "Kapıda Ödeme" :
-        payment_method === "paytr" ? "Kredi Kartı (PayTR)" :
-        payment_method === "stripe" ? "Kredi Kartı (Stripe)" : "Banka Transferi"
-      }`,
-    });
+    if (!edgeResponse.ok || !edgeData?.order) {
+      console.error("Order oluşturma hatası (edge):", edgeData || edgeText);
+      return NextResponse.json(
+        {
+          error: edgeData?.error || "Sipariş oluşturulamadı",
+          details: edgeData?.details || {
+            status: edgeResponse.status,
+            statusText: edgeResponse.statusText,
+            body: edgeText?.slice(0, 1000) || "",
+          },
+        },
+        { status: 500 }
+      );
+    }
+
+    const order = edgeData.order;
+    const successToken = edgeData.success_token;
 
     return NextResponse.json({
       success: true,
+      success_token: successToken,
       order: {
         id: order.id,
         order_number: order.order_number,

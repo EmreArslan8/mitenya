@@ -1,5 +1,5 @@
 
-import { Stack, Typography, Select, MenuItem } from '@mui/material';
+import { Stack, Typography, Select, MenuItem, SxProps } from '@mui/material';
 import { Asterisk } from 'lucide-react';
 
 const FormikDropdown = ({
@@ -10,6 +10,8 @@ const FormikDropdown = ({
   disabled = false,
   label,
   options,
+  selectSx,
+  onChange,
 }: {
   formik: any;
   width?: string | number;
@@ -18,6 +20,8 @@ const FormikDropdown = ({
   disabled?: boolean;
   label?: string;
   options: { label: string; value: string | number | undefined }[];
+  selectSx?: SxProps;
+  onChange?: () => void;
 }) => {
   return (
     <Stack gap={0.5} width={width} display="inline-flex">
@@ -35,11 +39,23 @@ const FormikDropdown = ({
         id={fieldKey}
         name={fieldKey}
         value={formik.values[fieldKey]}
-        onChange={(e) => formik.setFieldValue(fieldKey, e.target.value)}
+        onChange={(e) => {
+          formik.setFieldValue(fieldKey, e.target.value);
+          onChange?.();
+        }}
         error={formik.touched[fieldKey] && Boolean(formik.errors[fieldKey])}
+        displayEmpty
+        sx={{
+          borderRadius: 1,
+          backgroundColor: '#F7F7F8',
+          '& .MuiSelect-select': { display: 'flex', alignItems: 'center', px: 1.5 },
+          '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.12)' },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#C1121F', borderWidth: 1 },
+          ...selectSx,
+        }}
       >
-        {options.map((e) => (
-          <MenuItem value={e.value} key={e.value} sx={{}}>
+        {options.map((e, idx) => (
+          <MenuItem value={e.value} key={`${e.value}-${idx}`}>
             {e.label}
           </MenuItem>
         ))}

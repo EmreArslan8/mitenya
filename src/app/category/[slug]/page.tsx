@@ -26,15 +26,17 @@ export default async function CategoryPage({
   params,
   searchParams,
 }: {
-  params: { slug: string };
-  searchParams: Record<string, string | string[] | undefined>;
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const categorySlug = params.slug;
-  const categoryRow = await fetchCategoryBySlug(categorySlug);
+  const { slug } = await params;
+  const resolvedSearchParams = await searchParams;
+
+  const categoryRow = await fetchCategoryBySlug(slug);
   if (!categoryRow) notFound();
 
-  const page = Number(searchParams.page ?? 1);
-  const sort = (searchParams.sort as ShopSearchSort) || undefined;
+  const page = Number(resolvedSearchParams.page ?? 1);
+  const sort = (resolvedSearchParams.sort as ShopSearchSort) || undefined;
 
   const data = await fetchProductsSupabase({ category: categoryRow.id, page, sort });
   if (!data?.products?.length) notFound();
@@ -46,17 +48,20 @@ export async function generateMetadata({
   params,
   searchParams,
 }: {
-  params: { slug: string };
-  searchParams: Record<string, string | string[] | undefined>;
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
-  const categoryRow = await fetchCategoryBySlug(params.slug);
-  const categoryTitle = categoryRow?.name ?? params.slug;
-  const url = `${host}/category/${params.slug}`;
-  const sort = (searchParams.sort as string | undefined) ?? '';
-  const description = `${categoryTitle} kategorisindeki ürünleri keşfedin. En yeni ürünler ve fırsatlar Mitenya'da.`;
+  const { slug } = await params;
+  const resolvedSearchParams = await searchParams;
+
+  const categoryRow = await fetchCategoryBySlug(slug);
+  const categoryTitle = categoryRow?.name ?? slug;
+  const url = `${host}/category/${slug}`;
+  const sort = (resolvedSearchParams.sort as string | undefined) ?? '';
+  const description = `${categoryTitle} kategorisindeki Kore kozmetik ürünlerini keşfedin. K-beauty, cilt bakımı ve makyaj ürünlerinde en yeni fırsatlar Mitenya'da.`;
 
   return {
-    title: `${categoryTitle} | Mitenya`,
+    title: categoryTitle,
     description,
     alternates: { canonical: url },
     openGraph: {
@@ -68,7 +73,7 @@ export async function generateMetadata({
           url: '/static/images/ogBanner.webp',
           width: 1200,
           height: 630,
-          alt: `${categoryTitle} | Mitenya`,
+          alt: `${categoryTitle} - Kore Kozmetik | Mitenya`,
         },
       ],
     },

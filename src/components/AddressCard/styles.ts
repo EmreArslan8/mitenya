@@ -24,7 +24,7 @@ const styles = {
     gap: 0.5,
   },
   modalCard: {
-    maxWidth: { sm: 450 },
+    maxWidth: { sm: 560 },
   },
   form: {
     display: 'flex',

@@ -37,7 +37,7 @@ export const fetchProductData = async (
   baseUrl?: string
 ): Promise<ShopProductData | undefined> => {
   try {
-    const url = baseUrl ? new URL(`/api/products/${id}/detail`, baseUrl).toString() : `/api/products/${id}/detail`;
+    const url = baseUrl ? new URL(`/api/products/${id}`, baseUrl).toString() : `/api/products/${id}`;
     const res = await fetch(url);
     if (!res.ok) return undefined;
     return await res.json();

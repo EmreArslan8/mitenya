@@ -10,6 +10,9 @@ const customerUpdateSchema = z.object({
   name: z.string().min(1).max(100).regex(/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s'-]*$/).optional(),
   surname: z.string().min(1).max(100).regex(/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s'-]*$/).optional(),
   culture: z.enum(["tr", "en", "de", "fr"]).optional(),
+  phone: z.string().max(30).nullable().optional(),
+  phoneCode: z.string().max(10).nullable().optional(),
+  phoneNumber: z.string().max(20).nullable().optional(),
 });
 
 // Production-safe logging (only in development)
@@ -122,6 +125,11 @@ export async function POST(req: NextRequest) {
   }
 
   const validatedData = validation.data;
+  const combinedPhone =
+    validatedData.phone ??
+    (validatedData.phoneCode || validatedData.phoneNumber
+      ? `${validatedData.phoneCode ?? ""}${validatedData.phoneNumber ?? ""}`
+      : undefined);
 
   // Önce provider_id ile ara
   let { data: existing } = await supabaseAdmin
@@ -157,6 +165,7 @@ export async function POST(req: NextRequest) {
         name: validatedData.name || existing.name,
         surname: validatedData.surname || existing.surname,
         culture: validatedData.culture || existing.culture,
+        phone: combinedPhone ?? existing.phone,
       })
       .eq("id", existing.id)
       .select()
@@ -174,6 +183,7 @@ export async function POST(req: NextRequest) {
         name: validatedData.name || "",
         surname: validatedData.surname || "",
         culture: validatedData.culture || "tr",
+        phone: combinedPhone ?? null,
       })
       .select()
       .single();

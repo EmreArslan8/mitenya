@@ -24,7 +24,9 @@ export type ExchangeRate = {
 export type CustomerDB = {
   id: string;
   provider_id: string;
-  full_name: string;
+  full_name?: string | null;
+  name?: string | null;
+  surname?: string | null;
   email: string;
   culture: string;
   phone: string | null;
@@ -36,7 +38,7 @@ export type CustomerDB = {
 export type CustomerData = {
   fullName: string;
   email: string;
-  phone: string;
+  phone?: string;
   culture?: string;
   
 };
@@ -70,6 +72,7 @@ export type AddressData = {
   phoneNumber: string;
   email?: string;
   taxNumber?: string;
+  isDefault?: boolean;
   line1: string;
   line2: string;
   line3: string;
@@ -351,4 +354,3 @@ export type ShopFooterData = {
 };
 
 export type PhoneNumber = { phoneCode: string; phoneNumber: string };
-

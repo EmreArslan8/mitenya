@@ -10,10 +10,7 @@ const HomePage = async ({ params }: { params: { slug?: string } }) => {
   if (bot) {
     return null;
   }
-
-
   const slug = params?.slug;
-
   const data = await fetchShopIndex(slug);
 
   if (!data) {
@@ -37,7 +34,7 @@ export const generateMetadata = async ({
   if (!data) notFound();
 
   return {
-    title: `${data.title} | Mitenya`,
+    title: data.title,
     openGraph: {
       title: `${data.title} | Mitenya`,
       images: [{ url: '/static/images/ogBanner.webp', width: 1200, height: 630 }],

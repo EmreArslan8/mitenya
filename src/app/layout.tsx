@@ -4,17 +4,15 @@ import Footer from "@/components/Footer";
 import MainLayout from "@/components/layouts/MainLayout";
 import Navigation from "@/components/Navigation";
 import { AuthContextProvider } from "@/contexts/AuthContext";
+import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
 import { ShopContextProvider } from "@/contexts/ShopContext";
 import { fetchShopFooter, fetchShopHeader } from "@/lib/api/cms";
 import { albertSans } from "@/lib/fonts";
 import ThemeRegistry from "@/theme/ThemeRegistry";
-import Script from "next/script";
 import { Suspense } from "react";
 
 const isProduction = process.env.NEXT_PUBLIC_HOST_ENV === "production";
 const baseUrl = process.env.NEXT_PUBLIC_HOST_URL ?? "https://mitenya.com";
-const gtmId = "GTM-5CR26XHK";
-const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-W2DHP8ZRJN";
 
 export default async function RootLayout({
   children,
@@ -28,41 +26,6 @@ export default async function RootLayout({
   return (
   <html lang="tr" className={albertSans.variable}>
       <head>
-        {isProduction && (
-          <Script
-            id="gtm-init"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-              })(window,document,'script','dataLayer','${gtmId}');`,
-            }}
-          />
-        )}
-
-        {isProduction && gaMeasurementId && (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
-              strategy="afterInteractive"
-            />
-            <Script
-              id="ga4-init"
-              strategy="afterInteractive"
-              dangerouslySetInnerHTML={{
-                __html: `window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-
-gtag('config', '${gaMeasurementId}');`,
-              }}
-            />
-          </>
-        )}
-
-    
         {isProduction && (
           <meta
             name="google-site-verification"
@@ -95,32 +58,22 @@ gtag('config', '${gaMeasurementId}');`,
       </head>
 
       <body style={{ overflowX: "hidden" }}>
-        {isProduction && (
-          <noscript>
-            <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
-              height="0"
-              width="0"
-              style={{ display: "none", visibility: "hidden" }}
-            />
-          </noscript>
-        )}
         <ThemeRegistry>
-          <AuthContextProvider>
-            <ShopContextProvider>
-        <Suspense fallback={<div style={{ height: '100px' }} />}> 
-          <Navigation data={headerData} />
-        </Suspense>
-        
-        <MainLayout>
-          <Suspense fallback={<div>Yükleniyor...</div>}>
-            {children}
-          </Suspense>
-        </MainLayout>
-        
-        <Footer data={footerData} />
-            </ShopContextProvider>
-          </AuthContextProvider>
+          <CookieConsentProvider>
+            <AuthContextProvider>
+              <ShopContextProvider>
+                <Suspense fallback={<div style={{ height: '100px' }} />}>
+                  <Navigation data={headerData} />
+                </Suspense>
+
+                <MainLayout>
+                  <Suspense fallback={<div>Yükleniyor...</div>}>{children}</Suspense>
+                </MainLayout>
+
+                <Footer data={footerData} />
+              </ShopContextProvider>
+            </AuthContextProvider>
+          </CookieConsentProvider>
         </ThemeRegistry>
       </body>
     </html>
@@ -128,9 +81,9 @@ gtag('config', '${gaMeasurementId}');`,
 }
 
 export const generateMetadata = async () => ({
-  title: { template: "%s | Mitenya", default: "Mitenya | Kozmetik ve Güzellik Ürünleri" },
-  description: "Mitenya - En kaliteli kozmetik ve güzellik ürünleri. Cilt bakımı, makyaj, parfüm ve kişisel bakım ürünlerinde geniş ürün yelpazesi ve uygun fiyatlar.",
-  keywords: ["kozmetik", "güzellik", "cilt bakımı", "makyaj", "parfüm", "kişisel bakım", "mitenya", "online kozmetik"],
+  title: { template: "%s | Mitenya", default: "Mitenya | Kore Kozmetik ve Cilt Bakım Ürünleri" },
+  description: "Mitenya - Orijinal Kore kozmetik ve cilt bakım ürünleri. K-beauty, Kore makyaj, serum, nemlendirici ve cilt bakım rutini ürünlerinde geniş ürün yelpazesi ve uygun fiyatlar.",
+  keywords: ["kore kozmetik", "k-beauty", "korean skincare", "kore cilt bakımı", "kore makyaj", "kozmetik", "cilt bakımı", "serum", "nemlendirici", "mitenya"],
   metadataBase: new URL(baseUrl),
   applicationName: "Mitenya",
   manifest: "/manifest.webmanifest",
@@ -141,13 +94,13 @@ export const generateMetadata = async () => ({
   openGraph: {
     type: "website",
     siteName: "Mitenya",
-    title: "Mitenya | Kozmetik ve Güzellik Ürünleri",
-    description: "En kaliteli kozmetik ve güzellik ürünleri. Cilt bakımı, makyaj, parfüm ve kişisel bakım ürünlerinde geniş ürün yelpazesi.",
+    title: "Mitenya | Kore Kozmetik ve Cilt Bakım Ürünleri",
+    description: "Orijinal Kore kozmetik ve cilt bakım ürünleri. K-beauty, Kore makyaj, serum, nemlendirici ve cilt bakım rutini ürünleri.",
     locale: "tr_TR",
     images: [
       {
         url: "/static/images/ogBanner.webp",
-        alt: "Mitenya - Kozmetik ve Güzellik Ürünleri",
+        alt: "Mitenya - Kore Kozmetik ve Cilt Bakım Ürünleri",
         width: 1200,
         height: 630,
       },
@@ -155,8 +108,8 @@ export const generateMetadata = async () => ({
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mitenya | Kozmetik ve Güzellik Ürünleri",
-    description: "En kaliteli kozmetik ve güzellik ürünleri. Cilt bakımı, makyaj, parfüm ve kişisel bakım.",
+    title: "Mitenya | Kore Kozmetik ve Cilt Bakım Ürünleri",
+    description: "Orijinal Kore kozmetik ve cilt bakım ürünleri. K-beauty, Kore makyaj, serum ve cilt bakım rutini.",
   },
   robots: {
     index: true,

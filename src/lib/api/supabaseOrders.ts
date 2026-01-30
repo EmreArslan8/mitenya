@@ -63,7 +63,6 @@ export async function fetchOrderSupabase(id: string): Promise<ShopOrderData | un
     const { data: order, error: orderError } = await query.single();
 
     if (orderError || !order) {
-      console.error("Fetch order error:", orderError);
       return undefined;
     }
 

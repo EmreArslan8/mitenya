@@ -1,7 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 
-// GÜVENLİK: Admin client için mutlaka service role key gerekli
-// Fallback olarak anon key KULLANILMAMALI - yetki yükseltme riski!
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 

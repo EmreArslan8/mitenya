@@ -1,11 +1,10 @@
-import { ShopProductData } from '@/lib/api/types';
+import { fetchProductDataSupabase } from '@/lib/api/supabaseProducts';
 import isPreviewBot from '@/lib/utils/isPreviewBot';
 import isSSR from '@/lib/utils/isSSR';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import Loading from './loading';
 import SuspensedView from './suspensedView';
-import { fetchProductData } from '@/lib/api/shop';
 
 const ProductPage = async ({ params }: { params: { id: string } }) => {
   if (await isPreviewBot()) return <></>;
@@ -28,16 +27,20 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
 
   if (!isSSR() && !isPreviewBot()) return {};
 
-  const data = await fetchProductData(id);
+  const data = await fetchProductDataSupabase(id);
+
+  const fullName = `${data?.brand ?? ''} ${data?.name ?? ''}`.trim();
 
   return {
-    title: { absolute: `${data?.brand ?? ''} ${data?.name ?? ''} | Mitenya` },
+    title: { absolute: `${fullName} | Mitenya` },
+    description: `${fullName} - Orijinal Kore kozmetik ürünü. En uygun fiyat ve hızlı kargo ile Mitenya'da.`,
     openGraph: {
-      title: `${data?.brand ?? ''} ${data?.name ?? ''} | Mitenya`,
+      title: `${fullName} | Mitenya`,
+      description: `${fullName} - Orijinal Kore kozmetik ürünü Mitenya'da.`,
       images: [
         {
           url: data?.imgSrc ?? '/static/images/ogBanner.webp',
-          alt: data?.name,
+          alt: fullName,
           width: 1200,
           height: 630,
         },

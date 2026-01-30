@@ -3,6 +3,7 @@ import { rateLimit } from '@/lib/api/rateLimit';
 import { getClientIp } from '@/lib/api/getClientIp';
 
 const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
+const cmsBearer = process.env.STRAPI_BEARER;
 
 export async function GET(
   req: NextRequest,
@@ -14,12 +15,17 @@ export async function GET(
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
 
-  if (!strapiUrl) return NextResponse.json({ error: 'STRAPI_URL missing' }, { status: 500 });
+  if (!strapiUrl || !cmsBearer) return NextResponse.json({ error: 'Missing environment variables' }, { status: 500 });
 
   try {
     const res = await fetch(
-      `${strapiUrl}/blogs?filters[slug][$eq]=${params.slug}&populate[cover]=*`,
-      { next: { revalidate: 3600 } }
+      `${strapiUrl}/blogs?filters[slug][$eq]=${params.slug}&populate[cover]=*&publicationState=live`,
+      {
+        headers: {
+          Authorization: `Bearer ${cmsBearer}`,
+        },
+        next: { revalidate: 3600 },
+      }
     );
     if (!res.ok) {
       return NextResponse.json({ error: 'Failed to fetch blog' }, { status: res.status });

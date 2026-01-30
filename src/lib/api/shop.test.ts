@@ -90,7 +90,7 @@ describe('Shop API Client', () => {
 
       const result = await fetchProductData('prod-123');
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/products/prod-123/detail');
+      expect(mockFetch).toHaveBeenCalledWith('/api/products/prod-123');
       expect(result).toEqual(mockProduct);
     });
 
@@ -102,7 +102,7 @@ describe('Shop API Client', () => {
 
       await fetchProductData('prod-123', 'https://example.com');
 
-      expect(mockFetch).toHaveBeenCalledWith('https://example.com/api/products/prod-123/detail');
+      expect(mockFetch).toHaveBeenCalledWith('https://example.com/api/products/prod-123');
     });
 
     it('should return undefined on 404', async () => {
