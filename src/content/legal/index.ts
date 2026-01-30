@@ -10,7 +10,7 @@ const kvkkAydinlatma: LegalDocument = {
   html: `
 <p><strong>Veri Sorumlusu Kimliği:</strong></p>
 <p>ALSANCAK PAZARLAMA SANAYİ VE TİCARET LİMİTED ŞİRKETİ</p>
-<p>İletişim adresi: [-2-]</p>
+<p>İletişim adresi: destek@mitenya.com</p>
 <p>
   İşbu aydınlatma metni www.mitenya.com adresini ziyaret eden ve kullanan ilgili
   kişilerin kişisel verilerini konu edinmektedir.
@@ -184,7 +184,7 @@ const iadePolitikasi: LegalDocument = {
   gecikmeler için bizim sorumluluğumuz bulunmamaktadır.
 </p>
 <p>
-  - İade süreçlerine ilişkin her türlü talep, şikâyet ve sorularınızı [-4-]
+  - İade süreçlerine ilişkin her türlü talep, şikâyet ve sorularınızı h
   iletebilirsiniz.
 </p>
 `.trim(),
