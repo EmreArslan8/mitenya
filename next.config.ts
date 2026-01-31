@@ -62,7 +62,7 @@ const nextConfig = {
             const imgSrc = [
               "img-src 'self' data: https: blob:",
               isDev ? "http://localhost:1337" : null,
-              "https://pub-46ecb5f9254d4e0c9e5f3f098fac9887.r2.dev",
+              "https://pub-0f1b6b5801ac4f70a86a2ec4b0f72bbe.r2.dev",
             ]
               .filter(Boolean)
               .join(' ');

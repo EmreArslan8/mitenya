@@ -4,7 +4,7 @@ import { ShopSearchSort } from '@/lib/api/types';
 import searchUrlFromOptions, { searchOptionsFromSearchParams } from '@/lib/shop/searchHelpers';
 import { Box, MenuItem, Select } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import LoadingOverlay from '../LoadingOverlay';
 import { ArrowUpDown, ChevronDown } from 'lucide-react';
 
@@ -12,8 +12,21 @@ const SearchSort = ({ sortOptions }: { sortOptions: ShopSearchSort[] }) => {
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [sort, setSort] = useState<ShopSearchSort>('rcc');
+  const [sort, setSort] = useState<ShopSearchSort>('rct');
   const [loading, setLoading] = useState(false);
+
+  const sortLabels = useMemo<Record<ShopSearchSort, string>>(
+    () => ({
+      rct: 'Önerilen',
+      disc: 'İndirimli',
+      pasc: 'Fiyat (Artan)',
+      pdsc: 'Fiyat (Azalan)',
+      rcc: 'Önerilen',
+      bst: 'En çok satan',
+      fav: 'En favori',
+    }),
+    []
+  );
 
   const handleSelect = (sort: ShopSearchSort) => {
     const currentSearchOptions = searchOptionsFromSearchParams(searchParams);
@@ -25,7 +38,7 @@ const SearchSort = ({ sortOptions }: { sortOptions: ShopSearchSort[] }) => {
 
   useEffect(() => {
     const currentSearchOptions = searchOptionsFromSearchParams(searchParams);
-    setSort((currentSearchOptions.sort as ShopSearchSort) ?? 'rcc');
+    setSort((currentSearchOptions.sort as ShopSearchSort) ?? 'rct');
     setLoading(false);
   }, [searchParams]);
 
@@ -48,7 +61,7 @@ const SearchSort = ({ sortOptions }: { sortOptions: ShopSearchSort[] }) => {
       >
         {sortOptions.map((e) => (
           <MenuItem value={e} key={e}>
-            {(e)}
+            {sortLabels[e] ?? e}
           </MenuItem>
         ))}
       </Select>

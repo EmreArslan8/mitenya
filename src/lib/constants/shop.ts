@@ -30,5 +30,5 @@ export const PRICE_RANGES = [
 export const DEFAULT_CURRENCY = 'TRY';
 
 // Sort options
-export const SORT_OPTIONS: ('rct' | 'asc' | 'dsc')[] = ['rct', 'asc', 'dsc'];
+export const SORT_OPTIONS: ('rct' | 'disc' | 'pasc' | 'pdsc')[] = ['rct', 'disc', 'pasc', 'pdsc'];
 export const DEFAULT_SORT = 'rct';

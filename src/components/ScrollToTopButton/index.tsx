@@ -12,7 +12,7 @@ const ScrollToTopButton = ({ threshold = 500 }: ScrollToTopButtonProps) => {
   const styles = useStyles()(scrollPosition > threshold);
   return (
     <Stack sx={styles.container} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-      <ChevronUp color="tertiary" />
+      <ChevronUp color={styles.iconColor} size={20} />
     </Stack>
   );
 };

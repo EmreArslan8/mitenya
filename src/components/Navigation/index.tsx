@@ -143,6 +143,11 @@ const Navigation = ({ data }: NavigationProps) => {
   };
 
   useEffect(() => {
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
     isMobileRef.current = smDown;
     if (!smDown) setCartModalOpen(false);
   }, [smDown, pathname, cartModalOpen]);

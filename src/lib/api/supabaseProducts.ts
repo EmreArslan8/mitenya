@@ -93,6 +93,7 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
     brandId: data.brand_id,
     name: data.name,
     category: data.category_name,
+    categoryId: data.category_id,
     url: `/product/${data.slug || data.id}`,
     images: imageUrls,
     imgSrc,

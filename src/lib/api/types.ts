@@ -197,6 +197,7 @@ export type ShopProductData = {
   brand?: string;
   brandId?: string;
   category?: string;
+  categoryId?: string;
   imgSrc?: string;
   images?: string[];
   variants?: ShopProductVariantData[];
@@ -272,7 +273,16 @@ export type ShopSearchResponseFilters = {
   priceRanges?: ShopFilter<'price'>[];
 };
 
-export type ShopSearchSort = 'dsc' | 'asc' | 'rcc' | 'bst' | 'fav' | 'rct';
+export type ShopSearchSort =
+  | 'dsc'
+  | 'asc'
+  | 'rcc'
+  | 'bst'
+  | 'fav'
+  | 'rct'
+  | 'pasc'
+  | 'pdsc'
+  | 'disc';
 
 
 export type ShopSearchOptions = {
