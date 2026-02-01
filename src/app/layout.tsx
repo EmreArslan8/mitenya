@@ -28,6 +28,7 @@ export default async function RootLayout({
   return (
   <html lang="tr" className={albertSans.variable}>
       <head>
+        <meta charSet="utf-8" />
         {isProduction && (
           <Script
             id="gtm-init"
