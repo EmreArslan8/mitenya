@@ -12,9 +12,12 @@ export const mapCreateCustomerPayload = (body: any) => {
     };
   };
   
-  export const mapSupabaseCustomer = (raw: CustomerDB): CustomerData => {
+export const mapSupabaseCustomer = (raw: CustomerDB): CustomerData => {
+    const fullName =
+      raw.full_name?.trim() ||
+      `${raw.name ?? ""} ${raw.surname ?? ""}`.trim();
     return {
-      fullName: raw.full_name,
+      fullName,
       email: raw.email,
       culture: raw.culture,
       phone: raw.phone ?? undefined,

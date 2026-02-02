@@ -1,0 +1,240 @@
+[
+    {
+        "id": 10355,
+        "name": "Ali Çetinkaya",
+        "kimlikNo": 10355,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10356,
+        "name": "Fethiye",
+        "kimlikNo": 10356,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10357,
+        "name": "Fevzipaşa-Vehbibey",
+        "kimlikNo": 10357,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10358,
+        "name": "Hamdibey",
+        "kimlikNo": 10358,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10359,
+        "name": "Hayrettinpaşa",
+        "kimlikNo": 10359,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10360,
+        "name": "Ismetpaşa",
+        "kimlikNo": 10360,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10361,
+        "name": "Kazım Karabekir",
+        "kimlikNo": 10361,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10362,
+        "name": "Gazi Kemal Paşa",
+        "kimlikNo": 10362,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10363,
+        "name": "Mithatpaşa",
+        "kimlikNo": 10363,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10364,
+        "name": "Namık Kemal",
+        "kimlikNo": 10364,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10365,
+        "name": "Sakarya",
+        "kimlikNo": 10365,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10366,
+        "name": "Sefa Çamlık",
+        "kimlikNo": 10366,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10368,
+        "name": "Yeni",
+        "kimlikNo": 10368,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10369,
+        "name": "Zekibey",
+        "kimlikNo": 10369,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10370,
+        "name": "150 Evler",
+        "kimlikNo": 10370,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 10371,
+        "name": "Sahil Kent",
+        "kimlikNo": 10371,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147097,
+        "name": "Küçükköy",
+        "kimlikNo": 147097,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147099,
+        "name": "Altınova",
+        "kimlikNo": 147099,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147101,
+        "name": "Bağyüzü",
+        "kimlikNo": 147101,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147103,
+        "name": "Çamoba",
+        "kimlikNo": 147103,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147105,
+        "name": "Hacıveliler",
+        "kimlikNo": 147105,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147107,
+        "name": "Murateli",
+        "kimlikNo": 147107,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147109,
+        "name": "Mutlu",
+        "kimlikNo": 147109,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147111,
+        "name": "Tıfıllar",
+        "kimlikNo": 147111,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147113,
+        "name": "Türközü",
+        "kimlikNo": 147113,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147115,
+        "name": "Yeniköy",
+        "kimlikNo": 147115,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147117,
+        "name": "Akçapınar",
+        "kimlikNo": 147117,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147119,
+        "name": "Beşiktepe",
+        "kimlikNo": 147119,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147121,
+        "name": "Bulutçeşme",
+        "kimlikNo": 147121,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147123,
+        "name": "Çakmak",
+        "kimlikNo": 147123,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147125,
+        "name": "Karaayıt",
+        "kimlikNo": 147125,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147127,
+        "name": "Kırcalar",
+        "kimlikNo": 147127,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147129,
+        "name": "Odaburnu",
+        "kimlikNo": 147129,
+        "il_id": 10,
+        "ilce_id": 1161
+    },
+    {
+        "id": 147131,
+        "name": "Üçkabaağaç",
+        "kimlikNo": 147131,
+        "il_id": 10,
+        "ilce_id": 1161
+    }
+]

@@ -12,6 +12,7 @@ const OrdersPage = async () => {
 export const metadata = {
   title: 'Siparişlerim',
   description: 'Tüm siparişlerinizi görüntüleyin ve takip edin.',
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = 'force-dynamic';

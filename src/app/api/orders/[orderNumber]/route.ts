@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServer } from "@/lib/supabase/server";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { orderNumber: string } }
+  req: NextRequest,
+  { params }: { params: Promise<{ orderNumber: string }> }
 ) {
   try {
     const supabase = await createSupabaseServer();
@@ -13,11 +13,8 @@ export async function GET(
       error: authError,
     } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { orderNumber } = params;
+    const { orderNumber } = await params;
+    const token = new URL(req.url).searchParams.get("t");
 
     if (!orderNumber) {
       return NextResponse.json({ error: "Order number gerekli" }, { status: 400 });
@@ -44,11 +41,53 @@ export async function GET(
     }
 
     const isOwner =
-      order.user_id === user.id ||
-      (!!order.user_email && !!user.email && order.user_email === user.email);
+      !!user &&
+      (order.user_id === user.id ||
+        (!!order.user_email && !!user.email && order.user_email === user.email));
 
-    if (!isOwner) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    let hasValidToken = false;
+    if (!isOwner && token) {
+      const rawMeta = order.metadata ?? null;
+      let meta: any = rawMeta;
+      try {
+        if (typeof rawMeta === "string") meta = JSON.parse(rawMeta);
+      } catch {
+        meta = rawMeta;
+      }
+      const savedToken = meta?.success_token;
+      const expiresAt = meta?.success_token_expires_at;
+      if (savedToken && token === savedToken) {
+        if (!expiresAt) {
+          hasValidToken = true;
+        } else {
+          const expiry = new Date(expiresAt).getTime();
+          hasValidToken = Number.isFinite(expiry) ? Date.now() <= expiry : false;
+        }
+      }
+    }
+
+    if (!isOwner && !hasValidToken) {
+      // Avoid order existence leak
+      return NextResponse.json({ error: "Siparis bulunamadi" }, { status: 404 });
+    }
+
+    if (hasValidToken) {
+      // One-time token: clear after successful use
+      const rawMeta = order.metadata ?? null;
+      let meta: any = rawMeta;
+      try {
+        if (typeof rawMeta === "string") meta = JSON.parse(rawMeta);
+      } catch {
+        meta = rawMeta;
+      }
+      if (meta && meta.success_token) {
+        delete meta.success_token;
+        delete meta.success_token_expires_at;
+        await supabaseAdmin
+          .from("orders")
+          .update({ metadata: meta })
+          .eq("id", order.id);
+      }
     }
 
     // Order items'ları çek

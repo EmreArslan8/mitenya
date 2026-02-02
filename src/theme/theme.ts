@@ -50,6 +50,18 @@ declare module '@mui/material/styles' {
   interface CustomPalette {
     tertiary: PaletteColorOptions;
     bg: PaletteColorOptions;
+    gray: {
+      900: string;
+      800: string;
+      700: string;
+      600: string;
+      500: string;
+      400: string;
+      300: string;
+      200: string;
+      100: string;
+      50: string;
+    };
   }
   interface Palette extends CustomPalette {}
   interface PaletteOptions extends CustomPalette {}
@@ -179,15 +191,16 @@ export const getDesignTokens = (
           {
             props: { color: 'primary', variant: 'outlined' },
             style: {
-              borderColor: palette.primary.main,
-              background: palette.primary.light,
+              border: `2px solid ${palette.text.main}`,
+              background: palette.white.main,
+              color: palette.text.main,
               '&.Mui-disabled': {
-                color: `${palette.primary.main}60`,
-                borderColor: `${palette.primary.main}60`,
+                color: `${palette.text.main}60`,
+                borderColor: `${palette.text.main}60`,
               },
               '&:hover': {
-                borderColor: palette.primary.main,
-                background: palette.primary.light,
+                borderColor: palette.text.main,
+                background: palette.bg.light,
               },
             },
           },

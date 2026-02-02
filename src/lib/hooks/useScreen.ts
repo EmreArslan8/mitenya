@@ -3,7 +3,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 
 const useScreen = () => {
   const theme = useTheme();
-  const ssrOptions = { noSsr: true };
+  const ssrOptions = { defaultMatches: false, noSsr: true };
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'), ssrOptions);
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'), ssrOptions);
 

@@ -1,0 +1,338 @@
+[
+    {
+        "id": 319,
+        "name": "Belenköy",
+        "kimlikNo": 319,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 320,
+        "name": "Gökçeli",
+        "kimlikNo": 320,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 321,
+        "name": "Karacauşağı",
+        "kimlikNo": 321,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 322,
+        "name": "Kazancı",
+        "kimlikNo": 322,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 323,
+        "name": "Yeşil Düşmüş",
+        "kimlikNo": 323,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 324,
+        "name": "Sülemişli",
+        "kimlikNo": 324,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 325,
+        "name": "Keklikçi",
+        "kimlikNo": 325,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 326,
+        "name": "Karacaoğlan",
+        "kimlikNo": 326,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 327,
+        "name": "Islam",
+        "kimlikNo": 327,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177103,
+        "name": "Akkaya",
+        "kimlikNo": 177103,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177105,
+        "name": "Akoluk",
+        "kimlikNo": 177105,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177107,
+        "name": "Bağdatlı",
+        "kimlikNo": 177107,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177109,
+        "name": "Bahçecik",
+        "kimlikNo": 177109,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177111,
+        "name": "Çandırlar",
+        "kimlikNo": 177111,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177113,
+        "name": "Çürükler",
+        "kimlikNo": 177113,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177115,
+        "name": "Değirmenciuşağı",
+        "kimlikNo": 177115,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177117,
+        "name": "Gedikli",
+        "kimlikNo": 177117,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177119,
+        "name": "Göbelli",
+        "kimlikNo": 177119,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177121,
+        "name": "Gürümze",
+        "kimlikNo": 177121,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177123,
+        "name": "Güzpınarı",
+        "kimlikNo": 177123,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177125,
+        "name": "Hıdıruşağı",
+        "kimlikNo": 177125,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177127,
+        "name": "Incirci",
+        "kimlikNo": 177127,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177129,
+        "name": "Kaşaltı",
+        "kimlikNo": 177129,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177131,
+        "name": "Kayadibi",
+        "kimlikNo": 177131,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177133,
+        "name": "Kırıkuşağı",
+        "kimlikNo": 177133,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177135,
+        "name": "Kısacıklı",
+        "kimlikNo": 177135,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177137,
+        "name": "Kızılyer",
+        "kimlikNo": 177137,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177139,
+        "name": "Koçyazı",
+        "kimlikNo": 177139,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177141,
+        "name": "Konakkuran",
+        "kimlikNo": 177141,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177143,
+        "name": "Olucak",
+        "kimlikNo": 177143,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177145,
+        "name": "Paşalı",
+        "kimlikNo": 177145,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177147,
+        "name": "Süphandere",
+        "kimlikNo": 177147,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177149,
+        "name": "Tenkerli",
+        "kimlikNo": 177149,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177151,
+        "name": "Tokmanaklı",
+        "kimlikNo": 177151,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177153,
+        "name": "Tortulu",
+        "kimlikNo": 177153,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177155,
+        "name": "Uğurlubağ",
+        "kimlikNo": 177155,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177157,
+        "name": "Yaylapınar",
+        "kimlikNo": 177157,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177159,
+        "name": "Yerebakan",
+        "kimlikNo": 177159,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177161,
+        "name": "Kovukçınar",
+        "kimlikNo": 177161,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177163,
+        "name": "Mansurlu",
+        "kimlikNo": 177163,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177165,
+        "name": "Çondu",
+        "kimlikNo": 177165,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177167,
+        "name": "Kaleyüzü",
+        "kimlikNo": 177167,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177169,
+        "name": "Musalar",
+        "kimlikNo": 177169,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177171,
+        "name": "Ormancık",
+        "kimlikNo": 177171,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177173,
+        "name": "Ortaköy",
+        "kimlikNo": 177173,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177175,
+        "name": "Oruçlu",
+        "kimlikNo": 177175,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177177,
+        "name": "Şahmuratlı",
+        "kimlikNo": 177177,
+        "il_id": 1,
+        "ilce_id": 1329
+    },
+    {
+        "id": 177179,
+        "name": "Gaffaruşağı",
+        "kimlikNo": 177179,
+        "il_id": 1,
+        "ilce_id": 1329
+    }
+]

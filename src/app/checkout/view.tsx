@@ -19,14 +19,20 @@ import { ShopContext } from '@/contexts/ShopContext';
 import { getOrderSummary } from '@/lib/api/checkout';
 import { AddressData, PaymentType, ShopOrderSummaryData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
-import { bannerHeight, headerHeight } from '@/theme/theme';
 import { withCsrfHeaders } from '@/lib/utils/csrf';
 import formatPrice from '@/lib/utils/formatPrice';
 import { useCheckoutAnalytics } from '@/lib/utils/googleAnalytics';
+import {
+  generatePreInfoHtml,
+  generateDistanceSaleHtml,
+  DOC_VERSION,
+  type ContractData,
+} from '@/lib/legal/contractTemplates';
+import LegalDocumentModal from '@/components/contracts/LegalDocumentModal';
 import { Box, Checkbox, Divider, Snackbar, Stack, Typography, debounce } from '@mui/material';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import useStyles from './styles';
 import { Check, CheckCircle, ChevronDown, CreditCard, ShoppingBag, Truck } from 'lucide-react';
 
@@ -55,6 +61,10 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
   const [paymentPortalOpen, setPaymentPortalOpen] = useState(false);
   const [showDiscountCodeSnackbar, setShowDiscountCodeSnackbar] = useState(false);
+  const [preInfoAccepted, setPreInfoAccepted] = useState(false);
+  const [distanceSaleAccepted, setDistanceSaleAccepted] = useState(false);
+  const [preInfoModalOpen, setPreInfoModalOpen] = useState(false);
+  const [distanceSaleModalOpen, setDistanceSaleModalOpen] = useState(false);
   const handleDestinationChange = (newValue: AddressData) => setDestination(newValue);
   const handleAddressAdded = (newAddress: AddressData) => {
     setDestination(newAddress);
@@ -120,7 +130,17 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         phone: `${destination.phoneCode}${destination.phoneNumber}`,
       };
 
-      // Sipariş oluştur
+      // Sözleşme HTML'lerini oluştur
+      const consents = contractData
+        ? {
+            pre_info_accepted: preInfoAccepted,
+            distance_sale_accepted: distanceSaleAccepted,
+            pre_info_html: generatePreInfoHtml(contractData),
+            distance_sale_html: generateDistanceSaleHtml(contractData),
+          }
+        : undefined;
+
+        
       const response = await fetch(
         '/api/orders/create',
         withCsrfHeaders({
@@ -136,6 +156,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
             discount_amount: orderSummary?.totalDiscount || 0,
             discount_code: discountCode,
             currency: 'TRY',
+            consents,
           }),
         })
       );
@@ -150,7 +171,8 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
       removeItems(selected);
 
       // Başarı sayfasına yönlendir
-      router.push(`/success/${data.order.order_number}`);
+      const tokenParam = data?.success_token ? `?t=${encodeURIComponent(data.success_token)}` : '';
+      router.push(`/success${tokenParam}`);
     } catch (error: any) {
       console.error('Checkout error:', error);
       alert(error.message || 'Bir hata oluştu');
@@ -190,6 +212,74 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
     sendBeginCheckout(selected);
   }, [selected]);
 
+  // Adres, ürün veya ödeme yöntemi değiştiğinde sözleşme onaylarını sıfırla
+  useEffect(() => {
+    setPreInfoAccepted(false);
+    setDistanceSaleAccepted(false);
+  }, [destination, selected, paymentType]);
+
+  const paymentMethodLabel =
+    paymentType === 'COD'
+      ? 'Kapıda Ödeme'
+      : paymentType === 'UniversalBank'
+        ? 'Uzcard / Humo'
+        : 'Kredi / Banka Kartı';
+
+  const contractData = useMemo((): ContractData | null => {
+    if (!selected?.length) return null;
+
+    const buyerAddress = destination
+      ? [
+          destination.line1,
+          destination.line2,
+          destination.district,
+          destination.city,
+          destination.postcode,
+        ]
+          .filter(Boolean)
+          .join(', ')
+      : '';
+
+    return {
+      buyer: {
+        fullName: destination
+          ? `${destination.contactName} ${destination.contactSurname}`
+          : (customerData?.fullName ?? ''),
+        address: buyerAddress,
+        phone: destination
+          ? `${destination.phoneCode}${destination.phoneNumber}`
+          : (customerData?.phone ?? ''),
+        email: customerData?.email ?? '',
+      },
+      products: selected.map((item) => {
+        const variantStr = item.variants
+          ?.map((v) => {
+            const sel = v.options.find((o) => o.selected);
+            return sel ? `${v.name}: ${sel.value}` : null;
+          })
+          .filter(Boolean)
+          .join(', ');
+        return {
+          name: item.name || '',
+          quantity: item.quantity,
+          unitPrice: item.price.currentPrice,
+          totalPrice: item.price.currentPrice * item.quantity,
+          variant: variantStr || undefined,
+        };
+      }),
+      orderSummary: {
+        subtotal: orderSummary?.productCost ?? 0,
+        shippingCost: orderSummary?.shipmentCost ?? 0,
+        discount: orderSummary?.totalDiscount ?? 0,
+        total: orderSummary?.totalDue ?? 0,
+        currency: orderSummary?.currency ?? 'TRY',
+      },
+      paymentMethod: paymentMethodLabel,
+      deliveryAddress: buyerAddress,
+      date: new Date().toLocaleDateString('tr-TR'),
+    };
+  }, [destination, selected, customerData, orderSummary, paymentMethodLabel]);
+
   useEffect(() => {
     if (directToPaymentOnAddressAdded) {
       setDirectToPaymentOnAddressAdded(false);
@@ -214,16 +304,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         </Snackbar>
       )}
       {!orderSummary && <LoadingOverlay loading />}
-      <Stack
-        gap={3}
-        sx={{
-          mt: {
-            xs: `${headerHeight.xs + bannerHeight - 32}px`,
-            sm: `${headerHeight.sm + bannerHeight - 48}px`,
-            md: 0,
-          },
-        }}
-      >
+      <Stack gap={3}>
         <TwoColumnLayout sx={{ pb: 3, gap: { xs: 2, sm: 3 } }}>
           <PrimaryColumn>
             <Card
@@ -385,6 +466,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                         <Image
                           src={`/static/images/${e}.svg`}
                           alt={e}
+                          key={e}
                           width={36}
                           height={28}
                           style={{ objectFit: 'contain' }}
@@ -428,32 +510,43 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
               onSubmitDiscountCode={setDiscountCode}
               showLines
               action={
-                <Stack gap={2}>
-                  {/* <Banner noIcon variant={termsError ? 'error' : 'neutral'} border ref={termsRef}>
-                    <Stack direction="row" alignItems="center">
+                <Stack gap={1.5}>
+                  <Stack gap={0.5}>
+                    <Stack direction="row" alignItems="flex-start">
                       <Checkbox
                         size="small"
-                        onChange={(e) => {
-                          setTermsAccepted(e.target.checked);
-                          setTermsError(false);
-                        }}
+                        checked={preInfoAccepted}
+                        onChange={(e) => setPreInfoAccepted(e.target.checked)}
+                        sx={{ mt: -0.5 }}
                       />
-                      <Typography sx={styles.terms}>
-                        {t.rich('cart.page.checkoutCard.terms', {
-                          terms: (chunks) => (
-                            <Link href="/terms-of-service" colored>
-                              {chunks}
-                            </Link>
-                          ),
-                          privacy: (chunks) => (
-                            <Link href="/privacy-policy" colored>
-                              {chunks}
-                            </Link>
-                          ),
-                        })}
+                      <Typography variant="body2" sx={{ fontSize: 13, lineHeight: '20px' }}>
+                        <span
+                          style={{ textDecoration: 'underline', cursor: 'pointer' }}
+                          onClick={() => setPreInfoModalOpen(true)}
+                        >
+                          Ön Bilgilendirme Formu
+                        </span>
+                        {`'nu okudum ve kabul ediyorum.`}
                       </Typography>
                     </Stack>
-                  </Banner> */}
+                    <Stack direction="row" alignItems="flex-start">
+                      <Checkbox
+                        size="small"
+                        checked={distanceSaleAccepted}
+                        onChange={(e) => setDistanceSaleAccepted(e.target.checked)}
+                        sx={{ mt: -0.5 }}
+                      />
+                      <Typography variant="body2" sx={{ fontSize: 13, lineHeight: '20px' }}>
+                        <span
+                          style={{ textDecoration: 'underline', cursor: 'pointer' }}
+                          onClick={() => setDistanceSaleModalOpen(true)}
+                        >
+                          Mesafeli Satış Sözleşmesi
+                        </span>
+                        {`'ni okudum ve kabul ediyorum.`}
+                      </Typography>
+                    </Stack>
+                  </Stack>
                   <Button
                     loading={continueButtonLoading}
                     variant="contained"
@@ -461,6 +554,8 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                     disabled={
                       !selected?.length ||
                       summaryLoading ||
+                      !preInfoAccepted ||
+                      !distanceSaleAccepted ||
                       (paymentType === 'COD' &&
                         orderSummary?.cashOnDeliveryAvailability.isAvailable === false)
                     }
@@ -513,7 +608,13 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                   variant="contained"
                   size="small"
                   arrow="end"
-                  disabled={!selected?.length}
+                  disabled={
+                    !selected?.length ||
+                    !preInfoAccepted ||
+                    !distanceSaleAccepted ||
+                    (paymentType === 'COD' &&
+                      orderSummary?.cashOnDeliveryAvailability.isAvailable === false)
+                  }
                   onClick={handleCheckout}
                 >
                   Ödeme
@@ -546,6 +647,18 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         }}
         onAddressAdded={handleAddressAdded}
         defaultName="Adresim"
+      />
+      <LegalDocumentModal
+        open={preInfoModalOpen}
+        title="Ön Bilgilendirme Formu"
+        html={contractData ? generatePreInfoHtml(contractData) : ''}
+        onClose={() => setPreInfoModalOpen(false)}
+      />
+      <LegalDocumentModal
+        open={distanceSaleModalOpen}
+        title="Mesafeli Satış Sözleşmesi"
+        html={contractData ? generateDistanceSaleHtml(contractData) : ''}
+        onClose={() => setDistanceSaleModalOpen(false)}
       />
     </>
   );

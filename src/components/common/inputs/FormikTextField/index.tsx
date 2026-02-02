@@ -78,7 +78,7 @@ const FormikTextField = ({
         helperText={
           (showHelperText && formik.touched[fieldKey] && formik.errors[fieldKey]) || helperText
         }
-        sx={{ '& .MuiFormHelperText-root': { mx: 1, mt: '2px' } }}
+        sx={{ '& .MuiFormHelperText-root': { mx: 1, mt: '2px' }, ...props?.sx }}
       />
     </Stack>
   );

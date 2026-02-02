@@ -19,7 +19,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import Card from '../common/Card';
 import EditAddressModal from './modals/EditAddressModal';
 import styles from './styles';
-import { ChevronDown, MapPin, Pencil, Trash2 } from 'lucide-react';
+import { ChevronDown, MapPin, Pencil, Trash } from 'lucide-react';
 
 const gridColumns = {
   contactName: { xs: 6 },
@@ -153,7 +153,7 @@ const AddressCard = ({
                   sx={{ my: -1, color: 'error.main' }}
                   disabled={id == null}
                 >
-                  <Trash2 size={20} color="currentColor" />
+                  <Trash size={20} color="currentColor" />
                 </IconButton>
               )}
             </Stack>

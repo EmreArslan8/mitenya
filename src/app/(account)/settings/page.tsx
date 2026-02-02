@@ -23,6 +23,7 @@ const SettingsPage = async () => {
 export const metadata = {
   title: 'Hesap Ayarları',
   description: 'Hesap bilgilerinizi ve adres defterinizi yönetin.',
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = 'force-dynamic';

@@ -40,6 +40,11 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     )
     .range(offset, offset + PRODUCTS_PER_PAGE - 1);
 
+  // Always pick a single price row per product (lowest current price)
+  query = query
+    .order("price_current", { ascending: true, foreignTable: "product_prices" })
+    .limit(1, { foreignTable: "product_prices" });
+
   // category filter
   if (selectedCategoryIds.length) query = query.in("category_id", selectedCategoryIds);
 
@@ -68,6 +73,15 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       query = query.order("created_at", { ascending: true });
       break;
     case "dsc":
+      query = query.order("created_at", { ascending: false });
+      break;
+    case "pasc":
+      query = query.order("price_current", { ascending: true, foreignTable: "product_prices" });
+      break;
+    case "pdsc":
+      query = query.order("price_current", { ascending: false, foreignTable: "product_prices" });
+      break;
+    case "disc":
       query = query.order("created_at", { ascending: false });
       break;
     default:
@@ -130,6 +144,19 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
           : undefined,
     };
   });
+
+  if (sort === "disc") {
+    products.sort((a, b) => {
+      const aOriginal = a.price?.originalPrice ?? 0;
+      const bOriginal = b.price?.originalPrice ?? 0;
+      const aCurrent = a.price?.currentPrice ?? 0;
+      const bCurrent = b.price?.currentPrice ?? 0;
+      const aDiscount = aOriginal > aCurrent ? aOriginal - aCurrent : 0;
+      const bDiscount = bOriginal > bCurrent ? bOriginal - bCurrent : 0;
+      return bDiscount - aDiscount;
+    });
+  }
+
 
   // ---------------------------------------------------
   // BUILD FILTERS FROM CACHE

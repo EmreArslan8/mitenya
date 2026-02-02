@@ -54,8 +54,8 @@ const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => vo
           <IconButton onClick={() => setEditModalOpen(true)}>
             <Pencil size={20} />
           </IconButton>
-          <IconButton onClick={handleDeleteButtonClick}>
-            <Trash name="delete" color="error" size={22} />
+          <IconButton onClick={handleDeleteButtonClick} sx={{ color: 'error.main' }}>
+            <Trash size={22} color="currentColor" />
           </IconButton>
         </Stack>
       </Stack>

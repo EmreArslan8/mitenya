@@ -77,6 +77,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/blogs`,
       lastModified: new Date(),
     },
+    {
+      url: `${baseUrl}/cerez-politikasi`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/iade-politikasi`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/kullanim-kosullari`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/kvkk`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/mesafeli-satis-sozlesmesi`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/on-bilgilendirme-formu`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/uyelik-ve-kullanim-sartlari`,
+      lastModified: new Date(),
+    },
   ];
 
   const blogRoutes = blogSlugs.map((blog) => ({

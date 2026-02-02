@@ -22,7 +22,7 @@ import ProductVariants from './components/ProductVariants';
 import ProgressIndicator from './components/ProgressIndicator';
 import useStyles from './styles';
 import formatPrice from '@/lib/utils/formatPrice';
-import { Check, SquareArrowOutUpRight } from 'lucide-react';
+import { Check, ChevronRight, SquareArrowOutUpRight } from 'lucide-react';
 import ProductImageMagnifier from './components/ProductImageMagnifier';
 
 const ProductPageView = ({ data }: { data: ShopProductData }) => {
@@ -34,11 +34,24 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const [currentImg, setCurrentImg] = useState(data.imgSrc);
   const [variants, setVariants] = useState(data.variants);
   const [showCheck, setShowCheck] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const checkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
+console.log(data.price, "fiyat ")
 
+  const categoryLabel = data.category?.trim();
+  const categoryHref = data.categoryId
+    ? searchUrlFromOptions({ category: data.categoryId })
+    : undefined;
+  const fullName = data.name ?? '';
+  const displayName =
+    fullName
+      .split(' - ')[0]
+      ?.split(' – ')[0]
+      ?.split(' — ')[0]
+      ?.trim() || fullName;
   const handleSelectOption = (variantName: string, optionValue: string) => {
     setVariants((prev) =>
       prev?.map((v) =>
@@ -72,9 +85,12 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
   };
 
   useEffect(() => {
+    setMounted(true);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const isDesktop = mounted && smUp;
 
   useEffect(() => {
     return () => {
@@ -85,35 +101,65 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
   return (
     <Stack gap={5}>
       <Stack gap={2}>
+        <Stack direction="row" alignItems="center" gap={0.5} sx={styles.breadcrumbs}>
+          <Link href="/" prefetch={false}>
+            <Typography component="span">Ana Sayfa</Typography>
+          </Link>
+          <ChevronRight size={14} />
+          {categoryLabel ? (
+            <>
+              <Link href={categoryHref} prefetch={false}>
+                <Typography component="span">{categoryLabel}</Typography>
+              </Link>
+              <ChevronRight size={14} />
+            </>
+          ) : null}
+          <Typography component="span" sx={{ fontWeight: 600 }} title={fullName}>
+            {displayName}
+          </Typography>
+        </Stack>
         <Grid container columnSpacing={{ sm: 5 }} sx={styles.productContainer}>
-          <Grid item xs={12} sm={6} sx={styles.imageGridItem} ref={smUp ? null : imgContainerRef}>
-            {smUp ? (
+          <Grid
+            item
+            xs={12}
+            sm={6}
+            sx={styles.imageGridItem}
+            ref={isDesktop ? null : imgContainerRef}
+          >
+            {isDesktop ? (
               <Card sx={styles.imageCard}>
-                <Box sx={styles.magnifierWrapper}>
-                  <ProductImageMagnifier
-                    src={currentImg}
-                    alt={data.name}
-                    zoomLevel={2.5}
-                  />
-                </Box>
-                {data.images && data.images.length > 1 && (
-                  <Tabs
-                    variant="scrollable"
-                    scrollButtons
-                    value={currentImg}
-                    sx={styles.thumbnails}
-                  >
-                    {data.images.map((src) => (
-                      <Tab
-                        label={<img src={src} alt="" style={styles.thumbnailImage} />}
-                        value={src}
-                        onClick={() => setCurrentImg(src)}
-                        sx={styles.thumbnail}
-                        key={src}
+                <Grid container columnSpacing={2} sx={styles.imageSplitGrid}>
+                  <Grid item xs={2} sx={styles.thumbnailColumn}>
+                    {data.images && data.images.length > 1 && (
+                      <Tabs
+                        orientation="vertical"
+                        variant="scrollable"
+                        scrollButtons
+                        value={currentImg}
+                        sx={styles.thumbnailsVertical}
+                      >
+                        {data.images.map((src) => (
+                          <Tab
+                            label={<img src={src} alt="" style={styles.thumbnailImage} />}
+                            value={src}
+                            onClick={() => setCurrentImg(src)}
+                            sx={styles.thumbnail}
+                            key={src}
+                          />
+                        ))}
+                      </Tabs>
+                    )}
+                  </Grid>
+                  <Grid item xs={10}>
+                    <Box sx={styles.magnifierWrapper}>
+                      <ProductImageMagnifier
+                        src={currentImg}
+                        alt={data.name}
+                        zoomLevel={2.5}
                       />
-                    ))}
-                  </Tabs>
-                )}
+                    </Box>
+                  </Grid>
+                </Grid>
               </Card>
             ) : (
               <>
@@ -148,8 +194,8 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                     <SquareArrowOutUpRight size={16} strokeWidth={3} style={{ marginTop: '2px' }} />
                   </Typography>
                 </Link>
-                <Typography variant="h3" sx={styles.productName}>
-                  {data.name}
+                <Typography variant="h3" sx={styles.productName} title={fullName}>
+                  {displayName}
                 </Typography>
                 {data.rating && (
                   <Stack sx={styles.rating}>
@@ -208,7 +254,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                   components={[
                     {
                       in: showCheck,
-                      component: smUp ? (
+                      component: isDesktop ? (
                         <Stack direction="row" alignItems="center" gap={1}>
                           <Check />
                           Eklendi
@@ -217,7 +263,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                         <Check />
                       ),
                     },
-                    { in: !showCheck, component: ('Sepete Ekle') },
+                    { in: !showCheck, component: 'Sepete Ekle' },
                   ]}
                 />
               </Button>

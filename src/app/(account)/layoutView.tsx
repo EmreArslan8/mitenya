@@ -20,7 +20,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode } from 'react';
 import useStyles from './styles';
 
-// 2. Routes dizisini ikon bileşenlerini içerecek şekilde güncelliyoruz
+
 const routes = [
   { label: 'Siparişlerim', url: '/orders', Icon: History },
   { label: 'Hesap Ayarları', url: '/settings', Icon: Settings },

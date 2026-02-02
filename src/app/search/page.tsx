@@ -29,8 +29,8 @@ export const generateMetadata = async ({
   return {
     title: query ? `"${query}" Arama Sonuçları` : 'Ürün Ara',
     description: query
-      ? `"${query}" araması için kozmetik ve güzellik ürünleri sonuçları.`
-      : 'Mitenya\'da kozmetik ve güzellik ürünlerini arayın.',
+      ? `"${query}" araması için Kore kozmetik ve cilt bakım ürünleri sonuçları.`
+      : 'Mitenya\'da Kore kozmetik, K-beauty ve cilt bakım ürünlerini arayın.',
   };
 };
 

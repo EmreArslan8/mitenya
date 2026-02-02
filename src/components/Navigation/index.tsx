@@ -62,10 +62,13 @@ interface NavigationProps {
   data: ShopHeaderData | undefined;
 }
 
+const MINIMAL_ROUTES = ['/payment'];
+
 const Navigation = ({ data }: NavigationProps) => {
   const isMobileApp = useIsMobileApp();
   const router = useRouter();
   const pathname = usePathname();
+  const isMinimal = MINIMAL_ROUTES.some((r) => pathname?.startsWith(r));
   const { isAuthenticated, openAuthenticator } = useAuth();
   const { numItems, newProductAdded } = useContext(ShopContext);
   const isCartEmpty = !numItems;
@@ -86,6 +89,8 @@ const Navigation = ({ data }: NavigationProps) => {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const collapseIn = mounted ? (!logoCollapsed || smUp) : true;
 
   const toggleCartModalOpen = () => {
     if (pathname === '/checkout') return;
@@ -138,6 +143,11 @@ const Navigation = ({ data }: NavigationProps) => {
   };
 
   useEffect(() => {
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
     isMobileRef.current = smDown;
     if (!smDown) setCartModalOpen(false);
   }, [smDown, pathname, cartModalOpen]);
@@ -150,6 +160,7 @@ const Navigation = ({ data }: NavigationProps) => {
     <>
       <Stack sx={styles.container}>
         <Stack sx={styles.innerContainer} ref={navbarRef}>
+          {!isMinimal && (
           <Stack sx={styles.banner}>
             <Stack sx={styles.bannerInnerContainer}>
               {data?.bannerLinks && (
@@ -175,8 +186,27 @@ const Navigation = ({ data }: NavigationProps) => {
               )}
             </Stack>
           </Stack>
+          )}
           <Stack sx={styles.content}>
             <Stack sx={styles.primaryBar}>
+              {isMinimal ? (
+                <>
+                  <Stack direction="row" alignItems="center" gap={1} sx={{ cursor: 'pointer' }} onClick={() => router.push('/')}>
+                    <Image
+                      src={styles.logo.src}
+                      alt="mitenya"
+                      width={styles.logo.width}
+                      height={styles.logo.height}
+                      style={styles.logo}
+                    />
+                  </Stack>
+                  <MenuItem onClick={() => router.push('/cart')} sx={{ gap: 1 }}>
+                    <ArrowLeft size={18} />
+                    <Typography fontSize={14}>Sepete Dön</Typography>
+                  </MenuItem>
+                </>
+              ) : (
+                <>
               {isMobileApp && pathname?.includes('/product/') ? (
                 <MenuItem onClick={() => router.back()} sx={styles.backButton}>
                   <ArrowLeft size={24} />
@@ -189,7 +219,7 @@ const Navigation = ({ data }: NavigationProps) => {
                     </IconButton>
                   )}
                   <Collapse
-                    in={!logoCollapsed || smUp}
+                    in={collapseIn}
                     orientation="horizontal"
                     unmountOnExit
                     onClick={() => router.push('/')}
@@ -198,9 +228,9 @@ const Navigation = ({ data }: NavigationProps) => {
                       mr: { sm: 2 },
 
                       '& .MuiCollapse-wrapperInner': {
-                        height: 40,              // 🔴 SABİT YÜKSEKLİK
+                        height: 40,
                         display: 'flex',
-                        alignItems: 'center',    // logo dikey ortalanır
+                        alignItems: 'center',
                       },
 
                       '& .MuiCollapse-wrapper': {
@@ -263,8 +293,10 @@ const Navigation = ({ data }: NavigationProps) => {
                   <ShoppingCartButton />
                 </Stack>
               )}
+                </>
+              )}
             </Stack>
-            {mounted && smUp && (
+            {!isMinimal && mounted && smUp && (
               <Stack sx={styles.secondaryBar}>
                 <Stack sx={styles.shopHeaderLinks}>
                   {data?.categories?.map((cat, index) => (
@@ -332,7 +364,7 @@ const Navigation = ({ data }: NavigationProps) => {
           </Stack>
         </Stack>
       </Stack>
-      {smDown && (
+      {!isMinimal && smDown && (
         <Stack sx={styles.bottomNavigation}>
           <BottomNavigation
             showLabels
@@ -364,7 +396,15 @@ const Navigation = ({ data }: NavigationProps) => {
             <BottomNavigationAction
               value="/cart"
               label="Sepet"
-              icon={<ShoppingBag />}
+              icon={
+                <Badge
+                  badgeContent={numItems}
+                  color="error"
+                  sx={{ '& .MuiBadge-badge': { minWidth: 18, height: 18, fontSize: 11, mt: '2px', px: 0.5 } }}
+                >
+                  <ShoppingBag />
+                </Badge>
+              }
               onClick={toggleCartModalOpen}
             />
             <BottomNavigationAction
@@ -393,102 +433,106 @@ const Navigation = ({ data }: NavigationProps) => {
           </BottomNavigation>
         </Stack>
       )}
-      <ModalCard
-        keepMounted={smDown}
-        open={cartModalOpen}
-        onClose={() => setCartModalOpen(false)}
-        showCloseIcon
-        title="Sepet"
-        CardProps={{
-          sx: {
-            height: '100%',
-            pb: 12,
-            width: { sm: isCartEmpty ? '100%' : undefined },
-            maxWidth: { sm: isCartEmpty ? '100%' : undefined },
-          },
-        }}
-        sx={{ zIndex: 1297 }}
-      >
-        <CartPageView
-          hideTitle
-          visible={cartModalOpen}
-          onContinue={() => setCartModalOpen(false)}
-          onItemClick={() => setCartModalOpen(false)}
-        />
-      </ModalCard>
-      <ModalCard
-        title="Hesap"
-        keepMounted={smDown}
-        showCloseIcon
-        open={accountModalOpen}
-        onClose={() => setAccountModalOpen(false)}
-        sx={{ zIndex: 1299 }}
-      >
-        <Grid container spacing={1} pb={9}>
-          <Grid item xs={12}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
-              {isAuthenticated ? (
-                <MenuItem onClick={signOut} sx={styles.logoutButton}>
-                  <LogOut /> Çıkış
-                </MenuItem>
-              ) : (
-                <MenuItem onClick={() => openAuthenticator()} sx={styles.loginButton}>
-                  <LogIn /> Giriş Yap
-                </MenuItem>
+      {!isMinimal && (
+        <>
+          <ModalCard
+            keepMounted={smDown}
+            open={cartModalOpen}
+            onClose={() => setCartModalOpen(false)}
+            showCloseIcon
+            title="Sepet"
+            CardProps={{
+              sx: {
+                height: '100%',
+                pb: 12,
+                width: { sm: isCartEmpty ? '100%' : undefined },
+                maxWidth: { sm: isCartEmpty ? '100%' : undefined },
+              },
+            }}
+            sx={{ zIndex: 1297 }}
+          >
+            <CartPageView
+              hideTitle
+              visible={cartModalOpen}
+              onContinue={() => setCartModalOpen(false)}
+              onItemClick={() => setCartModalOpen(false)}
+            />
+          </ModalCard>
+          <ModalCard
+            title="Hesap"
+            keepMounted={smDown}
+            showCloseIcon
+            open={accountModalOpen}
+            onClose={() => setAccountModalOpen(false)}
+            sx={{ zIndex: 1299 }}
+          >
+            <Grid container spacing={1} pb={9}>
+              <Grid item xs={12}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                  {isAuthenticated ? (
+                    <MenuItem onClick={signOut} sx={styles.logoutButton}>
+                      <LogOut /> Çıkış
+                    </MenuItem>
+                  ) : (
+                    <MenuItem onClick={() => openAuthenticator()} sx={styles.loginButton}>
+                      <LogIn /> Giriş Yap
+                    </MenuItem>
+                  )}
+                </Stack>
+              </Grid>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 1 }} />
+              </Grid>
+              {accountModalRoutes.map((e) => (
+                <Grid item xs={6} key={e.label}>
+                  <MenuItem
+                    onClick={() => {
+                      handleAccountButtonClick(e.url);
+                      setAccountModalOpen(false);
+                    }}
+                    sx={styles.accountMenuItem}
+                  >
+                    <e.icon size={18} />
+                    {e.labelTr}
+                  </MenuItem>
+                </Grid>
+              ))}
+              {getSupportUrl && (
+                <Grid item xs={6}>
+                  <MenuItem
+                    component="a"
+                    href={getSupportUrl!}
+                    target="_blank"
+                    sx={styles.accountMenuItem}
+                  >
+                    <Headset /> Yardım
+                  </MenuItem>
+                </Grid>
               )}
-            </Stack>
-          </Grid>
-          <Grid item xs={12}>
-            <Divider sx={{ my: 1 }} />
-          </Grid>
-          {accountModalRoutes.map((e) => (
-            <Grid item xs={6} key={e.label}>
-              <MenuItem
-                onClick={() => {
-                  handleAccountButtonClick(e.url);
-                  setAccountModalOpen(false);
-                }}
-                sx={styles.accountMenuItem}
-              >
-                <e.icon size={18} />
-                {e.labelTr}
-              </MenuItem>
+              <Grid item xs={6}>
+                <MenuItem
+                  component="a"
+                  href={`https://help.mitenya.com/`}
+                  target="_blank"
+                  sx={styles.accountMenuItem}
+                >
+                  <HelpCircle /> SSS
+                </MenuItem>
+              </Grid>
             </Grid>
-          ))}
-          {getSupportUrl && (
-            <Grid item xs={6}>
-              <MenuItem
-                component="a"
-                href={getSupportUrl!}
-                target="_blank"
-                sx={styles.accountMenuItem}
-              >
-                <Headset /> Yardım
-              </MenuItem>
-            </Grid>
-          )}
-          <Grid item xs={6}>
-            <MenuItem
-              component="a"
-              href={`https://help.mitenya.com/`}
-              target="_blank"
-              sx={styles.accountMenuItem}
-            >
-              <HelpCircle /> SSS
-            </MenuItem>
-          </Grid>
-        </Grid>
-      </ModalCard>
-      <CategoriesDrawer
-        open={categoriesOpen}
-        onClose={() => setCategoriesOpen(false)}
-        categories={data?.categories}
-        isAuthenticated={isAuthenticated ?? undefined}
-        onAccount={() => handleAccountButtonClick('/orders')}
-        onOrders={() => handleAccountButtonClick('/orders')}
-        onFavorites={() => router.push('/favorites')}
-        onNavigate={(slug) => router.push(`/${slug}`)}
-      />
+          </ModalCard>
+          <CategoriesDrawer
+            open={categoriesOpen}
+            onClose={() => setCategoriesOpen(false)}
+            categories={data?.categories}
+            isAuthenticated={isAuthenticated ?? undefined}
+            onAccount={() => handleAccountButtonClick('/orders')}
+            onOrders={() => handleAccountButtonClick('/orders')}
+            onFavorites={() => router.push('/favorites')}
+            onNavigate={(slug) => router.push(`/${slug}`)}
+          />
+        </>
+      )}
     </>
   );
 };
@@ -618,7 +662,7 @@ const SearchBar = ({ onFocus, onBlur, autoFocus }: SearchBarProps) => {
         InputProps={{
           endAdornment: (
             <IconButton type="submit" size="small">
-              <Search color="primary" fontSize={20} strokeWidth={2.5} />
+              <Search color="primary.main" fontSize={20} strokeWidth={2.5} />
             </IconButton>
           ),
         }}
