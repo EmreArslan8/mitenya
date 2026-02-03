@@ -85,6 +85,10 @@ const ShopBrandShowcase = ({
               <Button
                 size="small"
                 sx={styles.headerButton}
+                href={button.href}
+                variant={button.variant}
+                arrow={button.arrow}
+                dataLayerEventId={button.dataLayerEventId}
               >
                 {button.label}
               </Button>

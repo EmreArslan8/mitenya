@@ -21,6 +21,7 @@ import ProductSizeGuide from './components/ProductSizeGuide';
 import ProductVariants from './components/ProductVariants';
 import ProgressIndicator from './components/ProgressIndicator';
 import useStyles from './styles';
+import { usePalette } from '@/theme/ThemeRegistry';
 import formatPrice from '@/lib/utils/formatPrice';
 import { Check, ChevronRight, SquareArrowOutUpRight } from 'lucide-react';
 import ProductImageMagnifier from './components/ProductImageMagnifier';
@@ -37,9 +38,11 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const [mounted, setMounted] = useState(false);
   const checkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const palette = usePalette();
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
 console.log(data.price, "fiyat ")
+console.log('[PALETTE DEBUG]', { accentRed: palette.accentRed, errorContrastText: palette.error?.contrastText, primaryMain: palette.primary?.main })
 
   const categoryLabel = data.category?.trim();
   const categoryHref = data.categoryId
@@ -107,16 +110,10 @@ console.log(data.price, "fiyat ")
           </Link>
           <ChevronRight size={14} />
           {categoryLabel ? (
-            <>
-              <Link href={categoryHref} prefetch={false}>
-                <Typography component="span">{categoryLabel}</Typography>
-              </Link>
-              <ChevronRight size={14} />
-            </>
+            <Link href={categoryHref} prefetch={false}>
+              <Typography component="span" sx={{ fontWeight: 600 }}>{categoryLabel}</Typography>
+            </Link>
           ) : null}
-          <Typography component="span" sx={{ fontWeight: 600 }} title={fullName}>
-            {displayName}
-          </Typography>
         </Stack>
         <Grid container columnSpacing={{ sm: 5 }} sx={styles.productContainer}>
           <Grid

@@ -4,6 +4,7 @@ import { LoadingButton } from '@mui/lab';
 import styles from './styles';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { sendButtonClickEvent } from '@/lib/utils/googleAnalytics';
 
 const arrowSizes = {
   small: 20,
@@ -16,16 +17,23 @@ const Button = ({
   children,
   href,
   onClick,
-  dataLayerEventId: _dataLayerEventId,
+  dataLayerEventId,
   ...props
 }: any) => {
   const router = useRouter();
+
+  const handleClick = () => {
+    if (dataLayerEventId) sendButtonClickEvent(dataLayerEventId);
+    if (href) router.push(href);
+    else onClick?.();
+  };
+
   return (
     <LoadingButton
       startIcon={arrow === 'start' && <Arrow position="start" size={props.size} />}
       endIcon={arrow === 'end' && <Arrow position="end" size={props.size} />}
       {...props}
-      onClick={href ? () => router.push(href) : onClick}
+      onClick={handleClick}
       sx={{ ...styles.button, ...props.sx }}
     >
       {children}

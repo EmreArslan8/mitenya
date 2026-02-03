@@ -9,5 +9,6 @@ export type SharedButtonType = {
   target?: string;
   variant?: 'text' | 'contained' | 'outlined';
   arrow: 'none' | 'start' | 'end';
+  dataLayerEventId?: string;
 };
 export type GridOptions = { xs: number; sm: number; md: number; lg: number };

@@ -173,8 +173,8 @@ const useStyles = withPalette((palette) => ({
   },
   mobileImage: { flexShrink: 0, width: '100vw', scrollSnapAlign: 'center' },
   discountBadge: {
-    background: palette.accentRed.main,
-    color: palette.error.contrastText,
+    background: '#C1121F',
+    color: '#FFFFFF',
     py: 0.5,
     px: 1,
     fontSize: 12,

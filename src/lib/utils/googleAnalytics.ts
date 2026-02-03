@@ -21,16 +21,12 @@ const getCommonEventParams = (): CommonEventParams => ({
 
 export type DataLayerEvent = Record<string, unknown>;
 
-const isDataLayerValid = (value: unknown): value is DataLayerEvent[] => {
-  return Array.isArray(value);
-};
 export const pushItemToDataLayer = (item: DataLayerEvent) => {
   try {
     if (typeof window === "undefined") return;
 
-    if (isDataLayerValid(window.dataLayer)) {
-      window.dataLayer.push(item);
-    }
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push(item);
   } catch (error) {
     console.error(error);
   }

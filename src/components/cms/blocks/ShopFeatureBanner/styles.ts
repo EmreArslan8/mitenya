@@ -139,7 +139,7 @@ const useStyles = withPalette((palette) => ({
 
   mobileSlide: {
     position: 'relative',
-    aspectRatio: { xs: '5/3', sm: '16/9' },
+    aspectRatio: { xs: '4/5', sm: '16/9' },
     width: '100%',
     borderRadius: 1.5,
     overflow: 'hidden',

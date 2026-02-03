@@ -2,11 +2,15 @@ import { fetchProductDataSupabase } from '@/lib/api/supabaseProducts';
 import isSSR from '@/lib/utils/isSSR';
 import ProductPageView from './view';
 import { ShopProductData } from '@/lib/api/types';
+import { notFound } from 'next/navigation';
 
 const SuspensedView = async ({ params }: { params: { id: string } }) => {
-  const id = (await params).id; 
+  const id = (await params).id;
   const data = await fetchProductDataSupabase(id);
-  if (!data) throw new Error(`error.products.details: ${id}`);
+  if (!data) {
+    console.error(`❌ Product not found: ${id}`);
+    notFound();
+  }
   return (
     <>
       <script

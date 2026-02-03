@@ -121,12 +121,7 @@ const CartPageView = ({
   return (
     <Stack
       gap={3}
-      sx={{
-        mt: {
-          xs: isCartPage ? `${headerHeight.sm + bannerHeight - 56}px` : 0,
-          md: 0,
-        },
-      }}
+      
     >
       {visible && <LoadingOverlay loading={summaryLoading} />}
       {!hideTitle && <Typography variant="h1">Sepet</Typography>}

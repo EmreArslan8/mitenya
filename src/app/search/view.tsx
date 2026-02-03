@@ -70,7 +70,7 @@ const SearchProductsView = ({ initialData }: SearchProductsViewProps) => {
 
   return (
     <>
-      <Stack gap={{ xs: 1.25, sm: 1.5 }} mt={{ xs: `${headerHeight.xs + bannerHeight + 20}px`, sm: 0 }}>
+      <Stack gap={{ xs: 1.25, sm: 1.5 }} >
         {smUp && (
           <Stack
             gap={{ xs: 0.5, sm: 0.75, md: 1 }}
