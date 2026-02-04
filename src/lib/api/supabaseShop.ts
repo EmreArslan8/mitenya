@@ -35,6 +35,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       has_variants,
       product_prices(price_current, price_original, currency),
       product_images(image_url, is_main, sort_order)
+      , product_stock(quantity)
     `,
       { count: "exact" }
     )
@@ -51,8 +52,13 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
   // brand filter
   if (selectedBrandIds.length) query = query.in("brand_id", selectedBrandIds);
 
-  // query search
-  if (options.query) query = query.ilike("name", `%${options.query}%`);
+  // query search (single OR condition across product name, brand name, category name)
+  if (options.query) {
+    const q = options.query.replaceAll(",", "\\,");
+    query = query.or(
+      `name.ilike.%${q}%,brand_name.ilike.%${q}%,category_name.ilike.%${q}%`
+    );
+  }
 
   // price filter (min-max)
   if (options.price) {
@@ -135,6 +141,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
         currency: priceRow?.currency ?? "TRY",
       },
       hasVariant: p.has_variants ?? false,
+      quantity: p.product_stock?.[0]?.quantity,
       rating:
         p.rating_count > 0
           ? {

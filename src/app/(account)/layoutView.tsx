@@ -105,7 +105,7 @@ const AccountPagesLayoutView = ({ children }: { children: ReactNode }) => {
                 </Box>
                 Yardım
               </MenuItem>
-              <MenuItem component="a" href="https://help.mitenya.com/" target="_blank" sx={styles.menuItem}>
+              <MenuItem component="a" href="mailto:destek@mitenya.com" target="_blank" sx={styles.menuItem}>
                 <Box component="span" sx={{ mr: 1.5, display: 'flex', alignItems: 'center' }}>
                   <CircleHelp size={24} />
                 </Box>

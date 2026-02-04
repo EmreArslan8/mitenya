@@ -160,6 +160,7 @@ export type ShopProductListItemData = {
   rating?: ShopProductRating;
   breadcrumbs?: string;
   hasVariant?: boolean;
+  quantity?: number;
 };
 
 export type ShopProductVariantOptionData = {

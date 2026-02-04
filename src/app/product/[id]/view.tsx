@@ -125,9 +125,9 @@ console.log('[PALETTE DEBUG]', { accentRed: palette.accentRed, errorContrastText
           >
             {isDesktop ? (
               <Card sx={styles.imageCard}>
-                <Grid container columnSpacing={2} sx={styles.imageSplitGrid}>
-                  <Grid item xs={2} sx={styles.thumbnailColumn}>
-                    {data.images && data.images.length > 1 && (
+                <Grid container columnSpacing={data.images && data.images.length > 1 ? 2 : 0} sx={styles.imageSplitGrid}>
+                  {data.images && data.images.length > 1 && (
+                    <Grid item xs={2} sx={styles.thumbnailColumn}>
                       <Tabs
                         orientation="vertical"
                         variant="scrollable"
@@ -145,9 +145,9 @@ console.log('[PALETTE DEBUG]', { accentRed: palette.accentRed, errorContrastText
                           />
                         ))}
                       </Tabs>
-                    )}
-                  </Grid>
-                  <Grid item xs={10}>
+                    </Grid>
+                  )}
+                  <Grid item xs={data.images && data.images.length > 1 ? 10 : 12}>
                     <Box sx={styles.magnifierWrapper}>
                       <ProductImageMagnifier
                         src={currentImg}

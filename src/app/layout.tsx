@@ -51,8 +51,13 @@ export default async function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebSite",
               name: "Mitenya",
-              alternateName: "Mitenya",
+              alternateName: "Mitenya Kozmetik",
               url: baseUrl,
+              potentialAction: {
+                "@type": "SearchAction",
+                target: `${baseUrl}/search?query={search_term_string}`,
+                "query-input": "required name=search_term_string",
+              },
             }),
           }}
         />
