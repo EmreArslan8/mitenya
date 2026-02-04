@@ -102,7 +102,7 @@ const iadePolitikasi: LegalDocument = {
   birlikte aşağıdaki adrese gönderebilirsiniz.
 </p>
 <p>
-  FİRMA ADRESİ: KARGI MAH. YEMENİCİLER ÇARŞISI SK. NO: 8 A TOSYA / KASTAMONU
+  FİRMA ADRESİ: KAYIKÇILAR MAH. ÇAYCUMA / ZONGULDAK
 </p>
 <p>
   - Sevkiyat sırasında zarar gördüğünü düşündüğünüz paketleri teslim aldığınız

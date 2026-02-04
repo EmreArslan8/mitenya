@@ -125,10 +125,10 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
             <img src={data.imgSrc} alt={data.name} style={styles.image} />
           </Stack>
           <Stack>
+            <Typography sx={styles.brand}>
+              {data.brand}
+            </Typography>
             <Typography variant="warning" sx={styles.productName}>
-              <Typography variant="warningSemibold" sx={styles.brand}>
-                {data.brand}{' '}
-              </Typography>
               {data.name}
             </Typography>
             {data.rating && (

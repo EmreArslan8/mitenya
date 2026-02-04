@@ -8,6 +8,7 @@ const useStyles = withPalette((palette) => ({
     gap: 0.5,
     borderRadius: 1,
     color: palette.text.main,
+    background: palette.white.main,
     pb: 1,
     p: 1,
     border: "0.5px solid"
@@ -32,10 +33,10 @@ const useStyles = withPalette((palette) => ({
     background: '#dedede50',
   },
   imageLoadingProgressContainer: { background: palette.bg.main, p: 1, borderRadius: 99 },
-  brand: { color: palette.text.main, fontSize: 14, textTransform: 'none', lineHeight: 'normal' },
+  brand: { color: palette.text.main, fontSize: 15, fontWeight: 700, textTransform: 'none', lineHeight: 'normal' },
   productName: {
     color: palette.text.medium,
-    fontSize: 14,
+    fontSize: 15,
     lineHeight: 'normal',
     overflow: 'hidden',
     textOverflow: 'ellipsis',

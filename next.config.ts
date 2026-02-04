@@ -62,7 +62,7 @@ const nextConfig = {
             const imgSrc = [
               "img-src 'self' data: https: blob:",
               isDev ? "http://localhost:1337" : null,
-              "https://pub-0f1b6b5801ac4f70a86a2ec4b0f72bbe.r2.dev",
+              "https://cdn.mitenya.com",
             ]
               .filter(Boolean)
               .join(' ');
@@ -131,6 +131,11 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.mitenya.com",
         pathname: "/**",
       },
     ],
