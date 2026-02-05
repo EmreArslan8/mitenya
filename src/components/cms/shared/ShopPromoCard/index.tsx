@@ -14,6 +14,10 @@ export interface ShopPromoCardProps {
   description?: string;
   buttonLabel?: string;
   buttonHref?: string;
+  titleColor?: string;
+  descriptionColor?: string;
+  buttonBgColor?: string;
+  buttonTextColor?: string;
 }
 
 const ShopPromoCard = ({
@@ -22,9 +26,11 @@ const ShopPromoCard = ({
   description,
   buttonLabel,
   buttonHref,
+  titleColor = 'black',
+  descriptionColor = 'black',
+  buttonBgColor = 'transparent',
+  buttonTextColor = 'black',
 }: ShopPromoCardProps) => {
-
-
   return (
     <Box sx={styles.card}>
       <Box sx={styles.media}>
@@ -32,14 +38,29 @@ const ShopPromoCard = ({
           src={image?.data?.attributes?.url}
           alt={title}
           fill
-          style={{objectFit: "cover"}}
+          style={{ objectFit: 'cover' }}
         />
       </Box>
 
       <Stack sx={styles.content}>
-        <Typography sx={styles.title}>{title}</Typography>
-          <Typography sx={styles.description}>{description}</Typography>
-          <Button href={buttonHref} variant="text" size="small" sx={styles.cta}> {buttonLabel}</Button>
+        <Typography sx={{ ...styles.title, color: `${titleColor} !important` }}>{title}</Typography>
+        <Typography sx={{ ...styles.description, color: `${descriptionColor} !important` }}>{description}</Typography>
+        <Button
+          href={buttonHref}
+          variant="contained"
+          disableElevation
+          sx={{
+            ...styles.cta,
+            backgroundColor: `${buttonBgColor} !important`,
+            color: `${buttonTextColor} !important`,
+            '&:hover': {
+              backgroundColor: buttonBgColor,
+              opacity: 0.9,
+            }
+          }}
+        >
+          {buttonLabel}
+        </Button>
       </Stack>
     </Box>
   );

@@ -17,14 +17,26 @@ const ShopPromoCards = ({ cards = [], section }: ShopPromoCardsProps) => {
     <SectionBase {...section}>
       <Grid container spacing={2}>
         {leftCard && (
-          <Grid item xs={12} md={6}>
-            <ShopPromoCard {...leftCard} />
+          <Grid item xs={12} sm={6}>
+            <ShopPromoCard
+              {...leftCard}
+              titleColor="white"
+              descriptionColor="#d4c8e8"
+              buttonBgColor="#F7EFFF"
+              buttonTextColor="#4B3665"
+            />
           </Grid>
         )}
 
         {rightCard && (
-          <Grid item xs={12} md={6}>
-            <ShopPromoCard {...rightCard} />
+          <Grid item xs={12} sm={6}>
+            <ShopPromoCard
+              {...rightCard}
+              titleColor="#a7a098"
+              descriptionColor="#2E2520"
+              buttonBgColor="#FFEAC0"
+              buttonTextColor="#4A3A24"
+            />
           </Grid>
         )}
       </Grid>

@@ -4,6 +4,32 @@ import { r2Url } from "../utils/r2";
 import { ShopSearchOptions, ShopSearchSort, ShopProductListItemData, ShopFilter } from "./types";
 import { PRODUCTS_PER_PAGE, SORT_OPTIONS } from "../constants/shop";
 
+// Collection type
+export interface Collection {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  banner_image: string | null;
+  is_active: boolean;
+  sort_order: number;
+}
+
+// Fetch collection by slug
+export async function fetchCollectionBySlug(slug: string): Promise<Collection | null> {
+  const supabase = getSupabaseAnon();
+
+  const { data, error } = await supabase
+    .from("collections")
+    .select("*")
+    .eq("slug", slug)
+    .eq("is_active", true)
+    .single();
+
+  if (error || !data) return null;
+  return data as Collection;
+}
+
 export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> = {}) {
   const supabase = getSupabaseAnon();
 
@@ -14,6 +40,41 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
 
   const selectedBrandIds = options.brand?.split(",").filter(Boolean) ?? [];
   const selectedCategoryIds = options.category?.split(",").filter(Boolean) ?? [];
+
+  // ---------------------------------------------------
+  // COLLECTION FILTER - Get product IDs first if collection is specified
+  // ---------------------------------------------------
+  let collectionProductIds: string[] | null = null;
+
+  if (options.collection) {
+    const { data: collectionData } = await supabase
+      .from("collections")
+      .select("id")
+      .eq("slug", options.collection)
+      .eq("is_active", true)
+      .single();
+
+    if (collectionData) {
+      const { data: productCollections } = await supabase
+        .from("product_collections")
+        .select("product_id")
+        .eq("collection_id", collectionData.id)
+        .order("sort_order", { ascending: true });
+
+      collectionProductIds = productCollections?.map((pc) => pc.product_id) ?? [];
+
+      if (collectionProductIds.length === 0) {
+        return {
+          products: [],
+          totalCount: 0,
+          tq: options.query,
+          filters: { selectedOptions: options },
+          sortOptions: SORT_OPTIONS,
+          session: { _S1: "supabase" },
+        };
+      }
+    }
+  }
 
   // ---------------------------------------------------
   // MAIN PRODUCT QUERY
@@ -40,6 +101,11 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       { count: "exact" }
     )
     .range(offset, offset + PRODUCTS_PER_PAGE - 1);
+
+  // collection filter - filter by product IDs
+  if (collectionProductIds) {
+    query = query.in("id", collectionProductIds);
+  }
 
   // Always pick a single price row per product (lowest current price)
   query = query
