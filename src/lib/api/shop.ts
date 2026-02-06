@@ -65,10 +65,14 @@ export async function fetchProductVariants(productId: string) {
 export const fetchRecommendations = async (options: {
   brandId: string;
   productId: string;
+  categoryId?: string;
 }): Promise<ShopProductListItemData[]> => {
   try {
+    const params = new URLSearchParams({ brandId: options.brandId });
+    if (options.categoryId) params.set('categoryId', options.categoryId);
+
     const res = await fetch(
-      `/api/products/${options.productId}/recommendations?brandId=${options.brandId}`
+      `/api/products/${options.productId}/recommendations?${params.toString()}`
     );
     if (!res.ok) return [];
     return await res.json();

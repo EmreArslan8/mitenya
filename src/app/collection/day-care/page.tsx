@@ -37,7 +37,7 @@ export default async function DayCarePage({
 export async function generateMetadata(): Promise<Metadata> {
   const collection = await fetchCollectionBySlug(COLLECTION_SLUG);
   const url = `${host}/collection/${COLLECTION_SLUG}`;
-  const title = collection?.name ?? 'Gündüz Bakımı Koleksiyonu';
+  const title = collection?.name ?? 'Günlük Bakım Koleksiyonu';
   const description = collection?.description ?? 'Güne ışıldayarak başlayın. SPF korumalı nemlendiriciler ve aydınlatıcı serumlarla cildinizi gün boyu koruyun.';
 
   return {

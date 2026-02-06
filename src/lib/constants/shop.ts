@@ -13,7 +13,7 @@ export const SEARCH_HISTORY_MAX_ITEMS = 10;
 export const FILTER_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 // API limits
-export const RECOMMENDATIONS_LIMIT = 8;
+export const RECOMMENDATIONS_LIMIT = 4;
 export const QUERY_MAX_LENGTH = 100;
 export const PRODUCT_ID_MAX_LENGTH = 100;
 

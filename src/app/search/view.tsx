@@ -36,9 +36,7 @@ const SearchProductsView = ({ initialData }: SearchProductsViewProps) => {
     if (loadingRef.current) return;
     setLoading(true);
     loadingRef.current = true;
-    console.log("⬇️ [SEARCH] Infinite Scroll Triggered → page:", page);
     fetchProducts({ ...searchOptions, page, nf: true, _S1: _S1Ref.current }).then((data) => {
-      console.log("📦 [SEARCH] Infinite Scroll fetch result:", data);
       setLoading(false);
       if (!data?.products) return;
       _S1Ref.current = data.session?._S1;

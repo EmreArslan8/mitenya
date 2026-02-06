@@ -30,13 +30,18 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
   const data = await fetchProductDataSupabase(id);
 
   const fullName = `${data?.brand ?? ''} ${data?.name ?? ''}`.trim();
+  const defaultDescription = `${fullName} - Orijinal Kore kozmetik ürünü. En uygun fiyat ve hızlı kargo ile Mitenya'da.`;
+
+  const title = data?.metaTitle || `${fullName} | Mitenya`;
+  const description = data?.metaDescription || defaultDescription;
 
   return {
-    title: { absolute: `${fullName} | Mitenya` },
-    description: `${fullName} - Orijinal Kore kozmetik ürünü. En uygun fiyat ve hızlı kargo ile Mitenya'da.`,
+    title: { absolute: title },
+    description,
+    keywords: data?.metaKeywords?.split(',').map((k: string) => k.trim()),
     openGraph: {
-      title: `${fullName} | Mitenya`,
-      description: `${fullName} - Orijinal Kore kozmetik ürünü Mitenya'da.`,
+      title,
+      description,
       images: [
         {
           url: data?.imgSrc ?? '/static/images/ogBanner.webp',

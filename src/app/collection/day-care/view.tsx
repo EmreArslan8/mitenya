@@ -1,10 +1,10 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Box, Grid, Stack, Typography, Select, MenuItem, Fade } from '@mui/material';
-import { Sun, Sparkles, Shield, Droplets, ChevronRight, Home } from 'lucide-react';
-import Link from '@/components/common/Link';
+import { Sun, Sparkles, Shield, Droplets } from 'lucide-react';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import { ShopSearchResponse, ShopSearchSort } from '@/lib/api/types';
 import { Collection } from '@/lib/api/supabaseShop';
@@ -58,7 +58,7 @@ const FloatingBubble = ({ delay, size, left, top }: { delay: number; size: numbe
   />
 );
 
-const DayCareView = ({ initialData, collection }: DayCareViewProps) => {
+const DayCareView = ({ initialData }: DayCareViewProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const styles = useStyles();
@@ -118,7 +118,7 @@ const DayCareView = ({ initialData, collection }: DayCareViewProps) => {
             </Stack>
 
             <Typography variant="h1" sx={styles.heroTitle}>
-              Gündüz Bakımı
+              Günlük Bakım Koleksiyonu
             </Typography>
 
             <Typography sx={styles.heroSubtitle}>
@@ -151,20 +151,6 @@ const DayCareView = ({ initialData, collection }: DayCareViewProps) => {
 
       {/* Products Section */}
       <Stack sx={styles.productsSection}>
-        {/* Breadcrumb */}
-        <Stack direction="row" alignItems="center" sx={styles.breadcrumb}>
-          <Link href="/">
-            <Stack direction="row" alignItems="center" gap={0.5}>
-              <Home size={14} />
-              <Typography component="span">Ana Sayfa</Typography>
-            </Stack>
-          </Link>
-          <ChevronRight size={14} />
-          <Typography component="span" sx={{ fontWeight: 600 }}>
-            {collection.name}
-          </Typography>
-        </Stack>
-
         <Stack
           direction="row"
           justifyContent="space-between"

@@ -22,10 +22,11 @@ const Button = ({
 }: any) => {
   const router = useRouter();
 
-  const handleClick = () => {
+  const handleClick = (event: React.MouseEvent) => {
     if (dataLayerEventId) sendButtonClickEvent(dataLayerEventId);
+    onClick?.(event);
+    if (event.defaultPrevented) return;
     if (href) router.push(href);
-    else onClick?.();
   };
 
   return (

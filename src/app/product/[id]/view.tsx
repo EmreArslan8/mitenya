@@ -25,6 +25,7 @@ import { usePalette } from '@/theme/ThemeRegistry';
 import formatPrice from '@/lib/utils/formatPrice';
 import { Check, ChevronRight, SquareArrowOutUpRight } from 'lucide-react';
 import ProductImageMagnifier from './components/ProductImageMagnifier';
+import ProductDescription from './components/ProductDescription';
 
 const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
@@ -41,32 +42,23 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const palette = usePalette();
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
-console.log(data.price, "fiyat ")
-console.log('[PALETTE DEBUG]', { accentRed: palette.accentRed, errorContrastText: palette.error?.contrastText, primaryMain: palette.primary?.main })
-
   const categoryLabel = data.category?.trim();
   const categoryHref = data.categoryId
     ? searchUrlFromOptions({ category: data.categoryId })
     : undefined;
   const fullName = data.name ?? '';
-  const displayName =
-    fullName
-      .split(' - ')[0]
-      ?.split(' – ')[0]
-      ?.split(' — ')[0]
-      ?.trim() || fullName;
   const handleSelectOption = (variantName: string, optionValue: string) => {
     setVariants((prev) =>
       prev?.map((v) =>
         variantName === v.name
           ? {
-              ...v,
-              options: v.options.map((o) => {
-                if (o.value === optionValue) {
-                  return { ...o, selected: true };
-                } else return { ...o, selected: false };
-              }),
-            }
+            ...v,
+            options: v.options.map((o) => {
+              if (o.value === optionValue) {
+                return { ...o, selected: true };
+              } else return { ...o, selected: false };
+            }),
+          }
           : v
       )
     );
@@ -82,9 +74,8 @@ console.log('[PALETTE DEBUG]', { accentRed: palette.accentRed, errorContrastText
 
   const handleScroll = () => {
     if (!imgContainerRef.current) return;
-    imgContainerRef.current.style.maxHeight = `calc(100vw / 0.67 - ${
-      window.scrollY > 140 ? (window.scrollY - 140) / 1.5 : 0
-    }px + 16px)`;
+    imgContainerRef.current.style.maxHeight = `calc(100vw / 0.67 - ${window.scrollY > 140 ? (window.scrollY - 140) / 1.5 : 0
+      }px + 16px)`;
   };
 
   useEffect(() => {
@@ -191,8 +182,8 @@ console.log('[PALETTE DEBUG]', { accentRed: palette.accentRed, errorContrastText
                     <SquareArrowOutUpRight size={16} strokeWidth={3} style={{ marginTop: '2px' }} />
                   </Typography>
                 </Link>
-                <Typography variant="h3" sx={styles.productName} title={fullName}>
-                  {displayName}
+                <Typography variant="h3" sx={styles.productName}>
+                  {fullName}
                 </Typography>
                 {data.rating && (
                   <Stack sx={styles.rating}>
@@ -264,26 +255,22 @@ console.log('[PALETTE DEBUG]', { accentRed: palette.accentRed, errorContrastText
                   ]}
                 />
               </Button>
+              {data.attributes && <ProductAttributes attributes={data.attributes} />}
               {data.description && (
-                <Markdown
-                  text={data.description}
-                  sx={styles.description}
-                  options={styles.markdownOptions}
-                />
+                <ProductDescription description={data.description} />
               )}
               <ProductFeatures />
-              <Divider sx={{ mt: 1 }} />
-              {data.attributes && <ProductAttributes attributes={data.attributes} />}
             </Stack>
           </Grid>
         </Grid>
       </Stack>
 
-    
       <ProductFaq />
-      {!!data.reviews?.length && data.rating && (
-        <ProductReviews reviews={data.reviews} rating={data.rating} />
-      )}
+      <ProductReviews
+        productId={data.id}
+        initialReviews={data.reviews ?? []}
+        initialRating={data.rating}
+      />
       {data.brandId && <ProductRecommendations brandId={data.brandId} productId={data.id} />}
     </Stack>
   );

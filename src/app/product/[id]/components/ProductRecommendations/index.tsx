@@ -4,18 +4,18 @@ import { ShopProductListItemData } from '@/lib/api/types';
 import { Grid, Stack, Typography } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
 
-const ProductRecommendations = ({ brandId, productId }: { brandId: string; productId: string }) => {
+const ProductRecommendations = ({ brandId, productId, categoryId }: { brandId: string; productId: string; categoryId?: string }) => {
   const [recommendations, setRecommendations] = useState<ShopProductListItemData[]>();
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetchRecommendations({ brandId, productId });
+      const res = await fetchRecommendations({ brandId, productId, categoryId });
       setRecommendations(res ?? []);
     } catch (error) {
       setRecommendations([]);
       console.log(error);
     }
-  }, [brandId, productId]);
+  }, [brandId, productId, categoryId]);
 
   useEffect(() => {
     fetchData();

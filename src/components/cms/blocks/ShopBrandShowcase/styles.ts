@@ -36,7 +36,7 @@ const useStyles = withPalette((palette) => ({
     gridArea: 'image',
     position: 'relative',
     width: '100%',
-    aspectRatio: '16 / 9',
+    aspectRatio: { xs: '3 / 2', md: '16 / 9' },
     borderRadius: 2,
     overflow: 'hidden',
   },

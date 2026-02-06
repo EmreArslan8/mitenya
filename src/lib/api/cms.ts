@@ -37,10 +37,12 @@ export const fetchShopHeader = async (): Promise<
   ShopHeaderData | undefined
 > => {
   try {
+    const start = Date.now();
     const [data] = await bring('/api/cms/shop-header', {
       static: true,
       next: { revalidate: 60 },
     });
+    console.log(`[TIMING] fetchShopHeader ${Date.now() - start}ms`);
 
     return data;
   } catch {
@@ -55,10 +57,12 @@ export const fetchShopFooter = async (): Promise<
   ShopFooterData | undefined
 > => {
   try {
+    const start = Date.now();
     const [data] = await bring('/api/cms/shop-footer', {
       static: true,
       next: { revalidate: 60 },
     });
+    console.log(`[TIMING] fetchShopFooter ${Date.now() - start}ms`);
 
     return data;
   } catch {

@@ -73,7 +73,7 @@ describe('API Limits', () => {
   it('RECOMMENDATIONS_LIMIT should be reasonable', () => {
     expect(RECOMMENDATIONS_LIMIT).toBeGreaterThan(0);
     expect(RECOMMENDATIONS_LIMIT).toBeLessThanOrEqual(20);
-    expect(RECOMMENDATIONS_LIMIT).toBe(8);
+    expect(RECOMMENDATIONS_LIMIT).toBe(4);
   });
 
   it('PRODUCT_ID_MAX_LENGTH should be reasonable', () => {

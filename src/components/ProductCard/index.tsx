@@ -112,7 +112,7 @@ const ProductCard = ({ data, showDiscoverWhenOutOfStock = false }: ShopProductCa
       <Link
         href={data.url}
         style={styles.link}
-        target={isMobileApp ? '_self' : '_blank'}
+        target="_self"
         onClick={() => setIsNavigatingToDetails(true)}
       >
         <Card sx={styles.card}>
@@ -162,7 +162,15 @@ const ProductCard = ({ data, showDiscoverWhenOutOfStock = false }: ShopProductCa
           </Stack>
           <Stack>
             <Button
-              onClick={isOutOfStock ? undefined : handleQuickAdd}
+              onClick={
+                isOutOfStock
+                  ? undefined
+                  : (e: React.MouseEvent) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleQuickAdd(e);
+                    }
+              }
               disabled={!isOutOfStock && (quickAddLoading || showAdded)}
               size="small"
               variant="outlined"

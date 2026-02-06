@@ -182,6 +182,7 @@ export type ShopProductAttribute = {
 };
 
 export type ShopProductReview = {
+  id?: string;
   name?: string;
   rating?: number;
   text: string;

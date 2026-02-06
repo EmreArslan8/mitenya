@@ -24,16 +24,37 @@ const mockProductData = {
   attributes_json: [{ name: 'Color', value: 'Red' }],
 };
 
-// Mock Supabase
-const mockSingle = vi.fn();
-const mockEq = vi.fn(() => ({ single: mockSingle }));
-const mockSelect = vi.fn(() => ({ eq: mockEq }));
-const mockFrom = vi.fn(() => ({ select: mockSelect }));
+// Mock Supabase (hoist-safe for vi.mock)
+const supabaseMocks = vi.hoisted(() => {
+  const mockProductsSingle = vi.fn();
+  const mockProductsEq = vi.fn(() => ({ single: mockProductsSingle }));
+  const mockProductsSelect = vi.fn(() => ({ eq: mockProductsEq }));
 
-vi.mock('../supabase/anon', () => ({
-  getSupabaseAnon: vi.fn(() => ({
-    from: mockFrom,
-  })),
+  const mockReviewsOrder = vi.fn();
+  const mockReviewsEq = vi.fn(() => ({ order: mockReviewsOrder }));
+  const mockReviewsSelect = vi.fn(() => ({ eq: mockReviewsEq }));
+
+  const mockFrom = vi.fn((table: string) => {
+    if (table === 'products') return { select: mockProductsSelect };
+    if (table === 'product_reviews') return { select: mockReviewsSelect };
+    return { select: vi.fn() };
+  });
+
+  return {
+    mockProductsSingle,
+    mockProductsEq,
+    mockProductsSelect,
+    mockReviewsOrder,
+    mockReviewsEq,
+    mockReviewsSelect,
+    mockFrom,
+  };
+});
+
+vi.mock('../supabase/admin', () => ({
+  supabaseAdmin: {
+    from: supabaseMocks.mockFrom,
+  },
 }));
 
 // Mock r2Url
@@ -44,15 +65,16 @@ vi.mock('../utils/r2', () => ({
 describe('fetchProductDataSupabase', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    supabaseMocks.mockReviewsOrder.mockResolvedValue({ data: [], error: null });
   });
 
   it('should fetch product by slug', async () => {
-    mockSingle.mockResolvedValueOnce({ data: mockProductData, error: null });
+    supabaseMocks.mockProductsSingle.mockResolvedValueOnce({ data: mockProductData, error: null });
 
     const result = await fetchProductDataSupabase('test-product');
 
-    expect(mockFrom).toHaveBeenCalledWith('products');
-    expect(mockEq).toHaveBeenCalledWith('slug', 'test-product');
+    expect(supabaseMocks.mockFrom).toHaveBeenCalledWith('products');
+    expect(supabaseMocks.mockProductsEq).toHaveBeenCalledWith('slug', 'test-product');
     expect(result).toBeDefined();
     expect(result?.id).toBe('prod-123');
     expect(result?.name).toBe('Test Product');
@@ -60,19 +82,22 @@ describe('fetchProductDataSupabase', () => {
 
   it('should fallback to id if slug not found', async () => {
     // First call (slug) fails
-    mockSingle.mockResolvedValueOnce({ data: null, error: { message: 'Not found' } });
+    supabaseMocks.mockProductsSingle.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'Not found' },
+    });
     // Second call (id) succeeds
-    mockSingle.mockResolvedValueOnce({ data: mockProductData, error: null });
+    supabaseMocks.mockProductsSingle.mockResolvedValueOnce({ data: mockProductData, error: null });
 
     const result = await fetchProductDataSupabase('prod-123');
 
-    expect(mockEq).toHaveBeenCalledWith('slug', 'prod-123');
-    expect(mockEq).toHaveBeenCalledWith('id', 'prod-123');
+    expect(supabaseMocks.mockProductsEq).toHaveBeenCalledWith('slug', 'prod-123');
+    expect(supabaseMocks.mockProductsEq).toHaveBeenCalledWith('id', 'prod-123');
     expect(result).toBeDefined();
   });
 
   it('should return null if product not found', async () => {
-    mockSingle.mockResolvedValue({ data: null, error: { message: 'Not found' } });
+    supabaseMocks.mockProductsSingle.mockResolvedValue({ data: null, error: { message: 'Not found' } });
 
     const result = await fetchProductDataSupabase('non-existent');
 
@@ -80,7 +105,7 @@ describe('fetchProductDataSupabase', () => {
   });
 
   it('should transform product data correctly', async () => {
-    mockSingle.mockResolvedValueOnce({ data: mockProductData, error: null });
+    supabaseMocks.mockProductsSingle.mockResolvedValueOnce({ data: mockProductData, error: null });
 
     const result = await fetchProductDataSupabase('test-product');
 
@@ -104,7 +129,7 @@ describe('fetchProductDataSupabase', () => {
         { image_path: 'image1.jpg', image_url: null, is_main: true, sort_order: 1 },
       ],
     };
-    mockSingle.mockResolvedValueOnce({ data: dataWithUnorderedImages, error: null });
+    supabaseMocks.mockProductsSingle.mockResolvedValueOnce({ data: dataWithUnorderedImages, error: null });
 
     const result = await fetchProductDataSupabase('test-product');
 
@@ -113,7 +138,7 @@ describe('fetchProductDataSupabase', () => {
   });
 
   it('should transform price correctly', async () => {
-    mockSingle.mockResolvedValueOnce({ data: mockProductData, error: null });
+    supabaseMocks.mockProductsSingle.mockResolvedValueOnce({ data: mockProductData, error: null });
 
     const result = await fetchProductDataSupabase('test-product');
 
@@ -125,7 +150,7 @@ describe('fetchProductDataSupabase', () => {
   });
 
   it('should include rating when available', async () => {
-    mockSingle.mockResolvedValueOnce({ data: mockProductData, error: null });
+    supabaseMocks.mockProductsSingle.mockResolvedValueOnce({ data: mockProductData, error: null });
 
     const result = await fetchProductDataSupabase('test-product');
 
@@ -137,7 +162,7 @@ describe('fetchProductDataSupabase', () => {
 
   it('should not include rating when count is 0', async () => {
     const dataWithNoRating = { ...mockProductData, rating_count: 0 };
-    mockSingle.mockResolvedValueOnce({ data: dataWithNoRating, error: null });
+    supabaseMocks.mockProductsSingle.mockResolvedValueOnce({ data: dataWithNoRating, error: null });
 
     const result = await fetchProductDataSupabase('test-product');
 
@@ -153,7 +178,7 @@ describe('fetchProductDataSupabase', () => {
       attributes_json: null,
       description: null,
     };
-    mockSingle.mockResolvedValueOnce({ data: minimalData, error: null });
+    supabaseMocks.mockProductsSingle.mockResolvedValueOnce({ data: minimalData, error: null });
 
     const result = await fetchProductDataSupabase('test-product');
 

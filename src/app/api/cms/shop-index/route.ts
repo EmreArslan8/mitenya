@@ -9,6 +9,7 @@ const cmsApiUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
 const cmsBearer = process.env.STRAPI_BEARER;
 
 export const GET = async (req: NextRequest) => {
+  const start = Date.now();
   const slug = req.nextUrl.searchParams.get("slug");
 
   if (!cmsApiUrl || !cmsBearer) {
@@ -39,6 +40,7 @@ export const GET = async (req: NextRequest) => {
 
   try {
     // bring fonksiyonu fetch tabanlıysa, ikinci parametreye Next.js fetch opsiyonlarını ekliyoruz.
+    const fetchStart = Date.now();
     const [data, error] = await bring(url, {
       params,
       headers: { 
@@ -48,6 +50,7 @@ export const GET = async (req: NextRequest) => {
       // ISR için fetch seviyesinde revalidate
       next: { revalidate: 60 } 
     });
+    console.log(`[TIMING] /api/cms/shop-index bring ${Date.now() - fetchStart}ms`);
 
     if (error) {
       console.error("❌ bring() error:", error);
@@ -65,6 +68,7 @@ export const GET = async (req: NextRequest) => {
 
     const { title, blocks, gap } = attributes;
 
+    console.log(`[TIMING] /api/cms/shop-index total ${Date.now() - start}ms`);
     return Response.json({ title, blocks, gap }, { status: 200 });
   } catch (err) {
     console.error("🔥 Unexpected Error:", err);

@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "ux:screens": "node scripts/playwright-ux.mjs --out=e2e-artifacts/ux"
   },
   "dependencies": {
     "@emotion/cache": "^11.11.0",

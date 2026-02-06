@@ -21,7 +21,10 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
       product_prices(price_current, price_original, currency),
       product_images(image_path, image_url, is_main, sort_order),
       product_stock(quantity),
-      attributes_json
+      attributes_json,
+      meta_title,
+      meta_description,
+      meta_keywords
     `;
 
   let { data, error } = await supabase
@@ -46,6 +49,32 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
     console.log("❌ Ürün bulunamadı:", error);
     return null;
   }
+
+  // const { data: reviewRows } = await supabase
+  //   .from("product_reviews")
+  //   .select("id, user_name, rating, text, created_at")
+  //   .eq("product_id", String(data.id))
+  //   .order("created_at", { ascending: false });
+
+  // const reviews =
+  //   reviewRows?.map((r: any) => ({
+  //     id: r.id,
+  //     name: r.user_name ?? undefined,
+  //     rating: typeof r.rating === "number" ? r.rating : undefined,
+  //     text: r.text,
+  //     date: r.created_at,
+  //   })) ?? [];
+
+  // const computedRating =
+  //   reviews.length > 0
+  //     ? {
+  //         averageRating:
+  //           Math.round(
+  //             (reviews.reduce((sum, r) => sum + (r.rating ?? 0), 0) / reviews.length) * 100
+  //           ) / 100,
+  //         totalCount: reviews.length,
+  //       }
+  //     : undefined;
 
  /* const { data: faqRows } = await supabase
     .from("product_faqs")
@@ -105,7 +134,8 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
     },
     quantity: data.product_stock?.[0]?.quantity ?? 0,
     attributes: attributes,
-   // faqs: faqRows ?? [], 
+    reviews: [],
+   // faqs: faqRows ?? [],
     rating:
       data.rating_count > 0
         ? {
@@ -113,5 +143,8 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
             totalCount: Number(data.rating_count) || 0,
           }
         : undefined,
+    metaTitle: data.meta_title ?? null,
+    metaDescription: data.meta_description ?? null,
+    metaKeywords: data.meta_keywords ?? null,
   };
 }

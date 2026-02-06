@@ -96,11 +96,6 @@ const useStyles = withPalette((palette) => ({
   productName: {
     fontWeight: 600,
     lineHeight: 1.2,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    display: '-webkit-box',
-    WebkitLineClamp: { xs: 2, md: 1 },
-    WebkitBoxOrient: 'vertical',
   },
   brand: {
     display: 'flex',
