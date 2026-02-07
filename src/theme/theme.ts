@@ -4,7 +4,7 @@ import { Interpolation, PaletteColorOptions, Theme, createTheme } from '@mui/mat
 import { Palette, defaultPalette } from './palette';
 
 export const defaultMaxWidth = 1340;
-export const headerHeight = { xs: 88, sm: 120 };
+export const headerHeight = { xs: 94, sm: 120 };
 export const bannerHeight = 26;
 export const defaultMarginBottom = { xs: 8, sm: 18 };
 declare module '@mui/material/styles' {

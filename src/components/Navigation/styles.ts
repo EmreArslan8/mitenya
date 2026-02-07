@@ -302,6 +302,13 @@ const useStyles = withPalette((palette) => {
       borderRadius: 2,
       color: 'text.primary',
     },
+    loginPrompt: {
+      gap: 1.5,
+      px: 2,
+      py: 1.5,
+      borderBottom: `1px solid ${palette.gray[100] ?? palette.gray[200]}`,
+      color: palette.text.medium,
+    },
   };
 });
 

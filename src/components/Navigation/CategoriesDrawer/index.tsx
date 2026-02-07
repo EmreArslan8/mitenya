@@ -62,10 +62,10 @@ const CategoriesDrawer = ({
       sx={styles.drawer}
       PaperProps={{ sx: styles.paper }}
     >
-      <Stack sx={{ height: '100%' }}>
+      <Stack sx={styles.content}>
         <Stack direction="row" sx={styles.header}>
           <Typography sx={styles.brandText}>mitenya</Typography>
-          <IconButton onClick={onClose} aria-label="Kapat">
+          <IconButton onClick={onClose} aria-label="Kapat" sx={styles.closeButton}>
             <X  />
           </IconButton>
         </Stack>
@@ -73,19 +73,25 @@ const CategoriesDrawer = ({
         <Box sx={styles.sectionHeader}>
           <Typography sx={styles.sectionTitle}>Hesabım</Typography>
         </Box>
-        <Stack>
+        <Stack sx={styles.accountSection}>
           <MenuItem sx={styles.menuItem} onClick={onAccount} disabled={!onAccount}>
-            <User />
+            <Box sx={styles.menuIconWrap}>
+              <User size={18} />
+            </Box>
             {isAuthenticated ? 'Hesabım' : 'Giriş yap / Üye Ol '}
           </MenuItem>
-          <Divider />
+          <Divider sx={styles.divider} />
           <MenuItem sx={styles.menuItem} onClick={onFavorites} disabled={!onFavorites}>
-            <Heart />
+            <Box sx={styles.menuIconWrap}>
+              <Heart size={18} />
+            </Box>
             Favorilerim
           </MenuItem>
-          <Divider />
+          <Divider sx={styles.divider} />
           <MenuItem sx={styles.menuItem} onClick={onOrders} disabled={!onOrders}>
-            <Package />
+            <Box sx={styles.menuIconWrap}>
+              <Package size={18} />
+            </Box>
             Sipariş takibi
           </MenuItem>
         </Stack>
@@ -93,7 +99,7 @@ const CategoriesDrawer = ({
         <Box sx={styles.sectionHeader}>
           <Typography sx={styles.sectionTitle}>Kategoriler</Typography>
         </Box>
-        <Stack>
+        <Stack sx={styles.categoriesSection}>
           {categories?.map((cat) => {
             const hasChildren = !!cat.subs?.length;
             const isOpen = !!openCategories[cat.id];
@@ -105,14 +111,7 @@ const CategoriesDrawer = ({
                 >
                   <Typography sx={styles.categoryLabel}>{cat.label}</Typography>
                   {hasChildren && (
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        transition: 'transform 0.2s ease',
-                        transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                      }}
-                    >
+                    <Box sx={{ ...styles.chevronWrap, transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                       <ChevronDown size={18} />
                     </Box>
                   )}
@@ -148,7 +147,7 @@ const CategoriesDrawer = ({
                     </Stack>
                   </Collapse>
                 )}
-                <Divider />
+                <Divider sx={styles.divider} />
               </Box>
             );
           })}

@@ -9,7 +9,7 @@ import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
 import useScreen from '@/lib/hooks/useScreen';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
 import { signOut } from '@/lib/utils/signOut';
-import { bannerHeight } from '@/theme/theme';
+import { bannerHeight, headerHeight } from '@/theme/theme';
 import {
   Badge,
   BottomNavigation,
@@ -34,7 +34,7 @@ import { CrossFade } from '../common/CrossFade';
 import ModalCard from '../common/ModalCard';
 import CategoriesDrawer from './CategoriesDrawer';
 import useStyles from './styles';
-import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, Home, History, Settings, Menu, Heart, User } from 'lucide-react';
+import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, Home, History, Settings, Menu, Heart, User, ChevronRight } from 'lucide-react';
 
 const pulseAnimation = keyframes`
   0% {
@@ -81,7 +81,6 @@ const Navigation = ({ data }: NavigationProps) => {
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [logoCollapsed, setLogoCollapsed] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
   const styles = useStyles();
@@ -133,7 +132,7 @@ const Navigation = ({ data }: NavigationProps) => {
 
     if (isMobileRef.current)
       navbarRef.current.style.top =
-        (hidden ? -44 - bannerHeight : scrolled ? -bannerHeight : 0) + 'px';
+        (hidden ? -headerHeight.xs - bannerHeight : scrolled ? -bannerHeight : 0) + 'px';
     else
       navbarRef.current.style.top =
         (hidden ? -52 - bannerHeight : scrolled ? -bannerHeight : 0) + 'px';
@@ -207,37 +206,18 @@ const Navigation = ({ data }: NavigationProps) => {
                 </>
               ) : (
                 <>
-              {isMobileApp && pathname?.includes('/product/') ? (
-                <MenuItem onClick={() => router.back()} sx={styles.backButton}>
-                  <ArrowLeft size={24} />
-                </MenuItem>
-              ) : (
-                <Stack direction="row" alignItems="center" gap={1}>
-                  {smDown && (
+              {smDown ? (
+                <>
+                  {isMobileApp && pathname?.includes('/product/') ? (
+                    <IconButton onClick={() => router.back()} aria-label="Geri">
+                      <ArrowLeft size={24} />
+                    </IconButton>
+                  ) : (
                     <IconButton onClick={toggleCategoriesModalOpen} aria-label="Kategoriler">
                       <Menu size={26} />
                     </IconButton>
                   )}
-                  <Collapse
-                    in={collapseIn}
-                    orientation="horizontal"
-                    unmountOnExit
-                    onClick={() => router.push('/')}
-                    sx={{
-                      pr: !logoCollapsed || smUp ? 4 : 0,
-                      mr: { sm: 2 },
-
-                      '& .MuiCollapse-wrapperInner': {
-                        height: 40,
-                        display: 'flex',
-                        alignItems: 'center',
-                      },
-
-                      '& .MuiCollapse-wrapper': {
-                        height: 40,
-                      },
-                    }}
-                  >
+                  <Stack flex={1} alignItems="center" onClick={() => router.push('/')} sx={{ cursor: 'pointer' }}>
                     <Image
                       src={styles.logo.src}
                       alt="mitenya"
@@ -245,57 +225,83 @@ const Navigation = ({ data }: NavigationProps) => {
                       height={styles.logo.height}
                       style={styles.logo}
                     />
-                  </Collapse>
-                </Stack>
-              )}
-              <Stack
-                direction="row"
-                gap={1}
-                width="100%"
-                justifyContent={smDown && !searchOpen ? 'flex-end' : 'center'}
-              >
-                {smDown ? (
-                  searchOpen ? (
-                    <Stack direction="row" alignItems="center" width="100%" gap={1}>
-                      <SearchBar
-                        autoFocus
-                        onFocus={() => setLogoCollapsed(true)}
-                        onBlur={() => setLogoCollapsed(false)}
-                      />
-                      <IconButton
-                        onClick={() => {
-                          setSearchOpen(false);
-                          setLogoCollapsed(false);
-                        }}
-                        aria-label="Aramayi kapat"
-                      >
-                        <X size={22} />
-                      </IconButton>
-                    </Stack>
-                  ) : (
-                    <IconButton onClick={() => setSearchOpen(true)} aria-label="Ara">
-                      <Search size={24} />
+                  </Stack>
+                  <Stack direction="row" alignItems="center" gap={0.5}>
+                    <IconButton onClick={toggleAccountModalOpen} aria-label="Hesap">
+                      <CircleUser size={24} />
                     </IconButton>
-                  )
-                ) : (
-                  <SearchBar
-                    onFocus={() => setLogoCollapsed(true)}
-                    onBlur={() => setLogoCollapsed(false)}
-                  />
-                )}
-              </Stack>
-              {mounted && smUp && (
-                <Stack sx={styles.actions}>
-                  <MenuItem sx={styles.action} onClick={() => handleAccountButtonClick()}>
-                    <User />
-                    {isAuthenticated ? 'Hesabım' : 'Giriş Yap'}
-                  </MenuItem>
-                  <ShoppingCartButton />
-                </Stack>
+                    <IconButton onClick={toggleCartModalOpen} aria-label="Sepet">
+                      <Badge
+                        badgeContent={numItems}
+                        color="error"
+                        sx={{ '& .MuiBadge-badge': { minWidth: 18, height: 18, fontSize: 11, px: 0.5 } }}
+                      >
+                        <ShoppingBag size={24} />
+                      </Badge>
+                    </IconButton>
+                  </Stack>
+                </>
+              ) : (
+                <>
+                  {isMobileApp && pathname?.includes('/product/') ? (
+                    <MenuItem onClick={() => router.back()} sx={styles.backButton}>
+                      <ArrowLeft size={24} />
+                    </MenuItem>
+                  ) : (
+                    <Stack direction="row" alignItems="center" gap={1}>
+                      <Collapse
+                        in={collapseIn}
+                        orientation="horizontal"
+                        unmountOnExit
+                        onClick={() => router.push('/')}
+                        sx={{
+                          pr: !logoCollapsed || smUp ? 4 : 0,
+                          mr: { sm: 2 },
+
+                          '& .MuiCollapse-wrapperInner': {
+                            height: 40,
+                            display: 'flex',
+                            alignItems: 'center',
+                          },
+
+                          '& .MuiCollapse-wrapper': {
+                            height: 40,
+                          },
+                        }}
+                      >
+                        <Image
+                          src={styles.logo.src}
+                          alt="mitenya"
+                          width={styles.logo.width}
+                          height={styles.logo.height}
+                          style={styles.logo}
+                        />
+                      </Collapse>
+                    </Stack>
+                  )}
+                  <Stack direction="row" gap={1} width="100%" justifyContent="center">
+                    <SearchBar
+                      onFocus={() => setLogoCollapsed(true)}
+                      onBlur={() => setLogoCollapsed(false)}
+                    />
+                  </Stack>
+                  {mounted && (
+                    <Stack sx={styles.actions}>
+                      <MenuItem sx={styles.action} onClick={() => handleAccountButtonClick()}>
+                        <User />
+                        {isAuthenticated ? 'Hesabım' : 'Giriş Yap'}
+                      </MenuItem>
+                      <ShoppingCartButton />
+                    </Stack>
+                  )}
+                </>
               )}
                 </>
               )}
             </Stack>
+            {!isMinimal && mounted && smDown && (
+              <SearchBar />
+            )}
             {!isMinimal && mounted && smUp && (
               <Stack sx={styles.secondaryBar}>
                 <Stack sx={styles.shopHeaderLinks}>
