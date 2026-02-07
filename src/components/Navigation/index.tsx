@@ -342,7 +342,7 @@ const Navigation = ({ data }: NavigationProps) => {
           </Stack>
         </Stack>
       </Stack>
-      {!isMinimal && smDown && (
+      {/* {!isMinimal && smDown && (
         <Stack sx={styles.bottomNavigation}>
           <BottomNavigation
             showLabels
@@ -410,7 +410,7 @@ const Navigation = ({ data }: NavigationProps) => {
             />
           </BottomNavigation>
         </Stack>
-      )}
+      )} */}
       {!isMinimal && (
         <>
           <ModalCard
