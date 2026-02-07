@@ -5,11 +5,12 @@ import BrandItem from '../../shared/ShopBrand';
 import { BlockComponentBaseProps } from '..';
 import CustomSlider from '@/components/CustomSlider';
 import useScreen from '@/lib/hooks/useScreen';
+import { SharedImageType } from '../../shared/cmsTypes';
 
 export interface ShopBrandsProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
   brands: {
-    logo: any;
+    logo: SharedImageType;
     url?: string;
     highlight?: boolean;
   }[];
@@ -17,10 +18,14 @@ export interface ShopBrandsProps extends BlockComponentBaseProps {
 
 const ShopBrands = ({ section, brands }: ShopBrandsProps) => {
   const { isMobile } = useScreen();
+  const slidesToShow = isMobile ? 2 : 5;
+  const hasEnoughItemsToScroll = brands.length > slidesToShow;
+  const sliderBrands = hasEnoughItemsToScroll ? brands : [...brands, ...brands];
+
   return (
     <SectionBase {...section}>
       <CustomSlider
-        slidesToShow={isMobile ? 2 : 5}
+        slidesToShow={slidesToShow}
         slidesToScroll={1}
         infinite
         autoplay
@@ -34,7 +39,7 @@ const ShopBrands = ({ section, brands }: ShopBrandsProps) => {
         touchMove={false}
         showControls={false}
       >
-        {brands.map((brand, index) => (
+        {sliderBrands.map((brand, index) => (
           <BrandItem key={index} {...brand} />
         ))}
       </CustomSlider>

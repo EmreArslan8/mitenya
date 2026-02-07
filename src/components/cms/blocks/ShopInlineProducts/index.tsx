@@ -95,7 +95,7 @@ const ShopInlineProducts = ({
                     </Stack>
                   ))
                 : Array.from(Array(5).keys()).map((e) => (
-                    <Stack key={e} gap={{ xs: 0.75, sm: 1 }} sx={{ boxSizing: 'border-box' }}>
+                    <Stack key={e} p={{ xs: 0.75, sm: 1 }} sx={{ boxSizing: 'border-box' }}>
                       <ProductCardSkeleton />
                     </Stack>
                   ))}

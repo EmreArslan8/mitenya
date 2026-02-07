@@ -46,9 +46,9 @@ const ShoppingCartButton = ({ compact = false }: { compact?: boolean }) => {
         <Badge
           badgeContent={isMounted ? numItems : 0}
           color="error"
-          sx={{ '& .MuiBadge-badge': { minWidth: 18, height: 18, fontSize: 11, px: 0.5 } }}
+          sx={{ '& .MuiBadge-badge': { minWidth: 19, height: 19, fontSize: 11, px: 0.5 } }}
         >
-          <ShoppingBag size={20} strokeWidth={2} />
+          <ShoppingBag size={23} strokeWidth={2} />
         </Badge>
         {!compact && 'Sepet'}
         {isMounted && !isCartReady && (

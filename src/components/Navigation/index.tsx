@@ -179,7 +179,7 @@ const Navigation = ({ data }: NavigationProps) => {
               {getSupportUrl && (
                 <a href={getSupportUrl!} target="_blank" style={styles.a}>
                   <MenuItem sx={styles.bannerLink}>
-                    <Headset color="primaryDark" size={15} />
+                    <Headset color="primaryDark" size={17} />
                     Yardım
                   </MenuItem>
                 </a>
@@ -215,7 +215,7 @@ const Navigation = ({ data }: NavigationProps) => {
                 <Stack direction="row" alignItems="center" gap={1}>
                   {smDown && (
                     <IconButton onClick={toggleCategoriesModalOpen} aria-label="Kategoriler">
-                      <Menu size={24} />
+                      <Menu size={26} />
                     </IconButton>
                   )}
                   <Collapse
@@ -269,12 +269,12 @@ const Navigation = ({ data }: NavigationProps) => {
                         }}
                         aria-label="Aramayi kapat"
                       >
-                        <X size={20} />
+                        <X size={22} />
                       </IconButton>
                     </Stack>
                   ) : (
                     <IconButton onClick={() => setSearchOpen(true)} aria-label="Ara">
-                      <Search size={22} />
+                      <Search size={24} />
                     </IconButton>
                   )
                 ) : (
@@ -312,43 +312,15 @@ const Navigation = ({ data }: NavigationProps) => {
                 </Stack>
 
                 {activeCategory !== null && data?.categories?.[activeCategory] && (
-                  <Box
-                    onMouseLeave={() => setActiveCategory(null)}
-                    sx={{
-                      position: 'absolute',
-                      top: styles.secondaryBar.height || 150,
-                      left: 0,
-                      width: '100%',
-                      background: '#fff',
-                      boxShadow: '0 5px 20px rgba(0,0,0,0.10)',
-                      zIndex: 2000,
-                      p: 4,
-                      display: 'flex',
-                      gap: 4,
-                      borderBottom: '1px solid #eee',
-                    }}
-                  >
-                    <Stack
-                      sx={{
-                        flex: 3,
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: 4,
-                      }}
-                    >
+                  <Box onMouseLeave={() => setActiveCategory(null)} sx={styles.megaMenu}>
+                    <Box sx={styles.megaMenuGrid}>
                       {data.categories[activeCategory].subs?.map((sub) => (
-                        <Stack key={sub.id} spacing={1}>
-                          <Typography fontWeight={700} fontSize={17} color="primary.main">
-                            {sub.label}
-                          </Typography>
-
+                        <Stack key={sub.id} sx={styles.megaMenuGroup}>
+                          <Typography sx={styles.megaMenuTitle}>{sub.label}</Typography>
                           {sub.items?.map((item) => (
                             <Typography
                               key={item.id}
-                              sx={{
-                                cursor: 'pointer',
-                                '&:hover': { color: 'primary.main' },
-                              }}
+                              sx={styles.megaMenuItem}
                               onClick={() => item.slug && router.push(`/${item.slug}`)}
                             >
                               {item.label}
@@ -356,7 +328,7 @@ const Navigation = ({ data }: NavigationProps) => {
                           ))}
                         </Stack>
                       ))}
-                    </Stack>
+                    </Box>
                   </Box>
                 )}
               </Stack>
@@ -661,8 +633,8 @@ const SearchBar = ({ onFocus, onBlur, autoFocus }: SearchBarProps) => {
         sx={styles.searchBarInput}
         InputProps={{
           endAdornment: (
-            <IconButton type="submit" size="small">
-              <Search color="primary.main" fontSize={20} strokeWidth={2.5} />
+            <IconButton type="submit" size="small" aria-label="Ara">
+              <Search size={20} strokeWidth={2.4} />
             </IconButton>
           ),
         }}

@@ -118,12 +118,27 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
   // brand filter
   if (selectedBrandIds.length) query = query.in("brand_id", selectedBrandIds);
 
-  // query search (single OR condition across product name, brand name, category name)
+  // query search: support multi-word queries (e.g. "celimax retinol")
   if (options.query) {
-    const q = options.query.replaceAll(",", "\\,");
-    query = query.or(
-      `name.ilike.%${q}%,brand_name.ilike.%${q}%,category_name.ilike.%${q}%`
-    );
+    const sanitizeQueryToken = (token: string) =>
+      token
+        .trim()
+        .replaceAll(",", "\\,")
+        .replaceAll("%", "\\%")
+        .replaceAll("_", "\\_");
+
+    const tokens = options.query
+      .split(/\s+/)
+      .map(sanitizeQueryToken)
+      .filter(Boolean);
+
+    // Every token must match at least one of the searchable fields.
+    // Chaining .or(...) creates token groups that are combined with AND.
+    for (const token of tokens) {
+      query = query.or(
+        `name.ilike.%${token}%,brand_name.ilike.%${token}%,category_name.ilike.%${token}%`
+      );
+    }
   }
 
   // price filter (min-max)

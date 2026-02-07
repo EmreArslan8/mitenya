@@ -1,7 +1,7 @@
 const styles = {
   icon: {
-    width: { xs: 32, sm: 40, md: 48 },
-    height: { xs: 32, sm: 40, md: 48 },
+    width: { xs: 40, sm: 40, md: 48 },
+    height: { xs: 40, sm: 40, md: 48 },
     flexShrink: 0,
     mt: '2px',
   },

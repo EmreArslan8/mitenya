@@ -4,7 +4,7 @@ const styles = {
     borderColor: 'rgba(0,0,0,0.08)',
     borderRadius: 1,
     backgroundColor: '#fff',
-    py: { xs: 1, md: 1 },
+    py: { xs: 2, md: 2 },
     px: { xs: 1, md: 2 },
   },
 

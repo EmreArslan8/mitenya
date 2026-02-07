@@ -32,7 +32,7 @@ const Loading = () => {
             }}
           />
           <Image
-            src="/static/images/logo_white.webp"
+            src="/static/images/logo.svg"
             alt="mitenya"
             width={104.625}
             height={30}

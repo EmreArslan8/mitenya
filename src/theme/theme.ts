@@ -404,13 +404,6 @@ export const getDesignTokens = (
             fontWeight: 500,
             lineHeight: 1,
             padding: '6px 8px',
-            '&.Mui-selected': {
-              fontWeight: 700,
-              background: palette.bg.main,
-              '&:hover': {
-                background: palette.bg.main,
-              },
-            },
           },
         },
       },
