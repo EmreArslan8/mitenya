@@ -7,6 +7,7 @@ const document = getLegalDocument('kullanim-kosullari');
 export const metadata = {
   title: document?.metaTitle ?? document?.title ?? 'Kullanım Koşulları',
   description: document?.metaDescription ?? 'Kullanım koşulları metni.',
+  robots: { index: false, follow: false },
 };
 
 const KullanimKosullariPage = () => {

@@ -4,12 +4,13 @@ import useScreen from '@/lib/hooks/useScreen';
 import { Box, Grid } from '@mui/material';
 import { BlockComponentBaseProps } from '..';
 import InfoArea from '../../shared/InfoArea';
+import { SharedImageType } from '../../shared/cmsTypes';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import styles from './styles';
 
 export interface InfoAreasProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
-  infoAreas: { label?: string; description: string; url?: string }[];
+  infoAreas: { label?: string; description: string; url?: string; icon?: SharedImageType }[];
 }
 
 const ShopInfoAreas = ({ section, infoAreas }: InfoAreasProps) => {

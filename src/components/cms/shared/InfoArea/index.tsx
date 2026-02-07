@@ -1,27 +1,21 @@
 import Markdown from '@/components/common/Markdown';
-import Icon from '@/components/Icon';
-import { Stack, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import styles from './styles';
 import { useRouter } from 'next/navigation';
-import useScreen from '@/lib/hooks/useScreen';
+import { SharedImageType } from '../cmsTypes';
+import CMSImage from '../CMSImage';
 
 export interface InfoAreaProps {
   index?: number;
   label?: string;
   description?: string;
   url?: string;
+  icon?: SharedImageType;
 }
 
-const infoAreaIcons = ['truck', 'clock-4', 'badge-percent', 'credit-card'];
-
-const InfoArea = ({ index, label, description, url }: InfoAreaProps) => {
+const InfoArea = ({ label, description, url, icon }: InfoAreaProps) => {
   const router = useRouter();
-  const { smUp, mdUp } = useScreen();
-  const iconSize = mdUp ? 48 : smUp ? 36 : 32;
-  const icon =
-    typeof index === 'number'
-      ? infoAreaIcons[index % infoAreaIcons.length]
-      : undefined;
+  const iconImage = icon?.data?.attributes;
 
   return (
     <Stack
@@ -33,7 +27,16 @@ const InfoArea = ({ index, label, description, url }: InfoAreaProps) => {
         cursor: url ? 'pointer' : 'default',
       }}
     >
-      {icon && <Icon name={icon} fontSize={iconSize} sx={styles.icon} weight={100} />}
+      {iconImage && (
+        <Box sx={{ ...styles.icon, position: 'relative', overflow: 'hidden' }}>
+          <CMSImage
+            src={iconImage.url}
+            alt={iconImage.alternativeText}
+            fill
+            style={{ objectFit: 'contain' }}
+          />
+        </Box>
+      )}
       <Stack spacing={0.5}>
         {label && (
           <Typography variant="subtitle1" sx={styles.label}>

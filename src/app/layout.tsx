@@ -94,7 +94,11 @@ export const generateMetadata = async () => ({
   applicationName: "Mitenya",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: [{ url: "/static/images/icon.png", type: "image/png" }],
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
+      { url: "/static/images/icon.png", sizes: "67x67", type: "image/png" },
+    ],
+    shortcut: ["/favicon.ico"],
     apple: [{ url: "/static/images/apple-touch-icon.png", type: "image/png" }],
   },
   openGraph: {

@@ -1,5 +1,5 @@
 export type SharedImageType = {
-  data: { attributes: { url: string; alternativeText: string; ext: string } };
+  data: { attributes: { url: string; alternativeText: string; ext: string; width: number; height: number } };
 };
 export type SharedSiblingImageType = { attributes: { url: string; alternativeText: string } };
 

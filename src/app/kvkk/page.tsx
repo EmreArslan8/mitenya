@@ -9,6 +9,7 @@ export const metadata = {
   description:
     document?.metaDescription ??
     'Kişisel Verilerin Korunması Kanunu kapsamında aydınlatma metni.',
+  robots: { index: false, follow: false },
 };
 
 const KvkkPage = () => {

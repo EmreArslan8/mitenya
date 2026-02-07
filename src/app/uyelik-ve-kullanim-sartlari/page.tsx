@@ -7,6 +7,7 @@ const document = getLegalDocument('uyelik-ve-kullanim-sartlari');
 export const metadata = {
   title: document?.metaTitle ?? document?.title ?? 'Üyelik ve Kullanım Şartları',
   description: document?.metaDescription ?? 'Üyelik ve kullanım şartları sözleşmesi.',
+  robots: { index: false, follow: false },
 };
 
 const UyelikVeKullanimSartlariPage = () => {

@@ -6,9 +6,8 @@ const document = getLegalDocument('on-bilgilendirme-formu');
 
 export const metadata = {
   title: document?.metaTitle ?? document?.title ?? 'Ön Bilgilendirme Formu',
-  description:
-    document?.metaDescription ??
-    'Mesafeli satış ön bilgilendirme formu.',
+  description: document?.metaDescription ?? 'Mesafeli satış ön bilgilendirme formu.',
+  robots: { index: false, follow: false },
 };
 
 const OnBilgilendirmeFormuPage = () => {

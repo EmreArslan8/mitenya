@@ -6,9 +6,8 @@ const document = getLegalDocument('mesafeli-satis-sozlesmesi');
 
 export const metadata = {
   title: document?.metaTitle ?? document?.title ?? 'Mesafeli Satış Sözleşmesi',
-  description:
-    document?.metaDescription ??
-    'Mesafeli satış sözleşmesi.',
+  description: document?.metaDescription ?? 'Mesafeli satış sözleşmesi.',
+  robots: { index: false, follow: false },
 };
 
 const MesafeliSatisSozlesmesiPage = () => {

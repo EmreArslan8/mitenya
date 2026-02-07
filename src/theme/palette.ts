@@ -1,5 +1,6 @@
 export const defaultPalette = {
   logo: { src: '/static/images/logo.svg', width: 125, height: 40 },
+  logoWhite: { src: '/static/images/logo-white.svg', width: 125, height: 40 },
 
   /**
    * PRIMARY = Ana aksiyon rengi (CTA / Sepete Ekle / Satın Al)
