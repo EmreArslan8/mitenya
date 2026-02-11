@@ -9,8 +9,15 @@ const kvkkAydinlatma: LegalDocument = {
     'Kişisel Verilerin Korunması Kanunu kapsamında Mitenya aydınlatma metni.',
   html: `
 <p><strong>Veri Sorumlusu Kimliği:</strong></p>
-<p>ALSANCAK PAZARLAMA SANAYİ VE TİCARET LİMİTED ŞİRKETİ</p>
-<p>İletişim adresi: destek@mitenya.com</p>
+<p>
+  Veri Sorumlusunun Adı / Şirketin Tam Unvanı: ALSANCAK PAZARLAMA SANAYİ VE
+  TİCARET LİMİTED ŞİRKETİ
+</p>
+<p>
+  Veri Sorumlusunun Adresi: KARGI MAH. YEMENİCİLER ÇARŞISI SK. NO: 8 A TOSYA /
+  KASTAMONU
+</p>
+<p>İletişim Kanalı: destek@mitenya.com</p>
 <p>
   İşbu aydınlatma metni www.mitenya.com adresini ziyaret eden ve kullanan ilgili
   kişilerin kişisel verilerini konu edinmektedir.
@@ -102,7 +109,7 @@ const iadePolitikasi: LegalDocument = {
   birlikte aşağıdaki adrese gönderebilirsiniz.
 </p>
 <p>
-  FİRMA ADRESİ: KAYIKÇILAR MAH. ÇAYCUMA / ZONGULDAK
+KAYIKÇILAR KÖYÜ ARICIOĞLU MAH. 103. SK. NO: 14 DAİRE: 2 ÇAYCUMA / ZONGULDAK
 </p>
 <p>
   - Sevkiyat sırasında zarar gördüğünü düşündüğünüz paketleri teslim aldığınız

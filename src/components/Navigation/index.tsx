@@ -51,7 +51,7 @@ const pulseAnimation = keyframes`
   }
 `;
 
-const getSupportUrl = 'https://api.whatsapp.com';
+const getSupportUrl = 'https://api.whatsapp.com/send?phone=905070617930';
 
 const accountModalRoutes = [
   { label: 'orders', labelTr: 'Siparişler', url: '/orders', icon: History },
