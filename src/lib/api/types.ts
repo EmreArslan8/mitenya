@@ -251,6 +251,7 @@ export type ShopGender =
 export type ShopFilter<T extends ShopFilterType> = {
   type: T;
   text: string;
+  count?: number;
   searchOptions: {
     query?: string;
     brand?: string;

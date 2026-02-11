@@ -2,7 +2,7 @@ import { getSupabaseAnon } from "../supabase/anon";
 import { getFilterAggregations } from "../cache/filterCache";
 import { r2Url } from "../utils/r2";
 import { ShopSearchOptions, ShopSearchSort, ShopProductListItemData, ShopFilter } from "./types";
-import { PRODUCTS_PER_PAGE, SORT_OPTIONS } from "../constants/shop";
+import { PRICE_RANGES, PRODUCTS_PER_PAGE, SORT_OPTIONS } from "../constants/shop";
 
 // Collection type
 export interface Collection {
@@ -32,14 +32,82 @@ export async function fetchCollectionBySlug(slug: string): Promise<Collection | 
 
 export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> = {}) {
   const supabase = getSupabaseAnon();
+  const filterAggregations = await getFilterAggregations();
 
   const page = Number(options.page ?? 1);
   const offset = (page - 1) * PRODUCTS_PER_PAGE;
 
   const sort: ShopSearchSort = (options.sort as ShopSearchSort) ?? "rct";
+  const categorySlugToId = Object.fromEntries(
+    filterAggregations.categories.map((category) => [category.slug, category.id])
+  );
+  const brandSlugToId = Object.fromEntries(
+    filterAggregations.brands.map((brand) => [brand.slug, brand.id])
+  );
 
-  const selectedBrandIds = options.brand?.split(",").filter(Boolean) ?? [];
-  const selectedCategoryIds = options.category?.split(",").filter(Boolean) ?? [];
+  const selectedCategoryTokens = options.category?.split(",").filter(Boolean) ?? [];
+  const selectedBrandTokens = options.brand?.split(",").filter(Boolean) ?? [];
+
+  // Backward compatibility: still accept IDs if old links exist.
+  const selectedCategoryIds = selectedCategoryTokens
+    .map((token) => categorySlugToId[token] ?? token)
+    .filter(Boolean);
+  const selectedBrandIds = selectedBrandTokens
+    .map((token) => brandSlugToId[token] ?? token)
+    .filter(Boolean);
+
+  const sanitizeQueryToken = (token: string) =>
+    token
+      .trim()
+      .replaceAll(",", "\\,")
+      .replaceAll("%", "\\%")
+      .replaceAll("_", "\\_");
+
+  const selectedQueryTokens = options.query
+    ?.split(/\s+/)
+    .map(sanitizeQueryToken)
+    .filter(Boolean) ?? [];
+
+  const applyCollectionFilter = <T extends { in: (column: string, values: string[]) => T }>(
+    builder: T,
+    productIds: string[] | null
+  ): T => (productIds ? builder.in("id", productIds) : builder);
+
+  const applyCategoryFilter = <T extends { in: (column: string, values: string[]) => T }>(
+    builder: T
+  ): T => (selectedCategoryIds.length ? builder.in("category_id", selectedCategoryIds) : builder);
+
+  const applyBrandFilter = <T extends { in: (column: string, values: string[]) => T }>(
+    builder: T
+  ): T => (selectedBrandIds.length ? builder.in("brand_id", selectedBrandIds) : builder);
+
+  const applyQueryFilter = <T extends { or: (filters: string) => T }>(builder: T): T => {
+    let nextBuilder = builder;
+    for (const token of selectedQueryTokens) {
+      nextBuilder = nextBuilder.or(
+        `name.ilike.%${token}%,brand_name.ilike.%${token}%,category_name.ilike.%${token}%`
+      );
+    }
+    return nextBuilder;
+  };
+
+  const applyPriceFilter = <
+    T extends {
+      gte: (column: string, value: number) => T;
+      lte: (column: string, value: number) => T;
+    },
+  >(
+    builder: T
+  ): T => {
+    if (!options.price) return builder;
+    const [minStr, maxStr] = options.price.split("-");
+    const min = Number(minStr);
+    const max = maxStr ? Number(maxStr) : null;
+    if (!Number.isFinite(min)) return builder;
+    if (max && Number.isFinite(max))
+      return builder.gte("product_prices.price_current", min).lte("product_prices.price_current", max);
+    return builder.gte("product_prices.price_current", min);
+  };
 
   // ---------------------------------------------------
   // COLLECTION FILTER - Get product IDs first if collection is specified
@@ -102,57 +170,77 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     )
     .range(offset, offset + PRODUCTS_PER_PAGE - 1);
 
-  // collection filter - filter by product IDs
-  if (collectionProductIds) {
-    query = query.in("id", collectionProductIds);
-  }
+  // Price aggregation query (contextual to current filters except selected price)
+  let priceAggQuery = supabase
+    .from("products")
+    .select(
+      `
+      id,
+      product_prices(price_current)
+    `
+    );
+
+  // Contextual aggregation queries (for facet counts)
+  let categoryAggQuery = supabase
+    .from("products")
+    .select(
+      `
+      category_id,
+      category_name,
+      product_prices(price_current)
+    `
+    );
+
+  let brandAggQuery = supabase
+    .from("products")
+    .select(
+      `
+      brand_id,
+      brand_name,
+      product_prices(price_current)
+    `
+    );
+
+  query = applyCollectionFilter(query, collectionProductIds);
+  priceAggQuery = applyCollectionFilter(priceAggQuery, collectionProductIds);
+  categoryAggQuery = applyCollectionFilter(categoryAggQuery, collectionProductIds);
+  brandAggQuery = applyCollectionFilter(brandAggQuery, collectionProductIds);
 
   // Always pick a single price row per product (lowest current price)
   query = query
     .order("price_current", { ascending: true, foreignTable: "product_prices" })
     .limit(1, { foreignTable: "product_prices" });
 
-  // category filter
-  if (selectedCategoryIds.length) query = query.in("category_id", selectedCategoryIds);
+  priceAggQuery = priceAggQuery
+    .order("price_current", { ascending: true, foreignTable: "product_prices" })
+    .limit(1, { foreignTable: "product_prices" });
 
-  // brand filter
-  if (selectedBrandIds.length) query = query.in("brand_id", selectedBrandIds);
+  categoryAggQuery = categoryAggQuery
+    .order("price_current", { ascending: true, foreignTable: "product_prices" })
+    .limit(1, { foreignTable: "product_prices" });
 
-  // query search: support multi-word queries (e.g. "celimax retinol")
-  if (options.query) {
-    const sanitizeQueryToken = (token: string) =>
-      token
-        .trim()
-        .replaceAll(",", "\\,")
-        .replaceAll("%", "\\%")
-        .replaceAll("_", "\\_");
+  brandAggQuery = brandAggQuery
+    .order("price_current", { ascending: true, foreignTable: "product_prices" })
+    .limit(1, { foreignTable: "product_prices" });
 
-    const tokens = options.query
-      .split(/\s+/)
-      .map(sanitizeQueryToken)
-      .filter(Boolean);
+  query = applyCategoryFilter(query);
+  priceAggQuery = applyCategoryFilter(priceAggQuery);
+  // Keep brand counts contextual to selected categories
+  brandAggQuery = applyCategoryFilter(brandAggQuery);
 
-    // Every token must match at least one of the searchable fields.
-    // Chaining .or(...) creates token groups that are combined with AND.
-    for (const token of tokens) {
-      query = query.or(
-        `name.ilike.%${token}%,brand_name.ilike.%${token}%,category_name.ilike.%${token}%`
-      );
-    }
-  }
+  query = applyBrandFilter(query);
+  priceAggQuery = applyBrandFilter(priceAggQuery);
+  // Keep category counts contextual to selected brands
+  categoryAggQuery = applyBrandFilter(categoryAggQuery);
 
-  // price filter (min-max)
-  if (options.price) {
-    const [minStr, maxStr] = options.price.split("-");
-    const min = Number(minStr);
-    const max = maxStr ? Number(maxStr) : null;
+  query = applyQueryFilter(query);
+  priceAggQuery = applyQueryFilter(priceAggQuery);
+  categoryAggQuery = applyQueryFilter(categoryAggQuery);
+  brandAggQuery = applyQueryFilter(brandAggQuery);
 
-    if (max) {
-      query = query.gte("product_prices.price_current", min).lte("product_prices.price_current", max);
-    } else {
-      query = query.gte("product_prices.price_current", min);
-    }
-  }
+  query = applyPriceFilter(query);
+  categoryAggQuery = applyPriceFilter(categoryAggQuery);
+  brandAggQuery = applyPriceFilter(brandAggQuery);
 
   // sort
   switch (sort) {
@@ -177,12 +265,17 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
   }
 
   // Run product query and filter aggregations in parallel
-  const [productResult, filterAggregations] = await Promise.all([
+  const [productResult, priceAggResult, categoryAggResult, brandAggResult] = await Promise.all([
     query,
-    getFilterAggregations(),
+    priceAggQuery,
+    categoryAggQuery,
+    brandAggQuery,
   ]);
 
   const { data, error, count } = productResult;
+  const { data: priceAggData } = priceAggResult;
+  const { data: categoryAggData } = categoryAggResult;
+  const { data: brandAggData } = brandAggResult;
 
   if (error || !data) {
     console.error("[SUPABASE] fetchProductsSupabase error:", error);
@@ -249,38 +342,65 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
   // ---------------------------------------------------
   // BUILD FILTERS FROM CACHE
   // ---------------------------------------------------
+  const contextualCategoryCounts = (categoryAggData ?? []).reduce<Record<string, number>>((acc, row) => {
+    if (!row.category_id) return acc;
+    acc[row.category_id] = (acc[row.category_id] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  const contextualBrandCounts = (brandAggData ?? []).reduce<Record<string, number>>((acc, row) => {
+    if (!row.brand_id) return acc;
+    acc[row.brand_id] = (acc[row.brand_id] ?? 0) + 1;
+    return acc;
+  }, {});
+
   const categoryFilters: ShopFilter<'category'>[] = filterAggregations.categories.map((c) => ({
     type: "category" as const,
-    text: `${c.name} (${c.count})`,
-    searchOptions: { category: c.id },
+    text: `${c.name} (${contextualCategoryCounts[c.id] ?? 0})`,
+    count: contextualCategoryCounts[c.id] ?? 0,
+    searchOptions: { category: c.slug },
     selected: selectedCategoryIds.includes(c.id),
     allowMultiple: true,
   }));
 
   const brandFilters: ShopFilter<'brand'>[] = filterAggregations.brands.map((b) => ({
     type: "brand" as const,
-    text: `${b.name} (${b.count})`,
-    searchOptions: { brand: b.id },
+    text: `${b.name} (${contextualBrandCounts[b.id] ?? 0})`,
+    count: contextualBrandCounts[b.id] ?? 0,
+    searchOptions: { brand: b.slug },
     selected: selectedBrandIds.includes(b.id),
     allowMultiple: true,
   }));
 
-  const priceFilters: ShopFilter<'price'>[] = filterAggregations.priceRanges.map((r) => ({
+  const contextualPrices =
+    priceAggData
+      ?.map((row) => Number(row.product_prices?.[0]?.price_current))
+      .filter((price) => Number.isFinite(price)) ?? [];
+
+  const priceFilters: ShopFilter<'price'>[] = PRICE_RANGES.map((range) => {
+    const countInRange = contextualPrices.filter(
+      (price) => price >= range.min && price < range.max
+    ).length;
+    return {
     type: "price" as const,
-    text: `${r.label} (${r.count})`,
+    text: `${range.label} (${countInRange})`,
+    count: countInRange,
     searchOptions: {
-      price: `${r.min}-${r.max === Infinity ? "" : r.max}`,
+      price: `${range.min}-${range.max === Infinity ? "" : range.max}`,
     },
-    selected: options.price === `${r.min}-${r.max === Infinity ? "" : r.max}`,
+    selected: options.price === `${range.min}-${range.max === Infinity ? "" : range.max}`,
     allowMultiple: false,
-  }));
+  };
+  });
 
   return {
     products,
     totalCount: count ?? 0,
     tq: options.query,
     filters: {
-      selectedOptions: options,
+      selectedOptions: {
+        ...options,
+      },
       categories: categoryFilters,
       brands: brandFilters,
       priceRanges: priceFilters,

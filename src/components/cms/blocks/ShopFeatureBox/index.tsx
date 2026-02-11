@@ -37,7 +37,7 @@ const ShopFeatureBox = ({
           <Stack sx={styles.imageContainer}>
             <CMSImage
               src={image.data.attributes.url}
-              alt={image.data.attributes.alternativeText}
+              alt={image.data.attributes.alternativeText || title || 'Mitenya'}
               fill
               style={styles.image(imageFit)}
             />

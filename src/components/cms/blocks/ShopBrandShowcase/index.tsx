@@ -69,7 +69,7 @@ const ShopBrandShowcase = ({
           <Stack sx={styles.imageWrapper}>
             <CMSImage
               src={image.data.attributes.url}
-              alt={image.data.attributes.alternativeText}
+              alt={image.data.attributes.alternativeText || title}
               fill
             />
           </Stack>

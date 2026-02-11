@@ -10,7 +10,7 @@ const SearchPage = async ({
   const resolvedParams = await searchParams;
 
   return (
-    <Suspense fallback={<Loading />} key={JSON.stringify(resolvedParams)}>
+    <Suspense fallback={<Loading />}>
       <SuspensedView searchParams={resolvedParams} />
     </Suspense>
   );

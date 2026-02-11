@@ -31,7 +31,7 @@ const InfoArea = ({ label, description, url, icon }: InfoAreaProps) => {
         <Box sx={{ ...styles.icon, position: 'relative', overflow: 'hidden' }}>
           <CMSImage
             src={iconImage.url}
-            alt={iconImage.alternativeText}
+            alt={iconImage.alternativeText || label || 'Bilgi ikonu'}
             fill
             style={{ objectFit: 'contain' }}
           />

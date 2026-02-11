@@ -27,7 +27,7 @@ import {
 } from '@mui/material';
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { FormEvent, useContext, useEffect, useRef, useState } from 'react';
+import { FormEvent, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import LoadingOverlay from '../LoadingOverlay';
 import ShoppingCartButton from '../ShoppingCart/ShoppingCartButton';
 import { CrossFade } from '../common/CrossFade';
@@ -68,11 +68,13 @@ const Navigation = ({ data }: NavigationProps) => {
   const isMobileApp = useIsMobileApp();
   const router = useRouter();
   const pathname = usePathname();
+  const { smDown, smUp } = useScreen();
+  const isSearchRoute = pathname === '/search';
+  const isMobileSearchRoute = smDown && isSearchRoute;
   const isMinimal = MINIMAL_ROUTES.some((r) => pathname?.startsWith(r));
   const { isAuthenticated, openAuthenticator } = useAuth();
   const { numItems, newProductAdded } = useContext(ShopContext);
   const isCartEmpty = !numItems;
-  const { smDown, smUp } = useScreen();
   const prevScrollPosition = useRef(0);
   const navbarRef = useRef<HTMLDivElement>(null);
   const isMobileRef = useRef(true);
@@ -81,6 +83,7 @@ const Navigation = ({ data }: NavigationProps) => {
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [logoCollapsed, setLogoCollapsed] = useState(false);
+  const [mobileSearchInputOpen, setMobileSearchInputOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
   const styles = useStyles();
@@ -122,29 +125,60 @@ const Navigation = ({ data }: NavigationProps) => {
   };
 
   const handleLinkClick = (link: ShopHeaderLink) => {
-    link.slug?.startsWith('http') ? router.push(link.slug) : router.push(`/${link.slug ?? ''}`);
+    if (link.slug?.startsWith('http')) {
+      router.push(link.slug);
+      return;
+    }
+    router.push(`/${link.slug ?? ''}`);
   };
 
-  const handleScroll = () => {
+  const updateMobileNavVars = useCallback(() => {
+    if (!navbarRef.current || typeof window === 'undefined') return;
+    const root = document.documentElement;
+    const navRect = navbarRef.current.getBoundingClientRect();
+    const navBottom = Math.max(0, Math.round(navRect.bottom));
+    const navHeight = Math.max(0, Math.round(navRect.height));
+    root.style.setProperty('--mobile-nav-bottom', `${navBottom}px`);
+    root.style.setProperty('--mobile-nav-spacer', `${navHeight}px`);
+  }, []);
+
+  const handleScroll = useCallback(() => {
     if (!navbarRef.current) return;
     const hidden = window.scrollY > 120 && window.scrollY > prevScrollPosition.current;
     const scrolled = window.scrollY > 0;
+    const scrollingDown = window.scrollY > prevScrollPosition.current;
 
-    if (isMobileRef.current)
-      navbarRef.current.style.top =
-        (hidden ? -headerHeight.xs - bannerHeight : scrolled ? -bannerHeight : 0) + 'px';
-    else
+    if (isMobileRef.current) {
+      const shouldKeepCompactHeaderVisible = isSearchRoute;
+      navbarRef.current.style.top = `${
+        shouldKeepCompactHeaderVisible
+          ? scrolled
+            ? -bannerHeight
+            : 0
+          : hidden
+            ? -headerHeight.xs - bannerHeight
+            : scrolled
+              ? -bannerHeight
+              : 0
+      }px`;
+      if (shouldKeepCompactHeaderVisible && scrollingDown && mobileSearchInputOpen)
+        setMobileSearchInputOpen(false);
+    } else
       navbarRef.current.style.top =
         (hidden ? -52 - bannerHeight : scrolled ? -bannerHeight : 0) + 'px';
 
     navbarRef.current.style.boxShadow = scrolled ? '0 0 5px #00000010' : 'none';
+    updateMobileNavVars();
     prevScrollPosition.current = window.scrollY;
-  };
+  }, [isSearchRoute, mobileSearchInputOpen, updateMobileNavVars]);
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    handleScroll();
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [handleScroll]);
 
   useEffect(() => {
     isMobileRef.current = smDown;
@@ -152,12 +186,37 @@ const Navigation = ({ data }: NavigationProps) => {
   }, [smDown, pathname, cartModalOpen]);
 
   useEffect(() => {
+    if (!isMobileSearchRoute) setMobileSearchInputOpen(false);
+  }, [isMobileSearchRoute]);
+
+  useEffect(() => {
+    if (!navbarRef.current) return;
+    const node = navbarRef.current;
+    updateMobileNavVars();
+    window.addEventListener('resize', updateMobileNavVars);
+    const observer =
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(() => updateMobileNavVars())
+        : null;
+    observer?.observe(node);
+    return () => {
+      window.removeEventListener('resize', updateMobileNavVars);
+      observer?.disconnect();
+    };
+  }, [updateMobileNavVars, smDown, pathname, mounted, mobileSearchInputOpen]);
+
+  useEffect(() => {
     if (newProductAdded) setCartModalOpen(true);
   }, [newProductAdded]);
 
   return (
     <>
-      <Stack sx={styles.container}>
+      <Stack
+        sx={{
+          ...styles.container,
+          ...(isMobileSearchRoute ? { height: { xs: 'var(--mobile-nav-spacer, 94px)' } } : {}),
+        }}
+      >
         <Stack sx={styles.innerContainer} ref={navbarRef}>
           {!isMinimal && (
           <Stack sx={styles.banner}>
@@ -227,6 +286,14 @@ const Navigation = ({ data }: NavigationProps) => {
                     />
                   </Stack>
                   <Stack direction="row" alignItems="center" gap={0.5}>
+                    {isSearchRoute && (
+                      <IconButton
+                        onClick={() => setMobileSearchInputOpen((prev) => !prev)}
+                        aria-label="Arama"
+                      >
+                        <Search size={24} />
+                      </IconButton>
+                    )}
                     <IconButton onClick={toggleAccountModalOpen} aria-label="Hesap">
                       <CircleUser size={24} />
                     </IconButton>
@@ -299,8 +366,8 @@ const Navigation = ({ data }: NavigationProps) => {
                 </>
               )}
             </Stack>
-            {!isMinimal && mounted && smDown && (
-              <SearchBar />
+            {!isMinimal && mounted && smDown && (!isMobileSearchRoute || mobileSearchInputOpen) && (
+              <SearchBar autoFocus={isMobileSearchRoute} />
             )}
             {!isMinimal && mounted && smUp && (
               <Stack sx={styles.secondaryBar}>

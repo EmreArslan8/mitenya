@@ -71,7 +71,7 @@ const ShopFeatureBanner = ({
                   <Box sx={styles.mediaWrapper}>
                     <CMSImage
                       src={image.data.attributes.url}
-                      alt={image.data.attributes.alternativeText}
+                      alt={image.data.attributes.alternativeText || banner.title || 'Mitenya Banner'}
                       fill
                       priority={index === 0}
                       fetchPriority={index === 0 ? 'high' : 'auto'}
@@ -81,7 +81,7 @@ const ShopFeatureBanner = ({
                     <Box sx={styles.overlay}>
                       <Stack sx={styles.overlayInner} spacing={{ xs: 1, sm: 1.5, md: 2.5 }}>
                         {banner.title && (
-                          <Typography sx={styles.title} component="h2">
+                          <Typography sx={styles.title} component={index === 0 ? 'h1' : 'h2'}>
                             {banner.title}
                           </Typography>
                         )}
@@ -123,7 +123,7 @@ const ShopFeatureBanner = ({
                   <Box sx={styles.mediaWrapper}>
                     <CMSImage
                       src={banner.image.data.attributes.url}
-                      alt={banner.image.data.attributes.alternativeText}
+                      alt={banner.image.data.attributes.alternativeText || banner.title || 'Mitenya Banner'}
                       fill
                       priority={index === 0}
                       fetchPriority={index === 0 ? 'high' : 'auto'}
@@ -133,7 +133,7 @@ const ShopFeatureBanner = ({
                     <Box sx={styles.overlay}>
                       <Stack sx={styles.overlayInner} spacing={{ xs: 1, sm: 1.5, md: 2.5 }}>
                         {banner.title && (
-                          <Typography sx={styles.title} component="h1">
+                          <Typography sx={styles.title} component={index === 0 ? 'h1' : 'h2'}>
                             {splitTitle(banner.title, 2)}
                           </Typography>
                         )}
@@ -172,7 +172,7 @@ const ShopFeatureBanner = ({
                   <Box sx={styles.mediaWrapper}>
                     <CMSImage
                       src={banner.image.data.attributes.url}
-                      alt={banner.image.data.attributes.alternativeText}
+                      alt={banner.image.data.attributes.alternativeText || banner.title || 'Mitenya Banner'}
                       fill
                     />
 

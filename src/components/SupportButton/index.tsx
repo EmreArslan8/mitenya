@@ -29,7 +29,7 @@ const SupportButton = ({
       startIcon={
         <Image 
           src="/static/images/telegram_fab.svg"
-          alt="support"
+          alt="Telegram Destek"
           width={logoSize[size]}
           height={logoSize[size]}
         />

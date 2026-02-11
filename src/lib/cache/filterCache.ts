@@ -5,12 +5,14 @@ import {  FILTER_CACHE_TTL, PRICE_RANGES } from '../constants/shop';
 interface CategoryAggregation {
   id: string;
   name: string;
+  slug: string;
   count: number;
 }
 
 interface BrandAggregation {
   id: string;
   name: string;
+  slug: string;
   count: number;
 }
 
@@ -47,21 +49,57 @@ async function refreshFilterCache(): Promise<FilterCache> {
   const supabase = getSupabaseAnon();
 
   // Run all queries in parallel
-  const [categoryResult, brandResult, priceResult] = await Promise.all([
-    supabase.from('products').select('category_id, category_name'),
-    supabase.from('products').select('brand_id, brand_name'),
+  const [categoriesResult, brandsResult, productAggResult, priceResult] = await Promise.all([
+    supabase.from('categories').select('id, name, slug'),
+    supabase.from('brands').select('id, name, slug'),
+    supabase.from('products').select('category_id, category_name, brand_id, brand_name'),
     supabase.from('product_prices').select('price_current'),
   ]);
 
-  // Process categories
+  const categoryCountMap = (productAggResult.data ?? []).reduce<Record<string, number>>((acc, row) => {
+    if (!row.category_id) return acc;
+    acc[row.category_id] = (acc[row.category_id] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  const brandCountMap = (productAggResult.data ?? []).reduce<Record<string, number>>((acc, row) => {
+    if (!row.brand_id) return acc;
+    acc[row.brand_id] = (acc[row.brand_id] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  const categoryNameFallbackMap = (productAggResult.data ?? []).reduce<Record<string, string>>((acc, row) => {
+    if (!row.category_id || !row.category_name || acc[row.category_id]) return acc;
+    acc[row.category_id] = row.category_name;
+    return acc;
+  }, {});
+
+  const brandNameFallbackMap = (productAggResult.data ?? []).reduce<Record<string, string>>((acc, row) => {
+    if (!row.brand_id || !row.brand_name || acc[row.brand_id]) return acc;
+    acc[row.brand_id] = row.brand_name;
+    return acc;
+  }, {});
+
+  // Process categories (source of truth: categories table)
   const categories: CategoryAggregation[] = [];
-  if (categoryResult.data) {
-    const grouped = categoryResult.data.reduce<Record<string, CategoryAggregation>>(
+  if (categoriesResult.data?.length) {
+    categories.push(
+      ...categoriesResult.data.map((row) => ({
+        id: row.id,
+        name: row.name,
+        slug: row.slug,
+        count: categoryCountMap[row.id] ?? 0,
+      }))
+    );
+  } else if (productAggResult.data) {
+    const grouped = productAggResult.data.reduce<Record<string, CategoryAggregation>>(
       (acc, row) => {
         if (!acc[row.category_id]) {
+          const fallbackName = row.category_name ?? row.category_id;
           acc[row.category_id] = {
             id: row.category_id,
-            name: row.category_name,
+            name: fallbackName,
+            slug: fallbackName.toLowerCase().replace(/\s+/g, '-'),
             count: 0,
           };
         }
@@ -73,15 +111,26 @@ async function refreshFilterCache(): Promise<FilterCache> {
     categories.push(...Object.values(grouped));
   }
 
-  // Process brands
+  // Process brands (source of truth: brands table)
   const brands: BrandAggregation[] = [];
-  if (brandResult.data) {
-    const grouped = brandResult.data.reduce<Record<string, BrandAggregation>>(
+  if (brandsResult.data?.length) {
+    brands.push(
+      ...brandsResult.data.map((row) => ({
+        id: row.id,
+        name: row.name,
+        slug: row.slug,
+        count: brandCountMap[row.id] ?? 0,
+      }))
+    );
+  } else if (productAggResult.data) {
+    const grouped = productAggResult.data.reduce<Record<string, BrandAggregation>>(
       (acc, row) => {
         if (!acc[row.brand_id]) {
+          const fallbackName = row.brand_name ?? row.brand_id;
           acc[row.brand_id] = {
             id: row.brand_id,
-            name: row.brand_name,
+            name: fallbackName,
+            slug: fallbackName.toLowerCase().replace(/\s+/g, '-'),
             count: 0,
           };
         }
@@ -92,6 +141,14 @@ async function refreshFilterCache(): Promise<FilterCache> {
     );
     brands.push(...Object.values(grouped));
   }
+
+  // Ensure names exist even if categories/brands table contains sparse values
+  categories.forEach((category) => {
+    if (!category.name) category.name = categoryNameFallbackMap[category.id] ?? category.id;
+  });
+  brands.forEach((brand) => {
+    if (!brand.name) brand.name = brandNameFallbackMap[brand.id] ?? brand.id;
+  });
 
   // Process price ranges
   const priceRanges: PriceRange[] = [];

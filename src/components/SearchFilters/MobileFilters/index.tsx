@@ -1,63 +1,182 @@
-
 import SearchSort from '@/components/SearchSort';
-import Button from '@/components/common/Button';
-import ModalCard from '@/components/common/ModalCard';
-import { ShopFilter, ShopFilterType, ShopSearchSort } from '@/lib/api/types';
-import { Stack } from '@mui/material';
-import { useState } from 'react';
+import { ShopFilter, ShopFilterType, ShopSearchResponseFilters, ShopSearchSort } from '@/lib/api/types';
+import { FILTER_TYPE_LABEL_TR } from '@/lib/utils/filters';
+import { Chip } from '@mui/material';
+import { Drawer, IconButton, Stack, Typography } from '@mui/material';
+import { ArrowLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import FilterCard from '../FilterCard';
 import useStyles from './styles';
-import { SlidersHorizontal } from 'lucide-react';
-import { FILTER_TYPE_LABEL_TR } from '@/lib/utils/filters';
 
 interface MobileFiltersProps {
-  filters: {
-    categories?: ShopFilter<'category'>[] | undefined;
-    brands?: ShopFilter<'brand'>[] | undefined;
-    genders?: ShopFilter<'gender'>[] | undefined;
-    sizes?: ShopFilter<'size'>[] | undefined;
-  };
+  filters: Omit<ShopSearchResponseFilters, 'selectedOptions'>;
   sortOptions?: ShopSearchSort[];
+  resultsCount?: number;
   onOptionClicked: (option: ShopFilter<ShopFilterType>) => void;
 }
 
-const MobileFilters = ({ filters, sortOptions, onOptionClicked }: MobileFiltersProps) => {
+const MobileFilters = ({ filters, sortOptions, resultsCount, onOptionClicked }: MobileFiltersProps) => {
   const styles = useStyles();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [currentFilter, setCurrentFilter] = useState<ShopFilter<ShopFilterType>[]>(
-    Object.values(filters)[0]
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<ShopFilter<ShopFilterType>[] | null>(null);
+
+  type FilterGroup = ShopFilter<ShopFilterType>[];
+  const filterGroups = useMemo(
+    () => Object.values(filters).filter((entry) => Array.isArray(entry) && entry.length > 0) as FilterGroup[],
+    [filters]
+  );
+
+  const resetDrawerState = () => {
+    setDrawerOpen(false);
+    setActiveFilter(null);
+  };
+
+  const openFilterDetail = (group: ShopFilter<ShopFilterType>[]) => {
+    setActiveFilter(group);
+  };
+
+  const currentFilterLabel = activeFilter ? FILTER_TYPE_LABEL_TR[activeFilter[0].type] : 'Filtreler';
+  const normalizeOptionText = (value: string) => value.replace(/\s*\(\d+\)\s*$/, '').trim();
+  const selectedChips = useMemo(
+    () =>
+      filterGroups.flatMap((group) =>
+        group
+          .filter((option) => option.selected)
+          .map((option) => ({
+            key: `${group[0].type}-${JSON.stringify(option.searchOptions)}`,
+            label: normalizeOptionText(option.text),
+            option,
+          }))
+      ),
+    [filterGroups]
   );
 
   return (
-    <Stack sx={styles.mobileFiltersBar}>
-      {sortOptions && sortOptions.length > 1 && <SearchSort sortOptions={sortOptions} />}
-      {Object.values(filters).map((e) => (
-        <Button
-          size="small"
-          variant={e.some((k) => k.selected) ? 'outlined' : 'tonal'}
-          color={e.some((k) => k.selected) ? 'primary' : 'neutral'}
-          startIcon={<SlidersHorizontal  size={20} />}
-          onClick={() => {
-            setCurrentFilter(e);
-            setModalOpen(true);
-          }}
-          key={e[0].type}
-        >
-          {FILTER_TYPE_LABEL_TR[e[0].type]}
-        </Button>
-      ))}
-      <ModalCard
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        showCloseIcon
-        title={FILTER_TYPE_LABEL_TR[currentFilter![0].type]}
-        iconName="tune"
-        sx={styles.modal}
-      >
-        <Stack sx={styles.modalBody}>
-          <FilterCard index={0} data={currentFilter} onOptionClicked={onOptionClicked} />
+    <Stack sx={styles.mobileFiltersWrapper}>
+      <Stack sx={styles.mobileFiltersBar}>
+        <Stack sx={styles.sortWrap}>
+          {sortOptions && sortOptions.length > 1 ? (
+            <SearchSort
+              sortOptions={sortOptions}
+              mobileTriggerLabel="Sırala"
+              buttonLike
+              hideSelectedValue
+            />
+          ) : (
+            <Stack sx={{ ...styles.filterTrigger, opacity: 0.5, pointerEvents: 'none' }}>Sırala</Stack>
+          )}
         </Stack>
-      </ModalCard>
+        <Stack
+          role="button"
+          tabIndex={0}
+          aria-label="Filtrele"
+          sx={styles.filterTrigger}
+          onClick={() => setDrawerOpen(true)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              setDrawerOpen(true);
+            }
+          }}
+        >
+          <SlidersHorizontal size={17} />
+          Filtrele
+        </Stack>
+      </Stack>
+
+      <Drawer
+        anchor="right"
+        open={drawerOpen}
+        onClose={resetDrawerState}
+        sx={styles.drawer}
+        PaperProps={{ sx: styles.drawerPaper }}
+      >
+        <Stack sx={styles.drawerHeader}>
+          {activeFilter ? (
+            <IconButton onClick={() => setActiveFilter(null)} aria-label="Filtre listesine dön" sx={styles.headerAction}>
+              <ArrowLeft size={20} />
+            </IconButton>
+          ) : (
+            <Stack sx={styles.headerSpacer} />
+          )}
+          <Typography sx={styles.drawerTitle}>{currentFilterLabel}</Typography>
+          <IconButton onClick={resetDrawerState} aria-label="Filtre panelini kapat" sx={styles.headerAction}>
+            <X size={20} />
+          </IconButton>
+        </Stack>
+
+        {!activeFilter ? (
+          <Stack sx={styles.drawerList}>
+            {!!selectedChips.length && (
+              <Stack sx={styles.selectedChipsWrap}>
+                {selectedChips.map((chip) => (
+                  <Chip
+                    key={chip.key}
+                    label={chip.label}
+                    onDelete={() => onOptionClicked(chip.option)}
+                    sx={styles.selectedChip}
+                  />
+                ))}
+              </Stack>
+            )}
+            {filterGroups.map((group) => {
+              const selectedOptions = group.filter((option) => option.selected);
+              const selectedCount = selectedOptions.length;
+              const selectedPreview = selectedOptions
+                .slice(0, 2)
+                .map((option) => normalizeOptionText(option.text))
+                .join(', ');
+
+              return (
+                <Stack
+                  key={group[0].type}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openFilterDetail(group)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      openFilterDetail(group);
+                    }
+                  }}
+                  sx={styles.filterListItem}
+                >
+                  <Stack sx={styles.filterListMeta}>
+                    <Typography sx={styles.filterListLabel}>{FILTER_TYPE_LABEL_TR[group[0].type]}</Typography>
+                    {!!selectedCount && (
+                      <Typography sx={styles.filterListSelected}>
+                        {selectedCount} seçili
+                        {selectedPreview ? ` · ${selectedPreview}` : ''}
+                      </Typography>
+                    )}
+                  </Stack>
+                  <ChevronRight size={18} />
+                </Stack>
+              );
+            })}
+          </Stack>
+        ) : (
+          <Stack sx={styles.drawerDetail}>
+            <FilterCard
+              index={0}
+              data={activeFilter}
+              onOptionClicked={onOptionClicked}
+              showTitleOnMobile={false}
+              defaultCollapsedOverride={false}
+              singleColumnOnMobile
+            />
+          </Stack>
+        )}
+
+        <Stack sx={styles.drawerFooter}>
+          <Stack role="button" tabIndex={0} sx={styles.cancelAction} onClick={resetDrawerState}>
+            İptal Et
+          </Stack>
+          <Stack role="button" tabIndex={0} sx={styles.resultsAction} onClick={resetDrawerState}>
+            Sonuçlar {typeof resultsCount === 'number' ? `(${resultsCount})` : ''}
+          </Stack>
+        </Stack>
+      </Drawer>
     </Stack>
   );
 };

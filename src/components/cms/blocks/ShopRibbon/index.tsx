@@ -28,7 +28,7 @@ const ShopRibbon = ({ section, image, title, description, colorway, button }: Sh
           <CMSImage
             fill
             src={image.data.attributes.url}
-            alt={image.data.attributes.alternativeText}
+            alt={image.data.attributes.alternativeText || title}
             style={styles.image}
             sizes="1200px"
           />

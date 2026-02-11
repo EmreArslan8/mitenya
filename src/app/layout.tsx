@@ -61,6 +61,26 @@ export default async function RootLayout({
             }),
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Mitenya",
+              alternateName: "Mitenya Kozmetik",
+              url: baseUrl,
+              logo: `${baseUrl}/static/images/ogBanner.webp`,
+              description: "Orijinal Kore kozmetik ve cilt bakım ürünleri. K-beauty, serum, nemlendirici ve cilt bakım rutini ürünleri.",
+              contactPoint: {
+                "@type": "ContactPoint",
+                email: "destek@mitenya.com",
+                contactType: "customer service",
+                availableLanguage: "Turkish",
+              },
+            }),
+          }}
+        />
       </head>
 
       <body style={{ overflowX: "hidden" }}>

@@ -24,13 +24,15 @@ import useStyles from './styles';
 interface SearchFiltersProps {
   data: ShopSearchResponseFilters;
   sortOptions?: ShopSearchSort[];
+  resultsCount?: number;
 }
 
-const SearchFilters = ({ data, sortOptions }: SearchFiltersProps) => {
+const SearchFilters = ({ data, sortOptions, resultsCount }: SearchFiltersProps) => {
   const styles = useStyles();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { selectedOptions, ...filters } = data;
+  const filters = { ...data };
+  delete filters.selectedOptions;
 
   const currentSearchOptions = mergeSearchOptions(
     searchOptionsFromSearchParams(searchParams!),
@@ -49,7 +51,10 @@ const SearchFilters = ({ data, sortOptions }: SearchFiltersProps) => {
       newOptions = option.selected
         ? removeSearchOptions(currentSearchOptions, option.searchOptions)
         : mergeSearchOptions(currentSearchOptions, option.searchOptions);
-    else newOptions = { ...currentSearchOptions, [option.type]: option.searchOptions[option.type] };
+    else
+      newOptions = option.selected
+        ? removeSearchOptions(currentSearchOptions, option.searchOptions)
+        : { ...currentSearchOptions, [option.type]: option.searchOptions[option.type] };
     const withSalt = JSON.stringify(newOptions) === JSON.stringify(currentSearchOptions);
     router.push(searchUrlFromOptions(newOptions, withSalt));
     setLoading(true);
@@ -82,6 +87,7 @@ const SearchFilters = ({ data, sortOptions }: SearchFiltersProps) => {
         <MobileFilters
           filters={filters}
           sortOptions={sortOptions}
+          resultsCount={resultsCount}
           onOptionClicked={handleOptionClicked}
         />
       ) : (

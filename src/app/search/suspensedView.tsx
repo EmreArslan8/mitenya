@@ -24,16 +24,13 @@ const SuspensedView = async ({ searchParams }: { searchParams: Record<string, st
           <SearchFilters
             data={data.filters}
             sortOptions={data.sortOptions}
-            key={JSON.stringify(data.filters)}
+            resultsCount={data.totalCount}
           />
         </SecondaryColumn>
       )}
 
       <PrimaryColumn>
-        <SearchProductsView
-          initialData={data}
-          key={JSON.stringify(data.products)}
-        />
+        <SearchProductsView initialData={data} />
       </PrimaryColumn>
     </TwoColumnLayout>
   );

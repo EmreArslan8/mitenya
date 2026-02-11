@@ -8,8 +8,7 @@ import { ShopProductListItemData, ShopSearchResponse } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import { Grid, Stack, Typography } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { bannerHeight, headerHeight } from '@/theme/theme';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface SearchProductsViewProps {
   initialData: ShopSearchResponse;
@@ -19,8 +18,16 @@ const SearchProductsView = ({ initialData }: SearchProductsViewProps) => {
   const { smUp } = useScreen();
   const endOfPageMarkerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams()!;
-  const { _, ...searchOptions } = Object.fromEntries(searchParams?.entries() ?? []);
-  const query = searchParams?.get('query')?.trim() ?? '';
+  const searchParamsKey = searchParams.toString();
+  const searchOptions = useMemo(
+    () => {
+      const entries = Object.fromEntries(searchParams.entries() ?? []) as Record<string, string>;
+      delete entries._;
+      return entries;
+    },
+    [searchParams]
+  );
+  const query = useMemo(() => searchParams.get('query')?.trim() ?? '', [searchParams]);
   const [products, setProducts] = useState<ShopProductListItemData[]>(initialData.products);
   const [page, setPage] = useState(parseInt(searchOptions.page ?? 2));
   const [loading, setLoading] = useState(false);
@@ -49,7 +56,16 @@ const SearchProductsView = ({ initialData }: SearchProductsViewProps) => {
       setProducts((prev) => [...(prev ?? []), ...data.products]);
       loadingRef.current = false;
     });
-  }, [loading]);
+  }, [page, searchOptions]);
+
+  useEffect(() => {
+    setProducts(initialData.products ?? []);
+    setPage(parseInt((searchOptions.page as string) ?? '2'));
+    setLoading(false);
+    _S1Ref.current = initialData.session?._S1;
+    loadingRef.current = false;
+    retryNextPageRef.current = 3;
+  }, [initialData, searchParamsKey, searchOptions.page]);
 
   useEffect(() => {
     if (
@@ -64,7 +80,7 @@ const SearchProductsView = ({ initialData }: SearchProductsViewProps) => {
     );
     observer.observe(endOfPageMarkerRef.current);
     return () => observer.disconnect();
-  }, [products, endOfPageMarkerRef.current]);
+  }, [products, initialData.totalCount, initialData.products.length, observerCallback]);
 
   return (
     <>

@@ -51,7 +51,7 @@ const BlogCard = ({
             >
               <CMSImage
                 src={coverImage.url}
-                alt={coverImage.alternativeText}
+                alt={coverImage.alternativeText || title}
                 fill
                 style={{ objectFit: 'cover' }}
               />

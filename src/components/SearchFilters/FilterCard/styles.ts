@@ -36,14 +36,40 @@ const useStyles = withPalette((palette) => {
       flexShrink: 0,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 0.5,
+      gap: { xs: 1, sm: 0.5 },
       // overflow: 'hidden',
-      fontSize: 14,
-      py: { xs: '6px', sm: '4px' },
+      fontSize: { xs: 19, sm: 14 },
+      lineHeight: { xs: 1.35, sm: 1.25 },
+      py: { xs: '8px', sm: '4px' },
       color: palette.text.medium,
     },
-    checkbox: { m: 0, p: 0 },
-    radio: { m: 0, p: 0 },
+    itemDisabled: {
+      color: palette.text.light,
+      cursor: 'not-allowed',
+      opacity: 0.6,
+    },
+    controlDisabled: {
+      pointerEvents: 'none',
+      '& .MuiSvgIcon-root': {
+        opacity: 0.6,
+      },
+    },
+    checkbox: {
+      m: 0,
+      p: 0,
+      mr: { xs: 0.25, sm: 0 },
+      '& .MuiSvgIcon-root': {
+        fontSize: { xs: 24, sm: 20 },
+      },
+    },
+    radio: {
+      m: 0,
+      p: 0,
+      mr: { xs: 0.25, sm: 0 },
+      '& .MuiSvgIcon-root': {
+        fontSize: { xs: 24, sm: 20 },
+      },
+    },
     searchInput: {
       m: { xs: '0 0 4px', sm: '8px 0 2px' },
       width: { xs: '100%', sm: 160 },

@@ -16,7 +16,7 @@ const BrandItem = ({ logo, url, highlight, alt }: BrandItemProps) => {
   const content = (
     <CMSImage
       src={logo.data.attributes.url}
-      alt={alt ?? 'brand logo'}
+      alt={alt ?? logo.data.attributes.alternativeText ?? 'Marka logosu'}
       width={highlight ? 180 : 130}
       height={48}
       style={{
