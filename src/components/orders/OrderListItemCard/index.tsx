@@ -1,76 +1,87 @@
+'use client';
+
 import { ShopOrderListItemData } from '@/lib/api/types';
 import parseDate from '@/lib/utils/parseDate';
-import { Grid } from '@mui/material';
-import InfoItem from '../../InfoItem';
-import SupportButton from '../../SupportButtonSimple';
-import Card from '../../common/Card';
-import styles from './styles';
-import { useRouter } from 'next/navigation';
+import { Box, Chip, Stack, Typography } from '@mui/material';
 import { ChevronRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import useStyles from './styles';
 
-const statusColors: Record<string, 'text' | 'success' | 'error'> = {
-  processing: 'text',
-  preparing: 'text',
-  shipped: 'success',
-  cancelled: 'error',
-};
-
-const statusLabels: Record<string, string> = {
-  processing: 'İşleniyor',
-  preparing: 'Hazırlanıyor',
-  shipped: 'Kargoya Verildi',
-  cancelled: 'İptal Edildi',
+const statusConfig: Record<
+  string,
+  { label: string; color: string; bg: string; indicator: string }
+> = {
+  processing: {
+    label: 'İşleniyor',
+    color: '#1754B0',
+    bg: '#F5F9FF',
+    indicator: '#4A87E3',
+  },
+  preparing: {
+    label: 'Hazırlanıyor',
+    color: '#CCA300',
+    bg: '#FFFAE3',
+    indicator: '#FFC003',
+  },
+  shipped: {
+    label: 'Kargoda',
+    color: '#226B3A',
+    bg: '#E6F4EC',
+    indicator: '#226B3A',
+  },
+  cancelled: {
+    label: 'İptal',
+    color: '#8B0D14',
+    bg: '#FDEBEC',
+    indicator: '#C1121F',
+  },
 };
 
 const OrderListItemCard = ({ data }: { data: ShopOrderListItemData }) => {
   const router = useRouter();
+  const styles = useStyles();
+  const config = statusConfig[data.status] ?? statusConfig.processing;
 
   return (
-    <Card
-      border
+    <Stack
       sx={styles.card}
       onClick={() => router.push(`/orders/${data.id}`)}
     >
-      <Grid container columnSpacing={1} rowSpacing={2} width="100%">
-        <Grid item xs={12} sm={2.5} md={2}>
-          <InfoItem label="Sipariş No" value={data.orderId} />
-        </Grid>
+      {/* Status indicator bar */}
+      <Box sx={{ ...styles.statusIndicator, bgcolor: config.indicator }} />
 
-        <Grid item xs={12} sm={5.5} md={3}>
-          <InfoItem
-            label="Sipariş Tarihi"
-            value={parseDate(data.createdDate)}
-          />
-        </Grid>
+      <Stack sx={styles.content}>
+        <Stack sx={styles.infoSection}>
+          {/* Order ID */}
+          <Stack sx={styles.orderIdSection}>
+            <Typography sx={styles.orderIdLabel}>Sipariş</Typography>
+            <Typography sx={styles.orderId}>#{data.orderId}</Typography>
+          </Stack>
 
-        <Grid item xs={12} sm={4} md={3}>
-          <InfoItem
-            label="Sipariş Durumu"
-            value={statusLabels[data.status] ?? data.status}
-            slotProps={{
-              value: { color: statusColors[data.status] ?? 'text' },
+          {/* Date */}
+          <Typography sx={styles.dateText}>
+            {parseDate(data.createdDate)}
+          </Typography>
+
+          {/* Status chip */}
+          <Chip
+            label={config.label}
+            size="small"
+            sx={{
+              ...styles.statusChip,
+              bgcolor: config.bg,
+              color: config.color,
+              border: `1px solid ${config.color}20`,
             }}
           />
-        </Grid>
+        </Stack>
 
-        {data.status === 'cancelled' && (
-          <Grid
-            item
-            xs={12}
-            sm={12}
-            md={5}
-            sx={{ display: 'flex', alignItems: 'center' }}
-          >
-            <SupportButton
-              size="small"
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-            />
-          </Grid>
-        )}
-      </Grid>
-
-      <ChevronRight />
-    </Card>
+        {/* Arrow */}
+        <Box className="order-arrow" sx={styles.arrowContainer}>
+          <ChevronRight size={18} />
+        </Box>
+      </Stack>
+    </Stack>
   );
 };
 

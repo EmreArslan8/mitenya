@@ -1,109 +1,156 @@
 'use client';
 
-import { Stack, Skeleton, Typography, Divider } from '@mui/material';
+import { Stack, Skeleton, Divider } from '@mui/material';
 import Button from '@/components/common/Button';
 import TwoColumnLayout, {
   PrimaryColumn,
   SecondaryColumn,
 } from '@/components/layouts/TwoColumnLayout';
-import Card from '@/components/common/Card';
-import AddressCard from '@/components/AddressCard';
+import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
+const CardShell = ({ children }: { children: React.ReactNode }) => (
+  <Stack
+    sx={{
+      borderRadius: '12px',
+      border: (theme) => `1px solid ${theme.palette.gray[100]}`,
+      bgcolor: 'white.main',
+      overflow: 'hidden',
+    }}
+  >
+    {children}
+  </Stack>
+);
+
+const CardHeader = ({ width = 80 }: { width?: number }) => (
+  <Stack
+    sx={{
+      px: { xs: 2, sm: 2.5 },
+      py: 1.5,
+      borderBottom: (theme) => `1px solid ${theme.palette.gray[100]}`,
+    }}
+  >
+    <Skeleton variant="text" width={width} height={14} />
+  </Stack>
+);
 
 const OrderDetailsLoading = () => {
   const router = useRouter();
 
   return (
-    <Stack gap={1} width="100%">
+    <Stack gap={2} width="100%">
       <Button
         size="small"
         color="tertiary"
-        arrow="start"
         onClick={() => router.push('/orders')}
-        sx={{ alignSelf: 'start', mx: -1 }}
+        startIcon={<ArrowLeft size={16} />}
+        sx={{
+          alignSelf: 'start',
+          textTransform: 'none',
+          fontWeight: 600,
+          fontSize: 14,
+          color: 'text.mediumLight',
+          px: 0,
+        }}
       >
-        Geri Dön
+        Siparişlerim
       </Button>
 
       <TwoColumnLayout>
         <PrimaryColumn>
-          <Card border sx={{ display: 'flex', p: 1.5 }}>
-            <Stack
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}
-            >
-              <Skeleton variant="circular" width={20} height={20} />
-              <Skeleton variant="text" width="15%" sx={{ ml: 1 }} />
+          {/* Status card skeleton */}
+          <CardShell>
+            <CardHeader width={100} />
+            <Stack sx={{ px: { xs: 2, sm: 2.5 }, py: 2.5, gap: 2.5 }}>
+              {/* Timeline stepper */}
+              <Stack direction="row" justifyContent="space-between" gap={2}>
+                {[1, 2, 3].map((i) => (
+                  <Stack key={i} alignItems="center" flex={1} gap={1}>
+                    <Skeleton variant="circular" width={28} height={28} />
+                    <Skeleton variant="text" width={60} height={14} />
+                  </Stack>
+                ))}
+              </Stack>
+              <Skeleton variant="text" width="85%" height={16} />
             </Stack>
+          </CardShell>
 
-            <Skeleton variant="text" width="30%" sx={{ marginBottom: '2px' }} />
-            <Skeleton variant="text" width="90%" />
-            <Skeleton variant="text" width="50%" />
-          </Card>
-
-          <Card border iconName="list" title="Ürünler">
-            <Skeleton variant="rectangular" height={112} width="100%" />
-          </Card>
+          {/* Products card skeleton */}
+          <CardShell>
+            <CardHeader width={60} />
+            <Stack gap={0}>
+              {[1, 2].map((i) => (
+                <Stack key={i}>
+                  <Stack
+                    direction="row"
+                    gap={2}
+                    sx={{ px: { xs: 2, sm: 2.5 }, py: 2 }}
+                  >
+                    <Skeleton
+                      variant="rounded"
+                      width={72}
+                      height={72}
+                      sx={{ borderRadius: '10px', flexShrink: 0 }}
+                    />
+                    <Stack flex={1} justifyContent="center" gap={0.5}>
+                      <Skeleton variant="text" width="70%" height={16} />
+                      <Skeleton variant="text" width="40%" height={14} />
+                    </Stack>
+                    <Stack justifyContent="center" alignItems="flex-end">
+                      <Skeleton variant="text" width={80} height={18} />
+                    </Stack>
+                  </Stack>
+                  {i < 2 && (
+                    <Divider sx={{ mx: 2.5, borderColor: 'gray.100' }} />
+                  )}
+                </Stack>
+              ))}
+            </Stack>
+          </CardShell>
         </PrimaryColumn>
 
         <SecondaryColumn>
-          <Card
-            iconName="receipt_long"
-            title="Sipariş Özeti"
-            border
-          >
-            <Stack py={2} px={3}>
-              <Stack gap={1}>
+          {/* Summary card skeleton */}
+          <CardShell>
+            <CardHeader width={90} />
+            <Stack sx={{ px: { xs: 2, sm: 2.5 }, py: 2, gap: 1.5 }}>
+              {[1, 2, 3].map((i) => (
                 <Stack
-                  gap={0.5}
+                  key={i}
                   direction="row"
                   alignItems="center"
                   justifyContent="space-between"
                 >
-                  <Typography variant="warning">
-                    Ürünler Toplamı
-                  </Typography>
-                  <Skeleton variant="text" width="30%" height={25.5} />
+                  <Skeleton variant="text" width={120} height={16} />
+                  <Skeleton variant="text" width={70} height={16} />
                 </Stack>
-
-                <Divider flexItem />
-
-                <Stack
-                  gap={0.5}
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
-                >
-                  <Typography variant="warning">
-                    Kargo ve Hizmet Bedeli
-                  </Typography>
-                  <Skeleton variant="text" width="30%" height={25.5} />
-                </Stack>
-              </Stack>
+              ))}
             </Stack>
-
-            <Divider flexItem />
-
             <Stack
               direction="row"
               alignItems="center"
               justifyContent="space-between"
-              py={2}
-              px={3}
+              sx={{
+                px: { xs: 2, sm: 2.5 },
+                py: 2,
+                borderTop: (theme) => `1px solid ${theme.palette.gray[100]}`,
+                bgcolor: 'bg.light',
+              }}
             >
-              <Typography fontSize={15} fontWeight={700} lineHeight={1}>
-                Ödenecek Tutar
-              </Typography>
-              <Skeleton variant="text" width="35%" height={18} />
+              <Skeleton variant="text" width={100} height={18} />
+              <Skeleton variant="text" width={90} height={22} />
             </Stack>
-          </Card>
+          </CardShell>
 
-          <Card border>
-            <AddressCard />
-          </Card>
+          {/* Address card skeleton */}
+          <CardShell>
+            <Stack sx={{ p: { xs: 2, sm: 2.5 }, gap: 1.5 }}>
+              <Skeleton variant="text" width={80} height={14} />
+              <Skeleton variant="text" width="90%" height={16} />
+              <Skeleton variant="text" width="70%" height={16} />
+              <Skeleton variant="text" width="50%" height={16} />
+            </Stack>
+          </CardShell>
         </SecondaryColumn>
       </TwoColumnLayout>
     </Stack>

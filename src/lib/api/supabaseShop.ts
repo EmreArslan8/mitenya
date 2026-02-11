@@ -162,7 +162,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       rating_count,
       created_at,
       has_variants,
-      product_prices(price_current, price_original, currency),
+      product_prices!inner(price_current, price_original, currency),
       product_images(image_url, is_main, sort_order)
       , product_stock(quantity)
     `,
@@ -176,7 +176,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     .select(
       `
       id,
-      product_prices(price_current)
+      product_prices!inner(price_current)
     `
     );
 
@@ -187,7 +187,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       `
       category_id,
       category_name,
-      product_prices(price_current)
+      product_prices!inner(price_current)
     `
     );
 
@@ -197,7 +197,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       `
       brand_id,
       brand_name,
-      product_prices(price_current)
+      product_prices!inner(price_current)
     `
     );
 

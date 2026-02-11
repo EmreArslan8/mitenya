@@ -9,9 +9,9 @@ const styles = {
     gap: { xs: 2, md: 3 },
   },
   secondaryColumn: {
-    width: { xs: '100%', md: 312 },
-    minWidth: { md: 382 },
-    maxWidth: { sm: 312 },
+    width: { xs: '100%', md: 340 },
+    minWidth: { md: 400 },
+    maxWidth: { sm: 340 },
     gap: { xs: 2, md: 3 },
   },
 };

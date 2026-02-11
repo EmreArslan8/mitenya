@@ -1,15 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import { ShopFooterData } from '@/lib/api/types';
 import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
-import { Box, Divider, Grid, Stack, Typography } from '@mui/material';
+import { Box, Collapse, Divider, Grid, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
 import Image from 'next/image';
 import CMSImage from '../cms/shared/CMSImage';
 import Link from '../common/Link';
 import Markdown from '../common/Markdown';
 import useStyles from './styles';
 import { usePathname, useRouter } from 'next/navigation';
-import { Lock, ShieldCheck, Headset } from 'lucide-react';
+import { Lock, ShieldCheck, Headset, ChevronDown } from 'lucide-react';
 
 const MINIMAL_ROUTES = ['/payment'];
 
@@ -20,6 +21,100 @@ const LEGAL_LINKS = [
   { label: 'Mesafeli Satış Sözleşmesi', href: '/mesafeli-satis-sozlesmesi' },
   { label: 'KVKK', href: '/kvkk' },
 ];
+
+const FooterLinkGroups = ({
+  data,
+  styles,
+  isMobileApp,
+}: {
+  data: ShopFooterData | undefined;
+  styles: ReturnType<typeof useStyles>;
+  isMobileApp: boolean;
+}) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const handleToggle = (index: number) => {
+    setOpenIndex((prev) => (prev === index ? null : index));
+  };
+
+  if (isMobile) {
+    return (
+      <Stack>
+        {data?.links?.map((linkGroup, index) => (
+          <Stack
+            key={index}
+            sx={{
+              borderBottom: '1px solid',
+              borderColor: 'rgba(255,255,255,0.1)',
+            }}
+          >
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              onClick={() => handleToggle(index)}
+              sx={{ cursor: 'pointer', py: 1.5 }}
+            >
+              <Typography variant="cardTitle" sx={styles.groupTitle}>
+                {linkGroup.label}
+              </Typography>
+              <ChevronDown
+                size={20}
+                style={{
+                  color: 'rgba(255,255,255,0.6)',
+                  transition: 'transform 0.3s',
+                  transform: openIndex === index ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              />
+            </Stack>
+            <Collapse in={openIndex === index} timeout={300}>
+              {linkGroup.children && linkGroup.children.length > 0 && (
+                <Stack sx={styles.item} gap={1.1} pb={1.5}>
+                  {linkGroup.children.map((child) => (
+                    <Link
+                      key={child.label}
+                      href={child.url}
+                      target={isMobileApp ? '_self' : '_blank'}
+                    >
+                      {child.label}
+                    </Link>
+                  ))}
+                </Stack>
+              )}
+            </Collapse>
+          </Stack>
+        ))}
+      </Stack>
+    );
+  }
+
+  return (
+    <Stack direction="row" justifyContent="space-between" sx={{ width: '100%' }}>
+      {data?.links?.map((linkGroup, index) => (
+        <Stack key={index} gap={1}>
+          <Typography variant="cardTitle" sx={styles.groupTitle}>
+            {linkGroup.label}
+          </Typography>
+          {linkGroup.children && linkGroup.children.length > 0 && (
+            <Stack sx={styles.item} gap={0.9}>
+              {linkGroup.children.map((child) => (
+                <Link
+                  key={child.label}
+                  href={child.url}
+                  target={isMobileApp ? '_self' : '_blank'}
+                >
+                  {child.label}
+                </Link>
+              ))}
+            </Stack>
+          )}
+        </Stack>
+      ))}
+    </Stack>
+  );
+};
 
 interface FooterProps {
   data: ShopFooterData | undefined;
@@ -195,30 +290,7 @@ const Footer = ({ data }: FooterProps) => {
             </Stack>
           </Grid>
           <Grid item xs={12} md={8} lg={8}>
-            <Grid container spacing={{ xs: 1.5, sm: 2 }}>
-              {data?.links?.map((linkGroup, index) => (
-                <Grid key={index} item xs={6} sm={4} md={3}>
-                  <Stack gap={{ xs: 1.25, sm: 1 }}>
-                    <Typography variant="cardTitle" sx={styles.groupTitle}>
-                      {linkGroup.label}
-                    </Typography>
-                    {linkGroup.children && linkGroup.children.length > 0 && (
-                      <Stack sx={styles.item} gap={{ xs: 1.1, sm: 0.9 }}>
-                        {linkGroup.children.map((child) => (
-                          <Link
-                            key={child.label}
-                            href={child.url}
-                            target={isMobileApp ? '_self' : '_blank'}
-                          >
-                            {child.label}
-                          </Link>
-                        ))}
-                      </Stack>
-                    )}
-                  </Stack>
-                </Grid>
-              ))}
-            </Grid>
+            <FooterLinkGroups data={data} styles={styles} isMobileApp={isMobileApp} />
           </Grid>
           <Grid item xs={12} md={2} lg={2}>
             <Stack sx={styles.etbisPanel}>

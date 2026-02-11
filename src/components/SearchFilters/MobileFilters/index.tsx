@@ -18,7 +18,7 @@ interface MobileFiltersProps {
 const MobileFilters = ({ filters, sortOptions, resultsCount, onOptionClicked }: MobileFiltersProps) => {
   const styles = useStyles();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<ShopFilter<ShopFilterType>[] | null>(null);
+  const [activeFilterType, setActiveFilterType] = useState<ShopFilterType | null>(null);
 
   type FilterGroup = ShopFilter<ShopFilterType>[];
   const filterGroups = useMemo(
@@ -28,11 +28,16 @@ const MobileFilters = ({ filters, sortOptions, resultsCount, onOptionClicked }: 
 
   const resetDrawerState = () => {
     setDrawerOpen(false);
-    setActiveFilter(null);
+    setActiveFilterType(null);
   };
 
-  const openFilterDetail = (group: ShopFilter<ShopFilterType>[]) => {
-    setActiveFilter(group);
+  const activeFilter = useMemo(
+    () => filterGroups.find((group) => group[0]?.type === activeFilterType) ?? null,
+    [activeFilterType, filterGroups]
+  );
+
+  const openFilterDetail = (groupType: ShopFilterType) => {
+    setActiveFilterType(groupType);
   };
 
   const currentFilterLabel = activeFilter ? FILTER_TYPE_LABEL_TR[activeFilter[0].type] : 'Filtreler';
@@ -93,7 +98,7 @@ const MobileFilters = ({ filters, sortOptions, resultsCount, onOptionClicked }: 
       >
         <Stack sx={styles.drawerHeader}>
           {activeFilter ? (
-            <IconButton onClick={() => setActiveFilter(null)} aria-label="Filtre listesine dön" sx={styles.headerAction}>
+            <IconButton onClick={() => setActiveFilterType(null)} aria-label="Filtre listesine dön" sx={styles.headerAction}>
               <ArrowLeft size={20} />
             </IconButton>
           ) : (
@@ -132,11 +137,11 @@ const MobileFilters = ({ filters, sortOptions, resultsCount, onOptionClicked }: 
                   key={group[0].type}
                   role="button"
                   tabIndex={0}
-                  onClick={() => openFilterDetail(group)}
+                  onClick={() => openFilterDetail(group[0].type)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();
-                      openFilterDetail(group);
+                      openFilterDetail(group[0].type);
                     }
                   }}
                   sx={styles.filterListItem}

@@ -1,16 +1,13 @@
 'use client';
 
 import Button from '@/components/common/Button';
-import Card from '@/components/common/Card';
 import { useAuth } from '@/contexts/AuthContext';
 import useCustomerData from '@/lib/api/useCustomerData';
 import { IconButton, Stack, TextField, Typography } from '@mui/material';
 import styles from './styles';
 import { signOut } from '@/lib/utils/signOut';
 import { useMemo, useState } from 'react';
-import { Pencil, X } from 'lucide-react';
-
-const resetPasswordBaseUrl = `${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/reset-password`;
+import { LogOut, Pencil, X } from 'lucide-react';
 
 const AccountCard = () => {
   const { customerData, setCustomerData } = useAuth();
@@ -69,6 +66,7 @@ const AccountCard = () => {
       if (!updated) throw new Error('Güncellenemedi');
       setCustomerData?.(updated);
       setSuccess(true);
+      setIsEditing(false);
     } catch (err: any) {
       setError(err.message || 'Güncellenemedi');
     } finally {
@@ -77,17 +75,28 @@ const AccountCard = () => {
   };
 
   return (
-    <Card iconName="lock" title="Hesabım" border>
-      <Stack sx={styles.cardBody} gap={2}>
-        <Stack direction="row" justifyContent="flex-end">
-          <IconButton
-            aria-label={isEditing ? 'Düzenlemeyi kapat' : 'Düzenle'}
-            onClick={() => setIsEditing((prev) => !prev)}
-            size="small"
-          >
-            {isEditing ? <X size={18} /> : <Pencil size={18} />}
-          </IconButton>
-        </Stack>
+    <Stack sx={styles.wrapper}>
+      {/* Header */}
+      <Stack sx={styles.header}>
+        <Typography sx={styles.headerLabel}>Hesabım</Typography>
+        <IconButton
+          aria-label={isEditing ? 'Düzenlemeyi kapat' : 'Düzenle'}
+          onClick={() => setIsEditing((prev) => !prev)}
+          size="small"
+          sx={{
+            my: -0.5,
+            width: 28,
+            height: 28,
+            borderRadius: '8px',
+            bgcolor: isEditing ? 'gray.50' : 'transparent',
+          }}
+        >
+          {isEditing ? <X size={14} /> : <Pencil size={14} />}
+        </IconButton>
+      </Stack>
+
+      {/* Body */}
+      <Stack sx={styles.cardBody}>
         <TextField
           label="Ad"
           size="small"
@@ -95,6 +104,7 @@ const AccountCard = () => {
           onChange={(e) => setName(e.target.value)}
           InputProps={{ readOnly: !isEditing }}
           fullWidth
+          sx={styles.input}
         />
         <TextField
           label="Soyad"
@@ -103,6 +113,7 @@ const AccountCard = () => {
           onChange={(e) => setSurname(e.target.value)}
           InputProps={{ readOnly: !isEditing }}
           fullWidth
+          sx={styles.input}
         />
         <TextField
           label="Telefon"
@@ -112,31 +123,45 @@ const AccountCard = () => {
           onChange={(e) => handlePhoneChange(e.target.value)}
           InputProps={{ readOnly: !isEditing }}
           fullWidth
+          sx={styles.input}
         />
 
         {error && (
-          <Typography color="error.main" fontSize={13}>
+          <Typography sx={{ color: 'error.main', fontSize: 13, fontWeight: 500 }}>
             {error}
           </Typography>
         )}
         {success && (
-          <Typography color="success.main" fontSize={13}>
+          <Typography sx={{ color: 'success.main', fontSize: 13, fontWeight: 500 }}>
             Bilgileriniz güncellendi.
           </Typography>
         )}
 
-        <Stack direction="row" gap={1} justifyContent="flex-end">
+        <Stack direction="row" gap={1} justifyContent="flex-end" pt={0.5}>
           {isEditing && (
-            <Button size="small" variant="outlined" onClick={handleSave} disabled={saving}>
+            <Button
+              size="small"
+              variant="contained"
+              onClick={handleSave}
+              disabled={saving}
+              sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, fontSize: 13 }}
+            >
               {saving ? 'Kaydediliyor...' : 'Kaydet'}
             </Button>
           )}
-          <Button size="small" color="error" variant="tonal" onClick={signOut}>
+          <Button
+            size="small"
+            color="error"
+            variant="tonal"
+            onClick={signOut}
+            startIcon={<LogOut size={14} />}
+            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, fontSize: 13 }}
+          >
             Çıkış Yap
           </Button>
         </Stack>
       </Stack>
-    </Card>
+    </Stack>
   );
 };
 

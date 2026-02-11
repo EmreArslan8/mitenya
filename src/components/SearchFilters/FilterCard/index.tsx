@@ -40,8 +40,10 @@ const FilterCard = ({
   const scrollable = data.length > showScrollThreshold;
 
   useEffect(() => {
-    if (!scrollable) return;
-    if (!query) return setOptions(data);
+    if (!query || !scrollable) {
+      setOptions(data);
+      return;
+    }
     setOptions(data.filter((e) => e.text.toLowerCase().includes(query.toLowerCase())));
   }, [query, data, scrollable]);
 

@@ -2,9 +2,8 @@
 
 import NewAddressModal from '@/components/AddressCard/modals/NewAddressModal';
 import Button from '@/components/common/Button';
-import Card from '@/components/common/Card';
 import { AddressData } from '@/lib/api/types';
-import { Divider, Stack } from '@mui/material';
+import { Divider, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 import AddressLine from './AddressLine';
 import styles from './styles';
@@ -22,30 +21,45 @@ const AddressbookCard = ({ addresses }: { addresses: AddressData[] }) => {
 
   return (
     <>
-      <Card iconName="menu_book" title="Adreslerim" border>
+      <Stack sx={styles.wrapper}>
+        {/* Header */}
+        <Stack sx={styles.header}>
+          <Stack direction="row" alignItems="center" gap={1}>
+            <Typography sx={styles.headerLabel}>Adreslerim</Typography>
+            <Typography sx={styles.headerCount}>({addresses?.length ?? 0})</Typography>
+          </Stack>
+        </Stack>
+
+        {/* Address list */}
         <Stack sx={styles.cardBody}>
-          {addresses?.map((e) => [
-            <AddressLine data={e} onChange={handleChange} key={e.name} />,
-            <Divider flexItem key={`${e.name}-divider`} />,
-          ])}
+          {addresses?.map((e, i) => (
+            <Stack key={e.name}>
+              <AddressLine data={e} onChange={handleChange} />
+              {i < addresses.length - 1 && <Divider sx={styles.divider} />}
+            </Stack>
+          ))}
+
+          {/* Add address */}
           <Button
             fullWidth
             size="small"
             color="tertiary"
-            startIcon={<Plus />}
+            variant="outlined"
+            startIcon={<Plus size={16} />}
             onClick={() => setNewAddressModalOpen(true)}
-            sx={{ mt: 1 }}
+            sx={styles.addButton}
           >
-          Adres Ekle
+            Yeni Adres Ekle
           </Button>
         </Stack>
+
         <NewAddressModal
           open={newAddressModalOpen}
           onClose={() => setNewAddressModalOpen(false)}
           onAddressAdded={handleChange}
           defaultName={`Adres ${(addresses?.length ?? 0) + 1}`}
         />
-      </Card>
+      </Stack>
       <LoadingOverlay loading={loading} />
     </>
   );

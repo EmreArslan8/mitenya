@@ -239,7 +239,7 @@ const EmailModal = ({
           },
           }}
         >
-          <img width="30" height="30" src="https://img.icons8.com/color/48/google-logo.png" alt="google-logo" style={{marginRight: "24px"}}/>
+          <img width="30" height="30" src="/static/images/socials/google.svg" alt="google-logo" style={{marginRight: "24px"}}/>
                  Google ile devam et
         </Button>
 

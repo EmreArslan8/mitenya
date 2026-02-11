@@ -4,9 +4,7 @@ const styles = {
     height: '100%',
     transition: 'box-shadow 0.2s',
   },
-  cardActive: {
-    // boxShadow: `0px 2px 8px 0px #0000001A,0 0 0 1px ${colorPalette.primary.main}`,
-  },
+  cardActive: {},
   cardHeader: {
     flexDirection: 'row',
     gap: 1,
@@ -15,13 +13,13 @@ const styles = {
   },
   cardBody: {
     pt: 2,
-    px: { xs: 2, sm: 3 },
-    pb: 3,
+    px: { xs: 2, sm: 2.5 },
+    pb: 2.5,
     gap: 2,
     height: '100%',
   },
   item: {
-    gap: 0.5,
+    gap: 0.25,
   },
   modalCard: {
     maxWidth: { sm: 560 },

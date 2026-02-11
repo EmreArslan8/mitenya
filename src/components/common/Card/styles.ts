@@ -3,8 +3,8 @@ import { withPalette } from '@/theme/ThemeRegistry';
 const useStyles = withPalette(
   (palette) => (border: boolean, stickyHeader: boolean, expanded: boolean) => ({
     card: {
-      borderRadius: 1,
-      ...(border ? { border: '1px solid', borderColor: palette.tertiary.light } : {}),
+      borderRadius: '12px',
+      ...(border ? { border: '1px solid', borderColor: palette.gray[100] } : {}),
     },
     cardHeaderContainer: {
       width: '100%',
@@ -20,7 +20,7 @@ const useStyles = withPalette(
       textTransform: 'uppercase',
       px: 2,
       py: 1.5,
-      borderRadius: '8px 8px 0 0',
+      borderRadius: '12px 12px 0 0',
     },
     iconAndTitle: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 1 },
     actionArea: { flexDirection: 'row', alignItems: 'center', gap: 1 },
@@ -34,7 +34,7 @@ const useStyles = withPalette(
     accordionDetails: (noDivider: boolean) => ({
       p: 0,
       borderTop: !noDivider ? '1px solid' : 'none',
-      borderColor: palette.tertiary.light,
+      borderColor: palette.gray[100],
     }),
     expandIcon: {
       rotate: expanded ? '180deg' : 0,

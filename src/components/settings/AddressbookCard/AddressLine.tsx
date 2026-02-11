@@ -38,57 +38,61 @@ const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => vo
   useEffect(() => {
     setDeleteMenuOpen(Boolean(deleteMenuAnchor));
   }, [deleteMenuAnchor]);
-  
+
   return (
     <>
       <Stack sx={styles.address}>
-        <Stack sx={styles.addressSection} gap={1} width="100%">
-          <Typography variant="body" whiteSpace="nowrap">
+        <Stack sx={styles.addressInfo}>
+          <Typography sx={styles.addressName}>
             {data.name}
           </Typography>
-          <Typography variant="body" sx={styles.line}>
-            {[data.line1, data.line2, data.line3].filter((e) => e).join(', ')}{' '}
+          <Typography sx={styles.addressLine}>
+            {[data.line1, data.line2, data.line3].filter((e) => e).join(', ')}
           </Typography>
         </Stack>
-        <Stack sx={styles.addressSection} flexShrink={0}>
-          <IconButton onClick={() => setEditModalOpen(true)}>
-            <Pencil size={20} />
+
+        <Stack sx={styles.addressActions}>
+          <IconButton
+            onClick={() => setEditModalOpen(true)}
+            sx={styles.iconButton}
+          >
+            <Pencil size={15} />
           </IconButton>
-          <IconButton onClick={handleDeleteButtonClick} sx={{ color: 'error.main' }}>
-            <Trash size={22} color="currentColor" />
+          <IconButton
+            onClick={handleDeleteButtonClick}
+            sx={{ ...styles.iconButton, color: 'error.main' }}
+          >
+            <Trash size={15} color="currentColor" />
           </IconButton>
         </Stack>
       </Stack>
+
       <EditAddressModal
         initialData={data}
         open={editModalOpen}
         onClose={() => setEditModalOpen(false)}
         onEdited={onChange}
       />
+
       <Menu
         elevation={0}
         open={deleteMenuOpen}
         anchorEl={deleteMenuAnchor}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
-        PaperProps={{ sx: { boxShadow: '0px 0px 16px 0px #00000040' } }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        PaperProps={{ sx: { boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.12)', borderRadius: '12px' } }}
         MenuListProps={{ sx: { p: 0 } }}
       >
-        <Card title="Sil?" sx={{ width: 200 }}>
-          <Stack p={2} gap={1.5}>
+        <Card title="Adresi silmek istediğinize emin misiniz?" sx={{ width: 240 }}>
+          <Stack p={2} gap={1}>
             <Button
               color="secondary"
               variant="outlined"
               size="small"
               onClick={handleDeleteMenuClose}
+              sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, fontSize: 13 }}
             >
-             İptal
+              Vazgeç
             </Button>
             <Button
               loading={deleteLoading}
@@ -99,6 +103,7 @@ const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => vo
               onClick={() => {
                 if (data.id !== undefined) handleDelete(data.id);
               }}
+              sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, fontSize: 13 }}
             >
               Sil
             </Button>

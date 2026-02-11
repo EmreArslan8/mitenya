@@ -1,6 +1,5 @@
 'use client';
 
-import Card from '@/components/common/Card';
 import { ShopProductData } from '@/lib/api/types';
 import useStyles from './styles';
 import { Divider, Stack, Typography } from '@mui/material';
@@ -10,11 +9,19 @@ const OrderProductsCard = ({ data }: { data: ShopProductData[] }) => {
   const styles = useStyles();
 
   return (
-    <Card iconName="list" title="Ürünler" border>
+    <Stack sx={styles.wrapper}>
+      {/* Header */}
+      <Stack sx={styles.header}>
+        <Typography sx={styles.headerLabel}>Ürünler</Typography>
+        <Typography sx={styles.headerCount}>({data.length})</Typography>
+      </Stack>
+
+      {/* Products */}
       <Stack sx={styles.cardBody}>
         {data.map((e, i) => (
-          <Stack gap={2} key={e.id ?? JSON.stringify(e)}>
-            <Card sx={styles.productCard}>
+          <Stack key={e.id ?? JSON.stringify(e)}>
+            <Stack sx={styles.productRow}>
+              {/* Image */}
               <Stack sx={styles.imageContainer}>
                 <img
                   src={e.imgSrc}
@@ -23,45 +30,53 @@ const OrderProductsCard = ({ data }: { data: ShopProductData[] }) => {
                 />
               </Stack>
 
+              {/* Details */}
               <Stack sx={styles.details}>
-                <Stack sx={styles.header}>
-                  <Typography variant="warningSemibold" sx={styles.title}>
-                    {e.brand} {e.name}
-                  </Typography>
-
-                  {e.variants && (
-                    <Typography sx={styles.variants}>
-                      {e.variants
-                        .flatMap((v) =>
-                          v.options.filter((o) => o.selected).map((o) => o.value)
-                        )
-                        .join(', ')}
+                <Typography sx={styles.productName}>
+                  {e.brand && (
+                    <Typography
+                      component="span"
+                      sx={{ fontWeight: 700, fontSize: 'inherit', color: 'inherit' }}
+                    >
+                      {e.brand}{' '}
                     </Typography>
                   )}
+                  {e.name}
+                </Typography>
 
-                  <Typography sx={styles.variants}>
-                    Adet: {e.quantity}
+                {e.variants && (
+                  <Typography sx={styles.variantText}>
+                    {e.variants
+                      .flatMap((v) =>
+                        v.options.filter((o) => o.selected).map((o) => o.value)
+                      )
+                      .join(' / ')}
                   </Typography>
-                </Stack>
+                )}
 
-                <Typography
-                  variant="infoValue"
-                  whiteSpace="nowrap"
-                  sx={styles.price}
-                >
-                  {formatPrice(
-                    e.price.currentPrice * e.quantity,
-                    e.price.currency
-                  )}
+                <Typography sx={styles.variantText}>
+                  Adet: {e.quantity}
                 </Typography>
               </Stack>
-            </Card>
 
-            {i < data.length - 1 && <Divider />}
+              {/* Price */}
+              <Stack sx={styles.priceSection}>
+                <Typography sx={styles.price}>
+                  {formatPrice(e.price.currentPrice * e.quantity, e.price.currency)}
+                </Typography>
+                {e.quantity > 1 && (
+                  <Typography sx={styles.quantity}>
+                    {formatPrice(e.price.currentPrice, e.price.currency)} / adet
+                  </Typography>
+                )}
+              </Stack>
+            </Stack>
+
+            {i < data.length - 1 && <Divider sx={styles.divider} />}
           </Stack>
         ))}
       </Stack>
-    </Card>
+    </Stack>
   );
 };
 
