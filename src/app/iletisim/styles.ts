@@ -53,6 +53,25 @@ const useStyles = withPalette((palette) => ({
     color: palette.text.mediumLight,
     lineHeight: 1.6,
   },
+  emailLink: {
+    fontSize: { xs: 14, sm: 15 },
+    color: palette.text.main,
+    lineHeight: 1.6,
+    textDecoration: 'underline',
+    textDecorationColor: palette.text.main,
+    width: 'fit-content',
+    cursor: 'pointer',
+    transition: 'color 0.2s ease, text-decoration-color 0.2s ease',
+    '&:hover': {
+      color: palette.text.mediumLight,
+      textDecorationColor: palette.text.mediumLight,
+    },
+    '&:focus-visible': {
+      outline: `2px solid ${palette.gray[300]}`,
+      outlineOffset: 2,
+      borderRadius: 4,
+    },
+  },
 
   /* ── Address Card ── */
   addressCard: {

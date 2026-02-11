@@ -27,7 +27,13 @@ const IletisimView = () => {
         </Typography>
         <Stack sx={styles.infoRow}>
           <Typography sx={styles.infoLabel}>E-posta</Typography>
-          <Typography sx={styles.infoValue}>destek@mitenya.com</Typography>
+          <Typography
+            component="a"
+            href="mailto:destek@mitenya.com"
+            sx={styles.emailLink}
+          >
+            destek@mitenya.com
+          </Typography>
         </Stack>
         <Typography sx={styles.sectionBody}>
           E-posta üzerinden ilettiğiniz taleplere, mümkün olan en kısa sürede

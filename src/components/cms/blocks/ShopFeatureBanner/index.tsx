@@ -18,6 +18,7 @@ export interface ShopFeatureBannerProps extends BlockComponentBaseProps {
   mainBanners: {
     image: SharedImageType;
     mobileImage?: SharedImageType;
+    mobileUrl?: string;
     url: string;
     title: string;
     description?: string;
@@ -64,10 +65,11 @@ const ShopFeatureBanner = ({
         <Slider {...sliderSettings} ref={sliderRef}>
           {mainBanners.map((banner, index) => {
             const image = banner.mobileImage?.data ? banner.mobileImage : banner.image;
+            const mobileHref = banner.mobileUrl?.trim();
 
             return (
               <Box key={index} sx={styles.mobileSlide}>
-                <Link href={banner.url} style={{ display: 'block', height: '100%' }}>
+                <Link href={mobileHref} style={{ display: 'block', height: '100%' }}>
                   <Box sx={styles.mediaWrapper}>
                     <CMSImage
                       src={image.data.attributes.url}

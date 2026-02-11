@@ -8,7 +8,7 @@ import { ShopProductListItemData, ShopSearchOptions } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
 import { Grid, Stack } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BlockComponentBaseProps } from '..';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import useStyles from './styles';
@@ -26,6 +26,7 @@ const ShopInlineProducts = ({
   cta,
   displayType,
 }: ShopInlineProductsProps) => {
+  const MIN_PRODUCTS = 5;
   const router = useRouter();
   const [products, setProducts] = useState<ShopProductListItemData[]>([]);
   const [error, setError] = useState(false);
@@ -39,27 +40,91 @@ const ShopInlineProducts = ({
     setSlidesToScroll(mdUp ? 5 : smUp ? 3 : 1);
   }, [mdUp, smUp]);
 
-  const searchOptions = Object.fromEntries(
-    Object.entries(_searchOptions).filter(
-      ([k, v]) => !['id', 'blockIndex', 'direction', '__component'].includes(k) && Boolean(v)
-    )
+  const searchOptions = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(_searchOptions).filter(
+          ([k, v]) => !['id', 'blockIndex', 'direction', '__component'].includes(k) && Boolean(v)
+        )
+      ) as Partial<ShopSearchOptions>,
+    [_searchOptions]
   );
 
+  const searchOptionsKey = useMemo(() => JSON.stringify(searchOptions), [searchOptions]);
+
   useEffect(() => {
+    const mergeUniqueById = (
+      base: ShopProductListItemData[],
+      incoming: ShopProductListItemData[]
+    ) => {
+      const existingIds = new Set(base.map((p) => p.id));
+      return [...base, ...incoming.filter((p) => !existingIds.has(p.id))];
+    };
+
     fetchProducts(searchOptions)
       .then((res) => {
         const apiResult = Array.isArray(res) ? res[0] : res;
-        if (!apiResult?.products || !apiResult.products.length) {
+        if (!apiResult?.products) {
           setError(true);
           return;
         }
-        setProducts(apiResult.products);
+
+        let nextProducts = apiResult.products;
+        if (nextProducts.length >= MIN_PRODUCTS) {
+          setProducts(nextProducts);
+          return;
+        }
+
+        const fallbackOptions: Partial<ShopSearchOptions> = { ...searchOptions };
+        delete fallbackOptions.query;
+
+        fetchProducts(fallbackOptions)
+          .then((fallbackRes) => {
+            const fallbackApiResult = Array.isArray(fallbackRes) ? fallbackRes[0] : fallbackRes;
+            const fallbackProducts = fallbackApiResult?.products ?? [];
+            nextProducts = mergeUniqueById(nextProducts, fallbackProducts);
+
+            if (nextProducts.length >= MIN_PRODUCTS) {
+              setProducts(nextProducts.slice(0, MIN_PRODUCTS));
+              return;
+            }
+
+            fetchProducts({})
+              .then((globalRes) => {
+                const globalApiResult = Array.isArray(globalRes) ? globalRes[0] : globalRes;
+                const globalProducts = globalApiResult?.products ?? [];
+                const completedProducts = mergeUniqueById(nextProducts, globalProducts);
+
+                if (!completedProducts.length) {
+                  setError(true);
+                  return;
+                }
+
+                setProducts(completedProducts.slice(0, MIN_PRODUCTS));
+              })
+              .catch((err) => {
+                console.error('InlineProducts → global fallback error:', err);
+                if (!nextProducts.length) {
+                  setError(true);
+                  return;
+                }
+                setProducts(nextProducts);
+              });
+          })
+          .catch((err) => {
+            console.error('InlineProducts → queryless fallback error:', err);
+            if (!nextProducts.length) {
+              setError(true);
+              return;
+            }
+            setProducts(nextProducts);
+          });
       })
       .catch((err) => {
         console.error('InlineProducts → fetchProducts error:', err);
         setError(true);
       });
-  }, [JSON.stringify(searchOptions)]);
+  }, [MIN_PRODUCTS, searchOptions, searchOptionsKey]);
 
   if (error) return <></>;
 
