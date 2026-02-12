@@ -11,6 +11,12 @@ const {
 
 export async function GET(req: NextRequest) {
   const requestUrl = new URL(req.url);
+  const forwardedHost = req.headers.get('x-forwarded-host');
+  const forwardedProto = req.headers.get('x-forwarded-proto') || 'https';
+  const origin = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : requestUrl.origin;
+
   const code = requestUrl.searchParams.get('code');
   const stateParam = requestUrl.searchParams.get('state');
 
@@ -22,7 +28,7 @@ export async function GET(req: NextRequest) {
   if (!code || !stateParam) {
     console.error('[google/callback] missing code or state');
     return NextResponse.redirect(
-      new URL('/?auth_error=google', requestUrl.origin),
+      new URL('/?auth_error=google', origin),
     );
   }
 
@@ -60,7 +66,7 @@ export async function GET(req: NextRequest) {
       });
 
       return NextResponse.redirect(
-        new URL('/?auth_error=google_token', requestUrl.origin),
+        new URL('/?auth_error=google_token', origin),
       );
     }
 
@@ -70,7 +76,7 @@ export async function GET(req: NextRequest) {
     if (!id_token) {
       console.error('[google/callback] no id_token in token response', tokenJson);
       return NextResponse.redirect(
-        new URL('/?auth_error=no_id_token', requestUrl.origin),
+        new URL('/?auth_error=no_id_token', origin),
       );
     }
 
@@ -112,7 +118,7 @@ export async function GET(req: NextRequest) {
     if (error) {
       console.error('[google/callback] Supabase signInWithIdToken ERROR', error);
       return NextResponse.redirect(
-        new URL('/?auth_error=supabase', requestUrl.origin),
+        new URL('/?auth_error=supabase', origin),
       );
     }
 
@@ -123,12 +129,12 @@ export async function GET(req: NextRequest) {
 
     // ⚠ Mutlaka ABSOLUTE URL kullan
     return NextResponse.redirect(
-      new URL(redirectAfterLogin, requestUrl.origin),
+      new URL(redirectAfterLogin, origin),
     );
   } catch (e) {
     console.error('[google/callback] FATAL ERROR', e);
     return NextResponse.redirect(
-      new URL('/?auth_error=callback_500', requestUrl.origin),
+      new URL('/?auth_error=callback_500', origin),
     );
   }
 }
