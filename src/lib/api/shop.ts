@@ -23,7 +23,8 @@ export const fetchProducts = async (
     if (options.query) params.set('query', options.query);
     if (options.price) params.set('price', options.price);
 
-    const res = await fetch(`/api/products?${params.toString()}`);
+    const url = `/api/products?${params.toString()}`;
+    const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to fetch products');
     return await res.json();
   } catch (error) {

@@ -1,8 +1,10 @@
 'use client';
 
 import { ShopOrderListItemData } from '@/lib/api/types';
+import Card from '@/components/common/Card';
+import InfoItem from '@/components/InfoItem';
 import parseDate from '@/lib/utils/parseDate';
-import { Box, Chip, Stack, Typography } from '@mui/material';
+import { Box, Chip, Stack } from '@mui/material';
 import { ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import useStyles from './styles';
@@ -41,29 +43,91 @@ const OrderListItemCard = ({ data }: { data: ShopOrderListItemData }) => {
   const router = useRouter();
   const styles = useStyles();
   const config = statusConfig[data.status] ?? statusConfig.processing;
+  const orderNo = data.orderId || data.id;
+  const totalProductCount = data.totalProductCount || 0;
+  const productSummary = data.firstProductName
+    ? `${data.firstProductName}${totalProductCount > 1 ? ` +${totalProductCount - 1} ürün` : ''}`
+    : 'Ürün detayı yüklenemedi';
+
+  const formattedTotal = typeof data.totalAmount === 'number'
+    ? new Intl.NumberFormat('tr-TR', {
+        style: 'currency',
+        currency: data.currency || 'TRY',
+      }).format(data.totalAmount)
+    : '-';
+
+  const formattedDate = (() => {
+    const d = new Date(data.createdDate);
+    if (!Number.isNaN(d.getTime())) {
+      return new Intl.DateTimeFormat('tr-TR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      }).format(d);
+    }
+    try {
+      return parseDate(data.createdDate);
+    } catch {
+      return data.createdDate;
+    }
+  })();
 
   return (
-    <Stack
+    <Card
+      border
       sx={styles.card}
       onClick={() => router.push(`/orders/${data.id}`)}
     >
-      {/* Status indicator bar */}
-      <Box sx={{ ...styles.statusIndicator, bgcolor: config.indicator }} />
-
       <Stack sx={styles.content}>
-        <Stack sx={styles.infoSection}>
-          {/* Order ID */}
-          <Stack sx={styles.orderIdSection}>
-            <Typography sx={styles.orderIdLabel}>Sipariş</Typography>
-            <Typography sx={styles.orderId}>#{data.orderId}</Typography>
-          </Stack>
+        <Box sx={{ ...styles.statusIndicator, bgcolor: config.indicator }} />
 
-          {/* Date */}
-          <Typography sx={styles.dateText}>
-            {parseDate(data.createdDate)}
-          </Typography>
+        <Box sx={styles.infoGrid}>
+          <Box>
+            <InfoItem
+              label="Sipariş No"
+              value={`#${orderNo}`}
+              slotProps={{
+                label: { sx: styles.metaLabel },
+                value: { sx: styles.orderId },
+              }}
+            />
+          </Box>
 
-          {/* Status chip */}
+          <Box>
+            <InfoItem
+              label="Sipariş Tarihi"
+              value={formattedDate}
+              slotProps={{
+                label: { sx: styles.metaLabel },
+                value: { sx: styles.metaValue },
+              }}
+            />
+          </Box>
+
+          <Box>
+            <InfoItem
+              label="Ürünler"
+              value={productSummary}
+              slotProps={{
+                label: { sx: styles.metaLabel },
+                value: { sx: styles.metaValueEllipsis },
+              }}
+            />
+          </Box>
+
+          <Box>
+            <InfoItem
+              label="Toplam Tutar"
+              value={formattedTotal}
+              slotProps={{
+                label: { sx: styles.metaLabel },
+                value: { sx: styles.totalValue },
+              }}
+            />
+          </Box>
+        </Box>
+
+        <Stack direction="row" alignItems="center" gap={1} sx={styles.actionArea}>
           <Chip
             label={config.label}
             size="small"
@@ -74,14 +138,12 @@ const OrderListItemCard = ({ data }: { data: ShopOrderListItemData }) => {
               border: `1px solid ${config.color}20`,
             }}
           />
+          <Box className="order-arrow" sx={styles.arrowContainer}>
+            <ChevronRight size={18} />
+          </Box>
         </Stack>
-
-        {/* Arrow */}
-        <Box className="order-arrow" sx={styles.arrowContainer}>
-          <ChevronRight size={18} />
-        </Box>
       </Stack>
-    </Stack>
+    </Card>
   );
 };
 

@@ -9,13 +9,15 @@ import Banner from '../common/Banner';
 import Button from '../common/Button';
 import Markdown from '../common/Markdown';
 import ModalCard from '../common/ModalCard';
-import useStyles from './styles';
 import { useAuth } from '@/contexts/AuthContext';
 import useCustomerData from '@/lib/api/useCustomerData';
 import { pushItemToDataLayer } from '@/lib/utils/googleAnalytics';
 import { setCookie } from 'cookies-next';
 import Link from '../common/Link';
 import { useSupabase } from '@/lib/supabase/client';
+
+const getErrorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
 
 const Authenticator = ({
   open,
@@ -51,9 +53,9 @@ const Authenticator = ({
 
       setCurrentStep('verification');
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || 'E-posta gönderilirken hata oluştu');
+      setError(getErrorMessage(err, 'E-posta gönderilirken hata oluştu'));
       return false;
     }
   };
@@ -120,9 +122,9 @@ const Authenticator = ({
 
       await onSuccess?.();
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || 'Kod doğrulanırken bir hata oluştu');
+      setError(getErrorMessage(err, 'Kod doğrulanırken bir hata oluştu'));
       return false;
     }
   };
@@ -138,7 +140,6 @@ const Authenticator = ({
           email={email}
           onClose={onClose}
           onBack={() => setCurrentStep('email')}
-          isNewUser={isNewUser}
           onResend={handleResendCode}
           onSubmit={handleSubmitCode}
         />
@@ -162,26 +163,30 @@ const EmailModal = ({
   onClose,
 }: {
   email: string;
-  onSubmit: (value: string) => Promise<boolean>;
+  onSubmit: (value: string, options?: { signupConsentsAccepted?: boolean }) => Promise<boolean>;
   onClose: () => void;
 }) => {
-  const styles = useStyles();
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'signin' | 'signup'>('signin'); // giriş / kayıt modu
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [consentError, setConsentError] = useState(false);
 
   const formik = useFormik<{ fullName: string; email: string }>({
     initialValues: { fullName: '', email },
     onSubmit: async (values) => {
       if (!values.email) return;
+
+      if (isSignup && !consentAccepted) {
+        setConsentError(true);
+        return;
+      }
+
+      setConsentError(false);
       setLoading(true);
-      await onSubmit(values.email); // Şimdilik sadece e-posta kullanılıyor, mevcut logic korunuyor
+      await onSubmit(values.email, { signupConsentsAccepted: isSignup && consentAccepted });
       setLoading(false);
     },
   });
-
-
-
-  const supabaseClient = useSupabase();
   const [error, setError] = useState<string | undefined>();
 
   const handleGoogleLogin = async () => {
@@ -207,6 +212,16 @@ const EmailModal = ({
       title={isSignup ? 'Hesap Oluştur' : 'Giriş Yap'}
       open
       onClose={onClose}
+      showCloseIcon
+      sx={{ alignItems: 'center', justifyContent: 'center' }}
+      CardProps={{
+        sx: {
+          width: { xs: 'calc(100% - 24px)', sm: 'fit-content' },
+          maxWidth: { xs: 420, sm: 600 },
+          borderRadius: { xs: 2, sm: 2 },
+          mx: 'auto',
+        },
+      }}
     >
       <Stack gap={3}>
         {/* Başlık + açıklama */}
@@ -272,6 +287,41 @@ const EmailModal = ({
             value={formik.values.email}
             onChange={formik.handleChange}
           />
+
+          {isSignup && (
+            <Box>
+              <Stack direction="row" alignItems="center">
+                <Checkbox
+                  size="small"
+                  checked={consentAccepted}
+                  onChange={(e) => {
+                    setConsentAccepted(e.target.checked);
+                    if (e.target.checked) setConsentError(false);
+                  }}
+                />
+                <Typography variant="body2">
+                  <Link
+                    href="/uyelik-ve-kullanim-sartlari"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ fontWeight: 700 }}
+                  >
+                    Üyelik ve Kullanım Şartları
+                  </Link>{' '}
+                  ve{' '}
+                  <Link href="/kvkk" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700 }}>
+                    KVKK Aydınlatma Metni
+                  </Link>{' '}
+                  metinlerini okudum ve kabul ediyorum
+                </Typography>
+              </Stack>
+              {consentError && (
+                <Typography variant="caption" color="error.main">
+                  Devam etmek için sözleşmeleri kabul etmelisiniz.
+                </Typography>
+              )}
+            </Box>
+          )}
 
           <Button loading={loading} variant="contained" arrow="end" type="submit" fullWidth>
             Kod Gönder
@@ -340,29 +390,19 @@ const VerificationCodeModal = ({
   onBack,
   onClose,
   onSubmit,
-  isNewUser,
 }: {
   email: string;
   onResend: () => void;
   onBack: () => void;
   onClose: () => void;
-  isNewUser: boolean;
   onSubmit: (value: string) => Promise<boolean>;
 }) => {
-  const styles = useStyles();
   const [seconds, setSeconds] = useState(60);
   const [loading, setLoading] = useState(false);
   const [code, setCode] = useState('');
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [termsError, setTermsError] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
-    if (isNewUser && !termsAccepted) {
-      setTermsError(true);
-      return;
-    }
 
     setLoading(true);
     await onSubmit(code);
@@ -385,6 +425,16 @@ const VerificationCodeModal = ({
       }
       open
       onClose={onClose}
+      showCloseIcon
+      sx={{ alignItems: 'center', justifyContent: 'center' }}
+      CardProps={{
+        sx: {
+          width: { xs: 'calc(100% - 24px)', sm: 'fit-content' },
+          maxWidth: { xs: 420, sm: 600 },
+          borderRadius: { xs: 2, sm: 2 },
+          mx: 'auto',
+        },
+      }}
     >
       <Markdown text={`${email} adresine gönderilen kodu gir`} />
 
@@ -400,22 +450,6 @@ const VerificationCodeModal = ({
         />
 
         {/* Turnstile geçici olarak devre dışı */}
-
-        {isNewUser && (
-          <Banner noIcon variant={termsError ? 'error' : 'neutral'} border>
-            <Stack direction="row">
-              <Checkbox
-                size="small"
-                checked={termsAccepted}
-                onChange={(e) => setTermsAccepted(e.target.checked)}
-              />
-              <Typography>
-                <Link href="/uyelik-ve-kullanim-sartlari">Kullanım Şartları</Link> ve
-                <Link href="/privacy-policy"> Gizlilik Politikası</Link>’nı kabul ediyorum
-              </Typography>
-            </Stack>
-          </Banner>
-        )}
 
         <Stack direction="row" gap={1}>
           <Button

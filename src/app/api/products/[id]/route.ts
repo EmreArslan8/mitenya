@@ -5,6 +5,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit } from '@/lib/api/rateLimit';
 import { getClientIp } from '@/lib/api/getClientIp';
 
+const DEBUG_STOCK =
+  process.env.DEBUG_STOCK === 'true' || process.env.NEXT_PUBLIC_DEBUG_STOCK === 'true';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -38,6 +41,14 @@ export async function GET(
 
     if (!result) {
       return ApiErrors.notFound('Product');
+    }
+
+    if (DEBUG_STOCK) {
+      console.log('[STOCK][API] /api/products/[id] response summary', {
+        id: result.id,
+        name: result.name,
+        quantity: result.quantity,
+      });
     }
 
     console.log(`[TIMING] /api/products/[id] total ${Date.now() - start}ms`);

@@ -5,7 +5,7 @@ const useStyles = withPalette(
     container: {
       position: 'relative',
       alignItems: 'center',
-      background: palette.gradient,
+      background: palette.gradient.main,
       color: palette.bg,
       borderRadius: 1.5,
       minHeight: 100,

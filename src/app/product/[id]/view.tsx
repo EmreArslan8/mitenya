@@ -2,16 +2,18 @@
 
 import { useEffect, useState, useRef, useContext } from 'react';
 import Button from '@/components/common/Button';
+import Banner from '@/components/common/Banner';
 import Card from '@/components/common/Card';
 import { CrossFade } from '@/components/common/CrossFade';
 import Link from '@/components/common/Link';
-import Markdown from '@/components/common/Markdown';
+import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
 import { ShopProductData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
-import { Box, Divider, Grid, Rating, Stack, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Divider, Grid, Rating, Snackbar, Stack, Tab, Tabs, Typography } from '@mui/material';
+import { useRouter } from 'next/navigation';
 import ProductAttributes from './components/ProductAttributes';
 import ProductFaq from './components/ProductFaq';
 import ProductFeatures from './components/ProductFeatures';
@@ -21,7 +23,6 @@ import ProductSizeGuide from './components/ProductSizeGuide';
 import ProductVariants from './components/ProductVariants';
 import ProgressIndicator from './components/ProgressIndicator';
 import useStyles from './styles';
-import { usePalette } from '@/theme/ThemeRegistry';
 import formatPrice from '@/lib/utils/formatPrice';
 import { Check, ChevronRight, SquareArrowOutUpRight } from 'lucide-react';
 import ProductImageMagnifier from './components/ProductImageMagnifier';
@@ -29,6 +30,8 @@ import ProductDescription from './components/ProductDescription';
 
 const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
+  const { isAuthenticated, openAuthenticator } = useAuth();
+  const router = useRouter();
   const styles = useStyles();
   const { smUp } = useScreen();
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -36,11 +39,14 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const [currentImg, setCurrentImg] = useState(data.imgSrc);
   const [variants, setVariants] = useState(data.variants);
   const [showCheck, setShowCheck] = useState(false);
+  const [stockAlertLoading, setStockAlertLoading] = useState(false);
+  const [stockAlertRequested, setStockAlertRequested] = useState(false);
+  const [stockAlertMessage, setStockAlertMessage] = useState<string | undefined>();
   const [mounted, setMounted] = useState(false);
   const checkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const palette = usePalette();
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
+  const isOutOfStock = typeof data.quantity === 'number' && data.quantity <= 0;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
   const categoryLabel = data.category?.trim();
   const categoryHref = data.categoryId
@@ -70,6 +76,76 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
     setShowCheck(true);
     if (checkTimeoutRef.current) clearTimeout(checkTimeoutRef.current);
     checkTimeoutRef.current = setTimeout(() => setShowCheck(false), 1000);
+  };
+
+  const handleBuyNow = () => {
+    if (isOutOfStock) return;
+    const success = handleAddItem({ ...data, variants: variants });
+    if (!success) return;
+    router.push('/checkout');
+  };
+
+  const getSelectedVariant = () => {
+    const selected = variants
+      ?.map((variant) => {
+        const selectedOption = variant.options.find((option) => option.selected);
+        if (!selectedOption) return null;
+        return `${variant.name}: ${selectedOption.value}`;
+      })
+      .filter(Boolean);
+
+    return selected?.join(' | ') ?? '';
+  };
+
+  const subscribeStockAlert = async () => {
+    if (stockAlertLoading || stockAlertRequested) return;
+
+    try {
+      setStockAlertLoading(true);
+
+      const selectedVariant = getSelectedVariant();
+      const res = await fetch('/api/stock-alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: data.id,
+          productName: fullName,
+          productUrl: typeof window !== 'undefined' ? window.location.href : undefined,
+          variantName: selectedVariant ? 'selected' : '',
+          variantValue: selectedVariant,
+        }),
+      });
+
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const message =
+          json?.error?.message ??
+          json?.error ??
+          'Stok bildirimi talebi su an olusturulamadi';
+        throw new Error(message);
+      }
+
+      setStockAlertRequested(true);
+      setStockAlertMessage('Stok bildirimi talebiniz alindi');
+    } catch {
+      setStockAlertMessage('Stok bildirimi talebi olusturulamadi');
+    } finally {
+      setStockAlertLoading(false);
+    }
+  };
+
+  const handleOutOfStockClick = () => {
+    if (isAuthenticated) {
+      void subscribeStockAlert();
+      return;
+    }
+
+    openAuthenticator?.({
+      onSuccess: () => {
+        void subscribeStockAlert();
+      },
+    });
   };
 
   const handleScroll = () => {
@@ -227,34 +303,59 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                 />
               )}
               <Divider sx={{ my: 1 }} />
-              <Button
-                variant="contained"
-                loading={!isCartReady}
-                disabled={
-                  showCheck ||
-                  getItemQuantity(data) > 4 ||
-                  variants?.every((v) => v.options.every((o) => !o.selected))
-                }
-                onClick={handleAddToCart}
-                sx={{ mb: 2 }}
-              >
-                <CrossFade
-                  components={[
-                    {
-                      in: showCheck,
-                      component: isDesktop ? (
-                        <Stack direction="row" alignItems="center" gap={1}>
+              <Stack sx={styles.ctaRow}>
+                <Button
+                  variant="outlined"
+                  loading={!isOutOfStock && !isCartReady}
+                  disabled={
+                    showCheck ||
+                    isOutOfStock ||
+                    getItemQuantity(data) > 4 ||
+                    variants?.every((v) => v.options.every((o) => !o.selected))
+                  }
+                  onClick={handleBuyNow}
+                  sx={styles.buyNowButton}
+                >
+                  Hemen Al
+                </Button>
+                <Button
+                  variant="contained"
+                  loading={(!isOutOfStock && !isCartReady) || stockAlertLoading}
+                  disabled={
+                    showCheck ||
+                    (isOutOfStock
+                      ? stockAlertRequested
+                      : getItemQuantity(data) > 4 ||
+                      variants?.every((v) => v.options.every((o) => !o.selected)))
+                  }
+                  onClick={isOutOfStock ? handleOutOfStockClick : handleAddToCart}
+                  sx={styles.ctaButton}
+                >
+                  <CrossFade
+                    components={[
+                      {
+                        in: showCheck,
+                        component: isDesktop ? (
+                          <Stack direction="row" alignItems="center" gap={1}>
+                            <Check />
+                            Eklendi
+                          </Stack>
+                        ) : (
                           <Check />
-                          Eklendi
-                        </Stack>
-                      ) : (
-                        <Check />
-                      ),
-                    },
-                    { in: !showCheck, component: 'Sepete Ekle' },
-                  ]}
-                />
-              </Button>
+                        ),
+                      },
+                      {
+                        in: !showCheck,
+                        component: isOutOfStock
+                          ? stockAlertRequested
+                            ? 'Bildirim Talebiniz Alindi'
+                            : 'Bu urun stoka geldiginde bildir'
+                          : 'Sepete Ekle',
+                      },
+                    ]}
+                  />
+                </Button>
+              </Stack>
               {data.attributes && <ProductAttributes attributes={data.attributes} />}
               {data.description && (
                 <ProductDescription description={data.description} />
@@ -265,13 +366,25 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
         </Grid>
       </Stack>
 
-      <ProductFaq />
+      <ProductFaq faqs={data.faqs} />
       <ProductReviews
         productId={data.id}
         initialReviews={data.reviews ?? []}
         initialRating={data.rating}
       />
       {data.brandId && <ProductRecommendations brandId={data.brandId} productId={data.id} />}
+
+      <Snackbar
+        open={!!stockAlertMessage}
+        autoHideDuration={3000}
+        onClose={() => setStockAlertMessage(undefined)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Banner
+          variant={stockAlertRequested ? 'success' : 'error'}
+          title={stockAlertMessage}
+        />
+      </Snackbar>
     </Stack>
   );
 };

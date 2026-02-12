@@ -25,7 +25,7 @@ const useStyles = withPalette((palette) => ({
     },
   },
   title: {
-    fontWeight: 600,
+    fontWeight: 800,
     fontSize: 15,
     color: palette.text.main,
   },

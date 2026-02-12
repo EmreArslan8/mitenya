@@ -44,9 +44,7 @@ const useStyles = withPalette((palette) => {
       color: palette.text.medium,
     },
     itemDisabled: {
-      color: palette.text.light,
       cursor: 'not-allowed',
-      opacity: 0.6,
     },
     controlDisabled: {
       pointerEvents: 'none',

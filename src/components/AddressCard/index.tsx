@@ -30,7 +30,6 @@ const gridColumns = {
   city: { xs: 6 },
   district: { xs: 6 },
   state: { xs: 6 },
-  countryCode: { xs: 6 },
 };
 
 interface AddressCardProps {
@@ -78,7 +77,6 @@ const AddressCard = ({
     name,
     contactName,
     taxNumber,
-    countryCode,
     phoneCode,
     phoneNumber,
     email,
@@ -89,8 +87,6 @@ const AddressCard = ({
     ...rest
   } = _data;
 
-  const countryLabel = countryCode ? countryCode.toUpperCase() : '—';
-
   const data = {
     email,
     lines: summarized
@@ -100,7 +96,6 @@ const AddressCard = ({
           line3,
           ...Object.values(rest),
           postcode,
-          countryLabel, // özet görünümde ülkeyi de ekle
         ]
           .filter((e) => e)
           .join(', ')
@@ -257,12 +252,6 @@ const AddressCard = ({
                       );
                     })}
 
-                  <AddressInfoItem
-                    cols={gridColumns.countryCode}
-                    label="Ülke"
-                    value={countryLabel}
-                    key={'countryCode' + (countryCode ?? 'unknown')}
-                  />
                 </Grid>
               </AccordionDetails>
             </Accordion>

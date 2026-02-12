@@ -44,10 +44,11 @@ const SearchSort = ({
 
   const handleSelect = (sort: ShopSearchSort) => {
     const currentSearchOptions = searchOptionsFromSearchParams(searchParams);
+    const nextUrl = searchUrlFromOptions({ ...currentSearchOptions, sort });
     setSort(sort);
     setLoading(true);
     setTimeout(() => setLoading(false), 5000);
-    router.push(searchUrlFromOptions({ ...currentSearchOptions, sort }));
+    router.push(nextUrl);
   };
 
   useEffect(() => {

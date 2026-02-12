@@ -8,7 +8,7 @@ import useAddress from '@/lib/api/useAddress';
 import { IconButton, Menu, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import styles from './styles';
-import { Pencil, Trash } from 'lucide-react';
+import { Check, Trash } from 'lucide-react';
 
 const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => void }) => {
   const { deleteAddress } = useAddress();
@@ -39,31 +39,47 @@ const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => vo
     setDeleteMenuOpen(Boolean(deleteMenuAnchor));
   }, [deleteMenuAnchor]);
 
+  const contactFullName = [data.contactName, data.contactSurname].filter(Boolean).join(' ').trim();
+  const addressLine = [data.line1, data.line2, data.line3].filter((e) => e).join(', ');
+  const cityLine = [data.district, data.city].filter((e) => e).join(' / ');
+  const phoneLine = [data.phoneCode, data.phoneNumber].filter((e) => e).join(' ');
+
   return (
     <>
       <Stack sx={styles.address}>
+        <Stack sx={styles.addressHeader}>
+          <Typography sx={styles.addressName}>{data.name}</Typography>
+          {data.isDefault && (
+            <Stack sx={styles.defaultBadge}>
+              <Check size={11} />
+            </Stack>
+          )}
+        </Stack>
+
         <Stack sx={styles.addressInfo}>
-          <Typography sx={styles.addressName}>
-            {data.name}
-          </Typography>
-          <Typography sx={styles.addressLine}>
-            {[data.line1, data.line2, data.line3].filter((e) => e).join(', ')}
-          </Typography>
+          {contactFullName && <Typography sx={styles.contactName}>{contactFullName}</Typography>}
+          <Typography sx={styles.addressLine}>{addressLine}</Typography>
+          {cityLine && <Typography sx={styles.locationLine}>{cityLine}</Typography>}
+          {phoneLine && <Typography sx={styles.phoneLine}>{phoneLine}</Typography>}
         </Stack>
 
         <Stack sx={styles.addressActions}>
           <IconButton
-            onClick={() => setEditModalOpen(true)}
-            sx={styles.iconButton}
-          >
-            <Pencil size={15} />
-          </IconButton>
-          <IconButton
             onClick={handleDeleteButtonClick}
-            sx={{ ...styles.iconButton, color: 'error.main' }}
+            sx={styles.deleteIconButton}
           >
-            <Trash size={15} color="currentColor" />
+            <Trash size={15} />
           </IconButton>
+
+          <Button
+            size="small"
+            variant="outlined"
+            color="secondary"
+            onClick={() => setEditModalOpen(true)}
+            sx={styles.editButton}
+          >
+            Adresi Duzenle
+          </Button>
         </Stack>
       </Stack>
 

@@ -121,6 +121,10 @@ export type ShopOrderListItemData = {
   orderId: string;
   createdDate: string;
   status: ShopOrderStatus;
+  firstProductName?: string;
+  totalProductCount?: number;
+  totalAmount?: number;
+  currency?: Currency;
 };
 
 export type ShopOrderData = {

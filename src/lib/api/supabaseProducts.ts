@@ -1,6 +1,62 @@
 import { supabaseAdmin } from "../supabase/admin";
 import { r2Url } from "../utils/r2"; 
 
+const DEFAULT_FAQ_LOCALE = "tr-TR";
+
+type ProductFaqRow = {
+  question: string;
+  answer: string;
+  sort_order?: number | null;
+};
+
+async function loadProductFaqs(
+  productId: string
+): Promise<{ rows: ProductFaqRow[]; usedLegacyQuery: boolean }> {
+  const supabase = supabaseAdmin;
+
+  const scopedFaqQuery = await supabase
+    .from("product_faqs")
+    .select("question, answer, sort_order, scope, is_active, locale")
+    .eq("is_active", true)
+    .eq("locale", DEFAULT_FAQ_LOCALE)
+    .or(`product_id.eq.${productId},scope.eq.global`)
+    .order("sort_order", { ascending: true });
+
+  if (!scopedFaqQuery.error) {
+    const scopedRows = (scopedFaqQuery.data ?? []) as Array<
+      ProductFaqRow & { scope?: string | null }
+    >;
+    const rows = scopedRows
+      .filter((row) => row.question?.trim() && row.answer?.trim())
+      .sort((a, b) => {
+        const orderDiff = Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0);
+        if (orderDiff !== 0) return orderDiff;
+        const aScopeWeight = a.scope === "global" ? 0 : 1;
+        const bScopeWeight = b.scope === "global" ? 0 : 1;
+        return aScopeWeight - bScopeWeight;
+      })
+      .map(({ question, answer, sort_order }) => ({ question, answer, sort_order }));
+
+    return { rows, usedLegacyQuery: false };
+  }
+
+  const legacyFaqQuery = await supabase
+    .from("product_faqs")
+    .select("question, answer, sort_order")
+    .eq("product_id", productId)
+    .order("sort_order", { ascending: true });
+
+  if (legacyFaqQuery.error) {
+    return { rows: [], usedLegacyQuery: true };
+  }
+
+  const rows = (legacyFaqQuery.data ?? []).filter(
+    (row) => row.question?.trim() && row.answer?.trim()
+  ) as ProductFaqRow[];
+
+  return { rows, usedLegacyQuery: true };
+}
+
 export async function fetchProductDataSupabase(idOrSlug: string) {
   const supabase = supabaseAdmin;
 
@@ -46,9 +102,17 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
   }
 
   if (error || !data) {
-    console.log("❌ Ürün bulunamadı:", error);
     return null;
   }
+
+  const readStockQuantity = (row: unknown): number => {
+    if (typeof row !== "object" || row === null) return 0;
+    const quantity = (row as { quantity?: unknown }).quantity;
+    return Number(quantity ?? 0);
+  };
+
+  const rawStockRows = Array.isArray(data.product_stock) ? data.product_stock : [];
+  const firstStockQuantity = readStockQuantity(rawStockRows[0]);
 
   // const { data: reviewRows } = await supabase
   //   .from("product_reviews")
@@ -76,15 +140,7 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
   //       }
   //     : undefined;
 
- /* const { data: faqRows } = await supabase
-    .from("product_faqs")
-    .select("question, answer, sort_order")
-    .eq("product_id", id)
-    .order("sort_order", { ascending: true });
-
-    console.log("faq:", faqRows)
-
-    */
+  const { rows: faqRows } = await loadProductFaqs(String(data.id));
 
   const priceRow = data.product_prices?.[0];
   const price = priceRow ?? {
@@ -92,9 +148,6 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
     price_original: data.original_price,
     currency: data.currency,
   };
-
-  // 🔍 DEBUG: DB'den gelen ham image verisini görelim
- // console.log("🟨 [SUPABASE] product_images RAW:", data.product_images);
 
   const imagesSorted = [...(data.product_images ?? [])].sort(
     (a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
@@ -112,10 +165,6 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
   ? (data.attributes_json as any[]) 
   : [];
 
-  // 🔍 DEBUG: Frontend'e gidecek URL'leri görelim
-  //console.log("🟩 [SUPABASE] Mapped imageUrls:", imageUrls);
-  //console.log("🟩 [SUPABASE] imgSrc:", imgSrc);
-
   return {
     id: data.id,
     brand: data.brand_name,
@@ -132,10 +181,10 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
       originalPrice: Number(price.price_original) || Number(price.price_current) || 0,
       currency: price.currency || "TRY",
     },
-    quantity: data.product_stock?.[0]?.quantity ?? 0,
+    quantity: firstStockQuantity,
     attributes: attributes,
     reviews: [],
-   // faqs: faqRows ?? [],
+    faqs: faqRows ?? [],
     rating:
       data.rating_count > 0
         ? {

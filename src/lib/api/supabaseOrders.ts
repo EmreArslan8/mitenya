@@ -18,7 +18,7 @@ export async function fetchOrdersSupabase(): Promise<PagedResults<ShopOrderListI
 
     const { data: orders, error, count } = await supabase
       .from("orders")
-      .select("id, order_number, status, created_at", { count: "exact" })
+      .select("id, order_number, status, created_at, total_amount, currency", { count: "exact" })
       .eq("user_email", user.email)
       .order("created_at", { ascending: false });
 
@@ -27,12 +27,38 @@ export async function fetchOrdersSupabase(): Promise<PagedResults<ShopOrderListI
       return undefined;
     }
 
-    const results: ShopOrderListItemData[] = (orders || []).map((order) => ({
+    const orderIds = (orders || []).map((order) => order.id);
+    const orderSummaryMap = new Map<string, { firstProductName?: string; totalProductCount: number }>();
+
+    if (orderIds.length > 0) {
+      const { data: items } = await supabase
+        .from("order_items")
+        .select("order_id, product_name, quantity")
+        .in("order_id", orderIds);
+
+      for (const item of items || []) {
+        const existing = orderSummaryMap.get(item.order_id) || { firstProductName: undefined, totalProductCount: 0 };
+        if (!existing.firstProductName && item.product_name) {
+          existing.firstProductName = item.product_name;
+        }
+        existing.totalProductCount += Number(item.quantity || 1);
+        orderSummaryMap.set(item.order_id, existing);
+      }
+    }
+
+    const results: ShopOrderListItemData[] = (orders || []).map((order) => {
+      const summary = orderSummaryMap.get(order.id);
+      return {
       id: order.id,
       orderId: order.order_number || order.id,
       createdDate: order.created_at,
       status: order.status as ShopOrderStatus,
-    }));
+      firstProductName: summary?.firstProductName,
+      totalProductCount: summary?.totalProductCount || 0,
+      totalAmount: Number(order.total_amount || 0),
+      currency: order.currency || "TRY",
+    };
+    });
 
     return {
       results,

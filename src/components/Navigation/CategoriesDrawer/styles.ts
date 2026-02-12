@@ -4,6 +4,7 @@ import { withPalette } from '@/theme/ThemeRegistry';
 
 const useStyles = withPalette((palette) => {
   return {
+    logoSrc: palette.logo.src as string,
     drawer: { zIndex: 1300 },
     paper: {
       width: { xs: '88vw', sm: 380 },
@@ -32,7 +33,7 @@ const useStyles = withPalette((palette) => {
       backgroundColor: palette.bg.main,
     },
     brandText: {
-      letterSpacing: '0.03em',
+      letterSpacing: 0,
       fontSize: 28,
       fontWeight: 700,
       color: palette.text.main,

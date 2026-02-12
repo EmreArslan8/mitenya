@@ -206,10 +206,8 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
   categoryAggQuery = applyCollectionFilter(categoryAggQuery, collectionProductIds);
   brandAggQuery = applyCollectionFilter(brandAggQuery, collectionProductIds);
 
-  // Always pick a single price row per product (lowest current price)
-  query = query
-    .order("price_current", { ascending: true, foreignTable: "product_prices" })
-    .limit(1, { foreignTable: "product_prices" });
+  // Keep a single related price row to avoid duplicate product rows.
+  query = query.limit(1, { foreignTable: "product_prices" });
 
   priceAggQuery = priceAggQuery
     .order("price_current", { ascending: true, foreignTable: "product_prices" })
@@ -251,10 +249,10 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       query = query.order("created_at", { ascending: false });
       break;
     case "pasc":
-      query = query.order("price_current", { ascending: true, foreignTable: "product_prices" });
+      query = query.order("current_price", { ascending: true });
       break;
     case "pdsc":
-      query = query.order("price_current", { ascending: false, foreignTable: "product_prices" });
+      query = query.order("current_price", { ascending: false });
       break;
     case "disc":
       query = query.order("created_at", { ascending: false });
@@ -337,8 +335,6 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       return bDiscount - aDiscount;
     });
   }
-
-
   // ---------------------------------------------------
   // BUILD FILTERS FROM CACHE
   // ---------------------------------------------------

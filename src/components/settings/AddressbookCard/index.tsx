@@ -3,7 +3,7 @@
 import NewAddressModal from '@/components/AddressCard/modals/NewAddressModal';
 import Button from '@/components/common/Button';
 import { AddressData } from '@/lib/api/types';
-import { Divider, Stack, Typography } from '@mui/material';
+import { Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 import AddressLine from './AddressLine';
 import styles from './styles';
@@ -21,36 +21,28 @@ const AddressbookCard = ({ addresses }: { addresses: AddressData[] }) => {
 
   return (
     <>
-      <Stack sx={styles.wrapper}>
-        {/* Header */}
+      <Stack sx={styles.container}>
         <Stack sx={styles.header}>
-          <Stack direction="row" alignItems="center" gap={1}>
-            <Typography sx={styles.headerLabel}>Adreslerim</Typography>
-            <Typography sx={styles.headerCount}>({addresses?.length ?? 0})</Typography>
-          </Stack>
-        </Stack>
-
-        {/* Address list */}
-        <Stack sx={styles.cardBody}>
-          {addresses?.map((e, i) => (
-            <Stack key={e.name}>
-              <AddressLine data={e} onChange={handleChange} />
-              {i < addresses.length - 1 && <Divider sx={styles.divider} />}
-            </Stack>
-          ))}
-
-          {/* Add address */}
+          <Typography sx={styles.headerLabel}>Adres Bilgilerim</Typography>
           <Button
-            fullWidth
             size="small"
             color="tertiary"
-            variant="outlined"
-            startIcon={<Plus size={16} />}
+            variant="text"
+            startIcon={<Plus size={18} />}
             onClick={() => setNewAddressModalOpen(true)}
-            sx={styles.addButton}
+            sx={styles.headerAddButton}
           >
             Yeni Adres Ekle
           </Button>
+        </Stack>
+
+        <Stack sx={styles.cardBody}>
+          {addresses?.map((e) => (
+            <Stack key={String(e.id ?? `${e.name}-${e.line1}`)} sx={styles.cardItem}>
+              <AddressLine data={e} onChange={handleChange} />
+            </Stack>
+          ))}
+
         </Stack>
 
         <NewAddressModal

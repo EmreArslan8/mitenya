@@ -139,7 +139,7 @@ describe('removeSearchOptions', () => {
     expect(result).toEqual({ category: 'makeup' });
   });
 
-  it('should return current if result has no brand, category, or query', () => {
+  it('should preserve unrelated options when removing non-existing key', () => {
     const current = { sort: 'asc' };
     const toRemove = { brand: 'loreal' };
     const result = removeSearchOptions(current, toRemove);
@@ -150,7 +150,7 @@ describe('removeSearchOptions', () => {
     const current = { brand: 'loreal', category: 'makeup' };
     const toRemove = { brand: 'loreal' };
     const result = removeSearchOptions(current, toRemove);
-    expect(result.brand).toBe('');
+    expect(result.brand).toBeUndefined();
     expect(result.category).toBe('makeup');
   });
 });

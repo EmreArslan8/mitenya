@@ -1,26 +1,19 @@
 import FAQ from '@/components/cms/blocks/FAQ';
 import { SectionBaseProps } from '@/components/cms/shared/SectionBase';
+import { ShopProductData } from '@/lib/api/types';
 import { Stack, Typography } from '@mui/material';
 
+type ProductFaqProps = {
+  faqs?: ShopProductData['faqs'];
+};
 
-const keys = [
-  {
-    title: "Sipariş nasıl verilir?",
-    description: "Sepete ekledikten sonra ödeme adımlarını takip ederek sipariş verebilirsiniz.",
-    categories: "all"
-  },
-  {
-    title: "Kargo ne zaman gelir?",
-    description: "Siparişiniz 1-3 iş günü içinde kargoya verilir.",
-    categories: "all"
-  }
-];
+const ProductFaq = ({ faqs }: ProductFaqProps) => {
+  if (!faqs?.length) return null;
 
-const ProductFaq = () => {
-  const items = keys.map(f => ({
-    title: f.title,
-    description: f.description,
-    categories: f.categories,
+  const items = faqs.map((faq) => ({
+    title: faq.question,
+    description: faq.answer,
+    categories: 'all',
   }));
 
   const section: SectionBaseProps = {

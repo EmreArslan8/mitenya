@@ -178,6 +178,33 @@ const useStyles = withPalette((palette) => ({
     borderRadius: 0.5,
     mx: 0.5,
   },
+  ctaRow: {
+    flexDirection: 'row',
+    gap: 1,
+    mb: 2,
+  },
+  buyNowButton: {
+    flex: 1,
+    borderRadius: 1.5,
+    height: 48,
+    fontWeight: 700,
+    fontSize: 14,
+    letterSpacing: '0.01em',
+    borderColor: palette.text.medium,
+    color: palette.text.main,
+    '&:hover': {
+      borderColor: palette.text.main,
+      background: `${palette.text.main}08`,
+    },
+  },
+  ctaButton: {
+    flex: 1,
+    borderRadius: 1.5,
+    height: 48,
+    fontWeight: 700,
+    fontSize: 14,
+    letterSpacing: '0.01em',
+  },
   progressIndicatorContainer: {
     position: 'absolute',
     bottom: 16,

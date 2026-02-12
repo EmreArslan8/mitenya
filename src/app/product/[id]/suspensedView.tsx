@@ -6,12 +6,8 @@ import { notFound } from 'next/navigation';
 
 const SuspensedView = async ({ params }: { params: { id: string } }) => {
   const id = (await params).id;
-  const start = Date.now();
   const data = await fetchProductDataSupabase(id);
-  const duration = Date.now() - start;
-  console.log(`[TIMING] fetchProductDataSupabase(${id}) ${duration}ms`);
   if (!data) {
-    console.error(`❌ Product not found: ${id}`);
     notFound();
   }
   return (
@@ -27,6 +23,18 @@ const SuspensedView = async ({ params }: { params: { id: string } }) => {
 };
 
 export const getProductJsonLd = (product: ShopProductData): string => {
+  const faqItems =
+    product.faqs
+      ?.filter((faq) => faq.question?.trim() && faq.answer?.trim())
+      .map((faq) => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: faq.answer,
+        },
+      })) ?? [];
+
   const jsonLd = {
     '@context': 'https://schema.org/',
     '@type': 'Product',
@@ -48,6 +56,7 @@ export const getProductJsonLd = (product: ShopProductData): string => {
         priceCurrency: product.price.currency,
       },
     },
+    ...(faqItems.length > 0 ? { mainEntity: faqItems } : {}),
   };
 
   return JSON.stringify(jsonLd, null, 2);

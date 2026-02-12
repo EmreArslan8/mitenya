@@ -43,9 +43,10 @@ export const removeSearchOptions = (
   currentOptions: Partial<ShopSearchOptions>,
   optionsToRemove: Partial<ShopSearchOptions>
 ) => {
-  let newOptions = { ...currentOptions };
+  const newOptions = { ...currentOptions };
   Object.entries(optionsToRemove).forEach(([k, v]) => {
-    let newValue = newOptions[k as keyof typeof newOptions];
+    const key = k as keyof typeof newOptions;
+    let newValue = newOptions[key];
     if (!newValue) return;
     newValue = newValue
       ?.toString()
@@ -53,10 +54,9 @@ export const removeSearchOptions = (
       .filter((e) => e !== v.toString())
       .join(',');
 
-    newOptions[k as keyof typeof newOptions] = newValue as any;
+    if (newValue) newOptions[key] = newValue as any;
+    else delete newOptions[key];
   });
-
-  if (!newOptions.brand && !newOptions.category && !newOptions.query) return currentOptions;
   return newOptions;
 };
 

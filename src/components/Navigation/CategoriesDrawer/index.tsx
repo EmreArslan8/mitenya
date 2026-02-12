@@ -12,6 +12,7 @@ import {
   Typography,
 } from '@mui/material';
 import { ChevronDown, Heart, Package, User, X } from 'lucide-react';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import useStyles from './styles';
 
@@ -64,7 +65,12 @@ const CategoriesDrawer = ({
     >
       <Stack sx={styles.content}>
         <Stack direction="row" sx={styles.header}>
-          <Typography sx={styles.brandText}>mitenya</Typography>
+          <Image
+            src={styles.logoSrc}
+            alt="Mitenya"
+            width={120}
+            height={38}
+          />
           <IconButton onClick={onClose} aria-label="Kapat" sx={styles.closeButton}>
             <X  />
           </IconButton>

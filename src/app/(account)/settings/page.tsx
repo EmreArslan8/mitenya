@@ -1,52 +1,27 @@
-import TwoColumnLayout, {
-  PrimaryColumn,
-  SecondaryColumn,
-} from '@/components/layouts/TwoColumnLayout';
-import AddressbookCard from '@/components/settings/AddressbookCard';
-import AccountCard from '@/components/settings/AccountCard';
 import { fetchAddresses } from '@/lib/api/addresses';
-import { Stack, Typography } from '@mui/material';
+import SettingsView from './view';
 
-const SettingsPage = async () => {
+type SettingsSection = 'profile' | 'addresses' | 'security' | 'notifications';
+
+const VALID_SECTIONS: SettingsSection[] = ['profile', 'addresses', 'security', 'notifications'];
+
+const SettingsPage = async ({
+  searchParams,
+}: {
+  searchParams?: { section?: string };
+}) => {
   const addresses = (await fetchAddresses()) ?? [];
-  return (
-    <Stack gap={4} width="100%">
-      {/* Header */}
-      <Stack gap={1}>
-        <Typography
-          variant="h2"
-          sx={{ fontSize: { xs: 22, sm: 26 }, fontWeight: 800, letterSpacing: -0.3 }}
-        >
-          Hesap Ayarları
-        </Typography>
-        <Typography
-          sx={{
-            color: 'text.mediumLight',
-            fontSize: 15,
-            fontWeight: 500,
-            maxWidth: 480,
-            lineHeight: 1.5,
-          }}
-        >
-          Kişisel bilgilerinizi ve adres defterinizi yönetin.
-        </Typography>
-      </Stack>
+  const sectionParam = searchParams?.section;
+  const section = VALID_SECTIONS.includes(sectionParam as SettingsSection)
+    ? (sectionParam as SettingsSection)
+    : 'profile';
 
-      <TwoColumnLayout>
-        <PrimaryColumn>
-          <AddressbookCard addresses={addresses} />
-        </PrimaryColumn>
-        <SecondaryColumn>
-          <AccountCard />
-        </SecondaryColumn>
-      </TwoColumnLayout>
-    </Stack>
-  );
+  return <SettingsView addresses={addresses} section={section} />;
 };
 
 export const metadata = {
-  title: 'Hesap Ayarları',
-  description: 'Hesap bilgilerinizi ve adres defterinizi yönetin.',
+  title: 'Hesabım',
+  description: 'Profil bilgilerinizi ve adreslerinizi yönetin.',
   robots: { index: false, follow: false },
 };
 

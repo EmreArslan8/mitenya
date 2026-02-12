@@ -109,11 +109,15 @@ const buttonVariantMappingColors = [
 export const getDesignTokens = (
   palette: Palette = defaultPalette,
 ): ThemeOptions => {
+  // Exclude `gradient` from the palette passed to MUI – its `main` key
+  // makes MUI treat it as a color entry and fail on the linear-gradient value.
+  const { gradient: _gradient, ...muiPalette } = palette;
+
   const theme = createTheme({
     breakpoints: {
       values: breakpoints,
     },
-    palette,
+    palette: muiPalette,
     typography: {
       fontFamily: 'var(--font-albert-sans), system-ui, sans-serif',
     },

@@ -15,6 +15,18 @@ type DayCareViewProps = {
   collection: Collection;
 };
 
+const SORT_LABELS: Record<ShopSearchSort, string> = {
+  rct: 'Önerilen',
+  disc: 'İndirim Oranına Göre',
+  pasc: 'Fiyat (Düşükten Yükseğe)',
+  pdsc: 'Fiyat (Yüksekten Düşüğe)',
+  rcc: 'Önerilen',
+  bst: 'En Çok Satan',
+  fav: 'En Favori',
+  asc: 'Fiyat (Düşükten Yükseğe)',
+  dsc: 'Fiyat (Yüksekten Düşüğe)',
+};
+
 const SunRay = ({ rotation, delay }: { rotation: number; delay: number }) => (
   <Box
     sx={{
@@ -79,7 +91,11 @@ const DayCareView = ({ initialData }: DayCareViewProps) => {
     setSort(value);
     setIsNavigating(true);
     const params = new URLSearchParams(searchParams ?? undefined);
-    value ? params.set('sort', value) : params.delete('sort');
+    if (value) {
+      params.set('sort', value);
+    } else {
+      params.delete('sort');
+    }
     params.delete('page');
     const qs = params.toString();
     router.replace(qs ? `?${qs}` : '?');
@@ -172,15 +188,9 @@ const DayCareView = ({ initialData }: DayCareViewProps) => {
             onChange={(e) => handleSortChange(e.target.value as ShopSearchSort)}
             sx={styles.sortSelect}
           >
-            {(initialData.sortOptions ?? ['rct', 'dsc', 'asc']).map((opt) => (
+            {(initialData.sortOptions ?? ['rct', 'pdsc', 'pasc']).map((opt) => (
               <MenuItem key={opt} value={opt}>
-                {opt === 'rct'
-                  ? 'En yeni'
-                  : opt === 'dsc'
-                    ? 'Fiyat (yüksek → düşük)'
-                    : opt === 'asc'
-                      ? 'Fiyat (düşük → yüksek)'
-                      : opt}
+                {SORT_LABELS[opt] ?? opt}
               </MenuItem>
             ))}
           </Select>

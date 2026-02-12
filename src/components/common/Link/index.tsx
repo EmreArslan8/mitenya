@@ -8,6 +8,7 @@ type Props = Omit<LinkProps, "href"> & {
   href: string | null | undefined;
   children: ReactNode;
   target?: "_self" | "_blank";
+  rel?: string;
   style?: CSSProperties;
   colored?: boolean;
 };
