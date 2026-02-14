@@ -20,6 +20,7 @@ export const fetchProducts = async (
     if (options.sort) params.set('sort', options.sort);
     if (options.brand) params.set('brand', options.brand);
     if (options.category) params.set('category', options.category);
+    if (options.collection) params.set('collection', options.collection);
     if (options.query) params.set('query', options.query);
     if (options.price) params.set('price', options.price);
 

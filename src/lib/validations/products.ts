@@ -27,6 +27,12 @@ export const ProductsQuerySchema = z.object({
     .refine((val) => !val || /^[\w-]+(,[\w-]+)*$/.test(val), {
       message: 'Invalid category format',
     }),
+  collection: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^[\w-]+$/.test(val), {
+      message: 'Invalid collection format',
+    }),
   query: z
     .string()
     .max(QUERY_MAX_LENGTH, 'Query too long')

@@ -30,5 +30,17 @@ export const PRICE_RANGES = [
 export const DEFAULT_CURRENCY = 'TRY';
 
 // Sort options
-export const SORT_OPTIONS: ('rct' | 'disc' | 'pasc' | 'pdsc')[] = ['rct', 'disc', 'pasc', 'pdsc'];
+// Keep this list aligned with Strapi's `shared.shop-search-options.sort` enum.
+// Additional options may exist beyond Strapi, but API validation is driven from here.
+export const SORT_OPTIONS = [
+  'rct', // recent
+  'rcc', // rating count (proxy)
+  'bst', // best sellers (proxy)
+  'fav', // favorites (proxy)
+  'dsc', // date desc
+  'asc', // date asc
+  'pasc', // price asc
+  'pdsc', // price desc
+  'disc', // biggest discount
+] as const;
 export const DEFAULT_SORT = 'rct';

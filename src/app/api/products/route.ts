@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
       sort: searchParams.get('sort') ?? undefined,
       brand: searchParams.get('brand') ?? undefined,
       category: searchParams.get('category') ?? undefined,
+      collection: searchParams.get('collection') ?? undefined,
       query: searchParams.get('query') ?? undefined,
       price: searchParams.get('price') ?? undefined,
     };

@@ -47,6 +47,7 @@ describe('Shop API Client', () => {
         sort: 'asc',
         brand: 'brand-1',
         category: 'cat-1',
+        collection: 'summer-2024',
         query: 'lipstick',
         price: '0-100',
       });
@@ -56,6 +57,7 @@ describe('Shop API Client', () => {
       expect(calledUrl).toContain('sort=asc');
       expect(calledUrl).toContain('brand=brand-1');
       expect(calledUrl).toContain('category=cat-1');
+      expect(calledUrl).toContain('collection=summer-2024');
       expect(calledUrl).toContain('query=lipstick');
       expect(calledUrl).toContain('price=0-100');
     });

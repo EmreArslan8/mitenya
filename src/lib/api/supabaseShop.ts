@@ -248,11 +248,30 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     case "dsc":
       query = query.order("created_at", { ascending: false });
       break;
+    case "rct":
+      query = query.order("created_at", { ascending: false });
+      break;
+    case "rcc":
+      // Proxy for "rating count": highest engagement first.
+      query = query
+        .order("rating_count", { ascending: false, nullsFirst: false })
+        .order("rating_average", { ascending: false, nullsFirst: false });
+      break;
+    case "fav":
+      // No explicit favorites metric in schema; use rating as a proxy.
+      query = query
+        .order("rating_average", { ascending: false, nullsFirst: false })
+        .order("rating_count", { ascending: false, nullsFirst: false });
+      break;
+    case "bst":
+      // No explicit "best seller" metric in schema; use rating_count as a proxy for now.
+      query = query.order("rating_count", { ascending: false, nullsFirst: false });
+      break;
     case "pasc":
-      query = query.order("current_price", { ascending: true });
+      query = query.order("price_current", { ascending: true, foreignTable: "product_prices" });
       break;
     case "pdsc":
-      query = query.order("current_price", { ascending: false });
+      query = query.order("price_current", { ascending: false, foreignTable: "product_prices" });
       break;
     case "disc":
       query = query.order("created_at", { ascending: false });
@@ -303,6 +322,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       category: p.category_name,
       name: p.name,
       url: `/product/${p.slug || p.id}`,
+      createdAt: p.created_at ?? undefined,
       images: imagesSorted.map((im) => ({
         url: r2Url(im.image_url),
       })),

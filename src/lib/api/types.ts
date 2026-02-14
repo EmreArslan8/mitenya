@@ -158,6 +158,7 @@ export type ShopProductListItemData = {
   category?: string;
   name: string;
   url: string;
+  createdAt?: string;
   images?: { url: string }[];
   imgSrc: string;
   price: ShopProductPrice;

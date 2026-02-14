@@ -32,7 +32,7 @@ type NavItem = {
   external?: boolean;
   section?: 'profile' | 'addresses' | 'security' | 'notifications';
   badge?: string;
-  Icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
+  Icon: React.ComponentType<any>;
 };
 
 const navGroups: { title: string; items: NavItem[] }[] = [
