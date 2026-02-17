@@ -71,11 +71,6 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
     setAddresses((prev) => [...(prev ?? []), newAddress]);
   };
 
-  const codAvailable =
-  process.env.NODE_ENV !== 'production' ||
-  orderSummary?.cashOnDeliveryAvailability?.isAvailable === true;
-
-
   const handleCheckout = async () => {
     if (summaryLoading || !selected || selected.length === 0) return;
 
@@ -153,7 +148,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
             payment_method:
               paymentType === 'COD' ? 'cod' : 'paytr',
             shipping_cost: orderSummary?.shipmentCost || 0,
-            discount_amount: orderSummary?.totalDiscount || 0,
+            discount_amount: orderSummary?.promotionDiscount || 0,
             discount_code: discountCode,
             currency: 'TRY',
             consents,
@@ -171,8 +166,10 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
       removeItems(selected);
 
       // Kart ödemede PayTR ödeme ekranına yönlendir, kapıda ödemede başarıya git
-      if (paymentType !== 'COD' && data?.order?.order_number) {
-        router.push(`/payment/${encodeURIComponent(data.order.order_number)}`);
+      const paymentRouteId = data?.order?.id || data?.order?.order_number;
+      if (paymentType !== 'COD' && paymentRouteId) {
+        const tokenParam = data?.success_token ? `?t=${encodeURIComponent(data.success_token)}` : '';
+        router.push(`/payment/${encodeURIComponent(paymentRouteId)}${tokenParam}`);
       } else {
         const tokenParam = data?.success_token ? `?t=${encodeURIComponent(data.success_token)}` : '';
         router.push(`/success${tokenParam}`);
@@ -419,22 +416,16 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
               collapsible
             >
               <Stack pb={{ xs: 1, sm: 2 }} pt={{ sm: 1 }} pl={{ sm: 1 }} pr={1} gap={1.5}>
-                <Stack>
+                {/* <Stack>
                   <Stack
-                   onClick={() => {
-                    if (codAvailable) setPaymentType('COD');
-                  }}
-                  
+                    onClick={() => {
+                      if (codAvailable) setPaymentType('COD');
+                    }}
                     sx={{
                       ...styles.checkbox,
-                     
                     }}
                   >
-                    <Checkbox
-                    disabled={!codAvailable}
-                      size="small"
-                      checked={paymentType === 'COD'}
-                    />
+                    <Checkbox disabled={!codAvailable} size="small" checked={paymentType === 'COD'} />
                     <Typography
                       variant="warningSemibold"
                       sx={{
@@ -445,7 +436,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                       Kapıda Ödeme
                     </Typography>
                   </Stack>
-                </Stack>
+                </Stack> */}
                 <Stack>
                   <Stack
                     direction="row"

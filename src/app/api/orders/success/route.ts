@@ -34,12 +34,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // One-time token: clear after successful use
-    if (meta?.success_token) {
-      delete meta.success_token;
-      delete meta.success_token_expires_at;
-      await supabaseAdmin.from("orders").update({ metadata: meta }).eq("id", order.id);
-    }
+    // Token'ı ilk okumada silmiyoruz.
+    // Aksi halde local/dev'de çift istek veya ağ tekrarlarında ikinci istek 404 dönebiliyor.
+    // Güvenlik için süre kontrolü (success_token_expires_at) zaten uygulanıyor.
 
     const { data: items } = await supabaseAdmin
       .from("order_items")

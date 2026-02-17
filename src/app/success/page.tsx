@@ -45,18 +45,20 @@ const SuccessPage = () => {
       try {
         if (!token) {
           setOrder(null);
-          setErrorMessage('Lütfen giriş yapın');
+          setErrorMessage('Geçersiz başarı linki');
           return;
         }
+
         const res = await fetch(`/api/orders/success?t=${encodeURIComponent(token)}`);
         if (res.ok) {
           const data = await res.json();
           setOrder(data.order);
           setErrorMessage(null);
-        } else {
-          setOrder(null);
-          setErrorMessage(res.status === 401 ? 'Lütfen giriş yapın' : 'Sipariş bulunamadı');
+          return;
         }
+
+        setOrder(null);
+        setErrorMessage(res.status === 401 ? 'Lütfen giriş yapın' : 'Sipariş bulunamadı');
       } catch (error) {
         console.error('Order fetch error:', error);
         setOrder(null);

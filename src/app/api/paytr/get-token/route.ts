@@ -38,6 +38,20 @@ const parseJsonIfNeeded = <T>(value: unknown): T | null => {
   }
 };
 
+const withQueryParams = (baseUrl: string, params: Record<string, string>) => {
+  try {
+    const url = new URL(baseUrl);
+    Object.entries(params).forEach(([key, value]) => {
+      if (value && !url.searchParams.has(key)) {
+        url.searchParams.set(key, value);
+      }
+    });
+    return url.toString();
+  } catch {
+    return baseUrl;
+  }
+};
+
 export const POST = async (req: NextRequest) => {
   const csrfError = validateSameOrigin(req);
   if (csrfError) return csrfError;
@@ -95,6 +109,14 @@ export const POST = async (req: NextRequest) => {
     return NextResponse.json({ ok: false, error: 'Order payment method is not PayTR' }, { status: 400 });
   }
 
+  // Aynı sipariş için tekrar ödeme başlatmayı engelle.
+  if (String(order.payment_status || '').toLowerCase() !== 'pending') {
+    return NextResponse.json(
+      { ok: false, error: 'Bu sipariş için ödeme tekrar başlatılamaz' },
+      { status: 409 }
+    );
+  }
+
   const { data: orderItems, error: itemsError } = await supabaseAdmin
     .from('order_items')
     .select('product_name, price, quantity')
@@ -123,7 +145,7 @@ export const POST = async (req: NextRequest) => {
   }
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '');
-  const merchantOkUrl = process.env.PAYTR_OK_URL || `${siteUrl}/success`;
+  const merchantOkUrlBase = process.env.PAYTR_OK_URL || `${siteUrl}/success`;
   const merchantFailUrl = process.env.PAYTR_FAIL_URL || `${siteUrl}/checkout`;
 
   const currencyRaw = normalizeText(order.currency, 3, 'TRY').toUpperCase();
@@ -148,9 +170,14 @@ export const POST = async (req: NextRequest) => {
     return NextResponse.json({ ok: false, error: 'Invalid merchant_oid' }, { status: 400 });
   }
 
-  const rawMeta = parseJsonIfNeeded<Record<string, unknown>>(order.metadata) ?? {};
+  const orderMeta = parseJsonIfNeeded<Record<string, unknown>>(order.metadata) ?? {};
+  const successToken = normalizeText(orderMeta.success_token, 128, '');
+  const merchantOkUrl = withQueryParams(merchantOkUrlBase, {
+    t: successToken,
+  });
+
   const updatedMeta = {
-    ...rawMeta,
+    ...orderMeta,
     paytr_merchant_oid: merchantOid,
   };
   await supabaseAdmin
