@@ -6,7 +6,7 @@ import formatPrice from './formatPrice';
 import formatFileSize from './formatFileSize';
 import isValidUrl from './isValidUrl';
 import tokenize from './tokenize';
-import getCurrencySymbol, { currencyCodes } from './currencies';
+import getCurrencySymbol, { currencyCodes, getDisplayCurrencyCode } from './currencies';
 import {
   countries,
   originCountries,
@@ -260,6 +260,20 @@ describe('currencyCodes', () => {
     expect(currencyCodes).toContain('USD');
     expect(currencyCodes).toContain('EUR');
     expect(currencyCodes).toContain('TRY');
+  });
+});
+
+describe('getDisplayCurrencyCode', () => {
+  it('should return TL for TRY', () => {
+    expect(getDisplayCurrencyCode('TRY')).toBe('TL');
+  });
+
+  it('should handle lowercase TRY', () => {
+    expect(getDisplayCurrencyCode('try')).toBe('TL');
+  });
+
+  it('should return uppercase code for non-TRY currencies', () => {
+    expect(getDisplayCurrencyCode('usd')).toBe('USD');
   });
 });
 

@@ -3,13 +3,14 @@ import { ShopOrderSummaryData, ShopProductData } from "@/lib/api/types";
 export interface CalculateOrderSummaryInput {
   products: (ShopProductData & { listingId: string; quantity: number })[];
   discountCode?: string | null;
+  couponDiscountPercent?: number;
 }
 
 export function calculateOrderSummary(
   input: CalculateOrderSummaryInput
 ): ShopOrderSummaryData {
 
-  const { products, discountCode } = input;
+  const { products, discountCode, couponDiscountPercent } = input;
 
   // 1) Ürün toplamı (indirimli)
   const productCost =
@@ -27,12 +28,12 @@ export function calculateOrderSummary(
     ? Math.floor((productDiscountAmount / productCostPreDiscount) * 100)
     : 0;
 
-  // 3) Kupon mantığı (örnek)
+  // 3) Kupon indirimi
   let couponDiscount = 0;
   const normalizedCode = discountCode?.trim().toUpperCase();
 
-  if (normalizedCode === "BRINGIST10") {
-    couponDiscount = Math.floor(productCost * 0.1);
+  if (normalizedCode && couponDiscountPercent && couponDiscountPercent > 0) {
+    couponDiscount = Math.floor(productCost * (couponDiscountPercent / 100));
   }
 
   // 4) Kargo Hesaplama

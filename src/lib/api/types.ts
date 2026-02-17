@@ -114,7 +114,7 @@ export type ShopOrderSummaryData = {
   };
 };
 
-export type ShopOrderStatus = 'processing' | 'preparing' | 'shipped' | 'cancelled';
+export type ShopOrderStatus = 'processing' | 'preparing' | 'shipped' | 'delivered' | 'cancelled';
 
 export type ShopOrderListItemData = {
   id: string;
@@ -203,8 +203,10 @@ export type ShopProductData = {
   url: string;
   brand?: string;
   brandId?: string;
+  brandSlug?: string;
   category?: string;
   categoryId?: string;
+  categorySlug?: string;
   imgSrc?: string;
   images?: string[];
   variants?: ShopProductVariantData[];
@@ -369,6 +371,17 @@ export type ShopFooterData = {
   socials: SharedSocialButton[];
   address?: string;
   vendors?: { data: SharedSiblingImageType[] };
+};
+
+export type ShopCoupon = {
+  code: string;
+  discountPercent: number;
+  startDate: string;
+  endDate: string;
+};
+
+export type ShopCouponSetData = {
+  coupons: ShopCoupon[];
 };
 
 export type PhoneNumber = { phoneCode: string; phoneNumber: string };

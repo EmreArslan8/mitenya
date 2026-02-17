@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "../supabase/admin";
 import { r2Url } from "../utils/r2"; 
+import { getFilterAggregations } from "../cache/filterCache";
 
 const DEFAULT_FAQ_LOCALE = "tr-TR";
 
@@ -165,13 +166,19 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
   ? (data.attributes_json as any[]) 
   : [];
 
+  const filterAggregations = await getFilterAggregations();
+  const brandSlug = filterAggregations.brands.find((b) => b.id === data.brand_id)?.slug;
+  const categorySlug = filterAggregations.categories.find((c) => c.id === data.category_id)?.slug;
+
   return {
     id: data.id,
     brand: data.brand_name,
     brandId: data.brand_id,
+    brandSlug,
     name: data.name,
     category: data.category_name,
     categoryId: data.category_id,
+    categorySlug,
     url: `/product/${data.slug || data.id}`,
     images: imageUrls,
     imgSrc,

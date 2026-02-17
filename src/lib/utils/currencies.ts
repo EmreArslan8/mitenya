@@ -15,4 +15,10 @@ const getCurrencySymbol = (currencyCode: string) => {
   return currencySymbols[code as Currency] || currencyCode;
 };
 
+export const getDisplayCurrencyCode = (currencyCode: string) => {
+  const code = currencyCode.toUpperCase();
+  if (code === 'TRY') return 'TL';
+  return code;
+};
+
 export default getCurrencySymbol;

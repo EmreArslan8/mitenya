@@ -100,6 +100,22 @@ interface ShippingAddress {
   phone?: string;
 }
 
+interface EdgeCreateOrderResponse {
+  order?: {
+    id: string;
+    order_number: string;
+    total_amount: number;
+    status: string;
+    payment_status: string;
+  };
+  success_token?: string;
+  error?: string;
+  details?: {
+    code?: string;
+    [key: string]: unknown;
+  };
+}
+
 
 
 export async function POST(req: NextRequest) {
@@ -250,11 +266,10 @@ export async function POST(req: NextRequest) {
         ]
       : null;
 
-    const edgePayload = {
+    const baseEdgePayload = {
       order_number,
       user_id: user.id,
       user_email: user.email ?? _user_email,
-      status: "processing",
       payment_status: "pending",
       payment_method,
       currency: orderCurrency,
@@ -274,25 +289,40 @@ export async function POST(req: NextRequest) {
       consents: consentsRows,
     };
 
-    const edgeResponse = await fetch(
-      "https://iimmsbvyxizrdfresfcb.functions.supabase.co/create-order",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-        },
-        body: JSON.stringify(edgePayload),
-      }
-    );
+    const edgeHeaders = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+      apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+    };
 
-    const edgeText = await edgeResponse.text();
-    let edgeData: any = {};
-    try {
-      edgeData = edgeText ? JSON.parse(edgeText) : {};
-    } catch {
-      edgeData = {};
+    const callCreateOrderEdge = async (payload: Record<string, unknown>) => {
+      const edgeResponse = await fetch(
+        "https://iimmsbvyxizrdfresfcb.functions.supabase.co/create-order",
+        {
+          method: "POST",
+          headers: edgeHeaders,
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const edgeText = await edgeResponse.text();
+      let edgeData: EdgeCreateOrderResponse = {};
+      try {
+        edgeData = edgeText ? (JSON.parse(edgeText) as EdgeCreateOrderResponse) : {};
+      } catch {
+        edgeData = {};
+      }
+
+      return { edgeResponse, edgeData, edgeText };
+    };
+
+    let { edgeResponse, edgeData, edgeText } = await callCreateOrderEdge({
+      ...baseEdgePayload,
+      status: "processing",
+    });
+
+    if (!edgeResponse.ok && edgeData?.details?.code === "42804") {
+      ({ edgeResponse, edgeData, edgeText } = await callCreateOrderEdge(baseEdgePayload));
     }
 
     if (!edgeResponse.ok || !edgeData?.order) {

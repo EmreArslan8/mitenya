@@ -149,7 +149,6 @@ const useStyles = withPalette((palette) => ({
     alignItems: 'center',
     fontSize: 18,
     color: palette.text.main,
-    mx: -1,
   },
   mobileImagesContainer: { position: 'relative', width: '100vw' },
   mobileImages: {

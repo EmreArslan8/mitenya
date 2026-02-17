@@ -7,6 +7,15 @@ import {
   ShopOrderStatus,
 } from "./types";
 
+const normalizeOrderStatus = (status: string | null | undefined): ShopOrderStatus => {
+  const s = String(status ?? "").trim().toLowerCase();
+  if (s === "canceled") return "cancelled";
+  if (s === "processing" || s === "preparing" || s === "shipped" || s === "delivered" || s === "cancelled") {
+    return s;
+  }
+  return "processing";
+};
+
 export async function fetchOrdersSupabase(): Promise<PagedResults<ShopOrderListItemData> | undefined> {
   try {
     const supabase = await createSupabaseServer();
@@ -52,7 +61,7 @@ export async function fetchOrdersSupabase(): Promise<PagedResults<ShopOrderListI
       id: order.id,
       orderId: order.order_number || order.id,
       createdDate: order.created_at,
-      status: order.status as ShopOrderStatus,
+      status: normalizeOrderStatus(order.status),
       firstProductName: summary?.firstProductName,
       totalProductCount: summary?.totalProductCount || 0,
       totalAmount: Number(order.total_amount || 0),
@@ -114,7 +123,7 @@ export async function fetchOrderSupabase(id: string): Promise<ShopOrderData | un
       orderId: order.order_number || order.id,
       totalOrderProductCount: items?.reduce((acc, item) => acc + (item.quantity || 1), 0) || 0,
       address: shippingAddress as ShopOrderData["address"],
-      status: order.status as ShopOrderStatus,
+      status: normalizeOrderStatus(order.status),
       createdDate: order.created_at,
       products: (items || []).map((item) => ({
         id: item.product_id,

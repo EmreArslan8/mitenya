@@ -14,7 +14,7 @@ const statusConfig: Record<
   { label: string; color: string; bg: string; indicator: string }
 > = {
   processing: {
-    label: 'İşleniyor',
+    label: 'Sipariş Alındı',
     color: '#1754B0',
     bg: '#F5F9FF',
     indicator: '#4A87E3',
@@ -27,9 +27,15 @@ const statusConfig: Record<
   },
   shipped: {
     label: 'Kargoda',
+    color: '#B45309',
+    bg: '#FFF7ED',
+    indicator: '#F59E0B',
+  },
+  delivered: {
+    label: 'Teslim Edildi',
     color: '#226B3A',
     bg: '#E6F4EC',
-    indicator: '#226B3A',
+    indicator: '#2F8C4B',
   },
   cancelled: {
     label: 'İptal',
@@ -82,7 +88,7 @@ const OrderListItemCard = ({ data }: { data: ShopOrderListItemData }) => {
         <Box sx={{ ...styles.statusIndicator, bgcolor: config.indicator }} />
 
         <Box sx={styles.infoGrid}>
-          <Box>
+          <Box sx={styles.infoCell}>
             <InfoItem
               label="Sipariş No"
               value={`#${orderNo}`}
@@ -93,7 +99,7 @@ const OrderListItemCard = ({ data }: { data: ShopOrderListItemData }) => {
             />
           </Box>
 
-          <Box>
+          <Box sx={styles.infoCell}>
             <InfoItem
               label="Sipariş Tarihi"
               value={formattedDate}
@@ -104,7 +110,7 @@ const OrderListItemCard = ({ data }: { data: ShopOrderListItemData }) => {
             />
           </Box>
 
-          <Box>
+          <Box sx={styles.infoCell}>
             <InfoItem
               label="Ürünler"
               value={productSummary}
@@ -115,7 +121,7 @@ const OrderListItemCard = ({ data }: { data: ShopOrderListItemData }) => {
             />
           </Box>
 
-          <Box>
+          <Box sx={styles.infoCell}>
             <InfoItem
               label="Toplam Tutar"
               value={formattedTotal}

@@ -39,7 +39,7 @@ const useStyles = withPalette((palette) => {
       height: { xs: 'auto', sm: headerHeight.sm + bannerHeight },
       background: palette.bg.main,
       transition: 'top 0.2s, box-shadow 0.2s ease-in',
-      px: { xs: 2, sm: 3 },
+      px: { xs: 1, sm: 3 },
     },
     logo: {
       ...palette.logo,

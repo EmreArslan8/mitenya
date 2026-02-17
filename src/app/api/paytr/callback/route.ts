@@ -14,17 +14,25 @@ const PAYTR_IP_ALLOWLIST = (process.env.PAYTR_IP_ALLOWLIST || '')
   .map((ip) => ip.trim())
   .filter(Boolean);
 
+const okResponse = () =>
+  new NextResponse("OK", {
+    status: 200,
+    headers: { "content-type": "text/plain; charset=utf-8" },
+  });
+
 export async function POST(req: NextRequest) {
   // IP / rate limit throttling
   const caller = getClientIp(req);
   if (!(await rateLimit(`paytr_callback:${caller}`))) {
-    return new NextResponse("Too many requests", { status: 429 });
+    console.warn("PayTR callback rate limited", { caller });
+    return okResponse();
   }
 
   if (PAYTR_IP_ALLOWLIST.length) {
     const clientIp = caller;
     if (!clientIp || !PAYTR_IP_ALLOWLIST.includes(clientIp)) {
-      return new NextResponse("Forbidden", { status: 403 });
+      console.warn("PayTR callback forbidden IP", { clientIp });
+      return okResponse();
     }
   }
 
@@ -36,9 +44,20 @@ export async function POST(req: NextRequest) {
   const status = params.get("status") ?? "";
   const total_amount = params.get("total_amount") ?? "";
   const hash = params.get("hash") ?? "";
+  const failed_reason_code = params.get("failed_reason_code") ?? "";
+  const failed_reason_msg = params.get("failed_reason_msg") ?? "";
+  const payment_type = params.get("payment_type") ?? "";
+  const currency = params.get("currency") ?? "";
+  const payment_amount = params.get("payment_amount") ?? "";
 
   if (!merchant_oid || !status || !total_amount || !hash) {
-    return new NextResponse("OK"); // PayTR tekrar deneyebilir; burada loglamak isteyebilirsin.
+    console.error("PayTR callback missing required fields", {
+      merchant_oid,
+      status,
+      total_amount,
+      hasHash: !!hash,
+    });
+    return okResponse();
   }
 
   // Hash doğrulama: merchant_oid + merchant_salt + status + total_amount, HMAC-SHA256(merchant_key), base64 :contentReference[oaicite:6]{index=6}
@@ -46,23 +65,38 @@ export async function POST(req: NextRequest) {
   const token = crypto.createHmac("sha256", PAYTR_MERCHANT_KEY).update(tokenRaw).digest("base64");
 
   if (token !== hash) {
-    // kötü hash → işlem yapma
-    return new NextResponse("PAYTR notification failed: bad hash", { status: 400 });
+    // kötü hash → işlem yapma, yine de PayTR'ye OK dön
+    console.error("PayTR callback hash mismatch", { merchant_oid, status, total_amount });
+    return okResponse();
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
 
-  // merchant_oid formatı: order_number veya order_id olabilir
-  // Önce order'ı bul
-  const { data: order } = await supabase
+  // Önce order_number/id ile, bulunamazsa metadata.paytr_merchant_oid ile bul
+  let { data: order } = await supabase
     .from("orders")
-    .select("id, order_number")
+    .select("id, order_number, payment_status, status")
     .or(`order_number.eq.${merchant_oid},id.eq.${merchant_oid}`)
     .single();
 
   if (!order) {
+    const byMeta = await supabase
+      .from("orders")
+      .select("id, order_number, payment_status, status")
+      .eq("metadata->>paytr_merchant_oid", merchant_oid)
+      .single();
+    order = byMeta.data ?? null;
+  }
+
+  if (!order) {
     console.error("PayTR callback: Order bulunamadı:", merchant_oid);
-    return new NextResponse("OK");
+    return okResponse();
+  }
+
+  // Aynı sipariş için birden fazla callback gelebilir.
+  // Daha önce paid işlendiyse tekrar işlem yapmadan OK dön.
+  if (order.payment_status === "paid") {
+    return okResponse();
   }
 
   if (status === "success") {
@@ -80,15 +114,20 @@ export async function POST(req: NextRequest) {
     await supabase.from("order_events").insert({
       order_id: order.id,
       status: "payment_completed",
-      description: `Ödeme başarıyla alındı. Tutar: ${(parseInt(total_amount) / 100).toFixed(2)} TL`,
+      description: `Ödeme başarıyla alındı. Tahsilat: ${(parseInt(total_amount, 10) / 100).toFixed(2)} ${currency || "TL"} | payment_type: ${payment_type || "-"}`,
     });
   } else {
+    // Ödeme daha önce başarıya geçmişse başarısız callback ile geri çekme
+    if (order.payment_status === "paid") {
+      return okResponse();
+    }
+
     // Ödeme başarısız
     await supabase
       .from("orders")
       .update({
         payment_status: "failed",
-        status: "canceled"
+        status: "cancelled"
       })
       .eq("id", order.id);
 
@@ -96,11 +135,11 @@ export async function POST(req: NextRequest) {
     await supabase.from("order_events").insert({
       order_id: order.id,
       status: "payment_failed",
-      description: "Ödeme başarısız oldu. Sipariş iptal edildi.",
+      description: `Ödeme başarısız oldu. code=${failed_reason_code || "-"} msg=${failed_reason_msg || "-"} | payment_amount=${payment_amount || "-"} | total_amount=${total_amount || "-"}`,
     });
   }
 
-  return new NextResponse("OK");
+  return okResponse();
 }
 
 export const dynamic = "force-dynamic";

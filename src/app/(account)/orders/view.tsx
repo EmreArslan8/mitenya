@@ -2,108 +2,115 @@
 
 import OrderListItemCard from '@/components/orders/OrderListItemCard';
 import Button from '@/components/common/Button';
-import { PagedResults, ShopOrderListItemData } from '@/lib/api/types';
+import { PagedResults, ShopOrderListItemData, ShopOrderStatus } from '@/lib/api/types';
 import { Box, Stack, Typography } from '@mui/material';
 import { Package, ShoppingBag } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import useStyles from './styles';
+
+type OrderFilter = 'all' | ShopOrderStatus;
+
+const FILTERS: { key: OrderFilter; label: string }[] = [
+  { key: 'all', label: 'Tümü' },
+  { key: 'processing', label: 'Sipariş Alındı' },
+  { key: 'preparing', label: 'Hazırlanıyor' },
+  { key: 'shipped', label: 'Kargoda' },
+  { key: 'delivered', label: 'Teslim Edildi' },
+  { key: 'cancelled', label: 'İptal' },
+];
 
 const OrdersPageView = ({ data }: { data: PagedResults<ShopOrderListItemData> }) => {
+  const styles = useStyles();
+  const [activeFilter, setActiveFilter] = useState<OrderFilter>('all');
   const total = data.totalRecordCount ?? 0;
+  const statusCounts = useMemo(
+    () =>
+      data.results.reduce<Record<ShopOrderStatus, number>>(
+        (acc, order) => {
+          acc[order.status] += 1;
+          return acc;
+        },
+        { processing: 0, preparing: 0, shipped: 0, delivered: 0, cancelled: 0 }
+      ),
+    [data.results]
+  );
+
+  const filteredOrders = useMemo(
+    () => data.results.filter((order) => activeFilter === 'all' || order.status === activeFilter),
+    [activeFilter, data.results]
+  );
+  const isFilterEmpty = total > 0 && filteredOrders.length === 0;
 
   return (
-    <Stack gap={4} width="100%">
+    <Stack sx={styles.page}>
       {/* Header */}
-      <Stack gap={1}>
-        <Stack direction="row" alignItems="center" gap={1.5}>
-          <Typography
-            variant="h2"
-            sx={{ fontSize: { xs: 22, sm: 26 }, fontWeight: 800, letterSpacing: -0.3 }}
-          >
+      <Stack sx={styles.header}>
+        <Stack sx={styles.headerRow}>
+          <Typography variant="h2" sx={styles.pageTitle}>
             Siparişlerim
           </Typography>
-          {total > 0 && (
-            <Box
-              sx={{
-                bgcolor: 'text.main',
-                color: 'white.main',
-                fontSize: 11,
-                fontWeight: 800,
-                px: 1,
-                py: 0.25,
-                borderRadius: '4px',
-                lineHeight: 1.5,
-                letterSpacing: 0.5,
-              }}
-            >
-              {total}
-            </Box>
-          )}
+          {total > 0 && <Box sx={styles.totalBadge}>{total}</Box>}
         </Stack>
-        <Typography
-          sx={{
-            color: 'text.mediumLight',
-            fontSize: 15,
-            fontWeight: 500,
-            maxWidth: 480,
-            lineHeight: 1.5,
-          }}
-        >
+        <Typography sx={styles.description}>
           Siparişlerinizi takip edin, detaylarını görüntüleyin.
         </Typography>
       </Stack>
 
+      {/* Filters */}
+      {total > 0 && (
+        <Stack sx={styles.filtersRow}>
+          {FILTERS.map((filter) => {
+            const isActive = activeFilter === filter.key;
+            const count = filter.key === 'all' ? total : statusCounts[filter.key];
+
+            return (
+              <Box
+                key={filter.key}
+                component="button"
+                type="button"
+                onClick={() => setActiveFilter(filter.key)}
+                sx={styles.filterPill(isActive)}
+              >
+                <Typography sx={styles.filterLabel}>{filter.label}</Typography>
+                <Box sx={styles.filterBadge(isActive)}>
+                  {count}
+                </Box>
+              </Box>
+            );
+          })}
+        </Stack>
+      )}
+
       {/* Order List */}
       {total ? (
-        <Stack gap={1.5}>
-          {data.results.map((e) => (
-            <OrderListItemCard data={e} key={e.id} />
-          ))}
-        </Stack>
+        isFilterEmpty ? (
+          <Stack sx={styles.filterEmptyState}>
+            <Typography sx={styles.filterEmptyTitle}>
+              Bu filtrede sipariş bulunmuyor
+            </Typography>
+            <Typography sx={styles.filterEmptyDescription}>
+              Farklı bir filtre seçerek diğer siparişleri görüntüleyin.
+            </Typography>
+          </Stack>
+        ) : (
+          <Stack sx={styles.orderList}>
+            {filteredOrders.map((e) => (
+              <OrderListItemCard data={e} key={e.id} />
+            ))}
+          </Stack>
+        )
       ) : (
         /* Empty State */
-        <Stack
-          gap={3}
-          textAlign="center"
-          alignItems="center"
-          py={{ xs: 6, sm: 10 }}
-          sx={{
-            borderRadius: '16px',
-            border: (theme) => `1px dashed ${theme.palette.gray[200]}`,
-            bgcolor: 'bg.light',
-          }}
-        >
-          <Box
-            sx={{
-              width: 80,
-              height: 80,
-              borderRadius: '20px',
-              background: 'linear-gradient(135deg, #F5F5F7 0%, #E5E5EA 100%)',
-              display: 'grid',
-              placeItems: 'center',
-            }}
-          >
+        <Stack sx={styles.emptyState}>
+          <Box sx={styles.emptyIconBox}>
             <Package size={32} strokeWidth={1.5} color="#8E8E93" />
           </Box>
 
-          <Stack gap={1} alignItems="center">
-            <Typography
-              sx={{
-                fontSize: { xs: 18, sm: 20 },
-                fontWeight: 700,
-                color: 'text.main',
-                letterSpacing: -0.2,
-              }}
-            >
+          <Stack sx={styles.emptyTextBox}>
+            <Typography sx={styles.emptyTitle}>
               Henüz siparişiniz yok
             </Typography>
-            <Typography
-              sx={{
-                color: 'text.mediumLight',
-                fontSize: 15,
-                fontWeight: 500,
-                maxWidth: 400,
-                lineHeight: 1.6,
-              }}
-            >
+            <Typography sx={styles.emptyDescription}>
               Siparişleriniz burada listelenecektir. Hemen alışverişe başlayın!
             </Typography>
           </Stack>

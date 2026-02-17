@@ -38,7 +38,14 @@ const FormikAutocomplete = ({
           formik.setFieldValue(fieldKey, newValue ? newValue.value : '');
         }}
         disabled={disabled}
-        renderOption={(props, option) => <li {...props}>{option.label}</li>}
+        renderOption={(props, option, state) => {
+          const { key: _muiKey, ...restProps } = props;
+          return (
+            <li key={`${String(option.value ?? option.label)}-${state.index}`} {...restProps}>
+              {option.label}
+            </li>
+          );
+        }}
         renderInput={(params) => (
           <TextField
             {...params}

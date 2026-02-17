@@ -25,6 +25,7 @@ FROM node:22.12.0-alpine AS runner
 
 WORKDIR /app
 ENV NODE_ENV=production
+RUN apk add --no-cache curl
 
 # Gerekli dosyaları kopyala
 COPY --from=builder /app/package.json ./

@@ -1,7 +1,7 @@
 import 'server-only';
 import bring from './bring';
 import { CMSBlock } from '@/components/cms/blocks';
-import { ShopHeaderData, ShopFooterData } from './types';
+import { ShopHeaderData, ShopFooterData, ShopCouponSetData } from './types';
 
 export type CMSPageData = {
   title: string;
@@ -63,6 +63,24 @@ export const fetchShopFooter = async (): Promise<
       next: { revalidate: 60 },
     });
     console.log(`[TIMING] fetchShopFooter ${Date.now() - start}ms`);
+
+    return data;
+  } catch {
+    return undefined;
+  }
+};
+
+/* --------------------------------
+ * SHOP COUPON SET
+ * -------------------------------- */
+export const fetchShopCouponSet = async (): Promise<
+  ShopCouponSetData | undefined
+> => {
+  try {
+    const [data] = await bring('/api/cms/shop-coupon-sets', {
+      static: true,
+      next: { revalidate: 60 },
+    });
 
     return data;
   } catch {

@@ -2,6 +2,7 @@ import Banner from '@/components/common/Banner';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { ShopOrderSummaryData } from '@/lib/api/types';
+import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
 import { CircularProgress, Divider, Stack, TextField, Typography } from '@mui/material';
 import { FormEvent, ReactNode, useState } from 'react';
 import useStyles from './styles';
@@ -29,6 +30,7 @@ const CheckoutCard = ({
 }) => {
   const styles = useStyles();
   const [code, setCode] = useState(initialDiscountCode);
+  const currencyLabel = getDisplayCurrencyCode(orderSummary?.currency ?? 'TRY');
 
   const handleSubmitDiscountCode = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,14 +52,14 @@ const CheckoutCard = ({
       <Stack sx={styles.cardBody}>
         <Stack>
           <Typography fontSize={22} fontWeight={700}>
-            {orderSummary?.totalDue} {orderSummary?.currency}
+            {orderSummary?.totalDue} {currencyLabel}
           </Typography>
           {!!orderSummary?.totalDiscount && (
             <Stack direction="row" gap={0.5} alignItems="center">
               <TrendingDown color="green" style={{ marginTop: -1, marginBottom: -1 }} />
               <Markdown
                 component="span"
-                text={`Kazancınız ${orderSummary.totalDiscount} ${orderSummary.currency}`}
+                text={`Kazancınız ${orderSummary.totalDiscount} ${currencyLabel}`}
                 options={styles.discountMdOptions}
                 sx={styles.discount}
               />
@@ -114,7 +116,7 @@ const CheckoutCard = ({
               )}
               {orderSummary?.promotionDiscount && (
                 <Typography variant="caption" mx={1}>
-                   İndirim Uygulandı: {orderSummary.promotionDiscount} {orderSummary.currency}
+                   İndirim Uygulandı: {orderSummary.promotionDiscount} {currencyLabel}
                 </Typography>
               )}
               <Button
@@ -180,20 +182,21 @@ export const PriceLines = ({
 }) => {
 
   const styles = useStyles();
+  const currencyLabel = getDisplayCurrencyCode(orderSummary?.currency ?? 'TRY');
 
   return (
     <Stack>
       <Stack sx={styles.priceLine}>
         <Typography variant="warning">Ürünler Toplamı</Typography>
         <Typography variant="warningSemibold">
-          {orderSummary?.productCost} {orderSummary?.currency}
+          {orderSummary?.productCost} {currencyLabel}
         </Typography>
       </Stack>
       {!!orderSummary?.shipmentCost && (
         <Stack sx={styles.priceLine}>
           <Typography variant="warning">Kargo</Typography>
           <Typography variant="warningSemibold">
-            {orderSummary?.shipmentCost} {orderSummary?.currency}
+            {orderSummary?.shipmentCost} {currencyLabel}
           </Typography>
         </Stack>
       )}
@@ -201,15 +204,15 @@ export const PriceLines = ({
         <Stack sx={styles.priceLine}>
           <Typography variant="warning">COD Service Fee</Typography>
           <Typography variant="warningSemibold">
-            {orderSummary?.codServiceFee} {orderSummary?.currency}
+            {orderSummary?.codServiceFee} {currencyLabel}
           </Typography>
         </Stack>
       )}
       {!!orderSummary?.promotionDiscount && (
         <Stack sx={{ ...styles.priceLine, ...styles.discount }}>
-          <Typography variant="warning">Discount</Typography>
+          <Typography variant="warning">İndirim</Typography>
           <Typography variant="warningSemibold">
-            -{orderSummary?.promotionDiscount} {orderSummary?.currency}
+            -{orderSummary?.promotionDiscount} {currencyLabel}
           </Typography>
         </Stack>
       )}
@@ -218,7 +221,7 @@ export const PriceLines = ({
         <Stack sx={styles.priceLine}>
           <Typography variant="warning">Ödeme Tutarı</Typography>
           <Typography variant="warningSemibold">
-            {orderSummary?.totalDue} {orderSummary?.currency}
+            {orderSummary?.totalDue} {currencyLabel}
           </Typography>
         </Stack>
       )}

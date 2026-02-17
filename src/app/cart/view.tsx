@@ -17,6 +17,7 @@ import { ShopContext } from '@/contexts/ShopContext';
 import { getOrderSummary } from '@/lib/api/checkout';
 import { ShopOrderSummaryData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
+import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
 import { bannerHeight, headerHeight } from '@/theme/theme';
 import { Box, Checkbox, Divider, Portal, Stack, Typography, debounce } from '@mui/material';
 import { useCallback, useContext, useEffect, useState } from 'react';
@@ -61,6 +62,7 @@ const CartPageView = ({
   const { isAuthenticated, openAuthenticator } = useAuth();
   const isCartPage = pathname?.includes('/cart') ?? false;
   const recommendationTarget = selected?.[0] ?? cart?.[0];
+  const currencyLabel = getDisplayCurrencyCode(orderSummary?.currency ?? 'TRY');
 
   const handleUpdateOrderSummary = useCallback(
     debounce(async (selected, discountCode) => {
@@ -260,7 +262,7 @@ const CartPageView = ({
                     ? 'Kargo ücretsiz'
                     : `Ücretsiz kargo için ${
                         Math.max(1000 - (orderSummary?.productCost ?? 0), 0)
-                      } ${orderSummary?.currency ?? 'TRY'} değerinde daha ürün ekleyin`
+                      } ${currencyLabel} değerinde daha ürün ekleyin`
                 }
                 IconProps={{ name: 'truck', size: 26 }}
                 sx={{ p: 2 }}
@@ -279,7 +281,7 @@ const CartPageView = ({
                     label="Ödenecek tutar"
                     value={
                       <Stack direction="row" alignItems="center" gap={1} sx={{ cursor: 'pointer' }}>
-                        {orderSummary?.totalDue} {orderSummary?.currency}
+                        {orderSummary?.totalDue} {currencyLabel}
                         <Box component="span" sx={styles.expandIcon(summaryModalOpen)}>
                           <ChevronDown size={18} />
                         </Box>

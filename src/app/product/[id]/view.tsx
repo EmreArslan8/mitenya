@@ -48,9 +48,15 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const isOutOfStock = typeof data.quantity === 'number' && data.quantity <= 0;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
+  const brandLabel = data.brand?.trim();
+  const brandSearchToken = data.brandSlug ?? (data.brandId?.toString() === '2' ? 'zara' : data.brandId);
+  const brandHref = brandSearchToken
+    ? searchUrlFromOptions({ brand: brandSearchToken })
+    : undefined;
   const categoryLabel = data.category?.trim();
-  const categoryHref = data.categoryId
-    ? searchUrlFromOptions({ category: data.categoryId })
+  const categorySearchToken = data.categorySlug ?? data.categoryId;
+  const categoryHref = categorySearchToken
+    ? searchUrlFromOptions({ category: categorySearchToken })
     : undefined;
   const fullName = data.name ?? '';
   const handleSelectOption = (variantName: string, optionValue: string) => {
@@ -175,7 +181,13 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
           <Link href="/" prefetch={false}>
             <Typography component="span">Ana Sayfa</Typography>
           </Link>
-          <ChevronRight size={14} />
+          {brandLabel ? <ChevronRight size={14} /> : null}
+          {brandLabel ? (
+            <Link href={brandHref} prefetch={false}>
+              <Typography component="span">{brandLabel}</Typography>
+            </Link>
+          ) : null}
+          {categoryLabel ? <ChevronRight size={14} /> : null}
           {categoryLabel ? (
             <Link href={categoryHref} prefetch={false}>
               <Typography component="span" sx={{ fontWeight: 600 }}>{categoryLabel}</Typography>
@@ -249,7 +261,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
               <Stack gap={1}>
                 <Link
                   href={searchUrlFromOptions({
-                    brand: data.brandId?.toString() === '2' ? 'zara' : data.brandId,
+                    brand: brandSearchToken,
                   })}
                   prefetch={false}
                 >

@@ -151,7 +151,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
             items: orderItems,
             shipping_address: shippingAddress,
             payment_method:
-              paymentType === 'COD' ? 'cod' : paymentType === 'Stripe' ? 'stripe' : 'paytr',
+              paymentType === 'COD' ? 'cod' : 'paytr',
             shipping_cost: orderSummary?.shipmentCost || 0,
             discount_amount: orderSummary?.totalDiscount || 0,
             discount_code: discountCode,
@@ -170,9 +170,13 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
       // Sepetten sipariş edilen ürünleri kaldır
       removeItems(selected);
 
-      // Başarı sayfasına yönlendir
-      const tokenParam = data?.success_token ? `?t=${encodeURIComponent(data.success_token)}` : '';
-      router.push(`/success${tokenParam}`);
+      // Kart ödemede PayTR ödeme ekranına yönlendir, kapıda ödemede başarıya git
+      if (paymentType !== 'COD' && data?.order?.order_number) {
+        router.push(`/payment/${encodeURIComponent(data.order.order_number)}`);
+      } else {
+        const tokenParam = data?.success_token ? `?t=${encodeURIComponent(data.success_token)}` : '';
+        router.push(`/success${tokenParam}`);
+      }
     } catch (error: any) {
       console.error('Checkout error:', error);
       alert(error.message || 'Bir hata oluştu');

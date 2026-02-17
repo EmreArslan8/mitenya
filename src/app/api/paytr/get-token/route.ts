@@ -1,39 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchProductDataSupabase } from '@/lib/api/supabaseProducts';
+import crypto from 'crypto';
 import { createSupabaseServer } from '@/lib/supabase/server';
-import { validateSameOrigin } from '@/lib/api/security';
-import { validateCsrfToken } from '@/lib/api/security';
+import { supabaseAdmin } from '@/lib/supabase/admin';
+import { validateSameOrigin, validateCsrfToken } from '@/lib/api/security';
 import { rateLimit } from '@/lib/api/rateLimit';
 import { getClientIp } from '@/lib/api/getClientIp';
 
-// GÜVENLİ: Client'tan sadece ürün ID'leri ve miktarları alınır
-// Fiyatlar MUTLAKA veritabanından çekilir
-type PaytrTokenRequestPayload = {
-  merchantOid: string;
-  email: string;
-  userName: string;
-  userPhone: string;
-  userAddress: string;
-  // GÜVENLİK: Artık fiyat bilgisi client'tan alınmıyor!
-  products: { id: string; quantity: number }[];
-  discountCode?: string;
+type PayTRTokenRequest = {
+  orderId: string;
 };
 
-// PayTR response örneği (entegrasyona göre değişebilir)
-type PaytrTokenApiResponse = {
+type PayTRResponse = {
   status: 'success' | 'failed';
   token?: string;
   reason?: string;
-  err_no?: string;
 };
 
-const sLog = (...args: any[]) => {
-  console.log('[PAYTR_API]', ...args);
+const normalizeText = (value: unknown, maxLength: number, fallback = '') => {
+  const raw = String(value ?? fallback).trim();
+  if (!raw) return fallback;
+  return raw.slice(0, maxLength);
+};
+
+const toPaytrMerchantOid = (value: string) => {
+  const sanitized = value.replace(/[^A-Za-z0-9]/g, '');
+  return sanitized.slice(0, 64);
+};
+
+const parseJsonIfNeeded = <T>(value: unknown): T | null => {
+  if (!value) return null;
+  if (typeof value === 'object') return value as T;
+  if (typeof value !== 'string') return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
 };
 
 export const POST = async (req: NextRequest) => {
   const csrfError = validateSameOrigin(req);
   if (csrfError) return csrfError;
+
   const csrfTokenError = validateCsrfToken(req);
   if (csrfTokenError) return csrfTokenError;
 
@@ -52,178 +60,183 @@ export const POST = async (req: NextRequest) => {
     return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  const traceId = req.headers.get('x-trace-id') ?? `srv_${Date.now()}`;
-  sLog('INCOMING', { traceId });
-
-  let body: PaytrTokenRequestPayload;
-
+  let body: PayTRTokenRequest;
   try {
-    body = (await req.json()) as PaytrTokenRequestPayload;
+    body = (await req.json()) as PayTRTokenRequest;
   } catch {
-    sLog('INVALID_JSON', { traceId });
-    return NextResponse.json({ ok: false, error: 'Invalid JSON.' }, { status: 400 });
+    return NextResponse.json({ ok: false, error: 'Invalid JSON' }, { status: 400 });
   }
 
-  // Minimal validation - artık products array'i kontrol ediliyor
-  if (
-    !body?.merchantOid ||
-    !body?.email ||
-    !body?.userName ||
-    !body?.userPhone ||
-    !body?.userAddress ||
-    !Array.isArray(body?.products) ||
-    body.products.length === 0
-  ) {
-    sLog('BAD_REQUEST', { traceId, bodySummary: { ...body, products: `count:${body?.products?.length ?? 0}` } });
-    return NextResponse.json({ ok: false, error: 'Bad request.' }, { status: 400 });
+  if (!body?.orderId) {
+    return NextResponse.json({ ok: false, error: 'orderId is required' }, { status: 400 });
   }
 
-  // GÜVENLİK: Ürün fiyatlarını veritabanından çek
-  sLog('FETCHING_PRODUCTS_FROM_DB', { traceId, productCount: body.products.length });
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    body.orderId
+  );
 
-  const verifiedBasket: { name: string; unitPrice: number; quantity: number }[] = [];
-  let totalAmount = 0;
+  let orderQuery = supabaseAdmin.from('orders').select('*');
+  orderQuery = isUUID ? orderQuery.eq('id', body.orderId) : orderQuery.eq('order_number', body.orderId);
 
-  for (const item of body.products) {
-    const productData = await fetchProductDataSupabase(item.id);
-
-    if (!productData) {
-      sLog('PRODUCT_NOT_FOUND', { traceId, productId: item.id });
-      return NextResponse.json(
-        { ok: false, error: `Ürün bulunamadı: ${item.id}` },
-        { status: 400 }
-      );
-    }
-
-    const quantity = item.quantity || 1;
-    const unitPrice = productData.price.currentPrice;
-    const itemTotal = unitPrice * quantity;
-
-    verifiedBasket.push({
-      name: `${productData.brand} ${productData.name}`.substring(0, 50),
-      unitPrice,
-      quantity,
-    });
-
-    totalAmount += itemTotal;
+  const { data: order, error: orderError } = await orderQuery.single();
+  if (orderError || !order) {
+    return NextResponse.json({ ok: false, error: 'Order not found' }, { status: 404 });
   }
 
-  // İndirim kodu kontrolü (opsiyonel)
-  let discount = 0;
-  const normalizedCode = body.discountCode?.trim().toUpperCase();
-  if (normalizedCode === 'BRINGIST10') {
-    discount = Math.floor(totalAmount * 0.1);
+  const isOwner =
+    order.user_id === user.id ||
+    (!!order.user_email && !!user.email && String(order.user_email).toLowerCase() === String(user.email).toLowerCase());
+
+  if (!isOwner) {
+    return NextResponse.json({ ok: false, error: 'Forbidden' }, { status: 403 });
   }
 
-  // Kargo hesaplama
-  let shippingCost = 0;
-  if (totalAmount < 750) {
-    shippingCost = 39.9;
+  if (order.payment_method !== 'paytr') {
+    return NextResponse.json({ ok: false, error: 'Order payment method is not PayTR' }, { status: 400 });
   }
 
-  // Final tutar (kuruş cinsinden)
-  const finalAmount = totalAmount + shippingCost - discount;
-  const paymentAmountKurus = Math.round(finalAmount * 100);
+  const { data: orderItems, error: itemsError } = await supabaseAdmin
+    .from('order_items')
+    .select('product_name, price, quantity')
+    .eq('order_id', order.id);
 
-  sLog('VERIFIED_AMOUNT', {
-    traceId,
-    totalAmount,
-    discount,
-    shippingCost,
-    finalAmount,
-    paymentAmountKurus
+  if (itemsError || !orderItems?.length) {
+    return NextResponse.json({ ok: false, error: 'Order items not found' }, { status: 400 });
+  }
+
+  const shippingAddress = parseJsonIfNeeded<{
+    contactName?: string;
+    line1?: string;
+    line2?: string;
+    city?: string;
+    district?: string;
+    postalCode?: string;
+    phone?: string;
+  }>(order.shipping_address);
+
+  const merchantId = process.env.PAYTR_MERCHANT_ID;
+  const merchantKey = process.env.PAYTR_MERCHANT_KEY;
+  const merchantSalt = process.env.PAYTR_MERCHANT_SALT;
+
+  if (!merchantId || !merchantKey || !merchantSalt) {
+    return NextResponse.json({ ok: false, error: 'Missing PayTR env vars' }, { status: 500 });
+  }
+
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const merchantOkUrl = process.env.PAYTR_OK_URL || `${siteUrl}/success`;
+  const merchantFailUrl = process.env.PAYTR_FAIL_URL || `${siteUrl}/checkout`;
+
+  const currencyRaw = normalizeText(order.currency, 3, 'TRY').toUpperCase();
+  const currency = currencyRaw === 'TRY' ? 'TL' : currencyRaw;
+
+  const totalAmount = Number(order.total_amount || 0);
+  if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
+    return NextResponse.json({ ok: false, error: 'Invalid order amount' }, { status: 400 });
+  }
+
+  const paymentAmount = String(Math.round(totalAmount * 100));
+  const noInstallment = process.env.PAYTR_NO_INSTALLMENT === '1' ? '1' : '0';
+  const maxInstallment = normalizeText(process.env.PAYTR_MAX_INSTALLMENT, 2, '0');
+  const testMode = process.env.PAYTR_TEST_MODE ?? (process.env.NODE_ENV === 'production' ? '0' : '1');
+  const debugOn = process.env.PAYTR_DEBUG_ON ?? (process.env.NODE_ENV === 'production' ? '0' : '1');
+  const timeoutLimit = normalizeText(process.env.PAYTR_TIMEOUT_LIMIT, 3, '30');
+  const lang = normalizeText(process.env.PAYTR_LANG, 2, 'tr');
+
+  const sourceMerchantOid = normalizeText(order.order_number || order.id, 128);
+  const merchantOid = toPaytrMerchantOid(sourceMerchantOid);
+  if (!merchantOid) {
+    return NextResponse.json({ ok: false, error: 'Invalid merchant_oid' }, { status: 400 });
+  }
+
+  const rawMeta = parseJsonIfNeeded<Record<string, unknown>>(order.metadata) ?? {};
+  const updatedMeta = {
+    ...rawMeta,
+    paytr_merchant_oid: merchantOid,
+  };
+  await supabaseAdmin
+    .from('orders')
+    .update({ metadata: updatedMeta })
+    .eq('id', order.id);
+
+  const email = normalizeText(order.user_email || user.email, 100, user.email || '');
+  if (!email) {
+    return NextResponse.json({ ok: false, error: 'Missing user email' }, { status: 400 });
+  }
+
+  const basket = orderItems.map((item) => [
+    normalizeText(item.product_name, 100, 'Urun'),
+    Number(item.price || 0).toFixed(2),
+    Number(item.quantity || 1),
+  ]);
+
+  const userBasket = Buffer.from(JSON.stringify(basket)).toString('base64');
+  const requestIp = normalizeText(userIp, 39, '127.0.0.1');
+  const userName = normalizeText(shippingAddress?.contactName, 60, user.user_metadata?.full_name || user.email || 'Musteri');
+  const userAddress = normalizeText(
+    [
+      shippingAddress?.line1,
+      shippingAddress?.line2,
+      shippingAddress?.district,
+      shippingAddress?.city,
+      shippingAddress?.postalCode,
+    ]
+      .filter(Boolean)
+      .join(', '),
+    400,
+    'Adres bilgisi yok'
+  );
+  const userPhone = normalizeText(shippingAddress?.phone, 20, '0000000000');
+
+  const hashStr = `${merchantId}${requestIp}${merchantOid}${email}${paymentAmount}${userBasket}${noInstallment}${maxInstallment}${currency}${testMode}`;
+  const paytrToken = crypto
+    .createHmac('sha256', merchantKey)
+    .update(`${hashStr}${merchantSalt}`)
+    .digest('base64');
+
+  const requestBody = new URLSearchParams({
+    merchant_id: merchantId,
+    user_ip: requestIp,
+    merchant_oid: merchantOid,
+    email,
+    payment_amount: paymentAmount,
+    currency,
+    user_basket: userBasket,
+    no_installment: noInstallment,
+    max_installment: maxInstallment,
+    paytr_token: paytrToken,
+    user_name: userName,
+    user_address: userAddress,
+    user_phone: userPhone,
+    merchant_ok_url: merchantOkUrl,
+    merchant_fail_url: merchantFailUrl,
+    test_mode: testMode,
+    debug_on: debugOn,
+    timeout_limit: timeoutLimit,
+    lang,
   });
 
-  // Burada merchant bilgileri ENV'den okunur
-  const MERCHANT_ID = process.env.PAYTR_MERCHANT_ID;
-  const MERCHANT_KEY = process.env.PAYTR_MERCHANT_KEY;
-  const MERCHANT_SALT = process.env.PAYTR_MERCHANT_SALT;
-
-  if (!MERCHANT_ID || !MERCHANT_KEY || !MERCHANT_SALT) {
-    sLog('MISSING_ENV', { traceId });
-    return NextResponse.json({ ok: false, error: 'Missing PayTR env vars.' }, { status: 500 });
-  }
-
-  // PayTR "user_basket" genelde base64(json) ister (entegrasyona göre)
-  // Bu alan isimleri PayTR dokümanına göre düzenlenmelidir.
-  // Burada "token debug + iz sürme" için tipik bir şablon bırakıyorum.
-
   try {
-    sLog('PREPARE_REQUEST', {
-      traceId,
-      merchantOid: body.merchantOid,
-      // GÜVENLİK: Artık sunucu tarafında hesaplanan tutar kullanılıyor
-      paymentAmountKurus,
-      basketCount: verifiedBasket.length,
-    });
-
-    /**
-     * GÜVENLİK NOTU:
-     * - Tüm fiyatlar veritabanından çekildi (verifiedBasket)
-     * - Toplam tutar sunucu tarafında hesaplandı (paymentAmountKurus)
-     * - Client'tan gelen fiyat bilgisi KULLANILMIYOR
-     */
-
-    // GÜVENLİ: Veritabanından çekilen fiyatlarla basket oluştur
-    const userBasketJson = JSON.stringify(
-      verifiedBasket.map((x) => [
-        x.name,
-        String(Math.round(Number(x.unitPrice) * 100)), // kuruş cinsinden
-        String(x.quantity),
-      ])
-    );
-    const userBasketBase64 = Buffer.from(userBasketJson).toString('base64');
-
-    // ŞİMDİLİK: token üretimi yok -> demo amaçlı request şablonu.
-    // Burada gerçek "paytr_token" üretimi yapılmalı.
-    // Eğer istersen bir sonraki adımda PayTR dokümanındaki formüle göre HMAC/SHA256 token üretimini eklerim.
-    const paytr_token = 'REPLACE_WITH_REAL_PAYTR_TOKEN_GENERATION';
-
-    // GÜVENLİ: Sunucu tarafında hesaplanan tutar kullanılıyor
-    const paytrRequestBody = new URLSearchParams({
-      merchant_id: MERCHANT_ID,
-      merchant_oid: body.merchantOid,
-      email: body.email,
-      payment_amount: String(paymentAmountKurus), // GÜVENLİ: DB'den hesaplanan tutar
-      user_name: body.userName,
-      user_phone: body.userPhone,
-      user_address: body.userAddress,
-      user_basket: userBasketBase64, // GÜVENLİ: DB'den çekilen ürünler
-      paytr_token,
-      // diğer zorunlu alanlar: merchant_ok_url, merchant_fail_url, debug_on, test_mode, currency, no_installment, max_installment, lang, ip, vb.
-    });
-
-    sLog('PAYTR_FETCH_START', { traceId });
-
-    const r = await fetch('https://www.paytr.com/odeme/api/get-token', {
+    const paytrResponse = await fetch('https://www.paytr.com/odeme/api/get-token', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: paytrRequestBody.toString(),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: requestBody.toString(),
     });
 
-    const data = (await r.json()) as PaytrTokenApiResponse;
+    const data = (await paytrResponse.json()) as PayTRResponse;
 
-    sLog('PAYTR_FETCH_END', {
-      traceId,
-      httpStatus: r.status,
-      status: data?.status,
-      reason: data?.reason,
-      err_no: data?.err_no,
-      hasToken: !!data?.token,
-    });
-
-    if (!r.ok || data.status !== 'success' || !data.token) {
+    if (!paytrResponse.ok || data.status !== 'success' || !data.token) {
       return NextResponse.json(
-        { ok: false, reason: data?.reason ?? 'PayTR failed', error: data?.err_no },
+        {
+          ok: false,
+          error: data.reason || 'PayTR token request failed',
+        },
         { status: 400 }
       );
     }
 
     return NextResponse.json({ ok: true, token: data.token }, { status: 200 });
-  } catch (e: any) {
-    sLog('SERVER_ERROR', { traceId, message: e?.message, e });
+  } catch (error) {
+    console.error('[paytr/get-token] error', error);
     return NextResponse.json({ ok: false, error: 'Internal server error' }, { status: 500 });
   }
 };

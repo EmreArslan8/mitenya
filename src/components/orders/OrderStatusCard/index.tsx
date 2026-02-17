@@ -20,12 +20,14 @@ const steps: { key: ShopOrderStatus; label: string; icon: ReactNode }[] = [
   { key: 'processing', label: 'Sipariş Alındı', icon: <Clock size={16} strokeWidth={2.2} /> },
   { key: 'preparing', label: 'Hazırlanıyor', icon: <PackageCheck size={16} strokeWidth={2.2} /> },
   { key: 'shipped', label: 'Kargoda', icon: <Truck size={16} strokeWidth={2.2} /> },
+  { key: 'delivered', label: 'Teslim Edildi', icon: <CheckCircle2 size={16} strokeWidth={2.2} /> },
 ];
 
 const statusIndex: Record<ShopOrderStatus, number> = {
   processing: 0,
   preparing: 1,
   shipped: 2,
+  delivered: 3,
   cancelled: -1,
 };
 
@@ -33,6 +35,7 @@ const statusDescriptions: Record<ShopOrderStatus, string> = {
   processing: 'Siparişiniz başarıyla alındı ve işleme alınmaktadır.',
   preparing: 'Siparişiniz özenle hazırlanıyor. En kısa sürede kargoya verilecektir.',
   shipped: 'Siparişiniz kargoya verildi! Kargo takip numaranızla sürecini takip edebilirsiniz.',
+  delivered: 'Siparişiniz teslim edildi. İyi günlerde kullanın.',
   cancelled: 'Siparişiniz iptal edilmiştir. Detaylı bilgi için destek ekibimizle iletişime geçebilirsiniz.',
 };
 
@@ -53,12 +56,13 @@ const OrderStatusCard = ({
   return (
     <Stack
       sx={{
-        borderRadius: '12px',
+        borderRadius: { xs: '14px', sm: '16px' },
         border: (theme) =>
           isCancelled
             ? `1px solid ${theme.palette.error.light}`
-            : `1px solid ${theme.palette.gray[100]}`,
+            : `1px solid ${theme.palette.gray[100]}CC`,
         bgcolor: isCancelled ? 'error.light' : 'white.main',
+        boxShadow: isCancelled ? 'none' : '0 10px 30px rgba(17, 24, 39, 0.06)',
         overflow: 'hidden',
       }}
     >
@@ -68,42 +72,49 @@ const OrderStatusCard = ({
         alignItems="center"
         justifyContent="space-between"
         sx={{
-          px: { xs: 2, sm: 2.5 },
-          py: 1.5,
+          px: { xs: 2.25, sm: 2.75 },
+          py: { xs: 1.4, sm: 1.6 },
           borderBottom: (theme) =>
-            `1px solid ${isCancelled ? theme.palette.error.main + '20' : theme.palette.gray[100]}`,
+            `1px solid ${isCancelled ? theme.palette.error.main + '22' : theme.palette.gray[100]}`,
         }}
       >
         <Stack direction="row" alignItems="center" gap={1}>
           <Typography
             sx={{
-              fontSize: 13,
-              fontWeight: 700,
+              fontSize: 12,
+              fontWeight: 600,
               textTransform: 'uppercase',
-              letterSpacing: 0,
+              letterSpacing: 0.35,
               color: isCancelled ? 'error.dark' : 'text.medium',
             }}
           >
             Sipariş No
           </Typography>
-          <Typography sx={{ fontSize: 14, fontWeight: 700, color: isCancelled ? 'error.dark' : 'text.main' }}>
+          <Typography
+            sx={{
+              fontSize: { xs: 14, sm: 15 },
+              fontWeight: 800,
+              letterSpacing: 0.2,
+              color: isCancelled ? 'error.dark' : 'text.main',
+            }}
+          >
             #{orderId}
           </Typography>
         </Stack>
       </Stack>
 
       {/* Status content */}
-      <Stack sx={{ px: { xs: 2, sm: 2.5 }, py: 2.5, gap: 2.5 }}>
+      <Stack sx={{ px: { xs: 2.25, sm: 2.75 }, py: { xs: 2.4, sm: 2.8 }, gap: { xs: 2.25, sm: 2.6 } }}>
         {/* Cancelled state */}
         {isCancelled ? (
-          <Stack gap={2} alignItems="flex-start">
-            <Stack direction="row" alignItems="center" gap={1}>
+          <Stack gap={2.1} alignItems="flex-start">
+            <Stack direction="row" alignItems="center" gap={1.1}>
               <XCircle size={20} strokeWidth={2} color="#C1121F" />
-              <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'error.main' }}>
+              <Typography sx={{ fontSize: { xs: 16, sm: 17 }, fontWeight: 750, color: 'error.main' }}>
                 İptal Edildi
               </Typography>
             </Stack>
-            <Typography sx={{ fontSize: 14, fontWeight: 500, color: 'error.dark', lineHeight: 1.6 }}>
+            <Typography sx={{ fontSize: 14, fontWeight: 500, color: 'error.dark', lineHeight: 1.75 }}>
               {statusDescriptions.cancelled}
             </Typography>
             <SupportButton size="small" />
@@ -132,12 +143,12 @@ const OrderStatusCard = ({
                       <Box
                         sx={{
                           position: 'absolute',
-                          top: 14,
+                          top: { xs: 15, sm: 16 },
                           right: '50%',
                           width: '100%',
-                          height: 2,
-                          bgcolor: isCompleted || isActive ? 'text.main' : 'gray.100',
-                          transition: 'background-color 0.3s ease',
+                          height: 1.5,
+                          bgcolor: isCompleted || isActive ? 'gray.300' : 'gray.100',
+                          transition: 'background-color 0.25s ease',
                         }}
                       />
                     )}
@@ -145,23 +156,22 @@ const OrderStatusCard = ({
                     {/* Step circle */}
                     <Box
                       sx={{
-                        width: 28,
-                        height: 28,
+                        width: { xs: 30, sm: 32 },
+                        height: { xs: 30, sm: 32 },
                         borderRadius: '50%',
                         display: 'grid',
                         placeItems: 'center',
                         position: 'relative',
                         zIndex: 1,
-                        bgcolor: isActive
-                          ? 'text.main'
-                          : isCompleted
-                            ? 'text.main'
-                            : 'bg.dark',
-                        color: isActive || isCompleted ? 'white.main' : 'text.disabled',
-                        transition: 'all 0.3s ease',
-                        ...(isActive && {
-                          boxShadow: '0 0 0 4px rgba(28,28,30,0.1)',
-                        }),
+                        bgcolor: isActive ? '#F4F5F7' : isCompleted ? '#F8F9FB' : '#FCFCFD',
+                        border: '1px solid',
+                        borderColor: isActive ? 'text.main' : isCompleted ? 'gray.300' : 'gray.100',
+                        color: 'text.main',
+                        transition: 'all 0.25s ease',
+                        boxShadow: isActive ? '0 0 0 3px rgba(17, 24, 39, 0.08)' : 'none',
+                        '& svg': {
+                          color: 'text.main',
+                        },
                       }}
                     >
                       {isCompleted ? (
@@ -174,7 +184,7 @@ const OrderStatusCard = ({
                     {/* Step label */}
                     <Typography
                       sx={{
-                        mt: 1,
+                        mt: { xs: 1, sm: 1.1 },
                         fontSize: 12,
                         fontWeight: isActive ? 700 : 500,
                         color: isActive ? 'text.main' : isPending ? 'text.disabled' : 'text.medium',
@@ -195,7 +205,7 @@ const OrderStatusCard = ({
                 fontSize: 14,
                 fontWeight: 500,
                 color: 'text.mediumLight',
-                lineHeight: 1.6,
+                lineHeight: 1.75,
               }}
             >
               {statusDescriptions[status]}
@@ -208,9 +218,11 @@ const OrderStatusCard = ({
                 alignItems={{ xs: 'flex-start', sm: 'center' }}
                 gap={1.5}
                 sx={{
-                  p: 1.5,
-                  borderRadius: '8px',
-                  bgcolor: 'bg.dark',
+                  p: { xs: 1.4, sm: 1.6 },
+                  borderRadius: '10px',
+                  bgcolor: '#F8FAFC',
+                  border: '1px solid',
+                  borderColor: 'gray.100',
                 }}
               >
                 <Stack direction="row" alignItems="center" gap={0.75}>
@@ -218,7 +230,7 @@ const OrderStatusCard = ({
                     sx={{
                       fontSize: 12,
                       fontWeight: 600,
-                      color: 'text.light',
+                      color: 'text.medium',
                       textTransform: 'uppercase',
                       letterSpacing: 0.5,
                     }}
@@ -244,7 +256,15 @@ const OrderStatusCard = ({
                   href={`https://my.fargo.uz/track?id=${trackingNumber}`}
                   target="_blank"
                   endIcon={<SquareArrowOutUpRight size={14} />}
-                  sx={{ fontSize: 12 }}
+                  sx={{
+                    fontSize: 12,
+                    borderColor: 'gray.200',
+                    bgcolor: 'white.main',
+                    '&:hover': {
+                      borderColor: 'text.main',
+                      bgcolor: 'white.main',
+                    },
+                  }}
                 >
                   Kargoyu Takip Et
                 </Button>

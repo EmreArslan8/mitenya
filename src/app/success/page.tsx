@@ -3,6 +3,7 @@
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
 import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material';
 import { Check } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -37,6 +38,7 @@ const SuccessPage = () => {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const currencyLabel = getDisplayCurrencyCode(order?.currency ?? 'TRY');
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -143,7 +145,7 @@ const SuccessPage = () => {
           <Stack direction="row" justifyContent="space-between">
             <Typography color="text.secondary">Toplam:</Typography>
             <Typography fontWeight={700} color="primary.main">
-              {order.total_amount} {order.currency}
+              {order.total_amount} {currencyLabel}
             </Typography>
           </Stack>
 

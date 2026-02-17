@@ -1,13 +1,27 @@
 export interface BringOptions extends Omit<RequestInit, 'body'> {
   params?: Record<string, string | string[] | number | boolean>;
-  body?: Record<string, any> | string;
+  body?: Record<string, unknown> | string;
   static?: boolean;
 }
+
+const normalizeBase = (url?: string) => (url || '').replace(/\/$/, '');
+
+const resolveInternalApiBase = () => {
+  const isServer = typeof window === 'undefined';
+  if (!isServer) return '';
+
+  const internalBase =
+    normalizeBase(process.env.INTERNAL_API_URL) ||
+    normalizeBase(process.env.NEXT_PUBLIC_HOST_URL) ||
+    'http://127.0.0.1:3000';
+
+  return internalBase;
+};
 
 const bring = async (
   url: string,
   init?: BringOptions
-): Promise<[any, Error | null]> => {
+): Promise<[unknown, Error | null]> => {
   let requestUrl = url;
 
   // Query params
@@ -26,9 +40,10 @@ const bring = async (
   const isExternal = requestUrl.startsWith('http');
 
   if (isInternal) {
-    requestUrl = process.env.NEXT_PUBLIC_HOST_URL + requestUrl;
+    const internalBase = resolveInternalApiBase();
+    requestUrl = internalBase ? `${internalBase}${requestUrl}` : requestUrl;
   } else if (!isExternal) {
-    requestUrl = process.env.NEXT_PUBLIC_STRAPI_URL + requestUrl;
+    requestUrl = `${normalizeBase(process.env.NEXT_PUBLIC_STRAPI_URL)}${requestUrl}`;
   }
 
   const headers: Record<string, string> = {};

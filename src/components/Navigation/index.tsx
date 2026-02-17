@@ -78,6 +78,7 @@ const Navigation = ({ data }: NavigationProps) => {
   const prevScrollPosition = useRef(0);
   const navbarRef = useRef<HTMLDivElement>(null);
   const isMobileRef = useRef(true);
+  const navVarsSyncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
@@ -169,6 +170,10 @@ const Navigation = ({ data }: NavigationProps) => {
 
     navbarRef.current.style.boxShadow = scrolled ? '0 0 5px #00000010' : 'none';
     updateMobileNavVars();
+    if (navVarsSyncTimeoutRef.current) clearTimeout(navVarsSyncTimeoutRef.current);
+    navVarsSyncTimeoutRef.current = setTimeout(() => {
+      updateMobileNavVars();
+    }, 220);
     prevScrollPosition.current = window.scrollY;
   }, [isSearchRoute, mobileSearchInputOpen, updateMobileNavVars]);
 
@@ -193,7 +198,11 @@ const Navigation = ({ data }: NavigationProps) => {
     if (!navbarRef.current) return;
     const node = navbarRef.current;
     updateMobileNavVars();
+    const onTransitionEnd = (event: TransitionEvent) => {
+      if (event.propertyName === 'top') updateMobileNavVars();
+    };
     window.addEventListener('resize', updateMobileNavVars);
+    node.addEventListener('transitionend', onTransitionEnd);
     const observer =
       typeof ResizeObserver !== 'undefined'
         ? new ResizeObserver(() => updateMobileNavVars())
@@ -201,9 +210,16 @@ const Navigation = ({ data }: NavigationProps) => {
     observer?.observe(node);
     return () => {
       window.removeEventListener('resize', updateMobileNavVars);
+      node.removeEventListener('transitionend', onTransitionEnd);
       observer?.disconnect();
     };
   }, [updateMobileNavVars, smDown, pathname, mounted, mobileSearchInputOpen]);
+
+  useEffect(() => {
+    return () => {
+      if (navVarsSyncTimeoutRef.current) clearTimeout(navVarsSyncTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (newProductAdded) setCartModalOpen(true);
