@@ -8,6 +8,8 @@ const createMockRequest = (options: {
   referer?: string | null;
   host?: string;
   protocol?: string;
+  forwardedHost?: string | null;
+  forwardedProto?: string | null;
   csrfHeader?: string | null;
   csrfCookie?: string | null;
 }) => {
@@ -17,6 +19,8 @@ const createMockRequest = (options: {
     referer = null,
     host = 'example.com',
     protocol = 'https:',
+    forwardedHost = null,
+    forwardedProto = null,
     csrfHeader = null,
     csrfCookie = null,
   } = options;
@@ -31,6 +35,8 @@ const createMockRequest = (options: {
       get: vi.fn((key: string) => {
         if (key === 'origin') return origin;
         if (key === 'referer') return referer;
+        if (key === 'x-forwarded-host') return forwardedHost;
+        if (key === 'x-forwarded-proto') return forwardedProto;
         if (key === 'x-csrf-token') return csrfHeader;
         if (key === 'cookie') return csrfCookie ? `csrf_token=${csrfCookie}` : null;
         return null;
@@ -116,6 +122,36 @@ describe('validateSameOrigin', () => {
       referer: null,
     });
     expect(validateSameOrigin(req)).toBeNull();
+  });
+
+  it('should allow forwarded origin when behind proxy', () => {
+    const req = createMockRequest({
+      method: 'POST',
+      origin: 'https://qa.mitenya.com',
+      host: 'internal.vercel.app',
+      protocol: 'https:',
+      forwardedHost: 'qa.mitenya.com',
+      forwardedProto: 'https',
+    });
+    expect(validateSameOrigin(req)).toBeNull();
+  });
+
+  it('should allow origin from CSRF_ALLOWED_ORIGINS', () => {
+    const prev = process.env.CSRF_ALLOWED_ORIGINS;
+    try {
+      process.env.CSRF_ALLOWED_ORIGINS = 'https://qa.mitenya.com,https://mitenya.com';
+
+      const req = createMockRequest({
+        method: 'POST',
+        origin: 'https://qa.mitenya.com',
+        host: 'example.com',
+        protocol: 'https:',
+      });
+
+      expect(validateSameOrigin(req)).toBeNull();
+    } finally {
+      process.env.CSRF_ALLOWED_ORIGINS = prev;
+    }
   });
 });
 

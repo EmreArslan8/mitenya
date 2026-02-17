@@ -3,6 +3,46 @@ import crypto from 'crypto';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
+const toOrigin = (value: string): string | null => {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+};
+
+const collectAllowedOrigins = (req: NextRequest): Set<string> => {
+  const origins = new Set<string>();
+
+  // Runtime URL (default)
+  origins.add(`${req.nextUrl.protocol}//${req.nextUrl.host}`);
+
+  // Reverse-proxy aware origin
+  const forwardedHost = req.headers.get('x-forwarded-host')?.split(',')[0]?.trim();
+  const forwardedProto = req.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
+  if (forwardedHost && forwardedProto) {
+    origins.add(`${forwardedProto}://${forwardedHost}`);
+  }
+
+  // Primary app URL
+  const publicHost = process.env.NEXT_PUBLIC_HOST_URL;
+  if (publicHost) {
+    const normalized = toOrigin(publicHost);
+    if (normalized) origins.add(normalized);
+  }
+
+  // Optional explicit allowlist: "https://qa.mitenya.com,https://mitenya.com"
+  const envAllowlist = process.env.CSRF_ALLOWED_ORIGINS;
+  if (envAllowlist) {
+    for (const raw of envAllowlist.split(',')) {
+      const normalized = toOrigin(raw.trim());
+      if (normalized) origins.add(normalized);
+    }
+  }
+
+  return origins;
+};
+
 /**
  * Basit same-origin kontrolü.
  * Origin veya Referer host'u mevcut isteğin host'u ile eşleşmiyorsa 403 döner.
@@ -10,15 +50,16 @@ const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 export const validateSameOrigin = (req: NextRequest): NextResponse | null => {
   if (SAFE_METHODS.has(req.method.toUpperCase())) return null;
 
-  const allowedOrigin = `${req.nextUrl.protocol}//${req.nextUrl.host}`;
+  const allowedOrigins = collectAllowedOrigins(req);
   const origin = req.headers.get('origin');
   const referer = req.headers.get('referer');
+  const source = origin ?? referer;
 
-  if (origin && !origin.startsWith(allowedOrigin)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
+  // Some clients/proxies may omit these headers; keep legacy permissive behavior.
+  if (!source) return null;
 
-  if (!origin && referer && !referer.startsWith(allowedOrigin)) {
+  const requestOrigin = toOrigin(source);
+  if (!requestOrigin || !allowedOrigins.has(requestOrigin)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
