@@ -14,6 +14,15 @@ const shiftScroll = keyframes`
   }
 `;
 
+const bellRing = keyframes`
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(18deg); }
+  40% { transform: rotate(-14deg); }
+  60% { transform: rotate(10deg); }
+  80% { transform: rotate(-6deg); }
+  100% { transform: rotate(0deg); }
+`;
+
 const useStyles = withPalette((palette) => ({
   productContainer: {
     alignSelf: { xs: 'center', sm: 'unset' },
@@ -203,6 +212,16 @@ const useStyles = withPalette((palette) => ({
     fontWeight: 700,
     fontSize: 14,
     letterSpacing: '0.01em',
+    '& .stockAlertBell': {
+      transformOrigin: '50% 0%',
+      willChange: 'transform',
+    },
+    '&:hover .stockAlertBell': {
+      animation: `${bellRing} 0.55s ease-in-out 1`,
+    },
+    '&:active .stockAlertBell': {
+      animation: `${bellRing} 0.35s ease-in-out 1`,
+    },
   },
   progressIndicatorContainer: {
     position: 'absolute',
