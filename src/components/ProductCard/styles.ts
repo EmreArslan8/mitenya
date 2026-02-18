@@ -79,6 +79,24 @@ const useStyles = withPalette((palette) => ({
     lineHeight: 'normal',
     borderRadius: '0 7px 0 8px',
   },
+  addToCartButton: {
+    width: '100%',
+  },
+  addToCartButtonAdded: {
+    backgroundColor: palette.success.main,
+    borderColor: palette.success.main,
+    color: palette.success.contrastText,
+    '&:hover': {
+      backgroundColor: palette.success.main,
+      borderColor: palette.success.main,
+    },
+    '&.Mui-disabled': {
+      backgroundColor: palette.success.main,
+      borderColor: palette.success.main,
+      color: palette.success.contrastText,
+      opacity: 1,
+    },
+  },
 }));
 
 export default useStyles;

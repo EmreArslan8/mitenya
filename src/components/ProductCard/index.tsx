@@ -174,6 +174,10 @@ const ProductCard = ({ data, showDiscoverWhenOutOfStock = false }: ShopProductCa
               disabled={!isOutOfStock && (quickAddLoading || showAdded)}
               size="small"
               variant="outlined"
+              sx={{
+                ...styles.addToCartButton,
+                ...(showAdded ? styles.addToCartButtonAdded : {}),
+              }}
             >
               {isOutOfStock ? (
                 'Keşfet'
