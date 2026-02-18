@@ -14,12 +14,23 @@ export interface EdgeCreateOrderResponse {
   };
 }
 
-export async function createOrderViaEdge(payload: Record<string, unknown>, accessToken: string) {
-  const edgeHeaders = {
+export async function createOrderViaEdge(
+  payload: Record<string, unknown>,
+  accessToken: string,
+  internalSecret?: string
+) {
+  const edgeHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${accessToken}`,
     apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
   };
+
+  if (accessToken) {
+    edgeHeaders.Authorization = `Bearer ${accessToken}`;
+  }
+
+  if (internalSecret) {
+    edgeHeaders['x-edge-internal-secret'] = internalSecret;
+  }
 
   const callCreateOrderEdge = async (data: Record<string, unknown>) => {
     const edgeResponse = await fetch(

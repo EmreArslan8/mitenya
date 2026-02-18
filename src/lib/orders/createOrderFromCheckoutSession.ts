@@ -24,6 +24,29 @@ const parseJsonIfNeeded = <T>(value: unknown): T | null => {
   }
 };
 
+const isJwtLike = (value: string | undefined | null) => {
+  const token = String(value || '').trim();
+  if (!token) return false;
+  return token.split('.').length === 3;
+};
+
+const resolveEdgeAuthToken = () => {
+  const explicit = process.env.SUPABASE_EDGE_FUNCTION_JWT;
+  if (isJwtLike(explicit)) return explicit as string;
+
+  const legacy = process.env.SUPABASE_LEGACY_SERVICE_ROLE_KEY;
+  if (isJwtLike(legacy)) return legacy as string;
+
+  const current = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (isJwtLike(current)) return current as string;
+
+  return '';
+};
+
+const resolveEdgeInternalSecret = () => {
+  return String(process.env.EDGE_CREATE_ORDER_INTERNAL_SECRET || '').trim();
+};
+
 export async function createOrderFromCheckoutSession(params: {
   supabase: SupabaseClient;
   checkoutSession: {
@@ -162,9 +185,20 @@ export async function createOrderFromCheckoutSession(params: {
     payment_id: merchantOid,
   };
 
+  const edgeAuthToken = resolveEdgeAuthToken();
+  const edgeInternalSecret = resolveEdgeInternalSecret();
+  if (!edgeAuthToken && !edgeInternalSecret) {
+    return {
+      ok: false as const,
+      error:
+        'Missing edge auth. Set SUPABASE_EDGE_FUNCTION_JWT (or SUPABASE_LEGACY_SERVICE_ROLE_KEY) or EDGE_CREATE_ORDER_INTERNAL_SECRET.',
+    };
+  }
+
   const { edgeResponse, edgeData, edgeText } = await createOrderViaEdge(
     payload,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    edgeAuthToken,
+    edgeInternalSecret
   );
 
   if (!edgeResponse.ok || !edgeData?.order) {
