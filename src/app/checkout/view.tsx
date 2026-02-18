@@ -25,7 +25,6 @@ import { useCheckoutAnalytics } from '@/lib/utils/googleAnalytics';
 import {
   generatePreInfoHtml,
   generateDistanceSaleHtml,
-  DOC_VERSION,
   type ContractData,
 } from '@/lib/legal/contractTemplates';
 import LegalDocumentModal from '@/components/contracts/LegalDocumentModal';
@@ -51,7 +50,6 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   const [addresses, setAddresses] = useState<AddressData[]>(initialAddresses ?? []);
   const [destination, setDestination] = useState<AddressData | undefined>(initialAddresses?.[0]);
   const [paymentType, setPaymentType] = useState<PaymentType>('Stripe');
-  const [paymentSessionId, setPaymentSessionId] = useState<string>();
   const [orderSummary, setOrderSummary] = useState<ShopOrderSummaryData | undefined>();
   const [discountCode, setDiscountCode] = useState<string | null>(searchParams?.get('dc') ?? null);
   const [summaryLoading, setSummaryLoading] = useState(false);
@@ -59,7 +57,6 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   const [newAddressModalOpen, setNewAddressModalOpen] = useState(false);
   const [directToPaymentOnAddressAdded, setDirectToPaymentOnAddressAdded] = useState(false);
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
-  const [paymentPortalOpen, setPaymentPortalOpen] = useState(false);
   const [showDiscountCodeSnackbar, setShowDiscountCodeSnackbar] = useState(false);
   const [preInfoAccepted, setPreInfoAccepted] = useState(false);
   const [distanceSaleAccepted, setDistanceSaleAccepted] = useState(false);
@@ -136,8 +133,9 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         : undefined;
 
         
+      const endpoint = paymentType === 'COD' ? '/api/orders/create' : '/api/checkout/session';
       const response = await fetch(
-        '/api/orders/create',
+        endpoint,
         withCsrfHeaders({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -145,8 +143,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
             user_email: customerData.email,
             items: orderItems,
             shipping_address: shippingAddress,
-            payment_method:
-              paymentType === 'COD' ? 'cod' : 'paytr',
+            payment_method: paymentType === 'COD' ? 'cod' : 'paytr',
             shipping_cost: orderSummary?.shipmentCost || 0,
             discount_amount: orderSummary?.promotionDiscount || 0,
             discount_code: discountCode,
@@ -162,21 +159,23 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         throw new Error(data.error || 'Sipariş oluşturulamadı');
       }
 
-      // Sepetten sipariş edilen ürünleri kaldır
-      removeItems(selected);
-
-      // Kart ödemede PayTR ödeme ekranına yönlendir, kapıda ödemede başarıya git
-      const paymentRouteId = data?.order?.id || data?.order?.order_number;
-      if (paymentType !== 'COD' && paymentRouteId) {
+      if (paymentType !== 'COD') {
+        const checkoutSessionId = data?.checkoutSessionId;
+        if (!checkoutSessionId) {
+          throw new Error('Checkout session oluşturulamadı');
+        }
         const tokenParam = data?.success_token ? `?t=${encodeURIComponent(data.success_token)}` : '';
-        router.push(`/payment/${encodeURIComponent(paymentRouteId)}${tokenParam}`);
-      } else {
-        const tokenParam = data?.success_token ? `?t=${encodeURIComponent(data.success_token)}` : '';
-        router.push(`/success${tokenParam}`);
+        router.push(`/payment/${encodeURIComponent(checkoutSessionId)}${tokenParam}`);
+        return;
       }
-    } catch (error: any) {
+
+      removeItems(selected);
+      const tokenParam = data?.success_token ? `?t=${encodeURIComponent(data.success_token)}` : '';
+      router.push(`/success${tokenParam}`);
+    } catch (error: unknown) {
       console.error('Checkout error:', error);
-      alert(error.message || 'Bir hata oluştu');
+      const message = error instanceof Error ? error.message : 'Bir hata oluştu';
+      alert(message);
     } finally {
       setContinueButtonLoading(false);
     }

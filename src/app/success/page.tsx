@@ -3,11 +3,12 @@
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { useAuth } from '@/contexts/AuthContext';
+import { ShopContext } from '@/contexts/ShopContext';
 import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
 import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material';
 import { Check } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 
 interface OrderData {
   id: string;
@@ -34,10 +35,13 @@ const SuccessPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { openAuthenticator } = useAuth();
+  const { selected, removeItems } = useContext(ShopContext);
   const token = searchParams?.get('t');
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const cartCleanedRef = useRef(false);
   const currencyLabel = getDisplayCurrencyCode(order?.currency ?? 'TRY');
 
   useEffect(() => {
@@ -54,14 +58,24 @@ const SuccessPage = () => {
           const data = await res.json();
           setOrder(data.order);
           setErrorMessage(null);
+          setIsProcessing(false);
+          return;
+        }
+
+        if (res.status === 202) {
+          setOrder(null);
+          setErrorMessage(null);
+          setIsProcessing(true);
           return;
         }
 
         setOrder(null);
+        setIsProcessing(false);
         setErrorMessage(res.status === 401 ? 'Lütfen giriş yapın' : 'Sipariş bulunamadı');
       } catch (error) {
         console.error('Order fetch error:', error);
         setOrder(null);
+        setIsProcessing(false);
         setErrorMessage('Sipariş bulunamadı');
       } finally {
         setLoading(false);
@@ -70,6 +84,34 @@ const SuccessPage = () => {
 
     fetchOrder();
   }, [token]);
+
+  useEffect(() => {
+    if (!isProcessing || !token) return;
+    const timer = window.setInterval(async () => {
+      try {
+        const res = await fetch(`/api/orders/success?t=${encodeURIComponent(token)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.order) {
+          setOrder(data.order);
+          setIsProcessing(false);
+          setErrorMessage(null);
+          clearInterval(timer);
+        }
+      } catch {
+        // ignore polling errors
+      }
+    }, 2500);
+
+    return () => clearInterval(timer);
+  }, [isProcessing, token]);
+
+  useEffect(() => {
+    if (!order || cartCleanedRef.current) return;
+    if (!selected?.length) return;
+    removeItems(selected);
+    cartCleanedRef.current = true;
+  }, [order, selected, removeItems]);
 
   if (loading) {
     return (
@@ -97,6 +139,28 @@ const SuccessPage = () => {
         </Card>
       </Stack>
     );
+  }
+
+  if (!order && isProcessing) {
+    return (
+      <Stack alignItems="center" justifyContent="center" minHeight="60vh" px={2}>
+        <Card sx={{ maxWidth: 520, width: '100%', p: 3 }}>
+          <Stack alignItems="center" gap={2}>
+            <CircularProgress size={28} />
+            <Typography variant="h6" fontWeight={700} textAlign="center">
+              Ödemeniz doğrulanıyor
+            </Typography>
+            <Typography color="text.secondary" textAlign="center">
+              Siparişiniz birkaç saniye içinde oluşturulacak. Lütfen bu sayfayı kapatmayın.
+            </Typography>
+          </Stack>
+        </Card>
+      </Stack>
+    );
+  }
+
+  if (!order) {
+    return null;
   }
 
   return (

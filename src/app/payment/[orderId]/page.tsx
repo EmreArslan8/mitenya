@@ -11,53 +11,54 @@ import Image from 'next/image';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-interface OrderData {
+interface CheckoutSessionData {
   id: string;
-  order_number: string;
+  status: string;
+  payment_method: string;
   total_amount: number;
   currency: string;
-  payment_method: string;
-  payment_status: string;
+  order_id?: string | null;
+  order_number?: string | null;
 }
 
 const PaymentPage = () => {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const orderId = params?.orderId as string;
+  const checkoutSessionId = params?.orderId as string;
   const successToken = searchParams?.get('t');
-  const [order, setOrder] = useState<OrderData | null>(null);
+  const [checkoutSession, setCheckoutSession] = useState<CheckoutSessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paytrToken, setPaytrToken] = useState('');
   const [portalOpen, setPortalOpen] = useState(false);
-  const currencyLabel = getDisplayCurrencyCode(order?.currency ?? 'TRY');
+  const currencyLabel = getDisplayCurrencyCode(checkoutSession?.currency ?? 'TRY');
   const successUrl = successToken ? `/success?t=${encodeURIComponent(successToken)}` : '/success';
   const trustedCards = ['visa', 'mastercard', 'troy'];
-  const isAlreadyPaid = String(order?.payment_status || '').toLowerCase() === 'paid';
+  const isAlreadyCompleted = checkoutSession?.status === 'completed';
 
   useEffect(() => {
-    const fetchOrder = async () => {
+    const fetchCheckoutSession = async () => {
       try {
-        const res = await fetch(`/api/orders/${orderId}`);
+        const res = await fetch(`/api/checkout/session/${checkoutSessionId}`);
         if (res.ok) {
           const data = await res.json();
-          setOrder(data.order);
+          setCheckoutSession(data.session);
         }
       } catch (error) {
-        console.error('Order fetch error:', error);
+        console.error('Checkout session fetch error:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (orderId) {
-      fetchOrder();
+    if (checkoutSessionId) {
+      fetchCheckoutSession();
     }
-  }, [orderId]);
+  }, [checkoutSessionId]);
 
   const handlePayWithPayTR = async () => {
-    if (!order) return;
+    if (!checkoutSession) return;
     setProcessingPayment(true);
 
     try {
@@ -66,7 +67,7 @@ const PaymentPage = () => {
         withCsrfHeaders({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId: order.id }),
+          body: JSON.stringify({ checkoutSessionId: checkoutSession.id }),
         })
       );
 
@@ -87,23 +88,18 @@ const PaymentPage = () => {
     }
   };
 
-  const handleSimulatePayment = async () => {
-    if (!order) return;
-    setProcessingPayment(true);
-
+  const handleBackToCart = async () => {
     try {
-      const res = await fetch(`/api/orders/${orderId}/pay`, {
-        method: 'POST',
-        ...withCsrfHeaders(),
-      });
-
-      if (res.ok) {
-        router.push(successUrl);
+      if (checkoutSession?.id && !isAlreadyCompleted) {
+        await fetch(`/api/checkout/session/${checkoutSession.id}/expire`, {
+          method: 'POST',
+          ...withCsrfHeaders(),
+        });
       }
     } catch (error) {
-      console.error('Payment error:', error);
+      console.error('Checkout session abandon error:', error);
     } finally {
-      setProcessingPayment(false);
+      router.push('/cart');
     }
   };
 
@@ -115,10 +111,10 @@ const PaymentPage = () => {
     );
   }
 
-  if (!order) {
+  if (!checkoutSession) {
     return (
       <Stack alignItems="center" justifyContent="center" minHeight="60vh">
-        <Typography>Siparis bulunamadi</Typography>
+        <Typography>Ödeme oturumu bulunamadı</Typography>
       </Stack>
     );
   }
@@ -191,24 +187,18 @@ const PaymentPage = () => {
             >
               <Stack gap={1.5}>
                 <Stack direction="row" justifyContent="space-between">
-                  <Typography color="text.secondary">Sipariş No</Typography>
-                  <Typography fontWeight={600}>{order.order_number}</Typography>
+                  <Typography color="text.secondary">Checkout ID</Typography>
+                  <Typography fontWeight={600}>{checkoutSession.id.slice(0, 8)}...</Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
                   <Typography color="text.secondary">Ödeme Yöntemi</Typography>
-                  <Typography fontWeight={600}>
-                    {order.payment_method === 'stripe'
-                      ? 'Kredi Kartı'
-                      : order.payment_method === 'paytr'
-                        ? 'PayTR'
-                        : order.payment_method}
-                  </Typography>
+                  <Typography fontWeight={600}>PayTR</Typography>
                 </Stack>
                 <Divider />
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
                   <Typography fontWeight={700}>Toplam Ödeme</Typography>
                   <Typography variant="h5" fontWeight={800} color="primary.main">
-                    {order.total_amount} {currencyLabel}
+                    {checkoutSession.total_amount} {currencyLabel}
                   </Typography>
                 </Stack>
               </Stack>
@@ -261,7 +251,7 @@ const PaymentPage = () => {
             <Divider />
 
             <Stack gap={1.25}>
-              {order.payment_method === 'paytr' && !isAlreadyPaid && (
+              {!isAlreadyCompleted && (
                 <Button
                   variant="contained"
                   fullWidth
@@ -274,7 +264,7 @@ const PaymentPage = () => {
                 </Button>
               )}
 
-              {isAlreadyPaid && (
+              {isAlreadyCompleted && (
                 <Typography
                   fontSize={13}
                   fontWeight={600}
@@ -282,28 +272,11 @@ const PaymentPage = () => {
                   textAlign="center"
                   sx={{ py: 0.75 }}
                 >
-                  Bu siparişin ödemesi alınmış durumda.
+                  Bu checkout için ödeme tamamlanmış durumda.
                 </Typography>
               )}
 
-              {process.env.NODE_ENV === 'development' && (
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  onClick={handleSimulatePayment}
-                  loading={processingPayment}
-                  disabled={isAlreadyPaid}
-                >
-                  [TEST] Ödemeyi Simüle Et
-                </Button>
-              )}
-
-              <Button
-                variant="text"
-                fullWidth
-                onClick={() => router.push('/cart')}
-                disabled={processingPayment}
-              >
+              <Button variant="text" fullWidth onClick={handleBackToCart} disabled={processingPayment}>
                 Sepete Dön
               </Button>
             </Stack>

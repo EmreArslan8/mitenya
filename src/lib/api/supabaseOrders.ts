@@ -25,9 +25,9 @@ export async function fetchOrdersSupabase(): Promise<PagedResults<ShopOrderListI
       return { results: [], totalRecordCount: 0, currentPage: 1, pageCount: 1, pageSize: 50 };
     }
 
-    const { data: orders, error, count } = await supabase
+    const { data: orders, error } = await supabase
       .from("orders")
-      .select("id, order_number, status, created_at, total_amount, currency", { count: "exact" })
+      .select("id, order_number, status, created_at, total_amount, currency, payment_method, payment_status", { count: "exact" })
       .eq("user_email", user.email)
       .order("created_at", { ascending: false });
 
@@ -36,7 +36,15 @@ export async function fetchOrdersSupabase(): Promise<PagedResults<ShopOrderListI
       return undefined;
     }
 
-    const orderIds = (orders || []).map((order) => order.id);
+    const visibleOrders = (orders || []).filter((order) => {
+      const paymentMethod = String(order.payment_method ?? "").toLowerCase();
+      const paymentStatus = String(order.payment_status ?? "").toLowerCase();
+      const isCardPayment = paymentMethod === "paytr" || paymentMethod === "stripe";
+      const shouldHideCardOrder = isCardPayment && paymentStatus !== "paid";
+      return !shouldHideCardOrder;
+    });
+
+    const orderIds = visibleOrders.map((order) => order.id);
     const orderSummaryMap = new Map<string, { firstProductName?: string; totalProductCount: number }>();
 
     if (orderIds.length > 0) {
@@ -55,7 +63,7 @@ export async function fetchOrdersSupabase(): Promise<PagedResults<ShopOrderListI
       }
     }
 
-    const results: ShopOrderListItemData[] = (orders || []).map((order) => {
+    const results: ShopOrderListItemData[] = visibleOrders.map((order) => {
       const summary = orderSummaryMap.get(order.id);
       return {
       id: order.id,
@@ -71,7 +79,7 @@ export async function fetchOrdersSupabase(): Promise<PagedResults<ShopOrderListI
 
     return {
       results,
-      totalRecordCount: count || 0,
+      totalRecordCount: visibleOrders.length,
       currentPage: 1,
       pageCount: 1,
       pageSize: 50,

@@ -27,25 +27,46 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data, error } = await supabaseAdmin
+    const { data: byUserId, error: byUserIdError } = await supabaseAdmin
       .from("orders")
       .select("*")
-      .or(
-        [
-          `user_id.eq.${user.id}`,
-          user.email ? `user_email.eq.${user.email}` : null,
-        ]
-          .filter(Boolean)
-          .join(",")
-      )
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Orders list error:", error.code);
+    if (byUserIdError) {
+      console.error("Orders list error:", byUserIdError.code);
       return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
     }
 
-    return NextResponse.json({ orders: data });
+    let data = byUserId || [];
+    if (user.email) {
+      const { data: byEmail, error: byEmailError } = await supabaseAdmin
+        .from("orders")
+        .select("*")
+        .eq("user_email", user.email)
+        .order("created_at", { ascending: false });
+
+      if (byEmailError) {
+        console.error("Orders list error:", byEmailError.code);
+        return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
+      }
+
+      const merged = new Map<string, { id: string; created_at: string } & Record<string, unknown>>();
+      for (const order of data) merged.set(order.id, order);
+      for (const order of byEmail || []) merged.set(order.id, order);
+      data = Array.from(merged.values()).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    }
+
+    const orders = (data || []).filter((order) => {
+      const paymentMethod = String(order.payment_method || "").toLowerCase();
+      const paymentStatus = String(order.payment_status || "").toLowerCase();
+      const isCardPayment = paymentMethod === "paytr" || paymentMethod === "stripe";
+      return !(isCardPayment && paymentStatus !== "paid");
+    });
+
+    return NextResponse.json({ orders });
 
   } catch (err: unknown) {
     console.error("Orders list error:", err instanceof Error ? err.message : "Unknown error");

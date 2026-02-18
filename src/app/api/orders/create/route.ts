@@ -43,7 +43,7 @@ const createOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1).max(50),
   shipping_address: shippingAddressSchema,
   billing_address: shippingAddressSchema.optional(),
-  payment_method: z.enum(["stripe", "paytr", "cod", "bank_transfer"]),
+  payment_method: z.enum(["cod", "bank_transfer"]),
   shipping_cost: z.number().nonnegative().max(10000).optional(),
   discount_amount: z.number().nonnegative().max(100000).optional(),
   discount_code: z.string().max(50).nullable().optional(),
@@ -87,17 +87,6 @@ interface OrderItem {
   price: number;
   image_url?: string;
   variant_data?: Record<string, string>;
-}
-
-interface ShippingAddress {
-  contactName: string;
-  line1: string;
-  line2?: string;
-  city: string;
-  district?: string;
-  postalCode?: string;
-  country?: string;
-  phone?: string;
 }
 
 interface EdgeCreateOrderResponse {
@@ -176,6 +165,13 @@ export async function POST(req: NextRequest) {
       consents,
     } = validation.data;
 
+    if (payment_method !== "cod" && payment_method !== "bank_transfer") {
+      return NextResponse.json(
+        { error: "Kartlı ödemede sipariş callback sonrası oluşturulur. /api/checkout/session kullanın." },
+        { status: 409 }
+      );
+    }
+
     // Email kontrolü
     if (!user.email && !_user_email) {
       return NextResponse.json({ error: "Email gerekli" }, { status: 400 });
@@ -223,9 +219,7 @@ export async function POST(req: NextRequest) {
     }));
 
     const eventDescription = `Sipariş oluşturuldu. Ödeme yöntemi: ${
-      payment_method === "cod" ? "Kapıda Ödeme" :
-      payment_method === "paytr" ? "Kredi Kartı (PayTR)" :
-      payment_method === "stripe" ? "Kredi Kartı (Stripe)" : "Banka Transferi"
+      payment_method === "cod" ? "Kapıda Ödeme" : "Banka Transferi"
     }`;
 
     const documents = consents
@@ -266,11 +260,13 @@ export async function POST(req: NextRequest) {
         ]
       : null;
 
+    const paymentStatus = payment_method === "bank_transfer" ? "awaiting_transfer" : "awaiting_payment";
+
     const baseEdgePayload = {
       order_number,
       user_id: user.id,
       user_email: user.email ?? _user_email,
-      payment_status: "pending",
+      payment_status: paymentStatus,
       payment_method,
       currency: orderCurrency,
       subtotal,

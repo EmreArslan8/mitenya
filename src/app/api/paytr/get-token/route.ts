@@ -7,7 +7,7 @@ import { rateLimit } from '@/lib/api/rateLimit';
 import { getClientIp } from '@/lib/api/getClientIp';
 
 type PayTRTokenRequest = {
-  orderId: string;
+  checkoutSessionId: string;
 };
 
 type PayTRResponse = {
@@ -15,6 +15,8 @@ type PayTRResponse = {
   token?: string;
   reason?: string;
 };
+
+const MAX_ATTEMPTS_PER_SESSION = 3;
 
 const normalizeText = (value: unknown, maxLength: number, fallback = '') => {
   const raw = String(value ?? fallback).trim();
@@ -81,60 +83,105 @@ export const POST = async (req: NextRequest) => {
     return NextResponse.json({ ok: false, error: 'Invalid JSON' }, { status: 400 });
   }
 
-  if (!body?.orderId) {
-    return NextResponse.json({ ok: false, error: 'orderId is required' }, { status: 400 });
+  if (!body?.checkoutSessionId) {
+    return NextResponse.json({ ok: false, error: 'checkoutSessionId is required' }, { status: 400 });
   }
 
-  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-    body.orderId
-  );
+  const { data: checkoutSession, error: sessionError } = await supabaseAdmin
+    .from('checkout_sessions')
+    .select('*')
+    .eq('id', body.checkoutSessionId)
+    .single();
 
-  let orderQuery = supabaseAdmin.from('orders').select('*');
-  orderQuery = isUUID ? orderQuery.eq('id', body.orderId) : orderQuery.eq('order_number', body.orderId);
-
-  const { data: order, error: orderError } = await orderQuery.single();
-  if (orderError || !order) {
-    return NextResponse.json({ ok: false, error: 'Order not found' }, { status: 404 });
+  if (sessionError || !checkoutSession) {
+    return NextResponse.json({ ok: false, error: 'Checkout session not found' }, { status: 404 });
   }
 
   const isOwner =
-    order.user_id === user.id ||
-    (!!order.user_email && !!user.email && String(order.user_email).toLowerCase() === String(user.email).toLowerCase());
+    checkoutSession.user_id === user.id ||
+    (!!checkoutSession.user_email &&
+      !!user.email &&
+      String(checkoutSession.user_email).toLowerCase() === String(user.email).toLowerCase());
 
   if (!isOwner) {
     return NextResponse.json({ ok: false, error: 'Forbidden' }, { status: 403 });
   }
 
-  if (order.payment_method !== 'paytr') {
-    return NextResponse.json({ ok: false, error: 'Order payment method is not PayTR' }, { status: 400 });
+  if (checkoutSession.status === 'completed' || checkoutSession.order_id) {
+    return NextResponse.json({ ok: false, error: 'Bu checkout tamamlanmış' }, { status: 409 });
   }
 
-  // Aynı sipariş için tekrar ödeme başlatmayı engelle.
-  if (String(order.payment_status || '').toLowerCase() !== 'pending') {
+  const allowedStatuses = new Set(['active', 'payment_initiated']);
+  if (!allowedStatuses.has(String(checkoutSession.status || ''))) {
     return NextResponse.json(
-      { ok: false, error: 'Bu sipariş için ödeme tekrar başlatılamaz' },
+      { ok: false, error: 'Bu checkout için yeni ödeme başlatılamaz' },
       { status: 409 }
     );
   }
 
-  const { data: orderItems, error: itemsError } = await supabaseAdmin
-    .from('order_items')
-    .select('product_name, price, quantity')
-    .eq('order_id', order.id);
+  const expiresAt = checkoutSession.expires_at ? new Date(checkoutSession.expires_at).getTime() : NaN;
+  if (!Number.isFinite(expiresAt) || Date.now() > expiresAt) {
+    await supabaseAdmin
+      .from('checkout_sessions')
+      .update({ status: 'expired', updated_at: new Date().toISOString() })
+      .eq('id', checkoutSession.id)
+      .neq('status', 'completed');
 
-  if (itemsError || !orderItems?.length) {
-    return NextResponse.json({ ok: false, error: 'Order items not found' }, { status: 400 });
+    return NextResponse.json({ ok: false, error: 'Checkout süresi dolmuş' }, { status: 410 });
   }
 
-  const shippingAddress = parseJsonIfNeeded<{
-    contactName?: string;
-    line1?: string;
-    line2?: string;
-    city?: string;
-    district?: string;
-    postalCode?: string;
-    phone?: string;
-  }>(order.shipping_address);
+  if (String(checkoutSession.payment_method || '').toLowerCase() !== 'paytr') {
+    return NextResponse.json({ ok: false, error: 'Checkout payment method is not PayTR' }, { status: 400 });
+  }
+
+  const { count: attemptCount } = await supabaseAdmin
+    .from('payment_attempts')
+    .select('id', { count: 'exact', head: true })
+    .eq('checkout_session_id', checkoutSession.id);
+
+  if ((attemptCount || 0) >= MAX_ATTEMPTS_PER_SESSION) {
+    return NextResponse.json(
+      { ok: false, error: 'Bu checkout için maksimum ödeme deneme sayısına ulaşıldı' },
+      { status: 409 }
+    );
+  }
+
+  // Prevent double-charge risk: do not create a new attempt while one is still in-flight.
+  const { data: inFlightAttempt } = await supabaseAdmin
+    .from('payment_attempts')
+    .select('id, provider_attempt_id, created_at')
+    .eq('checkout_session_id', checkoutSession.id)
+    .eq('provider', 'paytr')
+    .eq('status', 'initiated')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (inFlightAttempt) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: 'Devam eden bir ödeme denemesi bulunuyor. Lütfen sonucu bekleyin.',
+        inFlightAttemptId: inFlightAttempt.provider_attempt_id,
+      },
+      { status: 409 }
+    );
+  }
+
+  const pricing =
+    parseJsonIfNeeded<{
+      total_amount?: number;
+      currency?: string;
+    }>(checkoutSession.pricing_snapshot) ?? {};
+
+  const cartItems =
+    parseJsonIfNeeded<Array<{ product_name?: string; price?: number; quantity?: number }>>(
+      checkoutSession.cart_snapshot
+    ) ?? [];
+
+  if (!cartItems.length) {
+    return NextResponse.json({ ok: false, error: 'Checkout cart is empty' }, { status: 400 });
+  }
 
   const merchantId = process.env.PAYTR_MERCHANT_ID;
   const merchantKey = process.env.PAYTR_MERCHANT_KEY;
@@ -144,16 +191,70 @@ export const POST = async (req: NextRequest) => {
     return NextResponse.json({ ok: false, error: 'Missing PayTR env vars' }, { status: 500 });
   }
 
+  const totalAmount = Number(pricing.total_amount || 0);
+  if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
+    return NextResponse.json({ ok: false, error: 'Invalid checkout amount' }, { status: 400 });
+  }
+
+  const currencyRaw = normalizeText(pricing.currency, 3, 'TRY').toUpperCase();
+  const currency = currencyRaw === 'TRY' ? 'TL' : currencyRaw;
+
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '');
   const merchantOkUrlBase = process.env.PAYTR_OK_URL || `${siteUrl}/success`;
   const merchantFailUrl = process.env.PAYTR_FAIL_URL || `${siteUrl}/checkout`;
 
-  const currencyRaw = normalizeText(order.currency, 3, 'TRY').toUpperCase();
-  const currency = currencyRaw === 'TRY' ? 'TL' : currencyRaw;
+  const nextAttemptNumber = (attemptCount || 0) + 1;
+  const providerAttemptId = toPaytrMerchantOid(
+    `${checkoutSession.id.replace(/-/g, '')}A${nextAttemptNumber}`
+  );
 
-  const totalAmount = Number(order.total_amount || 0);
-  if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
-    return NextResponse.json({ ok: false, error: 'Invalid order amount' }, { status: 400 });
+  const { data: paymentAttempt, error: attemptError } = await supabaseAdmin
+    .from('payment_attempts')
+    .insert({
+      checkout_session_id: checkoutSession.id,
+      provider: 'paytr',
+      provider_attempt_id: providerAttemptId,
+      status: 'initiated',
+      amount: totalAmount,
+      currency: currencyRaw,
+      raw_payload: {
+        source: 'paytr/get-token',
+      },
+    })
+    .select('id, provider_attempt_id')
+    .single();
+
+  if (attemptError || !paymentAttempt) {
+    if (attemptError?.code === '23505') {
+      return NextResponse.json(
+        { ok: false, error: 'Devam eden bir ödeme denemesi bulundu. Lütfen sonucu bekleyin.' },
+        { status: 409 }
+      );
+    }
+    console.error('payment attempt create error', attemptError);
+    return NextResponse.json({ ok: false, error: 'Payment attempt oluşturulamadı' }, { status: 500 });
+  }
+
+  const successToken = normalizeText(checkoutSession.success_token, 128, '');
+  const merchantOkUrl = withQueryParams(merchantOkUrlBase, {
+    t: successToken,
+    sid: checkoutSession.id,
+  });
+
+  const shippingAddress =
+    parseJsonIfNeeded<{
+      contactName?: string;
+      line1?: string;
+      line2?: string;
+      city?: string;
+      district?: string;
+      postalCode?: string;
+      phone?: string;
+    }>(checkoutSession.shipping_address_snapshot) ?? {};
+
+  const email = normalizeText(checkoutSession.user_email || user.email, 100, user.email || '');
+  if (!email) {
+    return NextResponse.json({ ok: false, error: 'Missing user email' }, { status: 400 });
   }
 
   const paymentAmount = String(Math.round(totalAmount * 100));
@@ -164,33 +265,7 @@ export const POST = async (req: NextRequest) => {
   const timeoutLimit = normalizeText(process.env.PAYTR_TIMEOUT_LIMIT, 3, '30');
   const lang = normalizeText(process.env.PAYTR_LANG, 2, 'tr');
 
-  const sourceMerchantOid = normalizeText(order.order_number || order.id, 128);
-  const merchantOid = toPaytrMerchantOid(sourceMerchantOid);
-  if (!merchantOid) {
-    return NextResponse.json({ ok: false, error: 'Invalid merchant_oid' }, { status: 400 });
-  }
-
-  const orderMeta = parseJsonIfNeeded<Record<string, unknown>>(order.metadata) ?? {};
-  const successToken = normalizeText(orderMeta.success_token, 128, '');
-  const merchantOkUrl = withQueryParams(merchantOkUrlBase, {
-    t: successToken,
-  });
-
-  const updatedMeta = {
-    ...orderMeta,
-    paytr_merchant_oid: merchantOid,
-  };
-  await supabaseAdmin
-    .from('orders')
-    .update({ metadata: updatedMeta })
-    .eq('id', order.id);
-
-  const email = normalizeText(order.user_email || user.email, 100, user.email || '');
-  if (!email) {
-    return NextResponse.json({ ok: false, error: 'Missing user email' }, { status: 400 });
-  }
-
-  const basket = orderItems.map((item) => [
+  const basket = cartItems.map((item) => [
     normalizeText(item.product_name, 100, 'Urun'),
     Number(item.price || 0).toFixed(2),
     Number(item.quantity || 1),
@@ -198,23 +273,27 @@ export const POST = async (req: NextRequest) => {
 
   const userBasket = Buffer.from(JSON.stringify(basket)).toString('base64');
   const requestIp = normalizeText(userIp, 39, '127.0.0.1');
-  const userName = normalizeText(shippingAddress?.contactName, 60, user.user_metadata?.full_name || user.email || 'Musteri');
+  const userName = normalizeText(
+    shippingAddress.contactName,
+    60,
+    user.user_metadata?.full_name || user.email || 'Musteri'
+  );
   const userAddress = normalizeText(
     [
-      shippingAddress?.line1,
-      shippingAddress?.line2,
-      shippingAddress?.district,
-      shippingAddress?.city,
-      shippingAddress?.postalCode,
+      shippingAddress.line1,
+      shippingAddress.line2,
+      shippingAddress.district,
+      shippingAddress.city,
+      shippingAddress.postalCode,
     ]
       .filter(Boolean)
       .join(', '),
     400,
     'Adres bilgisi yok'
   );
-  const userPhone = normalizeText(shippingAddress?.phone, 20, '0000000000');
+  const userPhone = normalizeText(shippingAddress.phone, 20, '0000000000');
 
-  const hashStr = `${merchantId}${requestIp}${merchantOid}${email}${paymentAmount}${userBasket}${noInstallment}${maxInstallment}${currency}${testMode}`;
+  const hashStr = `${merchantId}${requestIp}${paymentAttempt.provider_attempt_id}${email}${paymentAmount}${userBasket}${noInstallment}${maxInstallment}${currency}${testMode}`;
   const paytrToken = crypto
     .createHmac('sha256', merchantKey)
     .update(`${hashStr}${merchantSalt}`)
@@ -223,7 +302,7 @@ export const POST = async (req: NextRequest) => {
   const requestBody = new URLSearchParams({
     merchant_id: merchantId,
     user_ip: requestIp,
-    merchant_oid: merchantOid,
+    merchant_oid: paymentAttempt.provider_attempt_id,
     email,
     payment_amount: paymentAmount,
     currency,
@@ -242,6 +321,12 @@ export const POST = async (req: NextRequest) => {
     lang,
   });
 
+  await supabaseAdmin
+    .from('checkout_sessions')
+    .update({ status: 'payment_initiated', updated_at: new Date().toISOString() })
+    .eq('id', checkoutSession.id)
+    .neq('status', 'completed');
+
   try {
     const paytrResponse = await fetch('https://www.paytr.com/odeme/api/get-token', {
       method: 'POST',
@@ -252,6 +337,19 @@ export const POST = async (req: NextRequest) => {
     const data = (await paytrResponse.json()) as PayTRResponse;
 
     if (!paytrResponse.ok || data.status !== 'success' || !data.token) {
+      await supabaseAdmin
+        .from('payment_attempts')
+        .update({
+          status: 'failed',
+          error_message: data.reason || 'PayTR token request failed',
+          updated_at: new Date().toISOString(),
+          raw_payload: {
+            request: Object.fromEntries(requestBody.entries()),
+            response: data,
+          },
+        })
+        .eq('id', paymentAttempt.id);
+
       return NextResponse.json(
         {
           ok: false,
@@ -261,8 +359,20 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    return NextResponse.json({ ok: true, token: data.token }, { status: 200 });
+    return NextResponse.json(
+      { ok: true, token: data.token, checkoutSessionId: checkoutSession.id },
+      { status: 200 }
+    );
   } catch (error) {
+    await supabaseAdmin
+      .from('payment_attempts')
+      .update({
+        status: 'failed',
+        error_message: 'Internal server error',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', paymentAttempt.id);
+
     console.error('[paytr/get-token] error', error);
     return NextResponse.json({ ok: false, error: 'Internal server error' }, { status: 500 });
   }
