@@ -37,23 +37,23 @@ type NavItem = {
 
 const navGroups: { title: string; items: NavItem[] }[] = [
   {
-    title: 'Siparislerim',
+    title: 'Siparişlerim',
     items: [
-      { label: 'Tum Siparislerim', url: '/orders', Icon: PackageSearch },
-      { label: 'Degerlendirmelerim', Icon: MessageSquareText, badge: '3' },
-      { label: 'Tekrar Satin Al', url: '/orders', Icon: RotateCcw },
+      { label: 'Tüm Siparişlerim', url: '/orders', Icon: PackageSearch },
+      { label: 'Değerlendirmelerim', Icon: MessageSquareText, badge: '3' },
+      { label: 'Tekrar Satın Al', url: '/orders', Icon: RotateCcw },
     ],
   },
   {
-    title: 'Hesabim & Yardim',
+    title: 'Hesabım & Yardım',
     items: [
-      { label: 'Kullanici Bilgilerim', url: '/settings?section=profile', section: 'profile', Icon: UserRound },
+      { label: 'Kullanıcı Bilgilerim', url: '/settings?section=profile', section: 'profile', Icon: UserRound },
       { label: 'Adres Bilgilerim', url: '/settings?section=addresses', section: 'addresses', Icon: MapPinned },
-      { label: 'Kayitli Kartlarim', Icon: CreditCard },
+      { label: 'Kayıtlı Kartlarım', Icon: CreditCard },
       { label: 'Duyuru Tercihlerim', url: '/settings?section=notifications', section: 'notifications', Icon: Bell },
-      { label: 'Sifre Degisikligi', url: '/settings?section=security', section: 'security', Icon: LockKeyhole },
-      { label: 'Aktif Oturumlarim', Icon: BookUser },
-      { label: 'Yardim', url: getSupportUrl, external: true, Icon: CircleHelp },
+      { label: 'Şifre Değişikliği', url: '/settings?section=security', section: 'security', Icon: LockKeyhole },
+      { label: 'Aktif Oturumlarım', Icon: BookUser },
+      { label: 'Yardım', url: getSupportUrl, external: true, Icon: CircleHelp },
     ],
   },
 ];
@@ -123,7 +123,7 @@ const AccountPagesLayoutView = ({ children }: { children: ReactNode }) => {
       {smUp && (
         <Stack sx={styles.navigation}>
           <Stack sx={styles.accountIdentity}>
-            <Typography sx={styles.accountName}>{customerData?.fullName || 'Kullanici'}</Typography>
+            <Typography sx={styles.accountName}>{customerData?.fullName || 'Kullanıcı'}</Typography>
           </Stack>
           {navGroups.map((group, groupIndex) => (
             <Stack key={group.title} sx={styles.groupCard}>

@@ -3,15 +3,14 @@
 import { CategoryParent } from '@/lib/api/types';
 import {
   Box,
-  Collapse,
-  Divider,
   Drawer,
   IconButton,
   MenuItem,
   Stack,
   Typography,
 } from '@mui/material';
-import { ChevronDown, Heart, Package, User, X } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Heart, Package, User, X } from 'lucide-react';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import useStyles from './styles';
 
@@ -37,10 +36,14 @@ const CategoriesDrawer = ({
   onNavigate,
 }: CategoriesDrawerProps) => {
   const styles = useStyles();
-  const [openCategories, setOpenCategories] = useState<Record<number, boolean>>({});
+  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
+  const [activeSubId, setActiveSubId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!open) setOpenCategories({});
+    if (!open) {
+      setActiveCategoryId(null);
+      setActiveSubId(null);
+    }
   }, [open]);
 
   const handleNavigate = (slug?: string) => {
@@ -55,11 +58,20 @@ const CategoriesDrawer = ({
     onClose();
   };
 
-  const toggleCategory = (id: number) => {
-    setOpenCategories((prev) => ({ ...prev, [id]: !prev[id] }));
+  const handleBack = () => {
+    if (activeSubId !== null) {
+      setActiveSubId(null);
+      return;
+    }
+    setActiveCategoryId(null);
   };
 
   const hasCategories = !!categories?.length;
+  const activeCategory = categories?.find((e) => e.id === activeCategoryId);
+  const activeSub = activeCategory?.subs?.find((e) => e.id === activeSubId);
+  const isLevel1 = activeCategoryId === null;
+  const isLevel2 = activeCategoryId !== null && activeSubId === null;
+  const isLevel3 = activeSubId !== null;
 
   return (
     <Drawer
@@ -72,110 +84,114 @@ const CategoriesDrawer = ({
     >
       <Stack sx={styles.content}>
         <Stack direction="row" sx={styles.header}>
-          <Typography sx={styles.headerTitle}>Menü</Typography>
+          <Box sx={styles.headerLogoWrap}>
+            <Image
+              src={styles.headerLogo.src}
+              alt="Mitenya"
+              width={styles.headerLogo.width}
+              height={styles.headerLogo.height}
+              style={styles.headerLogo}
+              priority
+            />
+          </Box>
           <IconButton onClick={onClose} aria-label="Kapat" sx={styles.closeButton}>
-            <X />
+            <X strokeWidth={1.5} size={28} />
           </IconButton>
         </Stack>
 
         <Stack sx={styles.body}>
-          <Stack sx={styles.section}>
-            <Typography sx={styles.sectionTitle}>Hızlı Erişim</Typography>
-            <Stack sx={styles.quickActions}>
-              <MenuItem sx={styles.actionItem} onClick={() => handleAction(onAccount)} disabled={!onAccount}>
-                <Box sx={styles.actionIcon}>
-                  <User size={18} />
-                </Box>
-                <Typography sx={styles.actionLabel}>
-                  {isAuthenticated ? 'Hesabım' : 'Giriş yap / Üye ol'}
-                </Typography>
-              </MenuItem>
-              <MenuItem
-                sx={styles.actionItem}
-                onClick={() => handleAction(onFavorites)}
-                disabled={!onFavorites}
-              >
-                <Box sx={styles.actionIcon}>
-                  <Heart size={18} />
-                </Box>
-                <Typography sx={styles.actionLabel}>Favoriler</Typography>
-              </MenuItem>
-              <MenuItem sx={styles.actionItem} onClick={() => handleAction(onOrders)} disabled={!onOrders}>
-                <Box sx={styles.actionIcon}>
-                  <Package size={18} />
-                </Box>
-                <Typography sx={styles.actionLabel}>Siparişlerim</Typography>
-              </MenuItem>
-            </Stack>
+          <Stack sx={styles.sectionHeader}>
+            <Typography sx={styles.sectionHeaderLabel}>Hesabım</Typography>
           </Stack>
 
-          <Divider sx={styles.divider} />
+          <Stack sx={styles.listContainer}>
+            <MenuItem sx={styles.actionItem} onClick={() => handleAction(onAccount)} disabled={!onAccount}>
+              <User size={32} strokeWidth={1.5} style={styles.actionIcon} />
+              <Typography sx={styles.actionLabel}>
+                {isAuthenticated ? 'Hesabım' : 'Giriş yap'}
+              </Typography>
+            </MenuItem>
+            
+            <MenuItem sx={styles.actionItem} onClick={() => handleAction(onFavorites)} disabled={!onFavorites}>
+              <Heart size={32} strokeWidth={1.5} style={styles.actionIcon} />
+              <Typography sx={styles.actionLabel}>Favorilerim</Typography>
+            </MenuItem>
+            
+            <MenuItem sx={styles.actionItem} onClick={() => handleAction(onOrders)} disabled={!onOrders}>
+              <Package size={32} strokeWidth={1.5} style={styles.actionIcon} />
+              <Typography sx={styles.actionLabel}>Sipariş takibi</Typography>
+            </MenuItem>
+          </Stack>
 
-          <Stack sx={styles.section}>
-            <Typography sx={styles.sectionTitle}>Kategoriler</Typography>
-            {!hasCategories && (
-              <Typography sx={styles.emptyText}>Kategori bulunamadı</Typography>
+          {/* Kategoriler Bölümü */}
+          <Stack direction="row" alignItems="center" gap={1} sx={styles.sectionHeader}>
+            {!isLevel1 && (
+              <IconButton onClick={handleBack} size="small" sx={styles.sectionBackButton}>
+                <ArrowLeft size={20} strokeWidth={1.5} />
+              </IconButton>
             )}
-            <Stack sx={styles.categoryList}>
-              {categories?.map((category) => {
+            <Typography sx={styles.sectionHeaderLabel}>
+              {isLevel1 ? 'Kategoriler' : isLevel2 ? 'Tüm Kategoriler' : activeCategory?.label}
+            </Typography>
+          </Stack>
+          
+          {!hasCategories && (
+            <Typography sx={styles.emptyText}>Kategori bulunamadı</Typography>
+          )}
+
+          <Stack sx={styles.listContainer}>
+            {isLevel1 &&
+              categories?.map((category) => {
                 const hasSubs = !!category.subs?.length;
-                const isOpen = !!openCategories[category.id];
-                const isDirectLink = !hasSubs && !!category.slug;
-
                 return (
-                  <Box key={category.id}>
-                    <MenuItem
-                      sx={styles.categoryItem}
-                      onClick={() => {
-                        if (hasSubs) return toggleCategory(category.id);
-                        handleNavigate(category.slug);
-                      }}
-                      disabled={!hasSubs && !category.slug}
-                    >
-                      <Typography sx={styles.categoryLabel}>{category.label}</Typography>
-                      {hasSubs && (
-                        <Box
-                          sx={{
-                            ...styles.chevronWrap,
-                            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                          }}
-                        >
-                          <ChevronDown size={16} />
-                        </Box>
-                      )}
-                      {isDirectLink && <Box sx={styles.directLinkDot} />}
-                    </MenuItem>
-
-                    {hasSubs && (
-                      <Collapse in={isOpen} timeout={200} unmountOnExit>
-                        <Stack sx={styles.subList}>
-                          {category.subs?.map((sub) => (
-                            <MenuItem
-                              key={sub.id}
-                              sx={styles.subItem}
-                              onClick={() => handleNavigate(sub.slug)}
-                              disabled={!sub.slug}
-                            >
-                              <Typography sx={styles.subLabel}>{sub.label}</Typography>
-                            </MenuItem>
-                          ))}
-                        </Stack>
-                      </Collapse>
-                    )}
-                  </Box>
+                  <MenuItem
+                    key={category.id}
+                    sx={styles.categoryItem}
+                    onClick={() => {
+                      if (hasSubs) setActiveCategoryId(category.id);
+                      else handleNavigate(category.slug);
+                    }}
+                    disabled={!hasSubs && !category.slug}
+                  >
+                    <Typography sx={styles.categoryLabel}>{category.label}</Typography>
+                    {hasSubs && <ChevronRight size={24} strokeWidth={1.5} style={styles.chevronIcon} />}
+                  </MenuItem>
                 );
               })}
-            </Stack>
+
+            {isLevel2 &&
+              activeCategory?.subs?.map((sub) => {
+                const hasItems = !!sub.items?.length;
+                return (
+                  <MenuItem
+                    key={sub.id}
+                    sx={styles.categoryItem}
+                    onClick={() => {
+                      if (hasItems) setActiveSubId(sub.id);
+                      else handleNavigate(sub.slug);
+                    }}
+                    disabled={!hasItems && !sub.slug}
+                  >
+                    <Typography sx={styles.categoryLabel}>{sub.label}</Typography>
+                    {hasItems && <ChevronRight size={24} strokeWidth={1.5} style={styles.chevronIcon} />}
+                  </MenuItem>
+                );
+              })}
+
+            {isLevel3 &&
+              activeSub?.items?.map((item) => (
+                <MenuItem
+                  key={item.id}
+                  sx={styles.categoryItem}
+                  onClick={() => handleNavigate(item.slug)}
+                  disabled={!item.slug}
+                >
+                  <Typography sx={styles.categoryLabel}>{item.label}</Typography>
+                </MenuItem>
+              ))}
           </Stack>
 
-          {/* Kampanya bloğu şimdilik devre dışı */}
-          {/*
-          <Stack sx={styles.promoCard} onClick={() => handleNavigate('search?sort=rct')}>
-            <Typography sx={styles.promoEyebrow}>Kampanya</Typography>
-            <Typography sx={styles.promoTitle}>Yeni Gelenler • Hemen Keşfet</Typography>
-          </Stack>
-          */}
-
+          {/* Footer Yardım Linki */}
           <Stack sx={styles.footerLinks}>
             <MenuItem
               component="a"
@@ -186,16 +202,6 @@ const CategoriesDrawer = ({
               onClick={onClose}
             >
               Yardım
-            </MenuItem>
-            <MenuItem
-              component="a"
-              href="https://help.mitenya.com/"
-              target="_blank"
-              rel="noreferrer"
-              sx={styles.footerLinkItem}
-              onClick={onClose}
-            >
-              SSS
             </MenuItem>
           </Stack>
         </Stack>

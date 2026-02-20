@@ -587,7 +587,7 @@ const Navigation = ({ data }: NavigationProps) => {
             onClose={() => setCategoriesOpen(false)}
             categories={data?.categories}
             isAuthenticated={isAuthenticated ?? undefined}
-            onAccount={() => handleAccountButtonClick('/orders')}
+            onAccount={() => handleAccountButtonClick('/settings')}
             onOrders={() => handleAccountButtonClick('/orders')}
             onFavorites={() => router.push('/favorites')}
             onNavigate={(slug) => router.push(`/${slug}`)}
