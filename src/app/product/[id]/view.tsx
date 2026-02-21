@@ -270,7 +270,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                     <SquareArrowOutUpRight size={16} strokeWidth={3} style={{ marginTop: '2px' }} />
                   </Typography>
                 </Link>
-                <Typography variant="h3" sx={styles.productName}>
+                <Typography component="h1" variant="h3" sx={styles.productName}>
                   {fullName}
                 </Typography>
                 {data.rating && (
