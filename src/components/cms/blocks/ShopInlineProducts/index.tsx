@@ -136,7 +136,7 @@ const ShopInlineProducts = ({
             {products.length
                 ? products.slice(0, smUp ? 12 : 8).map((e) => (
                   <Stack px={{ xs: 0.75, sm: 1 }} key={e.id} sx={{ boxSizing: 'border-box' }}>
-                    <ProductCard data={e} showDiscoverWhenOutOfStock />
+                    <ProductCard data={e} />
                   </Stack>
                 ))
               : Array.from(Array(smUp ? 12 : 8).keys()).map((e) => (
@@ -156,7 +156,7 @@ const ShopInlineProducts = ({
               {products.length
                 ? products.map((e) => (
                     <Stack key={e.id} p={{ xs: 0.75, sm: 1 }} sx={{ boxSizing: 'border-box' }}>
-                      <ProductCard data={e} showDiscoverWhenOutOfStock />
+                      <ProductCard data={e} />
                     </Stack>
                   ))
                 : Array.from(Array(5).keys()).map((e) => (

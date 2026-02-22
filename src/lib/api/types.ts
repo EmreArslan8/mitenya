@@ -222,6 +222,9 @@ export type ShopProductData = {
   sizeGuide?: string;
   breadcrumbs?: ShopProductBreadcrumb[];
   src?: string;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  metaKeywords?: string | null;
   faqs?: {
     question: string;
     answer: string;

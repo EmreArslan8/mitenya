@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "../supabase/admin";
 import { r2Url } from "../utils/r2"; 
 import { getFilterAggregations } from "../cache/filterCache";
+import type { ShopProductData } from "./types";
 
 const DEFAULT_FAQ_LOCALE = "tr-TR";
 
@@ -58,7 +59,7 @@ async function loadProductFaqs(
   return { rows, usedLegacyQuery: true };
 }
 
-export async function fetchProductDataSupabase(idOrSlug: string) {
+export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopProductData | null> {
   const supabase = supabaseAdmin;
 
   const selectQuery = `
@@ -170,6 +171,13 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
   const brandSlug = filterAggregations.brands.find((b) => b.id === data.brand_id)?.slug;
   const categorySlug = filterAggregations.categories.find((c) => c.id === data.category_id)?.slug;
 
+  const normalizedFaqs =
+    faqRows?.map(({ question, answer, sort_order }) => ({
+      question,
+      answer,
+      ...(sort_order == null ? {} : { sort_order }),
+    })) ?? [];
+
   return {
     id: data.id,
     brand: data.brand_name,
@@ -191,7 +199,7 @@ export async function fetchProductDataSupabase(idOrSlug: string) {
     quantity: firstStockQuantity,
     attributes: attributes,
     reviews: [],
-    faqs: faqRows ?? [],
+    faqs: normalizedFaqs,
     rating:
       data.rating_count > 0
         ? {

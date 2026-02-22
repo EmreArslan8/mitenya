@@ -358,17 +358,25 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
   // ---------------------------------------------------
   // BUILD FILTERS FROM CACHE
   // ---------------------------------------------------
-  const contextualCategoryCounts = (categoryAggData ?? []).reduce<Record<string, number>>((acc, row) => {
-    if (!row.category_id) return acc;
-    acc[row.category_id] = (acc[row.category_id] ?? 0) + 1;
+  const contextualCategorySets = (categoryAggData ?? []).reduce<Record<string, Set<string>>>((acc, row) => {
+    if (!row.category_id || !row.id) return acc;
+    if (!acc[row.category_id]) acc[row.category_id] = new Set<string>();
+    acc[row.category_id].add(String(row.id));
     return acc;
   }, {});
+  const contextualCategoryCounts = Object.fromEntries(
+    Object.entries(contextualCategorySets).map(([categoryId, ids]) => [categoryId, ids.size])
+  );
 
-  const contextualBrandCounts = (brandAggData ?? []).reduce<Record<string, number>>((acc, row) => {
-    if (!row.brand_id) return acc;
-    acc[row.brand_id] = (acc[row.brand_id] ?? 0) + 1;
+  const contextualBrandSets = (brandAggData ?? []).reduce<Record<string, Set<string>>>((acc, row) => {
+    if (!row.brand_id || !row.id) return acc;
+    if (!acc[row.brand_id]) acc[row.brand_id] = new Set<string>();
+    acc[row.brand_id].add(String(row.id));
     return acc;
   }, {});
+  const contextualBrandCounts = Object.fromEntries(
+    Object.entries(contextualBrandSets).map(([brandId, ids]) => [brandId, ids.size])
+  );
 
   const categoryFilters: ShopFilter<'category'>[] = filterAggregations.categories.map((c) => ({
     type: "category" as const,
@@ -388,10 +396,14 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     allowMultiple: true,
   }));
 
-  const contextualPrices =
-    priceAggData
-      ?.map((row) => Number(row.product_prices?.[0]?.price_current))
-      .filter((price) => Number.isFinite(price)) ?? [];
+  const contextualPriceByProduct = (priceAggData ?? []).reduce<Record<string, number>>((acc, row) => {
+    const productId = row.id ? String(row.id) : '';
+    const price = Number(row.product_prices?.[0]?.price_current);
+    if (!productId || !Number.isFinite(price)) return acc;
+    if (!(productId in acc)) acc[productId] = price;
+    return acc;
+  }, {});
+  const contextualPrices = Object.values(contextualPriceByProduct);
 
   const priceFilters: ShopFilter<'price'>[] = PRICE_RANGES.map((range) => {
     const countInRange = contextualPrices.filter(

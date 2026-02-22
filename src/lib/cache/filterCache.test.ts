@@ -21,16 +21,10 @@ function getMockDataForTable(table: string) {
   switch (table) {
     case 'products':
       return [
-        { category_id: 'cat-1', category_name: 'Makyaj', brand_id: 'brand-1', brand_name: 'Maybelline' },
-        { category_id: 'cat-1', category_name: 'Makyaj', brand_id: 'brand-2', brand_name: 'Loreal' },
-        { category_id: 'cat-2', category_name: 'Cilt Bakımı', brand_id: 'brand-1', brand_name: 'Maybelline' },
-      ];
-    case 'product_prices':
-      return [
-        { price_current: 100 },
-        { price_current: 300 },
-        { price_current: 600 },
-        { price_current: 1200 },
+        { id: 'p1', category_id: 'cat-1', category_name: 'Makyaj', brand_id: 'brand-1', brand_name: 'Maybelline', current_price: 100 },
+        { id: 'p2', category_id: 'cat-1', category_name: 'Makyaj', brand_id: 'brand-2', brand_name: 'Loreal', current_price: 300 },
+        { id: 'p3', category_id: 'cat-2', category_name: 'Cilt Bakımı', brand_id: 'brand-1', brand_name: 'Maybelline', current_price: 600 },
+        { id: 'p4', category_id: 'cat-2', category_name: 'Cilt Bakımı', brand_id: 'brand-2', brand_name: 'Loreal', current_price: 1200 },
       ];
     default:
       return [];
@@ -38,9 +32,9 @@ function getMockDataForTable(table: string) {
 }
 
 describe('filterCache', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     // Clear cache before each test
-    invalidateFilterCache();
+    await invalidateFilterCache();
   });
 
   afterEach(() => {
@@ -116,15 +110,15 @@ describe('filterCache', () => {
       expect(getCacheStatus().valid).toBe(true);
 
       // Invalidate
-      invalidateFilterCache();
+      await invalidateFilterCache();
       expect(getCacheStatus().valid).toBe(false);
     });
   });
 });
 
 describe('Price Range Calculation', () => {
-  beforeEach(() => {
-    invalidateFilterCache();
+  beforeEach(async () => {
+    await invalidateFilterCache();
   });
 
   it('should correctly count products in each price range', async () => {

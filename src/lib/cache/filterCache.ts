@@ -1,5 +1,6 @@
 import { getSupabaseAnon } from '../supabase/anon';
 import {  FILTER_CACHE_TTL, PRICE_RANGES } from '../constants/shop';
+import { isUpstashEnabled, parseUpstashResult, runUpstashPipeline } from './upstashRedis';
 
 // Cache types
 interface CategoryAggregation {
@@ -32,6 +33,57 @@ interface FilterCache {
 
 // In-memory cache
 let filterCache: FilterCache | null = null;
+const FILTER_CACHE_REDIS_KEY = 'shop:filter-aggregations:v1';
+
+function parseFilterCache(raw: unknown): FilterCache | null {
+  if (typeof raw !== 'string') return null;
+
+  try {
+    const parsed = JSON.parse(raw) as FilterCache;
+    if (!parsed || typeof parsed.lastUpdated !== 'number') return null;
+    if (!Array.isArray(parsed.categories) || !Array.isArray(parsed.brands) || !Array.isArray(parsed.priceRanges)) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+async function getFilterCacheFromRedis(): Promise<FilterCache | null> {
+  if (!isUpstashEnabled()) return null;
+
+  try {
+    const result = await runUpstashPipeline([['GET', FILTER_CACHE_REDIS_KEY]]);
+    const raw = parseUpstashResult(result[0]);
+    return parseFilterCache(raw);
+  } catch (err) {
+    console.error('FilterCache Redis read fallback:', err);
+    return null;
+  }
+}
+
+async function setFilterCacheToRedis(cache: FilterCache): Promise<void> {
+  if (!isUpstashEnabled()) return;
+
+  try {
+    await runUpstashPipeline([
+      ['SET', FILTER_CACHE_REDIS_KEY, JSON.stringify(cache), 'PX', FILTER_CACHE_TTL],
+    ]);
+  } catch (err) {
+    console.error('FilterCache Redis write fallback:', err);
+  }
+}
+
+async function deleteFilterCacheFromRedis(): Promise<void> {
+  if (!isUpstashEnabled()) return;
+
+  try {
+    await runUpstashPipeline([['DEL', FILTER_CACHE_REDIS_KEY]]);
+  } catch (err) {
+    console.error('FilterCache Redis delete fallback:', err);
+  }
+}
 
 /**
  * Check if cache is valid
@@ -49,11 +101,10 @@ async function refreshFilterCache(): Promise<FilterCache> {
   const supabase = getSupabaseAnon();
 
   // Run all queries in parallel
-  const [categoriesResult, brandsResult, productAggResult, priceResult] = await Promise.all([
+  const [categoriesResult, brandsResult, productAggResult] = await Promise.all([
     supabase.from('categories').select('id, name, slug'),
     supabase.from('brands').select('id, name, slug'),
-    supabase.from('products').select('category_id, category_name, brand_id, brand_name'),
-    supabase.from('product_prices').select('price_current'),
+    supabase.from('products').select('id, category_id, category_name, brand_id, brand_name, current_price'),
   ]);
 
   const categoryCountMap = (productAggResult.data ?? []).reduce<Record<string, number>>((acc, row) => {
@@ -151,28 +202,24 @@ async function refreshFilterCache(): Promise<FilterCache> {
   });
 
   // Process price ranges
-  const priceRanges: PriceRange[] = [];
-  if (priceResult.data) {
-    const prices = priceResult.data.map((p) => Number(p.price_current));
+  const prices = (productAggResult.data ?? [])
+    .map((p) => Number(p.current_price))
+    .filter((p) => Number.isFinite(p));
 
-    for (const range of PRICE_RANGES) {
-      const count = prices.filter((p) => p >= range.min && p < range.max).length;
-      priceRanges.push({
-        label: range.label,
-        min: range.min,
-        max: range.max,
-        count,
-      });
-    }
-  }
+  const priceRanges: PriceRange[] = PRICE_RANGES.map((range) => ({
+    label: range.label,
+    min: range.min,
+    max: range.max,
+    count: prices.filter((p) => p >= range.min && p < range.max).length,
+  }));
 
-  // Update cache
   filterCache = {
     categories,
     brands,
     priceRanges,
     lastUpdated: Date.now(),
   };
+  await setFilterCacheToRedis(filterCache);
 
   return filterCache;
 }
@@ -185,6 +232,12 @@ export async function getFilterAggregations(): Promise<FilterCache> {
     return filterCache;
   }
 
+  const redisCache = await getFilterCacheFromRedis();
+  if (redisCache && Date.now() - redisCache.lastUpdated < FILTER_CACHE_TTL) {
+    filterCache = redisCache;
+    return redisCache;
+  }
+
   return refreshFilterCache();
 }
 
@@ -193,6 +246,7 @@ export async function getFilterAggregations(): Promise<FilterCache> {
  */
 export async function invalidateFilterCache(): Promise<void> {
   filterCache = null;
+  await deleteFilterCacheFromRedis();
 }
 
 /**

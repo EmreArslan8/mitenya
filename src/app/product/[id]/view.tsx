@@ -24,7 +24,7 @@ import ProductVariants from './components/ProductVariants';
 import ProgressIndicator from './components/ProgressIndicator';
 import useStyles from './styles';
 import formatPrice from '@/lib/utils/formatPrice';
-import { Bell, Check, ChevronRight, SquareArrowOutUpRight } from 'lucide-react';
+import { Check, ChevronRight, SquareArrowOutUpRight } from 'lucide-react';
 import ProductImageMagnifier from './components/ProductImageMagnifier';
 import ProductDescription from './components/ProductDescription';
 
@@ -363,12 +363,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                         component: isOutOfStock
                           ? stockAlertRequested
                             ? 'Bildirim Talebiniz Alindi'
-                            : (
-                              <Stack direction="row" alignItems="center" gap={1}>
-                                <Bell size={16} className="stockAlertBell" />
-                                Bu urun stoka geldiginde bildir
-                              </Stack>
-                            )
+                            : 'Bu ürün stokta oldugunda bana bildir'
                           : 'Sepete Ekle',
                       },
                     ]}

@@ -62,6 +62,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   const [distanceSaleAccepted, setDistanceSaleAccepted] = useState(false);
   const [preInfoModalOpen, setPreInfoModalOpen] = useState(false);
   const [distanceSaleModalOpen, setDistanceSaleModalOpen] = useState(false);
+  const mobileCheckoutBarOffset = 'calc(56px + env(safe-area-inset-bottom, 0px) - 2px)';
   const handleDestinationChange = (newValue: AddressData) => setDestination(newValue);
   const handleAddressAdded = (newAddress: AddressData) => {
     setDestination(newAddress);
@@ -616,8 +617,10 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                 <ModalCard
                   open={summaryModalOpen}
                   onClose={() => setSummaryModalOpen(false)}
+                  layout="bottom-sheet"
+                  bottomOffset={mobileCheckoutBarOffset}
                   BodyProps={{ sx: { p: 0 } }}
-                  sx={{ zIndex: 1297, mb: '112px', '& .MuiBackdrop-root': { bottom: 112 } }}
+                  sx={{ zIndex: 1297 }}
                 >
                   <CheckoutCard
                     showLines

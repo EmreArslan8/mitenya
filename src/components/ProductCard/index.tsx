@@ -29,10 +29,9 @@ import Button from '../common/Button';
 
 interface ShopProductCardProps {
   data: ShopProductListItemData;
-  showDiscoverWhenOutOfStock?: boolean;
 }
 
-const ProductCard = ({ data, showDiscoverWhenOutOfStock = false }: ShopProductCardProps) => {
+const ProductCard = ({ data }: ShopProductCardProps) => {
   const isMobileApp = useIsMobileApp();
   const { smUp } = useScreen();
   const styles = useStyles();
@@ -47,8 +46,7 @@ const ProductCard = ({ data, showDiscoverWhenOutOfStock = false }: ShopProductCa
 
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
-  const isOutOfStock =
-    showDiscoverWhenOutOfStock && typeof data.quantity === 'number' && data.quantity <= 0;
+  const isOutOfStock = typeof data.quantity === 'number' && data.quantity <= 0;
 
   useEffect(() => {
     return () => {
@@ -171,7 +169,7 @@ const ProductCard = ({ data, showDiscoverWhenOutOfStock = false }: ShopProductCa
                       handleQuickAdd(e);
                     }
               }
-              disabled={!isOutOfStock && (quickAddLoading || showAdded)}
+              disabled={isOutOfStock || quickAddLoading || showAdded}
               size="small"
               variant="outlined"
               sx={{
@@ -180,7 +178,7 @@ const ProductCard = ({ data, showDiscoverWhenOutOfStock = false }: ShopProductCa
               }}
             >
               {isOutOfStock ? (
-                'Keşfet'
+                'Stokta yok'
               ) : quickAddLoading ? (
                 <CircularProgress size={16} sx={{ color: 'inherit' }} />
               ) : smUp ? (

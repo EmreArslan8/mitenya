@@ -1,65 +1,27 @@
 import { fetchProductDataSupabase } from '@/lib/api/supabaseProducts';
-import isSSR from '@/lib/utils/isSSR';
 import ProductPageView from './view';
-import { ShopProductData } from '@/lib/api/types';
 import { notFound } from 'next/navigation';
+import JsonLdScript from '@/components/SEO/JsonLdScript';
+import { buildBreadcrumbJsonLd, buildFaqJsonLd, buildProductJsonLd } from '@/lib/seo/productJsonLd';
 
 const SuspensedView = async ({ params }: { params: { id: string } }) => {
-  const id = (await params).id;
+  const id = params.id;
   const data = await fetchProductDataSupabase(id);
   if (!data) {
     notFound();
   }
+  const productJsonLd = buildProductJsonLd(data);
+  const faqJsonLd = buildFaqJsonLd(data);
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(data);
+
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: getProductJsonLd(data) }}
-      />
-      {!isSSR() && <title>{`${data?.brand ?? ''} ${data?.name ?? ''} | Mitenya`}</title>}
+      <JsonLdScript json={productJsonLd} />
+      {faqJsonLd && <JsonLdScript json={faqJsonLd} />}
+      <JsonLdScript json={breadcrumbJsonLd} />
       <ProductPageView data={data} />
     </>
   );
-};
-
-export const getProductJsonLd = (product: ShopProductData): string => {
-  const faqItems =
-    product.faqs
-      ?.filter((faq) => faq.question?.trim() && faq.answer?.trim())
-      .map((faq) => ({
-        '@type': 'Question',
-        name: faq.question,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: faq.answer,
-        },
-      })) ?? [];
-
-  const jsonLd = {
-    '@context': 'https://schema.org/',
-    '@type': 'Product',
-    name: product.name,
-    image: product.imgSrc,
-    description: product.description,
-    brand: {
-      '@type': 'Brand',
-      name: product.brand,
-    },
-    offers: {
-      '@type': 'Offer',
-      price: product.price.currentPrice,
-      priceCurrency: product.price.currency,
-      availability: 'https://schema.org/InStock',
-      priceSpecification: {
-        name: 'originalPrice',
-        price: product.price.originalPrice,
-        priceCurrency: product.price.currency,
-      },
-    },
-    ...(faqItems.length > 0 ? { mainEntity: faqItems } : {}),
-  };
-
-  return JSON.stringify(jsonLd, null, 2);
 };
 
 export default SuspensedView;
