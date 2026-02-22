@@ -5,11 +5,15 @@ const {
   beginWebhookInboxMock,
   markWebhookInboxMock,
   createOrderFromCheckoutSessionMock,
+  finalizeCheckoutStockMock,
+  releaseCheckoutStockMock,
 } = vi.hoisted(() => ({
   createClientMock: vi.fn(),
   beginWebhookInboxMock: vi.fn(),
   markWebhookInboxMock: vi.fn(),
   createOrderFromCheckoutSessionMock: vi.fn(),
+  finalizeCheckoutStockMock: vi.fn(),
+  releaseCheckoutStockMock: vi.fn(),
 }));
 
 vi.mock('@supabase/supabase-js', () => ({
@@ -23,6 +27,20 @@ vi.mock('@/lib/payments/paytr/webhookInbox', () => ({
 
 vi.mock('@/lib/orders/createOrderFromCheckoutSession', () => ({
   createOrderFromCheckoutSession: createOrderFromCheckoutSessionMock,
+}));
+
+vi.mock('@/lib/inventory/stockReservationService', () => ({
+  finalizeCheckoutStock: finalizeCheckoutStockMock,
+  releaseCheckoutStock: releaseCheckoutStockMock,
+  isInventoryNoopCode: (code: string | null | undefined) => {
+    const normalized = String(code || '').toLowerCase();
+    return (
+      normalized === 'not_found' ||
+      normalized === 'already_released' ||
+      normalized === 'already_consumed' ||
+      normalized === 'already_finalized'
+    );
+  },
 }));
 
 import { processPaytrCallback } from './callbackService';
@@ -104,6 +122,18 @@ describe('processPaytrCallback', () => {
     vi.clearAllMocks();
     beginWebhookInboxMock.mockResolvedValue({ inboxId: 'inbox_1', alreadyProcessed: false });
     markWebhookInboxMock.mockResolvedValue(undefined);
+    finalizeCheckoutStockMock.mockResolvedValue({
+      ok: true,
+      code: 'finalized',
+      message: 'ok',
+      details: null,
+    });
+    releaseCheckoutStockMock.mockResolvedValue({
+      ok: true,
+      code: 'released',
+      message: 'ok',
+      details: null,
+    });
   });
 
   it('returns early when webhook inbox says already processed', async () => {
@@ -167,6 +197,7 @@ describe('processPaytrCallback', () => {
     });
 
     expect(createOrderFromCheckoutSessionMock).toHaveBeenCalledOnce();
+    expect(finalizeCheckoutStockMock).toHaveBeenCalledOnce();
     expect(supabase.calls.updates.payment_attempts).toEqual(
       expect.arrayContaining([expect.objectContaining({ status: 'success' })])
     );
@@ -273,6 +304,46 @@ describe('processPaytrCallback', () => {
     );
   });
 
+  it('marks webhook failed when stock finalize fails', async () => {
+    const supabase = makeSupabaseMock({
+      single: {
+        payment_attempts: [
+          { data: { id: 'a1', status: 'initiated', checkout_session_id: 'cs1', amount: 10 }, error: null },
+        ],
+        checkout_sessions: [{ data: { id: 'cs1', status: 'active', order_id: null }, error: null }],
+      },
+      updateSelect: {
+        checkout_sessions: [{ data: [{ id: 'cs1' }], error: null }],
+      },
+    });
+    createClientMock.mockReturnValue(supabase.client);
+    createOrderFromCheckoutSessionMock.mockResolvedValue({
+      ok: true,
+      order: { id: 'o1', order_number: 'ORD-1' },
+      isLateSuccess: false,
+    });
+    finalizeCheckoutStockMock.mockResolvedValue({
+      ok: false,
+      code: 'finalize_failed',
+      message: 'stock finalize failed',
+      details: null,
+    });
+
+    await processPaytrCallback({
+      payload: basePayload,
+      callerIp: '1.1.1.1',
+      userAgent: 'ua',
+    });
+
+    expect(markWebhookInboxMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'failed',
+        errorMessage: 'stock finalize failed',
+      })
+    );
+    expect(supabase.calls.updates.payment_attempts).toBeUndefined();
+  });
+
   it('handles failed callback by marking attempt failed and resetting session to active', async () => {
     const supabase = makeSupabaseMock({
       single: {
@@ -296,11 +367,47 @@ describe('processPaytrCallback', () => {
     expect(supabase.calls.updates.payment_attempts).toEqual(
       expect.arrayContaining([expect.objectContaining({ status: 'failed', error_code: '12' })])
     );
+    expect(releaseCheckoutStockMock).toHaveBeenCalledOnce();
     expect(supabase.calls.updates.checkout_sessions).toEqual(
       expect.arrayContaining([expect.objectContaining({ status: 'active' })])
     );
     expect(markWebhookInboxMock).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'processed', inboxId: 'inbox_1' })
     );
+  });
+
+  it('marks webhook failed when stock release fails on failed callback', async () => {
+    const supabase = makeSupabaseMock({
+      single: {
+        payment_attempts: [{ data: { id: 'a1', status: 'initiated', checkout_session_id: 'cs1' }, error: null }],
+        checkout_sessions: [{ data: { id: 'cs1', status: 'payment_initiated', order_id: null }, error: null }],
+      },
+    });
+    createClientMock.mockReturnValue(supabase.client);
+    releaseCheckoutStockMock.mockResolvedValue({
+      ok: false,
+      code: 'release_failed',
+      message: 'release blocked',
+      details: null,
+    });
+
+    await processPaytrCallback({
+      payload: {
+        ...basePayload,
+        status: 'failed',
+        failedReasonCode: '12',
+        failedReasonMsg: 'declined',
+      },
+      callerIp: '1.1.1.1',
+      userAgent: 'ua',
+    });
+
+    expect(markWebhookInboxMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'failed',
+        errorMessage: 'release blocked',
+      })
+    );
+    expect(supabase.calls.updates.checkout_sessions).toBeUndefined();
   });
 });

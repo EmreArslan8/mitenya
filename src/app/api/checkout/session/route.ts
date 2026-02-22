@@ -7,6 +7,7 @@ import { fetchProductDataSupabase } from '@/lib/api/supabaseProducts';
 import { validateSameOrigin, validateCsrfToken } from '@/lib/api/security';
 import { rateLimit } from '@/lib/api/rateLimit';
 import { getClientIp } from '@/lib/api/getClientIp';
+import { reserveCheckoutStock } from '@/lib/inventory/stockReservationService';
 
 const SESSION_TTL_MINUTES = 30;
 
@@ -188,6 +189,37 @@ export async function POST(req: NextRequest) {
     if (sessionError || !session) {
       console.error('checkout session create error', sessionError);
       return NextResponse.json({ error: 'Checkout session oluşturulamadı' }, { status: 500 });
+    }
+
+    const reservationResult = await reserveCheckoutStock(supabaseAdmin, {
+      checkoutSessionId: session.id,
+      items: sanitizedItems.map((item) => ({
+        product_id: item.product_id,
+        quantity: item.quantity,
+      })),
+      expiresAt: session.expires_at,
+    });
+
+    if (!reservationResult.ok) {
+      await supabaseAdmin
+        .from('checkout_sessions')
+        .update({ status: 'abandoned', updated_at: new Date().toISOString() })
+        .eq('id', session.id)
+        .neq('status', 'completed');
+
+      const statusCode = reservationResult.code === 'insufficient_stock' ? 409 : 500;
+      return NextResponse.json(
+        {
+          error:
+            reservationResult.message ||
+            (reservationResult.code === 'insufficient_stock'
+              ? 'Yetersiz stok'
+              : 'Stok rezerve edilemedi'),
+          code: reservationResult.code,
+          details: reservationResult.details,
+        },
+        { status: statusCode }
+      );
     }
 
     return NextResponse.json(

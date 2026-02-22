@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { releaseCheckoutStockBulk } from '@/lib/inventory/stockReservationService';
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,6 +30,21 @@ export async function POST(req: NextRequest) {
     const sessionIds = (sessions || []).map((s) => s.id);
     if (!sessionIds.length) {
       return NextResponse.json({ success: true, expiredCount: 0 });
+    }
+
+    const releaseResult = await releaseCheckoutStockBulk(supabaseAdmin, {
+      checkoutSessionIds: sessionIds,
+      reason: 'checkout_session_expired',
+    });
+
+    if (!releaseResult.ok) {
+      return NextResponse.json(
+        {
+          error: releaseResult.errorMessage || 'Failed to release stock reservations',
+          code: releaseResult.errorCode,
+        },
+        { status: 500 }
+      );
     }
 
     const { error: updateSessionError } = await supabaseAdmin

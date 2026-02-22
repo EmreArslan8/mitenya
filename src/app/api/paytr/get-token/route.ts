@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { validateSameOrigin, validateCsrfToken } from '@/lib/api/security';
 import { rateLimit } from '@/lib/api/rateLimit';
 import { getClientIp } from '@/lib/api/getClientIp';
+import { reserveCheckoutStock } from '@/lib/inventory/stockReservationService';
 
 type PayTRTokenRequest = {
   checkoutSessionId: string;
@@ -175,12 +176,39 @@ export const POST = async (req: NextRequest) => {
     }>(checkoutSession.pricing_snapshot) ?? {};
 
   const cartItems =
-    parseJsonIfNeeded<Array<{ product_name?: string; price?: number; quantity?: number }>>(
+    parseJsonIfNeeded<Array<{ product_id?: string; product_name?: string; price?: number; quantity?: number }>>(
       checkoutSession.cart_snapshot
     ) ?? [];
 
   if (!cartItems.length) {
     return NextResponse.json({ ok: false, error: 'Checkout cart is empty' }, { status: 400 });
+  }
+
+  const reservationItems = cartItems.map((item) => ({
+    product_id: String(item.product_id || '').trim(),
+    quantity: Number(item.quantity || 0),
+  }));
+
+  if (reservationItems.some((item) => !item.product_id || !Number.isFinite(item.quantity) || item.quantity <= 0)) {
+    return NextResponse.json({ ok: false, error: 'Checkout cart snapshot is invalid' }, { status: 400 });
+  }
+
+  const reservationResult = await reserveCheckoutStock(supabaseAdmin, {
+    checkoutSessionId: checkoutSession.id,
+    items: reservationItems,
+    expiresAt: checkoutSession.expires_at,
+  });
+
+  if (!reservationResult.ok) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: reservationResult.message || 'Stok rezerve edilemedi',
+        code: reservationResult.code,
+        details: reservationResult.details,
+      },
+      { status: reservationResult.code === 'insufficient_stock' ? 409 : 500 }
+    );
   }
 
   const merchantId = process.env.PAYTR_MERCHANT_ID;

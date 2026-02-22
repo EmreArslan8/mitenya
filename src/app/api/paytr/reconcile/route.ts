@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { createOrderFromCheckoutSession } from '@/lib/orders/createOrderFromCheckoutSession';
+import {
+  finalizeCheckoutStock,
+  isInventoryNoopCode,
+} from '@/lib/inventory/stockReservationService';
 
 export async function POST(req: NextRequest) {
   try {
@@ -59,6 +63,25 @@ export async function POST(req: NextRequest) {
           .from('payment_attempts')
           .update({
             error_message: `reconcile_failed: ${result.error}`,
+            updated_at: nowIso,
+          })
+          .eq('id', attempt.id);
+        continue;
+      }
+
+      const finalizeStockResult = await finalizeCheckoutStock(supabaseAdmin, {
+        checkoutSessionId: session.id,
+        orderId: result.order.id,
+        idempotencyKey: attempt.provider_attempt_id,
+      });
+
+      if (!finalizeStockResult.ok && !isInventoryNoopCode(finalizeStockResult.code)) {
+        await supabaseAdmin
+          .from('payment_attempts')
+          .update({
+            error_message: `reconcile_stock_finalize_failed: ${
+              finalizeStockResult.message || finalizeStockResult.code
+            }`,
             updated_at: nowIso,
           })
           .eq('id', attempt.id);

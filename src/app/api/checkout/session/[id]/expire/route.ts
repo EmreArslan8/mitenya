@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { validateSameOrigin, validateCsrfToken } from '@/lib/api/security';
 import { rateLimit } from '@/lib/api/rateLimit';
 import { getClientIp } from '@/lib/api/getClientIp';
+import { isInventoryNoopCode, releaseCheckoutStock } from '@/lib/inventory/stockReservationService';
 
 export async function POST(
   req: NextRequest,
@@ -53,6 +54,21 @@ export async function POST(
 
     if (session.status === 'completed') {
       return NextResponse.json({ success: true, status: 'completed' });
+    }
+
+    const releaseResult = await releaseCheckoutStock(supabaseAdmin, {
+      checkoutSessionId: id,
+      reason: 'session_abandoned_by_user',
+    });
+
+    if (!releaseResult.ok && !isInventoryNoopCode(releaseResult.code)) {
+      return NextResponse.json(
+        {
+          error: releaseResult.message || 'Stok rezervasyonu serbest bırakılamadı',
+          code: releaseResult.code,
+        },
+        { status: 500 }
+      );
     }
 
     const { error: updateError } = await supabaseAdmin

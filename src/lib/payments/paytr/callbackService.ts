@@ -7,6 +7,11 @@ import {
   shouldResetSessionToActive,
 } from '@/lib/payments/paytr/stateMachine';
 import type { ProcessPaytrCallbackInput } from '@/lib/payments/paytr/types';
+import {
+  finalizeCheckoutStock,
+  isInventoryNoopCode,
+  releaseCheckoutStock,
+} from '@/lib/inventory/stockReservationService';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -331,6 +336,24 @@ export async function processPaytrCallback(input: ProcessPaytrCallbackInput) {
       return;
     }
 
+    const finalizeStockResult = await finalizeCheckoutStock(supabase, {
+      checkoutSessionId: checkoutSession.id,
+      orderId: result.order.id,
+      idempotencyKey: merchantOid,
+    });
+
+    if (!finalizeStockResult.ok && !isInventoryNoopCode(finalizeStockResult.code)) {
+      await markWebhookInbox({
+        supabase,
+        inboxId: inbox.inboxId,
+        status: 'failed',
+        errorMessage:
+          finalizeStockResult.message ||
+          `checkout stock finalize failed: ${finalizeStockResult.code}`,
+      });
+      return;
+    }
+
     const { error: successAttemptUpdateError } = await supabase
       .from('payment_attempts')
       .update({ status: 'success', updated_at: nowIso, raw_payload: rawPayload })
@@ -414,6 +437,21 @@ export async function processPaytrCallback(input: ProcessPaytrCallbackInput) {
   }
 
   if (shouldResetSessionToActive(checkoutSession.status)) {
+    const releaseResult = await releaseCheckoutStock(supabase, {
+      checkoutSessionId: checkoutSession.id,
+      reason: `payment_failed:${failedReasonCode || 'unknown'}`,
+    });
+
+    if (!releaseResult.ok && !isInventoryNoopCode(releaseResult.code)) {
+      await markWebhookInbox({
+        supabase,
+        inboxId: inbox.inboxId,
+        status: 'failed',
+        errorMessage: releaseResult.message || `checkout stock release failed: ${releaseResult.code}`,
+      });
+      return;
+    }
+
     const { error: resetSessionError } = await supabase
       .from('checkout_sessions')
       .update({ status: 'active', updated_at: nowIso })
