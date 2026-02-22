@@ -56,9 +56,15 @@ const SuccessPage = () => {
         const res = await fetch(`/api/orders/success?t=${encodeURIComponent(token)}`);
         if (res.ok) {
           const data = await res.json();
-          setOrder(data.order);
-          setErrorMessage(null);
-          setIsProcessing(false);
+          if (data?.order) {
+            setOrder(data.order);
+            setErrorMessage(null);
+            setIsProcessing(false);
+          } else {
+            setOrder(null);
+            setErrorMessage(null);
+            setIsProcessing(true);
+          }
           return;
         }
 
@@ -160,7 +166,20 @@ const SuccessPage = () => {
   }
 
   if (!order) {
-    return null;
+    return (
+      <Stack alignItems="center" py={6} px={2}>
+        <Card sx={{ maxWidth: 520, width: '100%', p: 3 }}>
+          <Stack alignItems="center" gap={2}>
+            <Typography variant="h6" fontWeight={700} textAlign="center">
+              Sipariş durumu güncelleniyor
+            </Typography>
+            <Typography color="text.secondary" textAlign="center">
+              Sayfayı yenileyin ya da birkaç saniye sonra tekrar deneyin.
+            </Typography>
+          </Stack>
+        </Card>
+      </Stack>
+    );
   }
 
   return (
