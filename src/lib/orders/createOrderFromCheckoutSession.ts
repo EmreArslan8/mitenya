@@ -30,15 +30,21 @@ const isJwtLike = (value: string | undefined | null) => {
   return token.split('.').length === 3;
 };
 
+const isSupabaseSecretLike = (value: string | undefined | null) => {
+  const token = String(value || '').trim();
+  if (!token) return false;
+  return token.startsWith('sb_secret_');
+};
+
 const resolveEdgeAuthToken = () => {
   const explicit = process.env.SUPABASE_EDGE_FUNCTION_JWT;
-  if (isJwtLike(explicit)) return explicit as string;
+  if (isJwtLike(explicit) || isSupabaseSecretLike(explicit)) return explicit as string;
 
   const legacy = process.env.SUPABASE_LEGACY_SERVICE_ROLE_KEY;
-  if (isJwtLike(legacy)) return legacy as string;
+  if (isJwtLike(legacy) || isSupabaseSecretLike(legacy)) return legacy as string;
 
   const current = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (isJwtLike(current)) return current as string;
+  if (isJwtLike(current) || isSupabaseSecretLike(current)) return current as string;
 
   return '';
 };
@@ -191,7 +197,7 @@ export async function createOrderFromCheckoutSession(params: {
     return {
       ok: false as const,
       error:
-        'Missing edge auth. Set SUPABASE_EDGE_FUNCTION_JWT (or SUPABASE_LEGACY_SERVICE_ROLE_KEY) or EDGE_CREATE_ORDER_INTERNAL_SECRET.',
+        'Missing edge auth. Set SUPABASE_EDGE_FUNCTION_JWT (or SUPABASE_LEGACY_SERVICE_ROLE_KEY / SUPABASE_SERVICE_ROLE_KEY) or EDGE_CREATE_ORDER_INTERNAL_SECRET.',
     };
   }
 
