@@ -58,12 +58,6 @@ export const POST = async (req: NextRequest) => {
       discountCode
     }: OrderSummaryRequestData = await req.json();
 
-    console.log("order-summary request:", {
-      count: products?.length ?? 0,
-      productIds: products?.map((p) => p.id),
-      discountCode,
-    });
-
     if (!products?.length) {
       return NextResponse.json(
         { error: "Bad request: no products." },
@@ -100,12 +94,6 @@ export const POST = async (req: NextRequest) => {
       products: revalidatedProducts,
       discountCode: normalizedCode,
       couponDiscountPercent,
-    });
-
-    console.log("order-summary response:", {
-      totalDue: summary.totalDue,
-      shipmentCost: summary.shipmentCost,
-      promotionDiscount: summary.promotionDiscount,
     });
 
     return NextResponse.json({ orderSummary: summary });

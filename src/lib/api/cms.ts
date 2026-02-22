@@ -11,40 +11,32 @@ export type CMSPageData = {
 
 const isProduction = process.env.NEXT_PUBLIC_HOST_ENV === 'production';
 
-/* --------------------------------
- * SHOP INDEX
- * -------------------------------- */
 export const fetchShopIndex = async (
   slug?: string
 ): Promise<CMSPageData | undefined> => {
   try {
-    const [data] = await bring('/api/cms/shop-index', {
+    const [data] = await bring<CMSPageData>('/api/cms/shop-index', {
       params: slug ? { slug } : {},
       static: true,
       next: { revalidate: isProduction ? 60 : 0 },
     });
 
-    return data;
+    return data ?? undefined;
   } catch {
     return undefined;
   }
 };
 
-/* --------------------------------
- * SHOP HEADER
- * -------------------------------- */
 export const fetchShopHeader = async (): Promise<
   ShopHeaderData | undefined
 > => {
   try {
-    const start = Date.now();
-    const [data] = await bring('/api/cms/shop-header', {
+    const [data] = await bring<ShopHeaderData>('/api/cms/shop-header', {
       static: true,
       next: { revalidate: 60 },
     });
-    console.log(`[TIMING] fetchShopHeader ${Date.now() - start}ms`);
 
-    return data;
+    return data ?? undefined;
   } catch {
     return undefined;
   }
@@ -57,14 +49,12 @@ export const fetchShopFooter = async (): Promise<
   ShopFooterData | undefined
 > => {
   try {
-    const start = Date.now();
-    const [data] = await bring('/api/cms/shop-footer', {
+    const [data] = await bring<ShopFooterData>('/api/cms/shop-footer', {
       static: true,
       next: { revalidate: 60 },
     });
-    console.log(`[TIMING] fetchShopFooter ${Date.now() - start}ms`);
 
-    return data;
+    return data ?? undefined;
   } catch {
     return undefined;
   }
@@ -77,12 +67,12 @@ export const fetchShopCouponSet = async (): Promise<
   ShopCouponSetData | undefined
 > => {
   try {
-    const [data] = await bring('/api/cms/shop-coupon-sets', {
+    const [data] = await bring<ShopCouponSetData>('/api/cms/shop-coupon-sets', {
       static: true,
       next: { revalidate: 60 },
     });
 
-    return data;
+    return data ?? undefined;
   } catch {
     return undefined;
   }

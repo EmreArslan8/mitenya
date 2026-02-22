@@ -21,9 +21,6 @@ const useAxios = (): ApiClient => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
 
-      console.log("🔐 [AXIOS] Session:", session?.user?.email);
-      console.log("🔐 [AXIOS] Token:", session?.access_token ? "EXISTS" : "MISSING");
-
       if (session?.access_token) {
         config.headers['Authorization'] = `Bearer ${session.access_token}`;
       }

@@ -61,18 +61,14 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const initCustomerData = async (user: User) => {
     // Prevent multiple simultaneous calls
     if (initializingRef.current) {
-      console.log("🟡 [AUTH] Already initializing, skipping...");
       return;
     }
 
     initializingRef.current = true;
-    console.log("🔵 [AUTH] initCustomerData() STARTED", user.email);
 
     try {
       // EXISTING CUSTOMER CHECK
-      console.log("🟢 [AUTH] Fetching existing customer...");
       const existing = await getCustomerDataRef.current();
-      console.log("🟢 [AUTH] getCustomerData() RESULT:", existing);
 
       if (existing) {
         setCustomerData(existing);
@@ -81,8 +77,6 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       }
 
       // CREATE CUSTOMER FLOW
-      console.log("🟡 [AUTH] Customer NOT found → creating new one...");
-
       const name = user.user_metadata?.full_name?.split(' ')[0] ?? user.user_metadata?.name ?? "";
       const surname = user.user_metadata?.full_name?.split(' ').slice(1).join(' ') ?? user.user_metadata?.family_name ?? "";
       const email = user.email ?? "";
@@ -98,10 +92,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
         phoneCode: phoneCookie.phoneCode ?? null,
       };
 
-      console.log("🟠 [AUTH] createCustomer() PAYLOAD:", payload);
-
       const created = await createCustomerRef.current(payload);
-      console.log("🟢 [AUTH] createCustomer() RESULT:", created);
 
       if (!created) throw new Error("Create customer failed");
 
@@ -114,10 +105,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
         sms_permission: true,
         userId: user.id,
       });
-
-      console.log("🟢 [AUTH] Customer successfully initialized.");
     } catch (err) {
-      console.log("🔴 [AUTH] ERROR:", err);
       setIsAuthenticated(false);
     } finally {
       initializingRef.current = false;
@@ -136,20 +124,17 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       try {
         // First try to get session from cookies
         const { data: { session } } = await supabase.auth.getSession();
-        console.log("🔵 [AUTH] Initial session check:", session?.user?.email);
 
         if (session?.user) {
           // Verify the session is valid by getting user
           const { data: { user }, error } = await supabase.auth.getUser();
 
           if (error || !user) {
-            console.log("🔴 [AUTH] Session invalid, clearing...");
             setIsAuthenticated(false);
             setCustomerData(undefined);
             return;
           }
 
-          console.log("🟢 [AUTH] Session valid for:", user.email);
           setIsAuthenticated(true);
           initCustomerData(user);
         } else {
@@ -157,7 +142,6 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
           setCustomerData(undefined);
         }
       } catch (err) {
-        console.log("🔴 [AUTH] Session check error:", err);
         setIsAuthenticated(false);
         setCustomerData(undefined);
       }
@@ -168,8 +152,6 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
-        console.log("🔵 [AUTH] Auth state changed:", event, session?.user?.email);
-
         // Skip INITIAL_SESSION as we handle it in checkSession
         if (event === 'INITIAL_SESSION') return;
 

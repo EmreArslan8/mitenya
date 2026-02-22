@@ -40,57 +40,46 @@ async function getUserFromToken(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const start = Date.now();
   // Rate limiting
   const userIp = getClientIp(req);
-  const rateStart = Date.now();
   const rateOk = await rateLimit(`customers_me_get:${userIp}`);
-  console.log(`[TIMING] /api/customers/v1/me rateLimit ${Date.now() - rateStart}ms`);
   if (!rateOk) {
     return Response.json({ error: "Too many requests" }, { status: 429 });
   }
 
   safeLog("GET /api/customers/v1/me");
 
-  const authStart = Date.now();
   const user = await getUserFromToken(req);
-  console.log(`[TIMING] /api/customers/v1/me auth ${Date.now() - authStart}ms`);
 
   if (!user) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   // Önce provider_id ile ara
-  const byProviderStart = Date.now();
   let { data, error } = await supabaseAdmin
     .from("customers")
     .select("*")
     .eq("provider_id", user.id)
     .maybeSingle();
-  console.log(`[TIMING] /api/customers/v1/me by_provider ${Date.now() - byProviderStart}ms`);
 
   // provider_id ile bulunamadıysa email ile ara
   if (!data && user.email) {
     safeLog("provider_id ile bulunamadı, email ile aranıyor...");
-    const byEmailStart = Date.now();
     const emailResult = await supabaseAdmin
       .from("customers")
       .select("*")
       .eq("email", user.email)
       .maybeSingle();
-    console.log(`[TIMING] /api/customers/v1/me by_email ${Date.now() - byEmailStart}ms`);
 
     if (emailResult.data) {
       // Email ile bulundu, provider_id'yi güncelle
       safeLog("Email ile bulundu, provider_id güncelleniyor...");
-      const updateStart = Date.now();
       const updateResult = await supabaseAdmin
         .from("customers")
         .update({ provider_id: user.id })
         .eq("email", user.email)
         .select()
         .single();
-      console.log(`[TIMING] /api/customers/v1/me update_provider ${Date.now() - updateStart}ms`);
 
       data = updateResult.data;
       error = updateResult.error;
@@ -102,7 +91,6 @@ export async function GET(req: NextRequest) {
     return Response.json({ error: "Failed to fetch customer data" }, { status: 500 });
   }
 
-  console.log(`[TIMING] /api/customers/v1/me total ${Date.now() - start}ms`);
   return Response.json({ customer: data ?? null }, { status: 200 });
 }
 

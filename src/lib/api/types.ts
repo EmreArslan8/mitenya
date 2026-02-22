@@ -371,7 +371,7 @@ export type ShopHeaderData = { links?: ShopHeaderLink[]; bannerLinks?: ShopHeade
 
 export type ShopFooterData = {
   links?: ShopFooterLink[];
-  socials: SharedSocialButton[];
+  socials?: SharedSocialButton[];
   address?: string;
   vendors?: { data: SharedSiblingImageType[] };
 };
@@ -385,6 +385,10 @@ export type ShopCoupon = {
 
 export type ShopCouponSetData = {
   coupons: ShopCoupon[];
+};
+
+export type ShopFixedPricesData = {
+  fixedPrices?: Record<string, unknown>[];
 };
 
 export type PhoneNumber = { phoneCode: string; phoneNumber: string };

@@ -4,6 +4,16 @@ export interface BringOptions extends Omit<RequestInit, 'body'> {
   static?: boolean;
 }
 
+export type StrapiCollectionItem<T> = {
+  id?: number;
+  attributes?: T;
+};
+
+export type StrapiCollectionResult<T> = {
+  data?: Array<StrapiCollectionItem<T>>;
+  meta?: unknown;
+};
+
 const normalizeBase = (url?: string) => (url || '').replace(/\/$/, '');
 
 const resolveInternalApiBase = () => {
@@ -18,10 +28,10 @@ const resolveInternalApiBase = () => {
   return internalBase;
 };
 
-const bring = async (
+const bring = async <T = unknown>(
   url: string,
   init?: BringOptions
-): Promise<[unknown, Error | null]> => {
+): Promise<[T | null, Error | null]> => {
   let requestUrl = url;
 
   // Query params
@@ -69,7 +79,7 @@ const bring = async (
 
     if (!res.ok) throw new Error(JSON.stringify(data));
 
-    return [data, null];
+    return [data as T, null];
   } catch (err) {
     console.error(`Bring Error on ${requestUrl}:`, err);
     return [null, err as Error];

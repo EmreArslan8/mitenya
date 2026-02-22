@@ -16,7 +16,7 @@ import { splitTitle } from '@/lib/utils/splitTitle';
 export interface ShopFeatureBannerProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
   mainBanners: {
-    image: SharedImageType;
+    image?: SharedImageType;
     mobileImage?: SharedImageType;
     mobileUrl?: string;
     url: string;
@@ -41,7 +41,10 @@ const ShopFeatureBanner = ({
   const styles = useStyles();
   const sliderRef = useRef<Slider>(null);
 
-  if (!mainBanners.length) return null;
+  const mobileBanners = mainBanners;
+  const desktopBanners = mainBanners.filter((b) => b.image?.data);
+
+  if (!mobileBanners.length) return null;
 
   const sliderSettings = {
     dots: true,
@@ -63,8 +66,9 @@ const ShopFeatureBanner = ({
     <SectionBase {...section}>
       <Box sx={{ display: { xs: 'block', md: 'none' }, ...styles.mobileSliderContainer }}>
         <Slider {...sliderSettings} ref={sliderRef}>
-          {mainBanners.map((banner, index) => {
+          {mobileBanners.map((banner, index) => {
             const image = banner.mobileImage?.data ? banner.mobileImage : banner.image;
+            if (!image?.data) return null;
             const mobileHref = banner.mobileUrl?.trim();
 
             return (
@@ -78,7 +82,6 @@ const ShopFeatureBanner = ({
                       priority={index === 0}
                       fetchPriority={index === 0 ? 'high' : 'auto'}
                     />
-
 
                     <Box sx={styles.overlay}>
                       <Stack sx={styles.overlayInner} spacing={{ xs: 1, sm: 1.5, md: 2.5 }}>
@@ -96,11 +99,7 @@ const ShopFeatureBanner = ({
 
                         {banner.button?.label && (
                           <Box sx={styles.ctaRow}>
-                            <Button
-                              sx={styles.ctaButton}
-                              variant="contained"
-                              size="small"
-                            >
+                            <Button sx={styles.ctaButton} variant="contained" size="small">
                               {banner.button.label}
                             </Button>
                           </Box>
@@ -115,22 +114,20 @@ const ShopFeatureBanner = ({
         </Slider>
       </Box>
 
-      {/* Desktop Layout - CSS ile göster/gizle */}
       <Stack direction="row" sx={{ display: { xs: 'none', md: 'flex' }, ...styles.container }}>
         <Box sx={styles.mainSliderWrapper}>
           <Slider {...sliderSettings}>
-            {mainBanners.map((banner, index) => (
+            {desktopBanners.map((banner, index) => (
               <Box key={index} sx={styles.mainSlide}>
                 <Link href={banner.url} style={{ display: 'block', height: '100%' }}>
                   <Box sx={styles.mediaWrapper}>
                     <CMSImage
-                      src={banner.image.data.attributes.url}
-                      alt={banner.image.data.attributes.alternativeText || banner.title || 'Mitenya Banner'}
+                      src={banner.image!.data.attributes.url}
+                      alt={banner.image!.data.attributes.alternativeText || banner.title || 'Mitenya Banner'}
                       fill
                       priority={index === 0}
                       fetchPriority={index === 0 ? 'high' : 'auto'}
                     />
-
 
                     <Box sx={styles.overlay}>
                       <Stack sx={styles.overlayInner} spacing={{ xs: 1, sm: 1.5, md: 2.5 }}>
@@ -148,11 +145,7 @@ const ShopFeatureBanner = ({
 
                         {banner.button?.label && (
                           <Box sx={styles.ctaRow}>
-                            <Button
-                              sx={styles.ctaButton}
-                              variant="contained"
-                              size="medium"
-                            >
+                            <Button sx={styles.ctaButton} variant="contained" size="medium">
                               {banner.button.label}
                             </Button>
                           </Box>
@@ -187,12 +180,7 @@ const ShopFeatureBanner = ({
                         )}
 
                         {banner.description && (
-                          <Typography
-                            sx={{
-                              ...styles.sideDescription,
-                              ...descriptionVisibilitySx,
-                            }}
-                          >
+                          <Typography sx={{ ...styles.sideDescription, ...descriptionVisibilitySx }}>
                             {banner.description}
                           </Typography>
                         )}
