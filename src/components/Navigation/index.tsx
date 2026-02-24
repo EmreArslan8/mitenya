@@ -9,7 +9,7 @@ import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
 import useScreen from '@/lib/hooks/useScreen';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
 import { signOut } from '@/lib/utils/signOut';
-import { bannerHeight, headerHeight } from '@/theme/theme';
+import { headerHeight } from '@/theme/theme';
 import {
   Badge,
   BottomNavigation,
@@ -27,13 +27,22 @@ import {
 } from '@mui/material';
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { FormEvent, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import {
+  CSSProperties,
+  FormEvent,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import LoadingOverlay from '../LoadingOverlay';
 import ShoppingCartButton from '../ShoppingCart/ShoppingCartButton';
 import { CrossFade } from '../common/CrossFade';
 import ModalCard from '../common/ModalCard';
 import CategoriesDrawer from './CategoriesDrawer';
-import useStyles from './styles';
+import useStyles, { ANNOUNCEMENT_HEIGHT } from './styles';
 import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, Home, History, Settings, Menu, Heart, User, ChevronRight } from 'lucide-react';
 
 const pulseAnimation = keyframes`
@@ -77,6 +86,7 @@ const Navigation = ({ data }: NavigationProps) => {
   const isCartEmpty = !numItems;
   const prevScrollPosition = useRef(0);
   const navbarRef = useRef<HTMLDivElement>(null);
+  const marqueeMeasureRef = useRef<HTMLDivElement>(null);
   const isMobileRef = useRef(true);
   const navVarsSyncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -87,7 +97,18 @@ const Navigation = ({ data }: NavigationProps) => {
   const [mobileSearchInputOpen, setMobileSearchInputOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [marqueeRepeatCount, setMarqueeRepeatCount] = useState(2);
+  const [marqueeCycleWidth, setMarqueeCycleWidth] = useState(0);
   const styles = useStyles();
+  const bannerLinks = useMemo(() => data?.bannerLinks ?? [], [data?.bannerLinks]);
+  const marqueeLinks = useMemo(() => {
+    if (!bannerLinks.length) return [];
+    return Array.from({ length: marqueeRepeatCount }, () => bannerLinks).flat();
+  }, [bannerLinks, marqueeRepeatCount]);
+  const marqueeDuration = useMemo(() => {
+    if (!marqueeCycleWidth) return 28;
+    return Math.max(16, Math.min(60, marqueeCycleWidth / 70));
+  }, [marqueeCycleWidth]);
 
   useEffect(() => {
     setMounted(true);
@@ -153,20 +174,20 @@ const Navigation = ({ data }: NavigationProps) => {
       const shouldKeepCompactHeaderVisible = isSearchRoute;
       navbarRef.current.style.top = `${
         shouldKeepCompactHeaderVisible
-          ? scrolled
-            ? -bannerHeight
+            ? scrolled
+            ? -ANNOUNCEMENT_HEIGHT
             : 0
           : hidden
-            ? -headerHeight.xs - bannerHeight
+            ? -headerHeight.xs - ANNOUNCEMENT_HEIGHT
             : scrolled
-              ? -bannerHeight
+              ? -ANNOUNCEMENT_HEIGHT
               : 0
       }px`;
       if (shouldKeepCompactHeaderVisible && scrollingDown && mobileSearchInputOpen)
         setMobileSearchInputOpen(false);
     } else
       navbarRef.current.style.top =
-        (hidden ? -52 - bannerHeight : scrolled ? -bannerHeight : 0) + 'px';
+        (hidden ? -52 - ANNOUNCEMENT_HEIGHT : scrolled ? -ANNOUNCEMENT_HEIGHT : 0) + 'px';
 
     navbarRef.current.style.boxShadow = scrolled ? '0 0 5px #00000010' : 'none';
     updateMobileNavVars();
@@ -225,6 +246,35 @@ const Navigation = ({ data }: NavigationProps) => {
     if (newProductAdded) setCartModalOpen(true);
   }, [newProductAdded]);
 
+  useEffect(() => {
+    if (!bannerLinks.length || typeof window === 'undefined') return;
+
+    const calculateMarqueeMetrics = () => {
+      const cycleWidth = marqueeMeasureRef.current?.scrollWidth ?? 0;
+      if (!cycleWidth) return;
+
+      const viewportWidth = window.innerWidth;
+      const targetWidth = viewportWidth * 2;
+      const nextRepeatCount = Math.max(2, Math.ceil(targetWidth / cycleWidth) + 1);
+
+      setMarqueeCycleWidth((prev) => (prev === cycleWidth ? prev : cycleWidth));
+      setMarqueeRepeatCount((prev) => (prev === nextRepeatCount ? prev : nextRepeatCount));
+    };
+
+    calculateMarqueeMetrics();
+    const rafId = window.requestAnimationFrame(calculateMarqueeMetrics);
+    const resizeObserver =
+      typeof ResizeObserver !== 'undefined' ? new ResizeObserver(calculateMarqueeMetrics) : null;
+    if (marqueeMeasureRef.current) resizeObserver?.observe(marqueeMeasureRef.current);
+    window.addEventListener('resize', calculateMarqueeMetrics);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', calculateMarqueeMetrics);
+      resizeObserver?.disconnect();
+    };
+  }, [bannerLinks]);
+
   return (
     <>
       <Stack
@@ -237,27 +287,36 @@ const Navigation = ({ data }: NavigationProps) => {
           {!isMinimal && (
           <Stack sx={styles.banner}>
             <Stack sx={styles.bannerInnerContainer}>
-              {data?.bannerLinks && (
-                <Stack sx={styles.bannerLinks}>
-                  {data.bannerLinks.map((e) => (
-                    <MenuItem
-                      sx={styles.bannerLink}
-                      onClick={() => handleLinkClick(e)}
-                      key={e.label}
-                    >
-                      {e.label}
-                    </MenuItem>
-                  ))}
-                </Stack>
-              )}
-              {getSupportUrl && (
-                <a href={getSupportUrl!} target="_blank" style={styles.a}>
-                  <MenuItem sx={styles.bannerLink}>
-                    <Headset color="primaryDark" size={17} />
-                    Yardım
-                  </MenuItem>
-                </a>
-              )}
+              {marqueeLinks.length ? (
+                <>
+                  <Stack
+                    sx={styles.bannerMarquee}
+                    style={
+                      {
+                        ['--banner-marquee-shift' as string]: `${marqueeCycleWidth}px`,
+                        ['--banner-marquee-duration' as string]: `${marqueeDuration}s`,
+                      } as CSSProperties
+                    }
+                  >
+                    {marqueeLinks.map((e, index) => (
+                      <MenuItem
+                        sx={styles.bannerLink}
+                        onClick={() => handleLinkClick(e)}
+                        key={`${e.label}-${index}`}
+                      >
+                        {e.label}
+                      </MenuItem>
+                    ))}
+                  </Stack>
+                  <Stack sx={styles.bannerMeasure} ref={marqueeMeasureRef}>
+                    {bannerLinks.map((e, index) => (
+                      <MenuItem sx={styles.bannerLink} key={`${e.label}-measure-${index}`}>
+                        {e.label}
+                      </MenuItem>
+                    ))}
+                  </Stack>
+                </>
+              ) : null}
             </Stack>
           </Stack>
           )}

@@ -1,11 +1,11 @@
 const styles = {
   wrapper: {
     border: '1px solid',
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderColor: 'rgba(15,23,42,0.06)',
     borderRadius: 1,
     backgroundColor: '#fff',
-    py: { xs: 2, md: 2 },
-    px: { xs: 1, md: 2 },
+    py: { xs: 1, md: 1 },
+    px: { xs: 0.5, md: 1 },
   },
 
   mobileContainer: {
@@ -14,7 +14,7 @@ const styles = {
     overflowX: 'auto',
     scrollSnapType: 'x mandatory',
     WebkitOverflowScrolling: 'touch',
-    px: {xs: 1, md: 2},
+    px: { xs: 0.5, md: 1 },
     py: {xs: 1, md: 2},
 
     '&::-webkit-scrollbar': {
@@ -32,14 +32,25 @@ const styles = {
     justifyContent: 'center',
   },
 
-  gridItem: {
+  desktopItem: {
+    position: 'relative',
     display: 'flex',
-    justifyContent: 'start',
+    justifyContent: 'center',
     alignItems: 'center',
-    px: 2,
+    px: { md: 1.5, lg: 2 },
+    py: { md: 0.5, lg: 0.75 },
   },
-  divider: {
-    borderRight: '1px solid rgba(0,0,0,0.08)',
+
+  desktopItemDivider: {
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      right: 0,
+      top: '16%',
+      height: '68%',
+      width: '1px',
+      backgroundColor: 'rgba(15,23,42,0.12)',
+    },
   },
 };
 

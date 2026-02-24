@@ -7,9 +7,9 @@ const ProductAttributes = ({ attributes }: { attributes: ShopProductAttribute[] 
   const styles = useStyles();
   return (
     <Stack gap={2}>
-      <Grid container spacing={1}>
+      <Grid container spacing={1} columns={{ xs: 2, md: 8, lg: 10 }}>
         {attributes.map((e) => (
-          <Grid item xs={6} md={4} key={e.name + e.value}>
+          <Grid item xs={1} md={2} lg={2} key={e.name + e.value}>
             <InfoItem
               label={e.name}
               value={e.value}

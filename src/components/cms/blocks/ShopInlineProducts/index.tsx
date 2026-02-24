@@ -168,15 +168,17 @@ const ShopInlineProducts = ({
           </Stack>
         )}
 
-        <Button
-          color="neutral"
-          arrow="end"
-          size="small"
-          variant="tonal"
-          onClick={() => router.push(searchUrlFromOptions(searchOptions))}
-        >
-          {cta}
-        </Button>
+        {cta && (
+          <Button
+            color="neutral"
+            arrow="end"
+            size="small"
+            variant="tonal"
+            onClick={() => router.push(searchUrlFromOptions(searchOptions))}
+          >
+            {cta}
+          </Button>
+        )}
       </Stack>
     </SectionBase>
   );

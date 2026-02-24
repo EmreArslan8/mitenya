@@ -19,25 +19,28 @@ const InfoArea = ({ label, description, url, icon }: InfoAreaProps) => {
 
   return (
     <Stack
-      direction="row"
-      spacing={2}
+      direction="column"
+      spacing={1}
       alignItems="center"
       onClick={() => url && router.push(url)}
       sx={{
+        ...styles.root,
         cursor: url ? 'pointer' : 'default',
       }}
     >
       {iconImage && (
-        <Box sx={{ ...styles.icon, position: 'relative', overflow: 'hidden' }}>
-          <CMSImage
-            src={iconImage.url}
-            alt={iconImage.alternativeText || label || 'Bilgi ikonu'}
-            fill
-            style={{ objectFit: 'contain' }}
-          />
+        <Box sx={styles.iconFrame}>
+          <Box sx={{ ...styles.icon, position: 'relative', overflow: 'hidden' }}>
+            <CMSImage
+              src={iconImage.url}
+              alt={iconImage.alternativeText || label || 'Bilgi ikonu'}
+              fill
+              style={{ objectFit: 'contain' }}
+            />
+          </Box>
         </Box>
       )}
-      <Stack spacing={0.5}>
+      <Stack spacing={0.25} sx={styles.textBlock}>
         {label && (
           <Typography variant="subtitle1" sx={styles.label}>
             {label}

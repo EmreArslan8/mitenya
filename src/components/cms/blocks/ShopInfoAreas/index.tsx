@@ -34,14 +34,17 @@ const ShopInfoAreas = ({ section, infoAreas }: InfoAreasProps) => {
             ))}
           </Box>
         ) : (
-          <Grid container spacing={2} justifyContent="space-around" alignItems="center">
+          <Grid container spacing={0} alignItems="stretch">
             {infoAreas.map((infoArea, index) => (
               <Grid
-              item
+                item
                 key={`${infoArea.label ?? 'info'}-${index}`}
                 xs={12}
                 sm={Math.max(3, 12 / infoAreas.length)}
-                sx={{ display: 'flex', justifyContent: 'center', }}
+                sx={{
+                  ...styles.desktopItem,
+                  ...(index !== infoAreas.length - 1 ? styles.desktopItemDivider : {}),
+                }}
               >
                 <InfoArea {...infoArea} index={index} />
               </Grid>

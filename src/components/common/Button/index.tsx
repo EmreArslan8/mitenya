@@ -3,11 +3,12 @@
 import { LoadingButton } from '@mui/lab';
 import styles from './styles';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { sendButtonClickEvent } from '@/lib/utils/googleAnalytics';
+import { useTheme } from '@mui/material/styles';
 
 const arrowSizes = {
-  small: 20,
+  small: 16,
   medium: 22,
   large: 24,
 };
@@ -21,6 +22,7 @@ const Button = ({
   ...props
 }: any) => {
   const router = useRouter();
+  const theme = useTheme();
 
   const handleClick = (event: React.MouseEvent) => {
     if (dataLayerEventId) sendButtonClickEvent(dataLayerEventId);
@@ -35,7 +37,7 @@ const Button = ({
       endIcon={arrow === 'end' && <Arrow position="end" size={props.size} />}
       {...props}
       onClick={handleClick}
-      sx={{ ...styles.button, ...props.sx }}
+      sx={[styles.button(theme.direction), props.sx]}
     >
       {children}
     </LoadingButton>
@@ -51,9 +53,9 @@ const Arrow = ({
 }) => {
   const iconSize = arrowSizes[size];
   return position === 'start' ? (
-    <ArrowLeft size={iconSize} />
+    <ChevronLeft size={iconSize} />
   ) : (
-    <ArrowRight size={iconSize} />
+    <ChevronRight size={iconSize} />
   );
 };
 

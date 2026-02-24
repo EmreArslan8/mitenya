@@ -2,41 +2,76 @@
 
 import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
 import { withPalette } from '@/theme/ThemeRegistry';
-import { bannerHeight, defaultMaxWidth, headerHeight } from '@/theme/theme';
+import { defaultMaxWidth, headerHeight } from '@/theme/theme';
+
+export const ANNOUNCEMENT_HEIGHT = 34;
 
 const useStyles = withPalette((palette) => {
   const isMobileApp = useIsMobileApp();
   return {
     container: {
-      height: { xs: headerHeight.xs + bannerHeight, sm: headerHeight.sm + bannerHeight }
+      height: { xs: headerHeight.xs + ANNOUNCEMENT_HEIGHT, sm: headerHeight.sm + ANNOUNCEMENT_HEIGHT }
     },
     banner: {
       justifyContent: 'center',
-      height: bannerHeight,
+      height: ANNOUNCEMENT_HEIGHT,
       background: isMobileApp ? palette.bg.main : palette.bg.dark,
       width: '100vw',
       alignSelf: 'center',
-      px: { xs: 1, sm: 2 },
+      px: 0,
+      overflow: 'hidden',
     },
     bannerInnerContainer: {
       flexDirection: 'row',
       alignSelf: 'center',
       alignItems: 'center',
-      justifyContent: 'end',
-      maxWidth: defaultMaxWidth,
-      width: '100%',
-      gap: 1,
+      justifyContent: 'center',
+      maxWidth: 'none',
+      width: '100vw',
+      overflow: 'hidden',
+      position: 'relative',
     },
     a: { textDecoration: 'none', color: 'inherit' },
-    bannerLinks: { flexDirection: 'row', mr: 'auto' },
-    bannerLink: { fontSize: 12, gap: 0.5 },
+    bannerMarquee: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: 'max-content',
+      minWidth: '200%',
+      animation: 'banner-marquee var(--banner-marquee-duration, 28s) linear infinite',
+      '@keyframes banner-marquee': {
+        from: { transform: 'translateX(0)' },
+        to: { transform: 'translateX(calc(-1 * var(--banner-marquee-shift, 50%)))' },
+      },
+    },
+    bannerMeasure: {
+      position: 'absolute',
+      visibility: 'hidden',
+      pointerEvents: 'none',
+      width: 'max-content',
+      whiteSpace: 'nowrap',
+      left: 0,
+      top: 0,
+    },
+    bannerLink: {
+      fontSize: { xs: 12, sm: 13 },
+      gap: 0.5,
+      px: { xs: 3, sm: 4 },
+      minHeight: ANNOUNCEMENT_HEIGHT,
+      color: '#000',
+      whiteSpace: 'nowrap',
+      flexShrink: 0,
+      letterSpacing: '0.01em',
+      '&:hover': {
+        backgroundColor: 'transparent',
+      },
+    },
     innerContainer: {
       zIndex: 1297,
       position: { xs: 'fixed', md: 'relative' },
       top: 0,
       left: 0,
       right: 0,
-      height: { xs: 'auto', sm: headerHeight.sm + bannerHeight },
+      height: { xs: 'auto', sm: headerHeight.sm + ANNOUNCEMENT_HEIGHT },
       background: palette.bg.main,
       transition: 'top 0.2s, box-shadow 0.2s ease-in',
       px: { xs: 1, sm: 3 },

@@ -5,6 +5,7 @@ import Markdown, { MarkdownOptions } from '../../../common/Markdown';
 import useStyles, { primaryStyle } from './styles';
 import { defaultMaxWidth } from '@/theme/theme';
 import useScreen from '@/lib/hooks/useScreen';
+import Button from '@/components/common/Button';
 
 export interface SectionBaseProps {
   sectionHeader?: string;
@@ -12,6 +13,8 @@ export interface SectionBaseProps {
   sectionDescriptionMarkdownOptions?: MarkdownOptions;
   sectionWidth?: string | number;
   sectionBackground?: 'default' | 'primary';
+  sectionLabel?: string;
+  sectionHref?: string;
   sx?: SxProps;
   children: ReactNode;
 }
@@ -22,6 +25,8 @@ const SectionBase = ({
   sectionDescriptionMarkdownOptions,
   sectionBackground = 'default',
   sectionWidth = defaultMaxWidth,
+  sectionLabel,
+  sectionHref,
   sx = {},
   children,
 }: SectionBaseProps) => {
@@ -42,10 +47,31 @@ const SectionBase = ({
         ...sx,
       }}
     >
-      {(sectionHeader || sectionDescription) && (
+      {(sectionHeader || sectionDescription || sectionLabel) && (
         <Stack gap={1}>
-          {sectionHeader && (
-            <DynamicTitle title={splitTextWithDynamicSections(sectionHeader)} />
+          {(sectionHeader || sectionLabel) && (
+            <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                {sectionHeader && (
+                  <DynamicTitle
+                    title={splitTextWithDynamicSections(sectionHeader)}
+                    align={sectionLabel ? 'left' : 'center'}
+                  />
+                )}
+              </Box>
+              {sectionLabel && (
+                <Button
+                  color="neutral"
+                  arrow="end"
+                  size="small"
+                  variant="text"
+                  sx={{ color: 'gray.900', fontSize: 16 }}
+                  href={sectionHref}
+                >
+                  {sectionLabel}
+                </Button>
+              )}
+            </Stack>
           )}
           {sectionDescription && (
             <Markdown
@@ -82,17 +108,23 @@ const splitTextWithDynamicSections = (
   return result;
 };
 
-const DynamicTitle = ({ title }: { title: (string | string[])[] }) => {
+const DynamicTitle = ({
+  title,
+  align = 'center',
+}: {
+  title: (string | string[])[];
+  align?: 'left' | 'center';
+}) => {
   const styles = useStyles();
 
   return (
-    <Box component="h2" m={0}>
+    <Box component="h2" m={0} sx={{ width: '100%' }}>
       <Stack
         sx={styles.title}
         columnGap={0.5}
         direction="row"
         flexWrap="wrap"
-        justifyContent="center"
+        justifyContent={align === 'left' ? 'flex-start' : 'center'}
         alignItems="center"
       >
         {title.map((section) =>
