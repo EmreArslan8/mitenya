@@ -648,7 +648,7 @@ const Navigation = ({ data }: NavigationProps) => {
             isAuthenticated={isAuthenticated ?? undefined}
             onAccount={() => handleAccountButtonClick('/settings')}
             onOrders={() => handleAccountButtonClick('/orders')}
-            onFavorites={() => router.push('/favorites')}
+            onFavorites={() => handleAccountButtonClick('/settings?section=favorites')}
             onNavigate={(slug) => router.push(`/${slug}`)}
           />
         </>

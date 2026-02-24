@@ -10,11 +10,13 @@ import {
   MapPinned,
   CreditCard,
   Bell,
+  Heart,
   LockKeyhole,
   BookUser,
   CircleHelp,
   ChevronRight,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 import SupportButton from '@/components/SupportButtonSimple';
 import Button from '@/components/common/Button';
@@ -30,9 +32,9 @@ type NavItem = {
   label: string;
   url?: string;
   external?: boolean;
-  section?: 'profile' | 'addresses' | 'security' | 'notifications';
+  section?: 'profile' | 'addresses' | 'security' | 'notifications' | 'favorites';
   badge?: string;
-  Icon: React.ComponentType<any>;
+  Icon: LucideIcon;
 };
 
 const navGroups: { title: string; items: NavItem[] }[] = [
@@ -49,6 +51,7 @@ const navGroups: { title: string; items: NavItem[] }[] = [
     items: [
       { label: 'Kullanıcı Bilgilerim', url: '/settings?section=profile', section: 'profile', Icon: UserRound },
       { label: 'Adres Bilgilerim', url: '/settings?section=addresses', section: 'addresses', Icon: MapPinned },
+      { label: 'Favorilerim', url: '/settings?section=favorites', section: 'favorites', Icon: Heart },
       { label: 'Kayıtlı Kartlarım', Icon: CreditCard },
       { label: 'Duyuru Tercihlerim', url: '/settings?section=notifications', section: 'notifications', Icon: Bell },
       { label: 'Şifre Değişikliği', url: '/settings?section=security', section: 'security', Icon: LockKeyhole },

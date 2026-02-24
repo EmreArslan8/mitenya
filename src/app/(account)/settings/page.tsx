@@ -1,17 +1,18 @@
 import { fetchAddresses } from '@/lib/api/addresses';
 import SettingsView from './view';
 
-type SettingsSection = 'profile' | 'addresses' | 'security' | 'notifications';
+type SettingsSection = 'profile' | 'addresses' | 'security' | 'notifications' | 'favorites';
 
-const VALID_SECTIONS: SettingsSection[] = ['profile', 'addresses', 'security', 'notifications'];
+const VALID_SECTIONS: SettingsSection[] = ['profile', 'addresses', 'security', 'notifications', 'favorites'];
 
 const SettingsPage = async ({
   searchParams,
 }: {
-  searchParams?: { section?: string };
+  searchParams?: Promise<{ section?: string }>;
 }) => {
   const addresses = (await fetchAddresses()) ?? [];
-  const sectionParam = searchParams?.section;
+  const resolvedSearchParams = await searchParams;
+  const sectionParam = resolvedSearchParams?.section;
   const section = VALID_SECTIONS.includes(sectionParam as SettingsSection)
     ? (sectionParam as SettingsSection)
     : 'profile';

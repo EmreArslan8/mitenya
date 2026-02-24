@@ -5,6 +5,7 @@ import MainLayout from "@/components/layouts/MainLayout";
 import Navigation from "@/components/Navigation";
 import { AuthContextProvider } from "@/contexts/AuthContext";
 import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
+import { FavoritesContextProvider } from "@/contexts/FavoritesContext";
 import { ShopContextProvider } from "@/contexts/ShopContext";
 import { fetchShopFooter, fetchShopHeader } from "@/lib/api/cms";
 import { albertSans } from "@/lib/fonts";
@@ -87,17 +88,19 @@ export default async function RootLayout({
         <ThemeRegistry>
           <CookieConsentProvider>
             <AuthContextProvider>
-              <ShopContextProvider>
-                <Suspense fallback={<div style={{ height: '100px' }} />}>
-                  <Navigation data={headerData} />
-                </Suspense>
+              <FavoritesContextProvider>
+                <ShopContextProvider>
+                  <Suspense fallback={<div style={{ height: '100px' }} />}>
+                    <Navigation data={headerData} />
+                  </Suspense>
 
-                <MainLayout>
-                  <Suspense fallback={<div>Yükleniyor...</div>}>{children}</Suspense>
-                </MainLayout>
+                  <MainLayout>
+                    <Suspense fallback={<div>Yükleniyor...</div>}>{children}</Suspense>
+                  </MainLayout>
 
-                <Footer data={footerData} />
-              </ShopContextProvider>
+                  <Footer data={footerData} />
+                </ShopContextProvider>
+              </FavoritesContextProvider>
             </AuthContextProvider>
           </CookieConsentProvider>
         </ThemeRegistry>
