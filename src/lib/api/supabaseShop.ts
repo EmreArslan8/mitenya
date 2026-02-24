@@ -185,6 +185,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     .from("products")
     .select(
       `
+      id,
       category_id,
       category_name,
       product_prices!inner(price_current)
@@ -195,6 +196,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     .from("products")
     .select(
       `
+      id,
       brand_id,
       brand_name,
       product_prices!inner(price_current)
