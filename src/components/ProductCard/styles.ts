@@ -23,7 +23,7 @@ const useStyles = withPalette((palette) => ({
   imageContainer: {
     position: 'relative',
     width: '100%',
-    aspectRatio: { xs: '0.67', sm: '1 / 1' },
+    aspectRatio: { xs: '0.8', sm: '1 / 1' },
     borderRadius: 1,
     overflow: 'hidden',
     background: palette.white.main,
@@ -52,11 +52,17 @@ const useStyles = withPalette((palette) => ({
     background: '#dedede50',
   },
   imageLoadingProgressContainer: { background: palette.bg.main, p: 1, borderRadius: 99 },
-  badgeList: {
+  topBar: {
     position: 'absolute',
-    top: 10,
-    left: 10,
-    zIndex: 2,
+    top: {xs:0, sm:10},
+    left: {xs:0, sm:10},
+    right: 10,
+    zIndex: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  badgeList: {
     display: 'flex',
     flexDirection: 'column',
     gap: 0.5,
@@ -80,10 +86,6 @@ const useStyles = withPalette((palette) => ({
     background: palette.accentRed.light,
   },
   favoriteButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    zIndex: 3,
     width: 36,
     height: 36,
     borderRadius: 0,
@@ -91,6 +93,7 @@ const useStyles = withPalette((palette) => ({
     backgroundColor: 'transparent',
     color: palette.text.medium,
     transition: 'all 160ms ease',
+    mr: -0.5,
     '&:hover': {
       backgroundColor: 'transparent',
       transform: 'translateY(-1px)',

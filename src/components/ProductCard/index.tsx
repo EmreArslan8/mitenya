@@ -206,29 +206,30 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
                 </Stack>
               </Stack>
             )}
-            <Stack sx={styles.badgeList}>
-              {isTopRated && <Stack sx={{ ...styles.badge, ...styles.badgeBest }}>EN IYI</Stack>}
-              {hasDiscount && <Stack sx={{ ...styles.badge, ...styles.badgeDiscount }}>{`%${discountPercent} INDIRIM`}</Stack>}
+            <Stack sx={styles.topBar}>
+              <Stack sx={styles.badgeList}>
+                {isTopRated && <Stack sx={{ ...styles.badge, ...styles.badgeBest }}>EN İYİ</Stack>}
+                {hasDiscount && <Stack sx={{ ...styles.badge, ...styles.badgeDiscount }}>{`%${discountPercent} İNDİRİM`}</Stack>}
+              </Stack>
+              <IconButton
+                onClick={handleFavoriteClick}
+                disabled={favoriteLoading}
+                aria-label={favorited ? 'Favorilerden çıkar' : 'Favorilere ekle'}
+                sx={{
+                  ...styles.favoriteButton,
+                  ...(favorited ? styles.favoriteButtonActive : {}),
+                }}
+              >
+                {favoriteLoading ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <Heart size={32} style={favorited ? styles.favoriteIconActive : styles.favoriteIcon} />
+                )}
+              </IconButton>
             </Stack>
-            <IconButton
-              onClick={handleFavoriteClick}
-              disabled={favoriteLoading}
-              aria-label={favorited ? 'Favorilerden çıkar' : 'Favorilere ekle'}
-              sx={{
-                ...styles.favoriteButton,
-                ...(favorited ? styles.favoriteButtonActive : {}),
-              }}
-            >
-              {favoriteLoading ? (
-                <CircularProgress size={20} />
-              ) : (
-                <Heart size={32} style={favorited ? styles.favoriteIconActive : styles.favoriteIcon} />
-              )}
-            </IconButton>
             <img
               src={data.imgSrc}
               alt={data.name}
-              loading="lazy"
               decoding="async"
               style={{
                 ...styles.image,
@@ -293,7 +294,7 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
                     }
               }
               disabled={isOutOfStock || quickAddLoading || showAdded}
-              size="medium"
+              size={smUp ? 'medium' : 'small'}
               variant="contained"
               sx={{
                 ...styles.addToCartButton,
