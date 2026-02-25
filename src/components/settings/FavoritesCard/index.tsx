@@ -21,6 +21,7 @@ const FavoritesCard = () => {
 
     const loadFavoriteProducts = async () => {
       if (!favoriteIdList.length) {
+        setFavoritesDataLoading(false);
         setFavoriteProducts([]);
         return;
       }

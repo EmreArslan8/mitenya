@@ -58,15 +58,17 @@ const useStyles = withPalette((palette) => ({
     whiteSpace: 'nowrap',
     opacity: 0,
     mb: 0.5,
+    fontWeight: '600 !important',
   },
   dynamicTitleSectionActive: {
     animation: `${fadeInOut} 2s ease-in-out`,
   },
   dynamicTitleMarkdownOptions: {
-    p: { variant: 'h1' },
+    p: { variant: 'h1', sx: { fontWeight: '600 !important' } },
     strong: {
       variant: 'h2',
       color: palette.primary.main,
+      sx: { fontWeight: '600 !important' },
     },
   },
 }));

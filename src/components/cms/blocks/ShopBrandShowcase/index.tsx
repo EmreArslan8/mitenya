@@ -11,6 +11,7 @@ import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import { SharedButtonType, SharedImageType } from '../../shared/cmsTypes';
 import CMSImage from '../../shared/CMSImage';
 import useStyles from './styles';
+import useScreen from '@/lib/hooks/useScreen';
 
 export interface ShopBrandShowcaseProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
@@ -29,6 +30,7 @@ const ShopBrandShowcase = ({
   button,
   searchOptions: _searchOptions,
 }: ShopBrandShowcaseProps) => {
+  const { smUp } = useScreen();
   const [products, setProducts] = useState<ShopProductListItemData[]>([]);
   const [, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -83,10 +85,10 @@ const ShopBrandShowcase = ({
 
             {button && (
               <Button
-                size="small"
+                size={smUp ? 'medium' : 'small'}
                 sx={styles.headerButton}
                 href={button.href}
-                variant={button.variant}
+                variant={smUp ? button.variant : 'contained'}
                 arrow={button.arrow}
                 dataLayerEventId={button.dataLayerEventId}
               >

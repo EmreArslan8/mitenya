@@ -37,9 +37,9 @@ const ShopInlineProducts = ({
   const styles = useStyles();
 
   useEffect(() => {
-    setSlidesToShow(mdUp ? 4 : smUp ? 2 : 1);
+    setSlidesToShow(mdUp ? 4 : 2);
     setSlidesToScroll(1);
-  }, [mdUp, smUp]);
+  }, [mdUp]);
 
   const searchOptions = useMemo(
     () =>

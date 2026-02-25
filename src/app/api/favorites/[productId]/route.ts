@@ -22,7 +22,7 @@ export async function DELETE(_: Request, { params }: Params) {
       return ApiErrors.badRequest('productId is required');
     }
 
-    const normalizedProductId = decodeURIComponent(productId);
+    const normalizedProductId = productId;
 
     const { error } = await supabase
       .from('user_favorites')

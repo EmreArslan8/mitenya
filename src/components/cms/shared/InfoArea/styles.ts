@@ -17,8 +17,8 @@ const styles = {
   },
 
   iconFrame: {
-    width: { xs: 46, md: 52 },
-    height: { xs: 46, md: 52 },
+    width: { xs: 32, md: 36 },
+    height: { xs: 32, md: 36 },
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

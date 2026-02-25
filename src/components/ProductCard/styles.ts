@@ -23,10 +23,10 @@ const useStyles = withPalette((palette) => ({
   imageContainer: {
     position: 'relative',
     width: '100%',
-    aspectRatio: '1 / 1',
+    aspectRatio: { xs: '0.67', sm: '1 / 1' },
     borderRadius: 1,
     overflow: 'hidden',
-    background: palette.bg.light,
+    background: palette.white.main,
     marginBottom: 0.25,
   },
   image: {
@@ -63,10 +63,10 @@ const useStyles = withPalette((palette) => ({
   },
   badge: {
     width: 'fit-content',
-    px: 1,
-    py: '3px',
+    px: { xs: 1.25, sm: 1.5 },
+    py: { xs: '3px', sm: '4px' },
     borderRadius: 999,
-    fontSize: 10,
+    fontSize: { xs: 10, sm: 11 },
     fontWeight: 800,
     lineHeight: 1.2,
     letterSpacing: '0.02em',
