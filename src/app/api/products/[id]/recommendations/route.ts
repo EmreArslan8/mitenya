@@ -7,8 +7,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const selectFields = `
   id, slug, name, brand_id, brand_name, category_id,
-  current_price, original_price, currency, main_image_url
+  current_price, original_price, currency, main_image_url,
+  product_stock(quantity)
 `;
+
+const readStockQuantity = (stockRows: unknown): number => {
+  if (!Array.isArray(stockRows) || stockRows.length === 0) return 0;
+  const firstRow = stockRows[0] as { quantity?: unknown } | null;
+  return Number(firstRow?.quantity ?? 0);
+};
 
 const mapProduct = (p: any) => ({
   id: p.id,
@@ -22,6 +29,7 @@ const mapProduct = (p: any) => ({
     originalPrice: Number(p.original_price) || Number(p.current_price) || 0,
     currency: p.currency || 'TRY',
   },
+  quantity: readStockQuantity(p.product_stock),
 });
 
 export async function GET(

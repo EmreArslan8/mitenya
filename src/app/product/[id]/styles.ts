@@ -25,12 +25,16 @@ const bellRing = keyframes`
 
 const useStyles = withPalette((palette) => ({
   productContainer: {
-    alignSelf: { xs: 'center', sm: 'unset' },
-    width: { xs: '100vw', sm: '100%' },
+    alignSelf: 'stretch',
+    width: '100%',
+    alignItems: 'flex-start', 
   },
   imageGridItem: {
     zIndex: 0,
-    position: 'relative',
+    position: { xs: 'relative', sm: 'sticky' },
+    top: { sm: 0 },
+    alignSelf: { sm: 'flex-start' },
+    minWidth: 0,
   },
   imageCard: {
     width: '100%',
@@ -49,7 +53,7 @@ const useStyles = withPalette((palette) => ({
   imageContainer: {
     width: '100%',
     maxHeight: { xs: 468, sm: 440, md: 600 },
-    border: `1px solid ${palette.text.light}`,
+    border: 'none',
     borderRadius: 1,
     overflow: 'hidden',
   },
@@ -57,7 +61,7 @@ const useStyles = withPalette((palette) => ({
     position: 'relative',
     width: '100%',
     height: { sm: 440, md: 500 },
-    border: `1px solid ${palette.text.light}`,
+    border: '1px solid rgba(0, 0, 0, 0.08)',
     borderRadius: 1,
     overflow: 'hidden',
     backgroundColor: palette.bg.main,
@@ -95,13 +99,13 @@ const useStyles = withPalette((palette) => ({
     aspectRatio: '4 / 5',
     flexGrow: 0,
     p: 0,
-    border: `1px solid ${palette.text.light}`,
+    border: '1px solid transparent',
     borderRadius: 1,
     overflow: 'hidden',
     '&.Mui-selected': { border: `1px solid ${palette.text.medium}` },
   },
   thumbnailImage: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' } as CSSProperties,
-  details: { gap: 2, px: { xs: 2, sm: 0 }, pt: { xs: 2, sm: 0 }, background: palette.bg.main },
+  details: { gap: 2, px: { xs: 2, sm: 0 }, pt: { xs: 2, sm: 0 }, background: palette.bg.main, minWidth: 0 },
   productName: {
     fontWeight: 600,
     lineHeight: 1.2,
@@ -159,10 +163,10 @@ const useStyles = withPalette((palette) => ({
     fontSize: 18,
     color: palette.text.main,
   },
-  mobileImagesContainer: { position: 'relative', width: '100vw' },
+  mobileImagesContainer: { position: 'relative', width: '100%' },
   mobileImages: {
     position: 'relative',
-    width: '100vw',
+    width: '100%',
     flexDirection: 'row',
     overflowX: 'scroll',
     scrollSnapType: 'x mandatory',
@@ -174,7 +178,7 @@ const useStyles = withPalette((palette) => ({
     borderBottom: '1px solid',
     borderColor: palette.bg.light,
   },
-  mobileImage: { flexShrink: 0, width: '100vw', scrollSnapAlign: 'center' },
+  mobileImage: { flexShrink: 0, width: '100%', scrollSnapAlign: 'center' },
   discountBadge: {
     background: '#C1121F',
     color: '#FFFFFF',

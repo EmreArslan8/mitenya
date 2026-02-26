@@ -139,7 +139,7 @@ const useStyles = withPalette((palette) => ({
         width: 30,
       },
       '& li.slick-active button': {
-        backgroundColor: palette.error.main,
+        backgroundColor: palette.white.main,
         transform: 'none',
       },
     },

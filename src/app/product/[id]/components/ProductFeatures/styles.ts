@@ -1,24 +1,24 @@
 import { withPalette } from '@/theme/ThemeRegistry';
 
 const useStyles = withPalette((palette) => ({
-  item: {
-    height: '100%',
-    alignItems: 'center',
-    textAlign: 'center',
-    background: palette.bg.light,
-    borderRadius: 1,
-    p: 2,
-    gap: 0.5,
-  },
-  telegram: {
+  container: {
     flexDirection: 'row',
-    height: '100%',
     alignItems: 'center',
-    textAlign: 'center',
-    background: palette.bg.light,
-    borderRadius: 1,
-    p: 2,
-    gap: 0.5,
+    flexWrap: 'wrap',
+    gap: 1,
+    py: 0.25,
+  },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 1.2,
+    color: palette.text.main,
+  },
+  label: {
+    fontSize: { xs: 18, sm: 16 },
+    lineHeight: 1.25,
+    fontWeight: 500,
+    color: palette.text.main,
   },
 }));
 

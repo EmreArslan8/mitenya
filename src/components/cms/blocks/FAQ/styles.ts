@@ -20,14 +20,43 @@ const styles = {
     borderRadius: 1,
     textTransform: 'none',
   },
-  items: { gap: 2, width: '100%' },
+  items: {
+    width: '100%',
+    borderTop: '1px solid',
+    borderColor: 'gray.200',
+  },
   accordion: {
-    borderRadius: '8px',
-    py: 1,
-    border: 1,
-    borderColor: 'transparent',
+    borderRadius: 0,
+    backgroundColor: 'transparent',
+    borderBottom: '1px solid',
+    borderColor: 'gray.200',
     '&:before': { display: 'none' },
-    transition: 'all 0.2s',
+    boxShadow: 'none',
+  },
+  summary: {
+    px: 0,
+    py: { xs: 1.75, sm: 2.25 },
+    minHeight: 'unset',
+    '&.Mui-expanded': {
+      minHeight: 'unset',
+    },
+    '& .MuiAccordionSummary-content': {
+      my: 0,
+      mr: 1,
+    },
+    '& .MuiAccordionSummary-expandIconWrapper': {
+      color: 'text.main',
+    },
+  },
+  title: {
+    pr: 2,
+    fontWeight: 600,
+    lineHeight: 1.35,
+  },
+  details: {
+    px: 0,
+    pt: 0,
+    pb: { xs: 2, sm: 2.5 },
   },
 };
 

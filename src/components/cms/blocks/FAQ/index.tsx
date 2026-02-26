@@ -1,4 +1,3 @@
-import Card from '@/components/common/Card';
 import Markdown from '@/components/common/Markdown';
 import {
   Accordion,
@@ -13,7 +12,7 @@ import { useEffect, useState } from 'react';
 import { BlockComponentBaseProps } from '..';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import styles from './styles';
-import { ChevronDown } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 
 export interface FAQProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
@@ -51,10 +50,9 @@ const FAQ = ({ section, categories: unparsedCategories, items: unparsedItems }: 
           </Tabs>
         )}
         <Stack sx={styles.items}>
-          {filteredItems.map((item, index) => (
+          {filteredItems.map((item) => (
             <FAQItem
               item={item}
-              index={index}
               key={item.title + item.description + selectedCategory}
             />
           ))}
@@ -66,33 +64,34 @@ const FAQ = ({ section, categories: unparsedCategories, items: unparsedItems }: 
 
 const FAQItem = ({
   item,
-  index,
 }: {
   item: { title: string; description: string };
-  index: number;
 }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <Card border>
-      <Accordion sx={styles.accordion} disableGutters elevation={0}>
-        <AccordionSummary
-          expandIcon={<ChevronDown color="tertiary" />}
-          onClick={() => setExpanded(!expanded)}
-        >
-          <Typography variant="warningSemibold" mx={1}>
-            {item.title}
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Markdown
-            text={item.description}
-            sx={{ mx: 1 }}
-            options={{ p: { variant: 'warning' } }}
-          />
-        </AccordionDetails>
-      </Accordion>
-    </Card>
+    <Accordion
+      expanded={expanded}
+      onChange={(_, isExpanded) => setExpanded(isExpanded)}
+      sx={styles.accordion}
+      disableGutters
+      elevation={0}
+    >
+      <AccordionSummary
+        expandIcon={expanded ? <Minus size={20} /> : <Plus size={20} />}
+        sx={styles.summary}
+      >
+        <Typography variant="warningSemibold" sx={styles.title}>
+          {item.title}
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails sx={styles.details}>
+        <Markdown
+          text={item.description}
+          options={{ p: { variant: 'warning', fontWeight: 400 } }}
+        />
+      </AccordionDetails>
+    </Accordion>
   );
 };
 

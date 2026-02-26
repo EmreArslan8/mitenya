@@ -123,7 +123,9 @@ const useStyles = withPalette((palette) => ({
     background: palette.error.main,
   },
   infoContainer: {
-    minHeight: 72,
+    display: 'grid',
+    alignContent: 'start',
+    rowGap: 0.5,
   },
   subtitle: {
     color: palette.text.mediumLight,
@@ -132,14 +134,12 @@ const useStyles = withPalette((palette) => ({
     lineHeight: 1.2,
     letterSpacing: '0.02em',
     textTransform: 'uppercase',
-    mb: 0.4,
   },
   productName: {
     color: palette.text.main,
     fontSize: 14,
     fontWeight: 600,
     lineHeight: 1.35,
-    minHeight: '2.7em',
     whiteSpace: 'normal',
     wordBreak: 'break-word',
     overflow: 'hidden',
@@ -157,7 +157,12 @@ const useStyles = withPalette((palette) => ({
     borderRadius: 1,
     py: 0.5,
   },
-  price: { fontSize: '15px !important', color: palette.text.main, fontWeight: 700, lineHeight: 1.2 },
+  price: {
+    fontSize: { xs: '17px !important', sm: '18px !important' },
+    color: palette.text.main,
+    fontWeight: 700,
+    lineHeight: 1.15,
+  },
   originalPrice: {
     color: palette.text.medium,
     fontSize: 13,

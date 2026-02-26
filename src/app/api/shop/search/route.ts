@@ -20,6 +20,8 @@ export const GET = async (req: NextRequest) => {
   const query = sp.get('query') ?? '';
   const brand = sp.get('brand') ?? '';
   const category = sp.get('category') ?? '';
+  const concern = sp.get('concern') ?? '';
+  const benefit = sp.get('benefit') ?? '';
   const ntRaw = sp.get('nt') ?? 'false';
 
   // string->number parse (sağlam)
@@ -34,7 +36,7 @@ export const GET = async (req: NextRequest) => {
   // geri kalan parametreleri de al (query params -> object)
   const rest = Object.fromEntries(
     Array.from(sp.entries()).filter(
-      ([k]) => !['page', 'query', 'brand', 'category', 'nt'].includes(k)
+      ([k]) => !['page', 'query', 'brand', 'category', 'concern', 'benefit', 'nt'].includes(k)
     )
   );
 
@@ -43,6 +45,8 @@ export const GET = async (req: NextRequest) => {
     query,
     brand,
     category,
+    concern,
+    benefit,
     nt,
     ...rest,
   };

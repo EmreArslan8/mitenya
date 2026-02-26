@@ -1,6 +1,6 @@
 'use client'; 
 
-import { Grid, Stack, Typography } from '@mui/material';
+import { Stack, Typography } from '@mui/material';
 import { Truck, ShieldCheck, CreditCard } from 'lucide-react'; 
 import useStyles from './styles';
 
@@ -15,19 +15,14 @@ const ProductFeatures = () => {
   const styles = useStyles();
   
   return (
-    <Grid container spacing={1}>
+    <Stack sx={styles.container}>
       {features.map((item) => (
-        <Grid item xs={6} key={item.label}>
-          <Stack sx={styles.item}>
-            <item.Icon 
-              size={28} 
-              strokeWidth={1.5} 
-            />
-            <Typography variant="warningSemibold">{item.label}</Typography>
-          </Stack>
-        </Grid>
+        <Stack key={item.label} sx={styles.item}>
+          <item.Icon size={30} strokeWidth={1.75} />
+          <Typography sx={styles.label}>{item.label}</Typography>
+        </Stack>
       ))}
-    </Grid>
+    </Stack>
   );
 };
 

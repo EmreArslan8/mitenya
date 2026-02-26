@@ -7,4 +7,6 @@ export const FILTER_TYPE_LABEL_TR: Record<ShopFilterType, string> = {
   brand: 'Marka',
   size: 'Beden',
   color: 'Renk',
+  benefit: 'Ürün Faydaları',
+  concern: 'Cilt Sorunları',
 };

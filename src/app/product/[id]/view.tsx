@@ -35,18 +35,24 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const styles = useStyles();
   const { smUp } = useScreen();
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const imgContainerRef = useRef<HTMLDivElement>(null);
   const [currentImg, setCurrentImg] = useState(data.imgSrc);
   const [variants, setVariants] = useState(data.variants);
   const [showCheck, setShowCheck] = useState(false);
   const [stockAlertLoading, setStockAlertLoading] = useState(false);
   const [stockAlertRequested, setStockAlertRequested] = useState(false);
   const [stockAlertMessage, setStockAlertMessage] = useState<string | undefined>();
-  const [mounted, setMounted] = useState(false);
   const checkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const isOutOfStock = typeof data.quantity === 'number' && data.quantity <= 0;
+  const stockStatusConfig =
+    data.stockStatus === 'in_stock'
+      ? { label: 'Stokta var, şimdi sipariş verin; aynı gün kargoya hazırlayalım.', color: 'success.main' }
+      : data.stockStatus === 'low_stock'
+        ? { label: 'Tükenmek üzere, hemen sipariş edin', color: 'warning.main' }
+        : data.stockStatus === 'out_of_stock'
+          ? { label: 'Şu an stokta yok, stok gelince ilk siz haberdar olun.', color: 'error.main' }
+          : undefined;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
   const brandLabel = data.brand?.trim();
   const brandSearchToken = data.brandSlug ?? (data.brandId?.toString() === '2' ? 'zara' : data.brandId);
@@ -154,19 +160,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
     });
   };
 
-  const handleScroll = () => {
-    if (!imgContainerRef.current) return;
-    imgContainerRef.current.style.maxHeight = `calc(100vw / 0.67 - ${window.scrollY > 140 ? (window.scrollY - 140) / 1.5 : 0
-      }px + 16px)`;
-  };
-
-  useEffect(() => {
-    setMounted(true);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const isDesktop = mounted && smUp;
+  const isDesktop = smUp;
 
   useEffect(() => {
     return () => {
@@ -194,13 +188,12 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
             </Link>
           ) : null}
         </Stack>
-        <Grid container columnSpacing={{ sm: 5 }} sx={styles.productContainer}>
+        <Grid container columnSpacing={{ sm: 5 }} rowSpacing={{ xs: 2, sm: 0 }} sx={styles.productContainer}>
           <Grid
             item
             xs={12}
             sm={6}
             sx={styles.imageGridItem}
-            ref={isDesktop ? null : imgContainerRef}
           >
             {isDesktop ? (
               <Card sx={styles.imageCard}>
@@ -301,6 +294,30 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                 </Typography>
                 {hasDiscount && <Stack sx={styles.discountBadge}>{`-${discountPercent}%`}</Stack>}
               </Stack>
+              {stockStatusConfig && (
+                <Stack direction="row" alignItems="center" gap={0.8}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      bgcolor: stockStatusConfig.color,
+                      flexShrink: 0,
+                      animation: 'stockPulse 1.2s ease-in-out infinite',
+                      '@keyframes stockPulse': {
+                        '0%, 100%': { opacity: 0.3, transform: 'scale(0.9)' },
+                        '50%': { opacity: 1, transform: 'scale(1.15)' },
+                      },
+                    }}
+                  />
+                  <Typography
+                    variant="body2"
+                    sx={{ color: stockStatusConfig.color, fontWeight: 600, fontSize: { xs: 15, sm: 16 } }}
+                  >
+                    {stockStatusConfig.label}
+                  </Typography>
+                </Stack>
+              )}
               {variants && (
                 <ProductVariants
                   variants={variants}

@@ -151,6 +151,8 @@ export type ShopProductPrice = {
   currency: Currency;
 };
 
+export type ProductStockStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
+
 export type ShopProductListItemData = {
   id: string;
   brand: string;
@@ -166,6 +168,7 @@ export type ShopProductListItemData = {
   breadcrumbs?: string;
   hasVariant?: boolean;
   quantity?: number;
+  stockStatus?: ProductStockStatus;
 };
 
 export type ShopProductVariantOptionData = {
@@ -214,6 +217,7 @@ export type ShopProductData = {
   price: ShopProductPrice;
   note?: string;
   quantity: number;
+  stockStatus?: ProductStockStatus;
   rating?: ShopProductRating;
   description?: string;
   attributes?: ShopProductAttribute[];
@@ -247,7 +251,7 @@ export type CheckoutRequestData = {
   paymentType: PaymentType;
 };
 
-export type ShopFilterType = 'brand' | 'category' | 'gender' | 'size' | 'price' | 'color';
+export type ShopFilterType = 'brand' | 'category' | 'gender' | 'size' | 'price' | 'color' | 'concern' | 'benefit';
 
 export type ShopGender =
   | '1' // women
@@ -271,6 +275,8 @@ export type ShopFilter<T extends ShopFilterType> = {
     colors?: string;
     price?: string;
     color?: string;
+    concern?: string;
+    benefit?: string;
   };
   selected?: boolean;
   allowMultiple?: boolean;
@@ -283,6 +289,8 @@ export type ShopSearchResponseFilters = {
   genders?: ShopFilter<'gender'>[];
   sizes?: ShopFilter<'size'>[];
   colors?: ShopFilter<'color'>[];
+  benefits?: ShopFilter<'benefit'>[];
+  concerns?: ShopFilter<'concern'>[];
   priceRanges?: ShopFilter<'price'>[];
 };
 
@@ -314,6 +322,8 @@ export type ShopSearchOptions = {
   collection?: string;
   color?: string;
   price?: string; // min-max
+  concern?: string;
+  benefit?: string;
 };
 
 export type ShopSearchResponse = {

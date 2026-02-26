@@ -47,6 +47,8 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
 
   const selectedCategoryTokens = options.category?.split(",").filter(Boolean) ?? [];
   const selectedBrandTokens = options.brand?.split(",").filter(Boolean) ?? [];
+  const selectedConcernTokens = options.concern?.split(",").filter(Boolean) ?? [];
+  const selectedBenefitTokens = options.benefit?.split(",").filter(Boolean) ?? [];
 
   // Backward compatibility: still accept IDs if old links exist.
   const selectedCategoryIds = selectedCategoryTokens
@@ -54,6 +56,18 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     .filter(Boolean);
   const selectedBrandIds = selectedBrandTokens
     .map((token) => brandSlugToId[token] ?? token)
+    .filter(Boolean);
+  const concernSlugToId = Object.fromEntries(
+    (filterAggregations.concerns ?? []).map((concern) => [concern.slug, concern.id])
+  );
+  const selectedConcernIds = selectedConcernTokens
+    .map((token) => concernSlugToId[token] ?? token)
+    .filter(Boolean);
+  const benefitSlugToId = Object.fromEntries(
+    (filterAggregations.benefits ?? []).map((benefit) => [benefit.slug, benefit.id])
+  );
+  const selectedBenefitIds = selectedBenefitTokens
+    .map((token) => benefitSlugToId[token] ?? token)
     .filter(Boolean);
 
   const sanitizeQueryToken = (token: string) =>
@@ -68,7 +82,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     .map(sanitizeQueryToken)
     .filter(Boolean) ?? [];
 
-  const applyCollectionFilter = <T extends { in: (column: string, values: string[]) => T }>(
+  const applyProductIdFilter = <T extends { in: (column: string, values: string[]) => T }>(
     builder: T,
     productIds: string[] | null
   ): T => (productIds ? builder.in("id", productIds) : builder);
@@ -144,6 +158,54 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     }
   }
 
+  let concernProductIds: string[] | null = null;
+  if (selectedConcernIds.length > 0) {
+    const { data: productConcerns } = await supabase
+      .from("product_concerns")
+      .select("product_id")
+      .in("concern_id", selectedConcernIds);
+
+    const concernIds = Array.from(
+      new Set((productConcerns ?? []).map((row) => String(row.product_id)).filter(Boolean))
+    );
+    concernProductIds = concernIds;
+
+    if (concernProductIds.length === 0) {
+      return {
+        products: [],
+        totalCount: 0,
+        tq: options.query,
+        filters: { selectedOptions: options },
+        sortOptions: SORT_OPTIONS,
+        session: { _S1: "supabase" },
+      };
+    }
+  }
+
+  let benefitProductIds: string[] | null = null;
+  if (selectedBenefitIds.length > 0) {
+    const { data: productBenefits } = await supabase
+      .from("product_benefits")
+      .select("product_id")
+      .in("benefit_id", selectedBenefitIds);
+
+    const benefitIds = Array.from(
+      new Set((productBenefits ?? []).map((row) => String(row.product_id)).filter(Boolean))
+    );
+    benefitProductIds = benefitIds;
+
+    if (benefitProductIds.length === 0) {
+      return {
+        products: [],
+        totalCount: 0,
+        tq: options.query,
+        filters: { selectedOptions: options },
+        sortOptions: SORT_OPTIONS,
+        session: { _S1: "supabase" },
+      };
+    }
+  }
+
   // ---------------------------------------------------
   // MAIN PRODUCT QUERY
   // ---------------------------------------------------
@@ -203,10 +265,46 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     `
     );
 
-  query = applyCollectionFilter(query, collectionProductIds);
-  priceAggQuery = applyCollectionFilter(priceAggQuery, collectionProductIds);
-  categoryAggQuery = applyCollectionFilter(categoryAggQuery, collectionProductIds);
-  brandAggQuery = applyCollectionFilter(brandAggQuery, collectionProductIds);
+  let concernAggQuery = supabase
+    .from("products")
+    .select(
+      `
+      id,
+      product_concerns!inner(concern_id),
+      product_prices!inner(price_current)
+    `
+    );
+
+  let benefitAggQuery = supabase
+    .from("products")
+    .select(
+      `
+      id,
+      product_benefits!inner(benefit_id),
+      product_prices!inner(price_current)
+    `
+    );
+
+  query = applyProductIdFilter(query, collectionProductIds);
+  priceAggQuery = applyProductIdFilter(priceAggQuery, collectionProductIds);
+  categoryAggQuery = applyProductIdFilter(categoryAggQuery, collectionProductIds);
+  brandAggQuery = applyProductIdFilter(brandAggQuery, collectionProductIds);
+  concernAggQuery = applyProductIdFilter(concernAggQuery, collectionProductIds);
+  benefitAggQuery = applyProductIdFilter(benefitAggQuery, collectionProductIds);
+
+  query = applyProductIdFilter(query, concernProductIds);
+  priceAggQuery = applyProductIdFilter(priceAggQuery, concernProductIds);
+  categoryAggQuery = applyProductIdFilter(categoryAggQuery, concernProductIds);
+  brandAggQuery = applyProductIdFilter(brandAggQuery, concernProductIds);
+  concernAggQuery = applyProductIdFilter(concernAggQuery, concernProductIds);
+  benefitAggQuery = applyProductIdFilter(benefitAggQuery, concernProductIds);
+
+  query = applyProductIdFilter(query, benefitProductIds);
+  priceAggQuery = applyProductIdFilter(priceAggQuery, benefitProductIds);
+  categoryAggQuery = applyProductIdFilter(categoryAggQuery, benefitProductIds);
+  brandAggQuery = applyProductIdFilter(brandAggQuery, benefitProductIds);
+  concernAggQuery = applyProductIdFilter(concernAggQuery, benefitProductIds);
+  benefitAggQuery = applyProductIdFilter(benefitAggQuery, benefitProductIds);
 
   // Keep a single related price row to avoid duplicate product rows.
   query = query.limit(1, { foreignTable: "product_prices" });
@@ -227,20 +325,28 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
   priceAggQuery = applyCategoryFilter(priceAggQuery);
   // Keep brand counts contextual to selected categories
   brandAggQuery = applyCategoryFilter(brandAggQuery);
+  concernAggQuery = applyCategoryFilter(concernAggQuery);
+  benefitAggQuery = applyCategoryFilter(benefitAggQuery);
 
   query = applyBrandFilter(query);
   priceAggQuery = applyBrandFilter(priceAggQuery);
   // Keep category counts contextual to selected brands
   categoryAggQuery = applyBrandFilter(categoryAggQuery);
+  concernAggQuery = applyBrandFilter(concernAggQuery);
+  benefitAggQuery = applyBrandFilter(benefitAggQuery);
 
   query = applyQueryFilter(query);
   priceAggQuery = applyQueryFilter(priceAggQuery);
   categoryAggQuery = applyQueryFilter(categoryAggQuery);
   brandAggQuery = applyQueryFilter(brandAggQuery);
+  concernAggQuery = applyQueryFilter(concernAggQuery);
+  benefitAggQuery = applyQueryFilter(benefitAggQuery);
 
   query = applyPriceFilter(query);
   categoryAggQuery = applyPriceFilter(categoryAggQuery);
   brandAggQuery = applyPriceFilter(brandAggQuery);
+  concernAggQuery = applyPriceFilter(concernAggQuery);
+  benefitAggQuery = applyPriceFilter(benefitAggQuery);
 
   // sort
   switch (sort) {
@@ -284,17 +390,21 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
   }
 
   // Run product query and filter aggregations in parallel
-  const [productResult, priceAggResult, categoryAggResult, brandAggResult] = await Promise.all([
+  const [productResult, priceAggResult, categoryAggResult, brandAggResult, concernAggResult, benefitAggResult] = await Promise.all([
     query,
     priceAggQuery,
     categoryAggQuery,
     brandAggQuery,
+    concernAggQuery,
+    benefitAggQuery,
   ]);
 
   const { data, error, count } = productResult;
   const { data: priceAggData } = priceAggResult;
   const { data: categoryAggData } = categoryAggResult;
   const { data: brandAggData } = brandAggResult;
+  const { data: concernAggData } = concernAggResult;
+  const { data: benefitAggData } = benefitAggResult;
 
   if (error || !data) {
     console.error("[SUPABASE] fetchProductsSupabase error:", error);
@@ -398,6 +508,54 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     allowMultiple: true,
   }));
 
+  const contextualBenefitSets = (benefitAggData ?? []).reduce<Record<string, Set<string>>>((acc, row) => {
+    if (!row.id || !Array.isArray(row.product_benefits)) return acc;
+    row.product_benefits.forEach((pb) => {
+      if (!pb.benefit_id) return;
+      if (!acc[pb.benefit_id]) acc[pb.benefit_id] = new Set<string>();
+      acc[pb.benefit_id].add(String(row.id));
+    });
+    return acc;
+  }, {});
+  const contextualBenefitCounts = Object.fromEntries(
+    Object.entries(contextualBenefitSets).map(([benefitId, ids]) => [benefitId, ids.size])
+  );
+
+  const benefitFilters: ShopFilter<'benefit'>[] = (filterAggregations.benefits ?? [])
+    .map((b) => ({
+      type: "benefit" as const,
+      text: `${b.name} (${contextualBenefitCounts[b.id] ?? 0})`,
+      count: contextualBenefitCounts[b.id] ?? 0,
+      searchOptions: { benefit: b.slug },
+      selected: selectedBenefitIds.includes(b.id),
+      allowMultiple: true,
+    }))
+    .filter((f) => Boolean(f.selected) || (f.count ?? 0) > 0);
+
+  const contextualConcernSets = (concernAggData ?? []).reduce<Record<string, Set<string>>>((acc, row) => {
+    if (!row.id || !Array.isArray(row.product_concerns)) return acc;
+    row.product_concerns.forEach((pc) => {
+      if (!pc.concern_id) return;
+      if (!acc[pc.concern_id]) acc[pc.concern_id] = new Set<string>();
+      acc[pc.concern_id].add(String(row.id));
+    });
+    return acc;
+  }, {});
+  const contextualConcernCounts = Object.fromEntries(
+    Object.entries(contextualConcernSets).map(([concernId, ids]) => [concernId, ids.size])
+  );
+
+  const concernFilters: ShopFilter<'concern'>[] = (filterAggregations.concerns ?? [])
+    .map((c) => ({
+      type: "concern" as const,
+      text: `${c.name} (${contextualConcernCounts[c.id] ?? 0})`,
+      count: contextualConcernCounts[c.id] ?? 0,
+      searchOptions: { concern: c.slug },
+      selected: selectedConcernIds.includes(c.id),
+      allowMultiple: true,
+    }))
+    .filter((f) => Boolean(f.selected) || (f.count ?? 0) > 0);
+
   const contextualPriceByProduct = (priceAggData ?? []).reduce<Record<string, number>>((acc, row) => {
     const productId = row.id ? String(row.id) : '';
     const price = Number(row.product_prices?.[0]?.price_current);
@@ -433,6 +591,8 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       },
       categories: categoryFilters,
       brands: brandFilters,
+      benefits: benefitFilters,
+      concerns: concernFilters,
       priceRanges: priceFilters,
     },
     sortOptions: SORT_OPTIONS,

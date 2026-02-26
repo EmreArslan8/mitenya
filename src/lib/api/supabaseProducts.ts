@@ -78,7 +78,7 @@ export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopPr
       currency,
       product_prices(price_current, price_original, currency),
       product_images(image_path, image_url, is_main, sort_order),
-      product_stock(quantity),
+      product_stock(quantity, stock_status),
       attributes_json,
       meta_title,
       meta_description,
@@ -113,8 +113,18 @@ export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopPr
     return Number(quantity ?? 0);
   };
 
+  const readStockStatus = (row: unknown): "in_stock" | "low_stock" | "out_of_stock" | undefined => {
+    if (typeof row !== "object" || row === null) return undefined;
+    const status = (row as { stock_status?: unknown }).stock_status;
+    if (status === "in_stock" || status === "low_stock" || status === "out_of_stock") {
+      return status;
+    }
+    return undefined;
+  };
+
   const rawStockRows = Array.isArray(data.product_stock) ? data.product_stock : [];
   const firstStockQuantity = readStockQuantity(rawStockRows[0]);
+  const firstStockStatus = readStockStatus(rawStockRows[0]);
 
   // const { data: reviewRows } = await supabase
   //   .from("product_reviews")
@@ -197,6 +207,7 @@ export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopPr
       currency: price.currency || "TRY",
     },
     quantity: firstStockQuantity,
+    stockStatus: firstStockStatus,
     attributes: attributes,
     reviews: [],
     faqs: normalizedFaqs,

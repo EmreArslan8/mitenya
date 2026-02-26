@@ -93,6 +93,61 @@ const useStyles = withPalette((palette) => {
       px: { xs: 0.5, sm: 0 },
       color: palette.text.mediumLight,
     },
+    priceWrapper: {
+      gap: 1.5,
+      pt: 0.5,
+      maxWidth: { sm: 210 },
+    },
+    priceSlider: {
+      px: 1,
+      '& .MuiSlider-rail': {
+        opacity: 1,
+        backgroundColor: palette.gray[200],
+      },
+      '& .MuiSlider-track': {
+        border: 0,
+        backgroundColor: palette.text.main,
+      },
+      '& .MuiSlider-thumb': {
+        width: 16,
+        height: 16,
+        backgroundColor: palette.text.main,
+      },
+    },
+    priceInputsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 1,
+    },
+    priceInput: {
+      width: { xs: 130, sm: 92 },
+      '& .MuiOutlinedInput-root': {
+        height: 42,
+      },
+      '& input': {
+        fontSize: 16,
+      },
+    },
+    priceTo: {
+      color: palette.text.medium,
+      fontSize: 16,
+    },
+    priceToggleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 0.75,
+      mt: -0.5,
+    },
+    priceToggleLabel: {
+      fontSize: 14,
+      color: palette.text.medium,
+      lineHeight: 1.2,
+    },
+    priceApplyButton: {
+      alignSelf: 'flex-start',
+      minWidth: 88,
+      textTransform: 'none',
+    },
   };
 });
 

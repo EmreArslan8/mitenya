@@ -17,6 +17,20 @@ interface BrandAggregation {
   count: number;
 }
 
+interface ConcernAggregation {
+  id: string;
+  name: string;
+  slug: string;
+  count: number;
+}
+
+interface BenefitAggregation {
+  id: string;
+  name: string;
+  slug: string;
+  count: number;
+}
+
 interface PriceRange {
   label: string;
   min: number;
@@ -27,13 +41,15 @@ interface PriceRange {
 interface FilterCache {
   categories: CategoryAggregation[];
   brands: BrandAggregation[];
+  benefits: BenefitAggregation[];
+  concerns: ConcernAggregation[];
   priceRanges: PriceRange[];
   lastUpdated: number;
 }
 
 // In-memory cache
 let filterCache: FilterCache | null = null;
-const FILTER_CACHE_REDIS_KEY = 'shop:filter-aggregations:v1';
+const FILTER_CACHE_REDIS_KEY = 'shop:filter-aggregations:v2';
 
 function parseFilterCache(raw: unknown): FilterCache | null {
   if (typeof raw !== 'string') return null;
@@ -41,9 +57,15 @@ function parseFilterCache(raw: unknown): FilterCache | null {
   try {
     const parsed = JSON.parse(raw) as FilterCache;
     if (!parsed || typeof parsed.lastUpdated !== 'number') return null;
-    if (!Array.isArray(parsed.categories) || !Array.isArray(parsed.brands) || !Array.isArray(parsed.priceRanges)) {
+    if (
+      !Array.isArray(parsed.categories) ||
+      !Array.isArray(parsed.brands) ||
+      !Array.isArray(parsed.priceRanges)
+    ) {
       return null;
     }
+    if (!Array.isArray((parsed as any).benefits)) (parsed as any).benefits = [];
+    if (!Array.isArray((parsed as any).concerns)) (parsed as any).concerns = [];
     return parsed;
   } catch {
     return null;
@@ -101,10 +123,22 @@ async function refreshFilterCache(): Promise<FilterCache> {
   const supabase = getSupabaseAnon();
 
   // Run all queries in parallel
-  const [categoriesResult, brandsResult, productAggResult] = await Promise.all([
+  const [
+    categoriesResult,
+    brandsResult,
+    productAggResult,
+    concernsResult,
+    productConcernsResult,
+    benefitsResult,
+    productBenefitsResult,
+  ] = await Promise.all([
     supabase.from('categories').select('id, name, slug'),
     supabase.from('brands').select('id, name, slug'),
     supabase.from('products').select('id, category_id, category_name, brand_id, brand_name, current_price'),
+    supabase.from('concerns').select('id, name_tr, slug, is_active, sort_order'),
+    supabase.from('product_concerns').select('product_id, concern_id'),
+    supabase.from('benefits').select('id, name_tr, slug, is_active, sort_order'),
+    supabase.from('product_benefits').select('product_id, benefit_id'),
   ]);
 
   const categoryCountMap = (productAggResult.data ?? []).reduce<Record<string, number>>((acc, row) => {
@@ -201,6 +235,40 @@ async function refreshFilterCache(): Promise<FilterCache> {
     if (!brand.name) brand.name = brandNameFallbackMap[brand.id] ?? brand.id;
   });
 
+  const concernCountMap = (productConcernsResult.data ?? []).reduce<Record<string, Set<string>>>((acc, row) => {
+    if (!row.concern_id || !row.product_id) return acc;
+    if (!acc[row.concern_id]) acc[row.concern_id] = new Set<string>();
+    acc[row.concern_id].add(String(row.product_id));
+    return acc;
+  }, {});
+
+  const concerns: ConcernAggregation[] = (concernsResult.data ?? [])
+    .filter((row) => row.is_active !== false)
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map((row) => ({
+      id: row.id,
+      name: row.name_tr || row.slug,
+      slug: row.slug,
+      count: concernCountMap[row.id]?.size ?? 0,
+    }));
+
+  const benefitCountMap = (productBenefitsResult.data ?? []).reduce<Record<string, Set<string>>>((acc, row) => {
+    if (!row.benefit_id || !row.product_id) return acc;
+    if (!acc[row.benefit_id]) acc[row.benefit_id] = new Set<string>();
+    acc[row.benefit_id].add(String(row.product_id));
+    return acc;
+  }, {});
+
+  const benefits: BenefitAggregation[] = (benefitsResult.data ?? [])
+    .filter((row) => row.is_active !== false)
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map((row) => ({
+      id: row.id,
+      name: row.name_tr || row.slug,
+      slug: row.slug,
+      count: benefitCountMap[row.id]?.size ?? 0,
+    }));
+
   // Process price ranges
   const prices = (productAggResult.data ?? [])
     .map((p) => Number(p.current_price))
@@ -216,6 +284,8 @@ async function refreshFilterCache(): Promise<FilterCache> {
   filterCache = {
     categories,
     brands,
+    benefits,
+    concerns,
     priceRanges,
     lastUpdated: Date.now(),
   };
@@ -265,4 +335,4 @@ export function getCacheStatus(): { valid: boolean; age: number | null } {
 }
 
 export { PRICE_RANGES };
-export type { CategoryAggregation, BrandAggregation, PriceRange, FilterCache };
+export type { CategoryAggregation, BrandAggregation, ConcernAggregation, BenefitAggregation, PriceRange, FilterCache };

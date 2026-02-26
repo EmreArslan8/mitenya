@@ -110,6 +110,12 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
         return;
       }
 
+      if (detail.quantity <= 0) {
+        showFavoriteFeedback('Ürün stokta yok', 'error');
+        setQuickAddLoading(false);
+        return;
+      }
+
       // Liste verisinden hasVariant kontrolü (modal açmadan önce)
       // Eğer liste verisinde hasVariant false ise direkt ekle
       if (!data.hasVariant) {
