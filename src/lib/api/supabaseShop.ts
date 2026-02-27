@@ -234,9 +234,8 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     const min = Number(minStr);
     const max = maxStr ? Number(maxStr) : null;
     if (!Number.isFinite(min)) return builder;
-    if (max && Number.isFinite(max))
-      return builder.gte("product_prices.price_current", min).lte("product_prices.price_current", max);
-    return builder.gte("product_prices.price_current", min);
+    if (max && Number.isFinite(max)) return builder.gte("current_price", min).lte("current_price", max);
+    return builder.gte("current_price", min);
   };
 
   // ---------------------------------------------------
@@ -336,6 +335,9 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       brand_name,
       category_id,
       category_name,
+      current_price,
+      original_price,
+      currency,
       rating_average,
       rating_count,
       created_at,
@@ -345,8 +347,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       , product_stock(quantity)
     `,
       { count: "exact" }
-    )
-    .range(offset, offset + PRODUCTS_PER_PAGE - 1);
+    );
 
   // Price aggregation query (contextual to current filters except selected price)
   let priceAggQuery = supabase
@@ -354,7 +355,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     .select(
       `
       id,
-      product_prices!inner(price_current)
+      current_price
     `
     );
 
@@ -366,7 +367,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       id,
       category_id,
       category_name,
-      product_prices!inner(price_current)
+      current_price
     `
     );
 
@@ -377,7 +378,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       id,
       brand_id,
       brand_name,
-      product_prices!inner(price_current)
+      current_price
     `
     );
 
@@ -423,19 +424,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
   benefitAggQuery = applyProductIdFilter(benefitAggQuery, benefitProductIds);
 
   // Keep a single related price row to avoid duplicate product rows.
-  query = query.limit(1, { foreignTable: "product_prices" });
-
-  priceAggQuery = priceAggQuery
-    .order("price_current", { ascending: true, foreignTable: "product_prices" })
-    .limit(1, { foreignTable: "product_prices" });
-
-  categoryAggQuery = categoryAggQuery
-    .order("price_current", { ascending: true, foreignTable: "product_prices" })
-    .limit(1, { foreignTable: "product_prices" });
-
-  brandAggQuery = brandAggQuery
-    .order("price_current", { ascending: true, foreignTable: "product_prices" })
-    .limit(1, { foreignTable: "product_prices" });
+  query = query.limit(1, { referencedTable: "product_prices" });
 
   query = applyCategoryFilter(query);
   priceAggQuery = applyCategoryFilter(priceAggQuery);
@@ -492,10 +481,10 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       query = query.order("rating_count", { ascending: false, nullsFirst: false });
       break;
     case "pasc":
-      query = query.order("price_current", { ascending: true, foreignTable: "product_prices" });
+      query = query.order("current_price", { ascending: true, nullsFirst: false });
       break;
     case "pdsc":
-      query = query.order("price_current", { ascending: false, foreignTable: "product_prices" });
+      query = query.order("current_price", { ascending: false, nullsFirst: false });
       break;
     case "disc":
       query = query.order("created_at", { ascending: false });
@@ -504,6 +493,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       query = query.order("created_at", { ascending: false });
       break;
   }
+  query = query.range(offset, offset + PRODUCTS_PER_PAGE - 1);
 
   // Run product query and filter aggregations in parallel
   const [productResult, priceAggResult, categoryAggResult, brandAggResult, concernAggResult, benefitAggResult] = await Promise.all([
@@ -534,10 +524,12 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     };
   }
 
+  const pagedData = data;
+
   // ---------------------------------------------------
   // MAP PRODUCTS
   // ---------------------------------------------------
-  const products: ShopProductListItemData[] = data.map((p) => {
+  const products: ShopProductListItemData[] = pagedData.map((p) => {
     const priceRow = p.product_prices?.[0];
     const imagesSorted = [...(p.product_images ?? [])].sort(
       (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
@@ -556,9 +548,11 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       })),
       imgSrc: r2Url(imagesSorted[0]?.image_url ?? ""),
       price: {
-        currentPrice: Number(priceRow?.price_current ?? 0),
-        originalPrice: Number(priceRow?.price_original ?? priceRow?.price_current ?? 0),
-        currency: priceRow?.currency ?? "TRY",
+        currentPrice: Number(p.current_price ?? priceRow?.price_current ?? 0),
+        originalPrice: Number(
+          p.original_price ?? priceRow?.price_original ?? p.current_price ?? priceRow?.price_current ?? 0
+        ),
+        currency: p.currency ?? priceRow?.currency ?? "TRY",
       },
       hasVariant: p.has_variants ?? false,
       quantity: p.product_stock?.[0]?.quantity,
@@ -674,7 +668,7 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
 
   const contextualPriceByProduct = (priceAggData ?? []).reduce<Record<string, number>>((acc, row) => {
     const productId = row.id ? String(row.id) : '';
-    const price = Number(row.product_prices?.[0]?.price_current);
+    const price = Number(row.current_price);
     if (!productId || !Number.isFinite(price)) return acc;
     if (!(productId in acc)) acc[productId] = price;
     return acc;

@@ -2,6 +2,7 @@
 
 import { ShopSearchSort } from '@/lib/api/types';
 import searchUrlFromOptions, { searchOptionsFromSearchParams } from '@/lib/shop/searchHelpers';
+import { UI_SORT_OPTIONS } from '@/lib/constants/shop';
 import { Box, MenuItem, Select } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -21,14 +22,14 @@ const SearchSort = ({
   buttonLike = false,
   hideSelectedValue = false,
 }: SearchSortProps) => {
-
+  const allowedUiSorts = UI_SORT_OPTIONS as readonly ShopSearchSort[];
   const searchParams = useSearchParams()!;
   const router = useRouter();
   const [sort, setSort] = useState<ShopSearchSort>('rct');
   const [loading, setLoading] = useState(false);
   const visibleSortOptions = useMemo(
-    () => sortOptions.filter((option) => option !== 'asc' && option !== 'dsc'),
-    [sortOptions]
+    () => sortOptions.filter((option) => allowedUiSorts.includes(option)),
+    [sortOptions, allowedUiSorts]
   );
   const selectedSort = visibleSortOptions.includes(sort) ? sort : (visibleSortOptions[0] ?? 'rct');
 

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Box, Grid, Stack, Typography, Select, MenuItem } from '@mui/material';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import { ShopSearchResponse, ShopSearchSort } from '@/lib/api/types';
+import { UI_SORT_OPTIONS } from '@/lib/constants/shop';
 import styles from './styles';
 
 type CategoryViewProps = {
@@ -26,6 +27,7 @@ const SORT_LABELS: Record<ShopSearchSort, string> = {
 };
 
 const CategoryView = ({ category, initialData }: CategoryViewProps) => {
+  const allowedUiSorts = UI_SORT_OPTIONS as readonly ShopSearchSort[];
   const router = useRouter();
   const searchParams = useSearchParams();
   const [sort, setSort] = useState<ShopSearchSort>(
@@ -35,7 +37,7 @@ const CategoryView = ({ category, initialData }: CategoryViewProps) => {
 
   const products = initialData.products ?? [];
   const visibleSortOptions = (initialData.sortOptions ?? ['rct', 'pdsc', 'pasc']).filter(
-    (opt) => opt !== 'asc' && opt !== 'dsc'
+    (opt) => allowedUiSorts.includes(opt)
   );
   const selectedSort = visibleSortOptions.includes(sort) ? sort : (visibleSortOptions[0] ?? 'rct');
 

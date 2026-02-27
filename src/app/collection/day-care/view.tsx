@@ -8,6 +8,7 @@ import { Sun, Sparkles, Shield, Droplets } from 'lucide-react';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import { ShopSearchResponse, ShopSearchSort } from '@/lib/api/types';
 import { Collection } from '@/lib/api/supabaseShop';
+import { UI_SORT_OPTIONS } from '@/lib/constants/shop';
 import { useStyles } from './styles';
 
 type DayCareViewProps = {
@@ -71,6 +72,7 @@ const FloatingBubble = ({ delay, size, left, top }: { delay: number; size: numbe
 );
 
 const DayCareView = ({ initialData }: DayCareViewProps) => {
+  const allowedUiSorts = UI_SORT_OPTIONS as readonly ShopSearchSort[];
   const router = useRouter();
   const searchParams = useSearchParams();
   const styles = useStyles();
@@ -82,7 +84,7 @@ const DayCareView = ({ initialData }: DayCareViewProps) => {
 
   const products = initialData.products ?? [];
   const visibleSortOptions = (initialData.sortOptions ?? ['rct', 'pdsc', 'pasc']).filter(
-    (opt) => opt !== 'asc' && opt !== 'dsc'
+    (opt) => allowedUiSorts.includes(opt)
   );
   const selectedSort = visibleSortOptions.includes(sort) ? sort : (visibleSortOptions[0] ?? 'rct');
 

@@ -44,3 +44,6 @@ export const SORT_OPTIONS = [
   'disc', // biggest discount
 ] as const;
 export const DEFAULT_SORT = 'rct';
+
+// Sort options exposed in UI dropdowns.
+export const UI_SORT_OPTIONS = ['rct', 'disc', 'pasc', 'pdsc'] as const;
