@@ -47,7 +47,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const isOutOfStock = typeof data.quantity === 'number' && data.quantity <= 0;
   const stockStatusConfig =
     data.stockStatus === 'in_stock'
-      ? { label: 'Stokta var, şimdi sipariş verin; aynı gün kargoya hazırlayalım.', color: 'success.main' }
+      ? { label: 'Stokta var', color: 'success.main' }
       : data.stockStatus === 'low_stock'
         ? { label: 'Tükenmek üzere, hemen sipariş edin', color: 'warning.main' }
         : data.stockStatus === 'out_of_stock'

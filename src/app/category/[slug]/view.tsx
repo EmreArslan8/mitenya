@@ -13,6 +13,18 @@ type CategoryViewProps = {
   initialData: ShopSearchResponse;
 };
 
+const SORT_LABELS: Record<ShopSearchSort, string> = {
+  rct: 'Önerilen',
+  disc: 'İndirimli',
+  pasc: 'Fiyat (Artan)',
+  pdsc: 'Fiyat (Azalan)',
+  rcc: 'En Çok Değerlendirilen',
+  bst: 'En çok satan',
+  fav: 'En favori',
+  asc: 'Fiyat (Artan)',
+  dsc: 'Fiyat (Azalan)',
+};
+
 const CategoryView = ({ category, initialData }: CategoryViewProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -22,6 +34,10 @@ const CategoryView = ({ category, initialData }: CategoryViewProps) => {
   const [isNavigating, setIsNavigating] = useState(false);
 
   const products = initialData.products ?? [];
+  const visibleSortOptions = (initialData.sortOptions ?? ['rct', 'pdsc', 'pasc']).filter(
+    (opt) => opt !== 'asc' && opt !== 'dsc'
+  );
+  const selectedSort = visibleSortOptions.includes(sort) ? sort : (visibleSortOptions[0] ?? 'rct');
 
   useEffect(() => {
     setSort((searchParams?.get('sort') as ShopSearchSort) ?? 'rct');
@@ -59,19 +75,13 @@ const CategoryView = ({ category, initialData }: CategoryViewProps) => {
         </Typography>
         <Select
           size="small"
-          value={sort}
+          value={selectedSort}
           onChange={(e) => handleSortChange(e.target.value as ShopSearchSort)}
           sx={styles.sort}
         >
-          {(initialData.sortOptions ?? ['rct', 'dsc', 'asc']).map((opt) => (
+          {visibleSortOptions.map((opt) => (
             <MenuItem key={opt} value={opt}>
-              {opt === 'rct'
-                ? 'En yeni'
-                : opt === 'dsc'
-                  ? 'Fiyat (yüksek → düşük)'
-                  : opt === 'asc'
-                    ? 'Fiyat (düşük → yüksek)'
-                    : opt}
+              {SORT_LABELS[opt] ?? opt}
             </MenuItem>
           ))}
         </Select>

@@ -116,13 +116,13 @@ const SearchProductsView = ({ initialData }: SearchProductsViewProps) => {
         </Stack>
         <Grid container columnSpacing={2.5} rowSpacing={3}>
           {products?.map((p) => (
-            <Grid item xs={6} sm={4} md={3} key={p.url}>
+            <Grid item xs={6} sm={4} md={4} key={p.url}>
               <ProductCard data={p} />
             </Grid>
           ))}
           {loading &&
             Array.from(Array((products.length % 4) + 4).keys()).map((e) => (
-              <Grid item xs={6} sm={4} md={3} key={e}>
+              <Grid item xs={6} sm={4} md={4} key={e}>
                 <ProductCardSkeleton />
               </Grid>
             ))}

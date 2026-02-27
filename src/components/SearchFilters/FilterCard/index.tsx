@@ -75,16 +75,18 @@ const FilterCard = ({
     const finiteMaxValues = parsed
       .map((e) => e.max)
       .filter((e): e is number => e !== null && Number.isFinite(e));
-    const maxFromFilters = finiteMaxValues.length ? Math.max(...finiteMaxValues) : min + 1000;
-
+    const maxFromFilters = finiteMaxValues.length
+      ? Math.max(...finiteMaxValues)
+      : Math.max(...parsed.map((e) => e.min));
     const selected = parsePriceToken(selectedPrice);
+    const selectedMin = selected?.min ?? min;
     const selectedMax = selected?.max ?? null;
     const max =
       selectedMax !== null && Number.isFinite(selectedMax)
         ? Math.max(maxFromFilters, selectedMax)
         : maxFromFilters;
 
-    return { min, max };
+    return { min: Math.min(min, selectedMin), max };
   }, [data, isPriceFilter, selectedPrice]);
 
   useEffect(() => {
@@ -110,9 +112,11 @@ const FilterCard = ({
     <Card
       title={
         (smUp || showTitleOnMobile) && (
-          <Typography variant="cardTitle" fontWeight={600} textTransform="none">
-         {FILTER_TYPE_LABEL_TR[type]}
-          </Typography>
+          <Stack>
+            <Typography variant="cardTitle" fontWeight={600} textTransform="none">
+              {FILTER_TYPE_LABEL_TR[type]}
+            </Typography>
+          </Stack>
         )
       }
       noDivider
@@ -184,24 +188,10 @@ const FilterCard = ({
               disabled={isUpperOpenEnded}
             />
           </Stack>
-          <Stack sx={styles.priceToggleRow}>
-            <Checkbox
-              size="small"
-              checked={isUpperOpenEnded}
-              onChange={(event) => {
-                const checked = event.target.checked;
-                setIsUpperOpenEnded(checked);
-                if (checked) {
-                  setPriceRange(([min]) => [min, priceMeta?.max ?? PRICE_CAP]);
-                }
-              }}
-              sx={styles.checkbox}
-            />
-            <Typography sx={styles.priceToggleLabel}>Ve üzeri</Typography>
-          </Stack>
           <Button
             size="small"
             color="primary"
+            variant="contained"
             sx={styles.priceApplyButton}
             onClick={() => {
               const nextPrice = serializePriceToken(

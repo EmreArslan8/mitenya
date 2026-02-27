@@ -60,6 +60,10 @@ const NightCareView = ({ initialData, collection }: NightCareViewProps) => {
   const [mounted, setMounted] = useState(false);
 
   const products = initialData.products ?? [];
+  const visibleSortOptions = (initialData.sortOptions ?? ['rct', 'pdsc', 'pasc']).filter(
+    (opt) => opt !== 'asc' && opt !== 'dsc'
+  );
+  const selectedSort = visibleSortOptions.includes(sort) ? sort : (visibleSortOptions[0] ?? 'rct');
 
   useEffect(() => {
     setMounted(true);
@@ -185,11 +189,11 @@ const NightCareView = ({ initialData, collection }: NightCareViewProps) => {
 
           <Select
             size="small"
-            value={sort}
+            value={selectedSort}
             onChange={(e) => handleSortChange(e.target.value as ShopSearchSort)}
             sx={styles.sortSelect}
           >
-            {(initialData.sortOptions ?? ['rct', 'pdsc', 'pasc']).map((opt) => (
+            {visibleSortOptions.map((opt) => (
               <MenuItem key={opt} value={opt}>
                 {SORT_LABELS[opt] ?? opt}
               </MenuItem>

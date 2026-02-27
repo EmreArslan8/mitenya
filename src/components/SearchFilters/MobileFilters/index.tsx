@@ -15,7 +15,12 @@ interface MobileFiltersProps {
   onOptionClicked: (option: ShopFilter<ShopFilterType>) => void;
 }
 
-const MobileFilters = ({ filters, sortOptions, resultsCount, onOptionClicked }: MobileFiltersProps) => {
+const MobileFilters = ({
+  filters,
+  sortOptions,
+  resultsCount,
+  onOptionClicked,
+}: MobileFiltersProps) => {
   const styles = useStyles();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeFilterType, setActiveFilterType] = useState<ShopFilterType | null>(null);
