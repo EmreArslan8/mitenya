@@ -118,9 +118,12 @@ export const generateMetadata = async () => ({
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
+      { url: "/static/images/favicon-16x16-v2026.png", sizes: "16x16", type: "image/png" },
+      { url: "/static/images/favicon-32x32-v2026.png", sizes: "32x32", type: "image/png" },
+      { url: "/static/images/favicon-48x48-v2026.png", sizes: "48x48", type: "image/png" },
       { url: "/favicon-2026.ico", sizes: "48x48", type: "image/x-icon" },
     ],
-    shortcut: ["/favicon-2026.ico"],
+    shortcut: ["/static/images/favicon-32x32-v2026.png"],
     apple: [{ url: "/static/images/apple-touch-icon-v2026.png", type: "image/png" }],
   },
   openGraph: {
