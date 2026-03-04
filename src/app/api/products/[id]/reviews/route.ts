@@ -1,6 +1,7 @@
 import { ApiErrors } from '@/lib/api/errors';
 import { rateLimit } from '@/lib/api/rateLimit';
 import { getClientIp } from '@/lib/api/getClientIp';
+import { hasDeliveredPurchase } from '@/lib/api/reviewEligibility';
 import { createSupabaseServer } from '@/lib/supabase/server';
 import { ProductIdSchema } from '@/lib/validations/products';
 import { NextRequest, NextResponse } from 'next/server';
@@ -9,6 +10,7 @@ import { z } from 'zod';
 const createReviewSchema = z.object({
   rating: z.number().int().min(1).max(5),
   text: z.string().trim().min(5).max(2000),
+  title: z.string().trim().max(200).optional(),
 });
 
 type ReviewRow = {
@@ -18,6 +20,8 @@ type ReviewRow = {
   user_name: string | null;
   rating: number;
   text: string;
+  title: string | null;
+  verified: boolean;
   created_at: string;
 };
 
@@ -25,7 +29,9 @@ const rowToReview = (row: ReviewRow) => ({
   id: row.id,
   name: row.user_name ?? undefined,
   rating: row.rating ?? undefined,
+  title: row.title ?? undefined,
   text: row.text,
+  verified: row.verified ?? false,
   date: row.created_at,
 });
 
@@ -48,7 +54,7 @@ export async function GET(
     const supabase = await createSupabaseServer();
     const { data, error } = await supabase
       .from('product_reviews')
-      .select('id, product_id, user_id, user_name, rating, text, created_at')
+      .select('id, product_id, user_id, user_name, rating, text, title, verified, created_at')
       .eq('product_id', validation.data)
       .order('created_at', { ascending: false });
 
@@ -102,6 +108,19 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    if (!user.email) {
+      return NextResponse.json({ error: 'Email required' }, { status: 400 });
+    }
+
+    // Check if user has a delivered order containing this product
+    const hasPurchased = await hasDeliveredPurchase(supabase, validation.data, user.email);
+    if (!hasPurchased) {
+      return NextResponse.json(
+        { error: 'Bu ürünü satın almadan yorum yazamazsınız.' },
+        { status: 403 }
+      );
+    }
+
     let body: unknown;
     try {
       body = await req.json();
@@ -126,12 +145,14 @@ export async function POST(
       user_name: userName,
       rating: parsed.data.rating,
       text: parsed.data.text,
+      title: parsed.data.title ?? null,
+      verified: true,
     };
 
     const { data: saved, error } = await supabase
       .from('product_reviews')
       .upsert(upsertPayload, { onConflict: 'product_id,user_id' })
-      .select('id, product_id, user_id, user_name, rating, text, created_at')
+      .select('id, product_id, user_id, user_name, rating, text, title, verified, created_at')
       .single();
 
     if (error) {

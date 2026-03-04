@@ -193,13 +193,13 @@ export type ShopProductReview = {
   id?: string;
   name?: string;
   rating?: number;
+  title?: string;
   text: string;
   date?: string;
+  verified?: boolean;
 };
 
 export type ShopProductBreadcrumb = { text: string; searchOptions: ShopSearchOptions };
-
-export type Spec = { label: string; value: string };
 
 export type ShopProductData = {
   id: string;

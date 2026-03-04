@@ -4,7 +4,7 @@ import { defaultMaxWidth } from '@/theme/theme';
 const useStyles = withPalette((palette) => ({
   container: {
     width: '100vw',
-    mt: 10,
+    mt: 0,
     px: { xs: 2, sm: 3 },
     pb: { xs: 16, sm: 8 },
     pt: { xs: 4, sm: 5 },

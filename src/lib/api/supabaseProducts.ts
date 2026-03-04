@@ -126,31 +126,36 @@ export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopPr
   const firstStockQuantity = readStockQuantity(rawStockRows[0]);
   const firstStockStatus = readStockStatus(rawStockRows[0]);
 
-  // const { data: reviewRows } = await supabase
-  //   .from("product_reviews")
-  //   .select("id, user_name, rating, text, created_at")
-  //   .eq("product_id", String(data.id))
-  //   .order("created_at", { ascending: false });
+  const { data: reviewRows, error: reviewError } = await supabase
+    .from("product_reviews")
+    .select("id, user_name, rating, text, title, verified, created_at")
+    .eq("product_id", String(data.id))
+    .order("created_at", { ascending: false });
+  if (reviewError) {
+    console.error("[supabaseProducts] review fetch error:", reviewError);
+  }
 
-  // const reviews =
-  //   reviewRows?.map((r: any) => ({
-  //     id: r.id,
-  //     name: r.user_name ?? undefined,
-  //     rating: typeof r.rating === "number" ? r.rating : undefined,
-  //     text: r.text,
-  //     date: r.created_at,
-  //   })) ?? [];
+  const reviews =
+    reviewRows?.map((r: any) => ({
+      id: r.id,
+      name: r.user_name ?? undefined,
+      rating: typeof r.rating === "number" ? r.rating : undefined,
+      title: r.title ?? undefined,
+      text: r.text,
+      verified: r.verified ?? false,
+      date: r.created_at,
+    })) ?? [];
 
-  // const computedRating =
-  //   reviews.length > 0
-  //     ? {
-  //         averageRating:
-  //           Math.round(
-  //             (reviews.reduce((sum, r) => sum + (r.rating ?? 0), 0) / reviews.length) * 100
-  //           ) / 100,
-  //         totalCount: reviews.length,
-  //       }
-  //     : undefined;
+  const computedRating =
+    reviews.length > 0
+      ? {
+          averageRating:
+            Math.round(
+              (reviews.reduce((sum: number, r: any) => sum + (r.rating ?? 0), 0) / reviews.length) * 100
+            ) / 100,
+          totalCount: reviews.length,
+        }
+      : undefined;
 
   const { rows: faqRows } = await loadProductFaqs(String(data.id));
 
@@ -209,15 +214,16 @@ export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopPr
     quantity: firstStockQuantity,
     stockStatus: firstStockStatus,
     attributes: attributes,
-    reviews: [],
+    reviews,
     faqs: normalizedFaqs,
     rating:
-      data.rating_count > 0
+      computedRating ??
+      (data.rating_count > 0
         ? {
             averageRating: Number(data.rating_average) || 0,
             totalCount: Number(data.rating_count) || 0,
           }
-        : undefined,
+        : undefined),
     metaTitle: data.meta_title ?? null,
     metaDescription: data.meta_description ?? null,
     metaKeywords: data.meta_keywords ?? null,

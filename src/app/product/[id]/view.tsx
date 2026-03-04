@@ -20,6 +20,7 @@ import ProductFeatures from './components/ProductFeatures';
 import ProductRecommendations from './components/ProductRecommendations';
 import ProductReviews from './components/ProductReviews';
 import ProductSizeGuide from './components/ProductSizeGuide';
+import ProductStickyBar from './components/ProductStickyBar';
 import ProductVariants from './components/ProductVariants';
 import ProgressIndicator from './components/ProgressIndicator';
 import useStyles from './styles';
@@ -33,10 +34,13 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const { isAuthenticated, openAuthenticator } = useAuth();
   const router = useRouter();
   const styles = useStyles();
-  const { smUp } = useScreen();
+  const { smUp, mdUp } = useScreen();
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const ctaRowRef = useRef<HTMLDivElement>(null);
+  const reviewsSectionRef = useRef<HTMLDivElement>(null);
   const [currentImg, setCurrentImg] = useState(data.imgSrc);
   const [variants, setVariants] = useState(data.variants);
+  const [isMainCtaVisible, setIsMainCtaVisible] = useState(true);
   const [showCheck, setShowCheck] = useState(false);
   const [stockAlertLoading, setStockAlertLoading] = useState(false);
   const [stockAlertRequested, setStockAlertRequested] = useState(false);
@@ -51,7 +55,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
       : data.stockStatus === 'low_stock'
         ? { label: 'Tükenmek üzere, hemen sipariş edin', color: 'warning.main' }
         : data.stockStatus === 'out_of_stock'
-          ? { label: 'Şu an stokta yok, stok gelince ilk siz haberdar olun.', color: 'error.main' }
+          ? { label: 'Stokta yok', color: 'error.main' }
           : undefined;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
   const brandLabel = data.brand?.trim();
@@ -65,6 +69,12 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
     ? searchUrlFromOptions({ category: categorySearchToken })
     : undefined;
   const fullName = data.name ?? '';
+  const isVariantSelectionMissing = !!variants?.length && variants.every((v) => v.options.every((o) => !o.selected));
+  const isOverCartLimit = getItemQuantity(data) > 4;
+  const buyNowDisabled = showCheck || isOutOfStock || isOverCartLimit || isVariantSelectionMissing;
+  const addToCartDisabled = showCheck || (isOutOfStock ? stockAlertRequested : isOverCartLimit || isVariantSelectionMissing);
+  const addToCartLoading = (!isOutOfStock && !isCartReady) || stockAlertLoading;
+  const shouldShowStickyBar = mdUp && !isOutOfStock && !isMainCtaVisible;
   const handleSelectOption = (variantName: string, optionValue: string) => {
     setVariants((prev) =>
       prev?.map((v) =>
@@ -161,12 +171,34 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
   };
 
   const isDesktop = smUp;
+  const scrollToReviews = () => {
+    reviewsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   useEffect(() => {
     return () => {
       if (checkTimeoutRef.current) clearTimeout(checkTimeoutRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    const target = ctaRowRef.current;
+    if (!target || !mdUp || typeof window === 'undefined') {
+      setIsMainCtaVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const nextVisible = Boolean(entry?.isIntersecting);
+        setIsMainCtaVisible((prev) => (prev === nextVisible ? prev : nextVisible));
+      },
+      { root: null, threshold: 0 }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [mdUp]);
 
   return (
     <Stack gap={5}>
@@ -260,14 +292,13 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                 >
                   <Typography component="span" sx={styles.brand}>
                     {data.brand}
-                    <SquareArrowOutUpRight size={16} strokeWidth={3} style={{ marginTop: '2px' }} />
                   </Typography>
                 </Link>
                 <Typography component="h1" variant="h3" sx={styles.productName}>
                   {fullName}
                 </Typography>
                 {data.rating && (
-                  <Stack sx={styles.rating}>
+                  <Stack sx={{ ...styles.rating, cursor: 'pointer' }} onClick={scrollToReviews}>
                     <Typography variant="caption" fontWeight={600}>
                       {data.rating.averageRating}
                     </Typography>
@@ -332,17 +363,12 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                 />
               )}
               <Divider sx={{ my: 1 }} />
-              <Stack sx={styles.ctaRow}>
+              <Stack sx={styles.ctaRow} ref={ctaRowRef}>
                 {!isOutOfStock && (
                   <Button
                     variant="outlined"
                     loading={!isOutOfStock && !isCartReady}
-                    disabled={
-                      showCheck ||
-                      isOutOfStock ||
-                      getItemQuantity(data) > 4 ||
-                      variants?.every((v) => v.options.every((o) => !o.selected))
-                    }
+                    disabled={buyNowDisabled}
                     onClick={handleBuyNow}
                     sx={styles.buyNowButton}
                   >
@@ -351,14 +377,8 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                 )}
                 <Button
                   variant="contained"
-                  loading={(!isOutOfStock && !isCartReady) || stockAlertLoading}
-                  disabled={
-                    showCheck ||
-                    (isOutOfStock
-                      ? stockAlertRequested
-                      : getItemQuantity(data) > 4 ||
-                      variants?.every((v) => v.options.every((o) => !o.selected)))
-                  }
+                  loading={addToCartLoading}
+                  disabled={addToCartDisabled}
                   onClick={isOutOfStock ? handleOutOfStockClick : handleAddToCart}
                   sx={styles.ctaButton}
                 >
@@ -391,19 +411,29 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
               {data.description && (
                 <ProductDescription description={data.description} />
               )}
-              <ProductFeatures />
             </Stack>
           </Grid>
         </Grid>
       </Stack>
 
       <ProductFaq faqs={data.faqs} />
-      <ProductReviews
-        productId={data.id}
-        initialReviews={data.reviews ?? []}
-        initialRating={data.rating}
-      />
+      <Box ref={reviewsSectionRef} id="product-reviews">
+        <ProductReviews
+          productId={data.id}
+          initialReviews={data.reviews ?? []}
+          initialRating={data.rating}
+        />
+      </Box>
       {data.brandId && <ProductRecommendations brandId={data.brandId} productId={data.id} />}
+      <ProductFeatures />
+      <ProductStickyBar
+        data={data}
+        visible={shouldShowStickyBar}
+        disabled={addToCartDisabled}
+        loading={addToCartLoading}
+        showCheck={showCheck}
+        onAddToCart={handleAddToCart}
+      />
 
       <Snackbar
         open={!!stockAlertMessage}

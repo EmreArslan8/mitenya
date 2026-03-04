@@ -1,4 +1,5 @@
 import { withPalette } from '@/theme/ThemeRegistry';
+import { defaultMaxWidth } from '@/theme/theme';
 import { keyframes } from '@mui/material';
 import { CSSProperties } from 'react';
 
@@ -108,7 +109,8 @@ const useStyles = withPalette((palette) => ({
   details: { gap: 2, px: { xs: 2, sm: 0 }, pt: { xs: 2, sm: 0 }, background: palette.bg.main, minWidth: 0 },
   productName: {
     fontWeight: 600,
-    lineHeight: 1.2,
+    fontSize: { xs: 20, sm: 24 },
+    lineHeight: { xs: '26px', sm: '30px' },
   },
   brand: {
     display: 'flex',
@@ -233,6 +235,71 @@ const useStyles = withPalette((palette) => ({
     left: 0,
     right: 0,
     alignItems: 'center',
+  },
+  stickyBarRoot: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1290,
+    borderBottom: `1px solid ${palette.gray[200] ?? palette.bg.light}`,
+    background: palette.bg.main,
+    display: { xs: 'none', md: 'flex' },
+    boxShadow: '0 8px 24px rgba(20, 20, 20, 0.07)',
+  },
+  stickyBarInner: {
+    width: '100%',
+    maxWidth: defaultMaxWidth,
+    mx: 'auto',
+    px: { md: 2, lg: 3 },
+    py: 1.2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 2,
+  },
+  stickyMeta: {
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 1.5,
+  },
+  stickyThumb: {
+    width: 54,
+    height: 54,
+    objectFit: 'cover',
+    borderRadius: 8,
+    border: `1px solid ${palette.gray[200] ?? palette.bg.light}`,
+    background: palette.bg.light,
+    flexShrink: 0,
+  } as CSSProperties,
+  stickyMetaText: {
+    minWidth: 0,
+    gap: 0.3,
+  },
+  stickyName: {
+    maxWidth: { md: 460, lg: 720 },
+    fontSize: 16,
+    fontWeight: 600,
+    lineHeight: 1.2,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  stickyPrice: {
+    fontSize: 20,
+    fontWeight: 700,
+    color: palette.text.main,
+    lineHeight: 1,
+  },
+  stickyButton: {
+    borderRadius: 0.75,
+    minWidth: { md: 140, lg: 168 },
+    height: 44,
+    px: 2.25,
+    fontSize: 14,
+    fontWeight: 700,
+    letterSpacing: '0.01em',
   },
 }));
 
