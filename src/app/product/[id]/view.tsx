@@ -3,48 +3,48 @@
 import { useEffect, useState, useRef, useContext } from 'react';
 import Button from '@/components/common/Button';
 import Banner from '@/components/common/Banner';
-import Card from '@/components/common/Card';
 import { CrossFade } from '@/components/common/CrossFade';
 import Link from '@/components/common/Link';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFavorites } from '@/contexts/FavoritesContext';
 import { ShopContext } from '@/contexts/ShopContext';
 import { ShopProductData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
-import { Box, Divider, Grid, Rating, Snackbar, Stack, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Divider, Grid, Rating, Snackbar, Stack, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import ProductAttributes from './components/ProductAttributes';
+import ProductDescription from './components/ProductDescription';
 import ProductFaq from './components/ProductFaq';
-import ProductFeatures from './components/ProductFeatures';
+import ProductImageGallery from './components/ProductImageGallery';
+import ProductQA from './components/ProductQA';
 import ProductRecommendations from './components/ProductRecommendations';
 import ProductReviews from './components/ProductReviews';
 import ProductSizeGuide from './components/ProductSizeGuide';
 import ProductStickyBar from './components/ProductStickyBar';
 import ProductVariants from './components/ProductVariants';
-import ProgressIndicator from './components/ProgressIndicator';
 import useStyles from './styles';
 import formatPrice from '@/lib/utils/formatPrice';
-import { Check, ChevronRight, SquareArrowOutUpRight } from 'lucide-react';
-import ProductImageMagnifier from './components/ProductImageMagnifier';
-import ProductDescription from './components/ProductDescription';
+import { Check, ChevronRight } from 'lucide-react';
+import copyTextOnClick from '@/lib/utils/copyTextOnClick';
+
+const MAX_CART_QUANTITY = 5;
 
 const ProductPageView = ({ data }: { data: ShopProductData }) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
   const { isAuthenticated, openAuthenticator } = useAuth();
+  const { isFavorite, isFavoriteLoading, toggleFavorite } = useFavorites();
   const router = useRouter();
   const styles = useStyles();
   const { smUp, mdUp } = useScreen();
-  const scrollerRef = useRef<HTMLDivElement>(null);
   const ctaRowRef = useRef<HTMLDivElement>(null);
   const reviewsSectionRef = useRef<HTMLDivElement>(null);
-  const [currentImg, setCurrentImg] = useState(data.imgSrc);
   const [variants, setVariants] = useState(data.variants);
   const [isMainCtaVisible, setIsMainCtaVisible] = useState(true);
   const [showCheck, setShowCheck] = useState(false);
   const [stockAlertLoading, setStockAlertLoading] = useState(false);
   const [stockAlertRequested, setStockAlertRequested] = useState(false);
-  const [stockAlertMessage, setStockAlertMessage] = useState<string | undefined>();
+  const [feedback, setFeedback] = useState<{ title: string; variant: 'success' | 'error' } | null>(null);
   const checkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
@@ -59,7 +59,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
           : undefined;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
   const brandLabel = data.brand?.trim();
-  const brandSearchToken = data.brandSlug ?? (data.brandId?.toString() === '2' ? 'zara' : data.brandId);
+  const brandSearchToken = data.brandSlug ?? data.brandId;
   const brandHref = brandSearchToken
     ? searchUrlFromOptions({ brand: brandSearchToken })
     : undefined;
@@ -69,8 +69,39 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
     ? searchUrlFromOptions({ category: categorySearchToken })
     : undefined;
   const fullName = data.name ?? '';
+  const skinTypeBadge =
+    data.attributes?.find((attribute) =>
+      ['skinType', 'skin_type', 'ciltTipi', 'Cilt Tipi'].includes(attribute.name)
+    )?.value?.trim() ?? '';
+  const badgeText = skinTypeBadge || categoryLabel || 'Cilt Bakim Urunu';
+  const shortDescription = data.shortDescription?.trim() ?? '';
+  const shortDescriptionParagraphs = shortDescription
+    ? shortDescription
+        .split(/\n\s*\n/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean)
+    : [];
+  const expirationDate =
+    data.attributes?.find((attribute) => {
+      const normalizedName = attribute.name
+        ?.toLocaleLowerCase('tr-TR')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+
+      return [
+        'son kullanma tarihi',
+        'son kullanma tarihi skt',
+        'skt',
+        'expiration date',
+        'expiry date',
+      ].includes(normalizedName);
+    })?.value?.trim() ?? '';
+  const productId = String(data.id ?? '');
+  const isFavorited = productId ? isFavorite(productId) : false;
+  const favoriteLoading = productId ? isFavoriteLoading(productId) : false;
   const isVariantSelectionMissing = !!variants?.length && variants.every((v) => v.options.every((o) => !o.selected));
-  const isOverCartLimit = getItemQuantity(data) > 4;
+  const isOverCartLimit = getItemQuantity(data) >= MAX_CART_QUANTITY;
   const buyNowDisabled = showCheck || isOutOfStock || isOverCartLimit || isVariantSelectionMissing;
   const addToCartDisabled = showCheck || (isOutOfStock ? stockAlertRequested : isOverCartLimit || isVariantSelectionMissing);
   const addToCartLoading = (!isOutOfStock && !isCartReady) || stockAlertLoading;
@@ -132,7 +163,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
         body: JSON.stringify({
           productId: data.id,
           productName: fullName,
-          productUrl: typeof window !== 'undefined' ? window.location.href : undefined,
+          productUrl: window.location.href,
           variantName: selectedVariant ? 'selected' : '',
           variantValue: selectedVariant,
         }),
@@ -149,28 +180,54 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
       }
 
       setStockAlertRequested(true);
-      setStockAlertMessage('Stok bildirimi talebiniz alindi');
+      setFeedback({ title: 'Stok bildirimi talebiniz alindi', variant: 'success' });
     } catch {
-      setStockAlertMessage('Stok bildirimi talebi olusturulamadi');
+      setFeedback({ title: 'Stok bildirimi talebi olusturulamadi', variant: 'error' });
     } finally {
       setStockAlertLoading(false);
     }
   };
 
-  const handleOutOfStockClick = () => {
+  const withAuth = (cb: () => void) => {
     if (isAuthenticated) {
-      void subscribeStockAlert();
+      cb();
       return;
     }
+    openAuthenticator?.({ onSuccess: cb });
+  };
 
-    openAuthenticator?.({
-      onSuccess: () => {
-        void subscribeStockAlert();
-      },
-    });
+  const handleOutOfStockClick = () => {
+    withAuth(() => void subscribeStockAlert());
+  };
+
+  const handleShareClick = async () => {
+    try {
+      const didCopy = await copyTextOnClick(window.location.href);
+
+      setFeedback({
+        title: didCopy ? 'Urun linki kopyalandi' : 'Urun linki kopyalanamadi',
+        variant: didCopy ? 'success' : 'error',
+      });
+    } catch {
+      setFeedback({ title: 'Urun linki kopyalanamadi', variant: 'error' });
+    }
+  };
+
+  const handleFavoriteClick = async () => {
+    if (!productId) return;
+    if (isAuthenticated !== true) {
+      withAuth(() => void handleFavoriteClick());
+      return;
+    }
+    const result = await toggleFavorite(productId);
+    if (result.unauthorized) {
+      withAuth(() => void handleFavoriteClick());
+      return;
+    }
   };
 
   const isDesktop = smUp;
+
   const scrollToReviews = () => {
     reviewsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -183,7 +240,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
 
   useEffect(() => {
     const target = ctaRowRef.current;
-    if (!target || !mdUp || typeof window === 'undefined') {
+    if (!target || !mdUp) {
       setIsMainCtaVisible(true);
       return;
     }
@@ -227,63 +284,19 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
             sm={6}
             sx={styles.imageGridItem}
           >
-            {isDesktop ? (
-              <Card sx={styles.imageCard}>
-                <Grid container columnSpacing={data.images && data.images.length > 1 ? 2 : 0} sx={styles.imageSplitGrid}>
-                  {data.images && data.images.length > 1 && (
-                    <Grid item xs={2} sx={styles.thumbnailColumn}>
-                      <Tabs
-                        orientation="vertical"
-                        variant="scrollable"
-                        scrollButtons
-                        value={currentImg}
-                        sx={styles.thumbnailsVertical}
-                      >
-                        {data.images.map((src) => (
-                          <Tab
-                            label={<img src={src} alt="" style={styles.thumbnailImage} />}
-                            value={src}
-                            onClick={() => setCurrentImg(src)}
-                            sx={styles.thumbnail}
-                            key={src}
-                          />
-                        ))}
-                      </Tabs>
-                    </Grid>
-                  )}
-                  <Grid item xs={data.images && data.images.length > 1 ? 10 : 12}>
-                    <Box sx={styles.magnifierWrapper}>
-                      <ProductImageMagnifier
-                        src={currentImg}
-                        alt={data.name}
-                        zoomLevel={2.5}
-                      />
-                    </Box>
-                  </Grid>
-                </Grid>
-              </Card>
-            ) : (
-              <>
-                <Stack sx={styles.mobileImagesContainer}>
-                  <Stack sx={styles.mobileImages} ref={scrollerRef}>
-                    {data.images?.map((src) => (
-                      <Stack sx={styles.mobileImage} key={src}>
-                        <img src={src} alt="" style={styles.image} />
-                      </Stack>
-                    ))}
-                  </Stack>
-                </Stack>
-                {!!data.images?.length && (
-                  <Stack sx={styles.progressIndicatorContainer}>
-                    <ProgressIndicator scrollerRef={scrollerRef} total={data.images?.length} />
-                  </Stack>
-                )}
-              </>
-            )}
+            <ProductImageGallery
+              images={data.images}
+              fallbackSrc={data.imgSrc}
+              name={data.name}
+              isFavorited={isFavorited}
+              favoriteLoading={favoriteLoading}
+              onFavoriteClick={handleFavoriteClick}
+              onShareClick={handleShareClick}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
             <Stack sx={styles.details}>
-              <Stack gap={1}>
+              <Stack sx={styles.titleBlock}>
                 <Link
                   href={searchUrlFromOptions({
                     brand: brandSearchToken,
@@ -294,26 +307,56 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                     {data.brand}
                   </Typography>
                 </Link>
-                <Typography component="h1" variant="h3" sx={styles.productName}>
+                <Typography component="h1" sx={styles.productName}>
                   {fullName}
                 </Typography>
-                {data.rating && (
+              </Stack>
+              {data.rating ? (
+                <Stack sx={styles.metaRow}>
                   <Stack sx={{ ...styles.rating, cursor: 'pointer' }} onClick={scrollToReviews}>
-                    <Typography variant="caption" fontWeight={600}>
-                      {data.rating.averageRating}
-                    </Typography>
                     <Rating
                       readOnly
                       precision={0.1}
                       value={data.rating?.averageRating}
-                      sx={{ fontSize: 14 }}
+                      sx={{ fontSize: 18 }}
                     />
                     <Typography variant="body" sx={styles.ratingCount}>
-                      ({data.rating.totalCount})
+                      ({data.rating.totalCount} Yorum)
                     </Typography>
                   </Stack>
-                )}
+                  <Stack sx={styles.ratingSeparator}>
+                    <Typography component="span">|</Typography>
+                  </Stack>
+                </Stack>
+              ) : null}
+              <Stack sx={styles.summaryBlock}>
+                <Stack sx={styles.badgePill}>
+                  <Typography component="span" sx={styles.badgePillText}>
+                    {badgeText}
+                  </Typography>
+                </Stack>
+                {shortDescriptionParagraphs.length ? (
+                  <Stack sx={styles.shortDescriptionBlock}>
+                    {shortDescriptionParagraphs.map((paragraph) => (
+                      <Typography key={paragraph} sx={styles.shortDescription}>
+                        {paragraph}
+                      </Typography>
+                    ))}
+                  </Stack>
+                ) : null}
+                <Divider sx={styles.shortDescriptionDivider} />
               </Stack>
+              {stockStatusConfig && (
+                <Stack direction="row" alignItems="center" gap={0.8} sx={styles.stockRow}>
+                  <Box sx={{ ...styles.stockPulseDot, bgcolor: stockStatusConfig.color }} />
+                  <Typography
+                    variant="body2"
+                    sx={{ color: stockStatusConfig.color, fontWeight: 600, fontSize: { xs: 15, sm: 16 } }}
+                  >
+                    {stockStatusConfig.label}
+                  </Typography>
+                </Stack>
+              )}
               <Stack sx={styles.priceContainer}>
                 {hasDiscount && (
                   <Typography sx={styles.originalPrice}>
@@ -323,32 +366,8 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                 <Typography variant="infoValue" sx={styles.currentPrice}>
                   {formatPrice(data.price.currentPrice, data.price.currency)}
                 </Typography>
-                {hasDiscount && <Stack sx={styles.discountBadge}>{`-${discountPercent}%`}</Stack>}
+                {hasDiscount && <Stack sx={styles.discountBadge}>{`%${discountPercent} İndirim`}</Stack>}
               </Stack>
-              {stockStatusConfig && (
-                <Stack direction="row" alignItems="center" gap={0.8}>
-                  <Box
-                    sx={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      bgcolor: stockStatusConfig.color,
-                      flexShrink: 0,
-                      animation: 'stockPulse 1.2s ease-in-out infinite',
-                      '@keyframes stockPulse': {
-                        '0%, 100%': { opacity: 0.3, transform: 'scale(0.9)' },
-                        '50%': { opacity: 1, transform: 'scale(1.15)' },
-                      },
-                    }}
-                  />
-                  <Typography
-                    variant="body2"
-                    sx={{ color: stockStatusConfig.color, fontWeight: 600, fontSize: { xs: 15, sm: 16 } }}
-                  >
-                    {stockStatusConfig.label}
-                  </Typography>
-                </Stack>
-              )}
               {variants && (
                 <ProductVariants
                   variants={variants}
@@ -362,12 +381,11 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                   sizeGuide={data.sizeGuide}
                 />
               )}
-              <Divider sx={{ my: 1 }} />
               <Stack sx={styles.ctaRow} ref={ctaRowRef}>
                 {!isOutOfStock && (
                   <Button
                     variant="outlined"
-                    loading={!isOutOfStock && !isCartReady}
+                    loading={!isCartReady}
                     disabled={buyNowDisabled}
                     onClick={handleBuyNow}
                     sx={styles.buyNowButton}
@@ -407,7 +425,30 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                   />
                 </Button>
               </Stack>
-              {data.attributes && <ProductAttributes attributes={data.attributes} />}
+              {expirationDate ? (
+                <Stack sx={styles.expirationBox}>
+                  <Typography sx={styles.expirationEyebrow}>
+                    Kullanım Bilgisi
+                  </Typography>
+                  <Stack sx={styles.expirationRows}>
+                    <Stack sx={styles.expirationRow}>
+                      <Box sx={styles.expirationDot} />
+                      <Typography sx={styles.expirationItem}>
+                        <Typography component="span" sx={styles.expirationLabel}>
+                          Son Kullanma Tarihi:
+                        </Typography>{' '}
+                        {expirationDate}
+                      </Typography>
+                    </Stack>
+                    <Stack sx={styles.expirationRow}>
+                      <Box sx={styles.expirationDot} />
+                      <Typography sx={styles.expirationItem}>
+                        Açıldıktan sonra <Typography component="span" sx={styles.expirationLabel}>12 Ay</Typography> içinde tüketilmesi önerilir.
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                </Stack>
+              ) : null}
               {data.description && (
                 <ProductDescription description={data.description} />
               )}
@@ -415,8 +456,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
           </Grid>
         </Grid>
       </Stack>
-
-      <ProductFaq faqs={data.faqs} />
+      <ProductFaq faqs={data.faqs} productName={fullName} />
       <Box ref={reviewsSectionRef} id="product-reviews">
         <ProductReviews
           productId={data.id}
@@ -425,9 +465,11 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
         />
       </Box>
       {data.brandId && <ProductRecommendations brandId={data.brandId} productId={data.id} />}
-      <ProductFeatures />
+      <ProductQA data={data} />
       <ProductStickyBar
-        data={data}
+        imgSrc={data.imgSrc ?? data.images?.[0]}
+        name={data.name}
+        price={data.price}
         visible={shouldShowStickyBar}
         disabled={addToCartDisabled}
         loading={addToCartLoading}
@@ -436,14 +478,14 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
       />
 
       <Snackbar
-        open={!!stockAlertMessage}
+        open={!!feedback}
         autoHideDuration={3000}
-        onClose={() => setStockAlertMessage(undefined)}
+        onClose={() => setFeedback(null)}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Banner
-          variant={stockAlertRequested ? 'success' : 'error'}
-          title={stockAlertMessage}
+          variant={feedback?.variant ?? 'success'}
+          title={feedback?.title}
         />
       </Snackbar>
     </Stack>

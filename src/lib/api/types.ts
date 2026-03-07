@@ -215,7 +215,7 @@ export type ShopProductData = {
   variants?: ShopProductVariantData[];
   name?: string;
   price: ShopProductPrice;
-  note?: string;
+  shortDescription?: string;
   quantity: number;
   stockStatus?: ProductStockStatus;
   rating?: ShopProductRating;

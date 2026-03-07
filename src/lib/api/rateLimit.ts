@@ -10,6 +10,15 @@ const MAX_REQUESTS = 60; // dakika başına 60 istek
 
 const buckets = new Map<string, { count: number; expiresAt: number }>();
 
+// Expired entry'leri periyodik olarak temizle (her 5 dakikada bir)
+const CLEANUP_INTERVAL_MS = 5 * 60_000;
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of buckets) {
+    if (v.expiresAt < now) buckets.delete(k);
+  }
+}, CLEANUP_INTERVAL_MS).unref();
+
 export const rateLimit = async (key: string): Promise<boolean> => {
   // Upstash Redis varsa onu kullan
   if (isUpstashEnabled()) {
@@ -43,3 +52,5 @@ export const rateLimit = async (key: string): Promise<boolean> => {
   entry.count += 1;
   return true;
 };
+
+

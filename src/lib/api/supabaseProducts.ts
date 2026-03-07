@@ -33,9 +33,10 @@ async function loadProductFaqs(
       .sort((a, b) => {
         const orderDiff = Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0);
         if (orderDiff !== 0) return orderDiff;
+        // product-specific önce (1), global sonra (0) → descending
         const aScopeWeight = a.scope === "global" ? 0 : 1;
         const bScopeWeight = b.scope === "global" ? 0 : 1;
-        return aScopeWeight - bScopeWeight;
+        return bScopeWeight - aScopeWeight;
       })
       .map(({ question, answer, sort_order }) => ({ question, answer, sort_order }));
 
@@ -73,6 +74,7 @@ export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopPr
       rating_average,
       rating_count,
       description,
+      short_description,
       current_price,
       original_price,
       currency,
@@ -205,6 +207,7 @@ export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopPr
     url: `/product/${data.slug || data.id}`,
     images: imageUrls,
     imgSrc,
+    shortDescription: data.short_description ?? "",
     description: data.description ?? "",
     price: {
       currentPrice: Number(price.price_current) || 0,
@@ -227,5 +230,57 @@ export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopPr
     metaTitle: data.meta_title ?? null,
     metaDescription: data.meta_description ?? null,
     metaKeywords: data.meta_keywords ?? null,
+  };
+}
+
+export type ProductQASourceData = {
+  name: string;
+  brand: string;
+  price: { currentPrice: number };
+  description: string;
+  attributes: { name: string; value: string }[];
+};
+
+export async function fetchProductForQA(idOrSlug: string): Promise<ProductQASourceData | null> {
+  const selectQuery = `
+    name,
+    brand_name,
+    description,
+    attributes_json,
+    current_price,
+    original_price,
+    currency,
+    product_prices(price_current, price_original, currency)
+  `;
+
+  let { data, error } = await supabaseAdmin
+    .from("products")
+    .select(selectQuery)
+    .eq("slug", idOrSlug)
+    .maybeSingle();
+
+  if (error || !data) {
+    const result = await supabaseAdmin
+      .from("products")
+      .select(selectQuery)
+      .eq("id", idOrSlug)
+      .maybeSingle();
+    data = result.data;
+    error = result.error;
+  }
+
+  if (error || !data) return null;
+
+  const priceRow = (data.product_prices as { price_current?: unknown; price_original?: unknown; currency?: unknown }[] | null)?.[0];
+  const rawPrice = priceRow ?? { price_current: data.current_price };
+
+  return {
+    name: (data.name as string) ?? "",
+    brand: (data.brand_name as string) ?? "",
+    price: { currentPrice: Number((rawPrice as { price_current?: unknown }).price_current) || 0 },
+    description: (data.description as string) ?? "",
+    attributes: Array.isArray(data.attributes_json)
+      ? (data.attributes_json as { name: string; value: string }[])
+      : [],
   };
 }

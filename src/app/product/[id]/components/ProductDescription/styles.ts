@@ -2,36 +2,50 @@ import { withPalette } from '@/theme/ThemeRegistry';
 
 const useStyles = withPalette((palette) => ({
   container: {
-    gap: 1,
+    gap: 0,
+    borderTop: `1px solid ${palette.gray?.[200] ?? palette.bg.light}`,
   },
   accordion: {
     boxShadow: 'none',
-    border: `1px solid ${palette.bg.light}`,
-    borderRadius: '8px !important',
+    border: 'none',
+    borderBottom: `1px solid ${palette.gray?.[200] ?? palette.bg.light}`,
+    borderRadius: '0 !important',
+    backgroundColor: 'transparent',
     '&:before': { display: 'none' },
     '&.Mui-expanded': {
       margin: 0,
     },
   },
   summary: {
-    minHeight: 48,
-    px: 2,
+    minHeight: 'unset',
+    px: '8px',
+    py: '14px',
     '&.Mui-expanded': {
-      minHeight: 48,
-      borderBottom: `1px solid ${palette.bg.light}`,
+      minHeight: 'unset',
     },
     '& .MuiAccordionSummary-content': {
-      margin: '12px 0',
+      margin: 0,
+      mr: '16px',
+    },
+    '& .MuiAccordionSummary-expandIconWrapper': {
+      color: palette.text.main,
+      width: 28,
+      height: 28,
     },
   },
   title: {
-    fontWeight: 800,
-    fontSize: 15,
+    fontWeight: 600,
+    fontSize: '16px',
+    lineHeight: 1.45,
     color: palette.text.main,
   },
   details: {
-    px: 2,
-    py: 2,
+    px: '14px',
+    pt: 0,
+    pb: '16px',
+  },
+  markdown: {
+    color: palette.text.main,
   },
 }));
 

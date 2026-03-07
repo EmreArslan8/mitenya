@@ -3,18 +3,6 @@ import { defaultMaxWidth } from '@/theme/theme';
 import { keyframes } from '@mui/material';
 import { CSSProperties } from 'react';
 
-const shiftScroll = keyframes`
-  0% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(-10vw);
-  }
-  100% {
-    transform: translateX(0);
-  }
-`;
-
 const bellRing = keyframes`
   0% { transform: rotate(0deg); }
   20% { transform: rotate(18deg); }
@@ -28,7 +16,7 @@ const useStyles = withPalette((palette) => ({
   productContainer: {
     alignSelf: 'stretch',
     width: '100%',
-    alignItems: 'flex-start', 
+    alignItems: 'flex-start',
   },
   imageGridItem: {
     zIndex: 0,
@@ -37,80 +25,29 @@ const useStyles = withPalette((palette) => ({
     alignSelf: { sm: 'flex-start' },
     minWidth: 0,
   },
-  imageCard: {
-    width: '100%',
-    alignSelf: 'center',
-    gap: 2,
-    position: 'relative',
+  details: {
+    gap: 1.75,
+    px: { xs: 2, sm: 0 },
+    pt: { xs: 2, sm: 0 },
+    background: palette.bg.main,
+    minWidth: 0,
   },
-  imageSplitGrid: {
-    width: '100%',
-    alignItems: 'flex-start',
+  titleBlock: {
+    gap: '6px',
   },
-  thumbnailColumn: {
-    display: 'flex',
-    justifyContent: 'flex-start',
-  },
-  imageContainer: {
-    width: '100%',
-    maxHeight: { xs: 468, sm: 440, md: 600 },
-    border: 'none',
-    borderRadius: 1,
-    overflow: 'hidden',
-  },
-  magnifierWrapper: {
-    position: 'relative',
-    width: '100%',
-    height: { sm: 440, md: 500 },
-    border: '1px solid rgba(0, 0, 0, 0.08)',
-    borderRadius: 1,
-    overflow: 'hidden',
-    backgroundColor: palette.bg.main,
-  },
-  image: {
-    overflow: 'hidden',
-    width: '100%',
-    height: '100%',
-    objectFit: 'contain',
-  } as CSSProperties,
-  thumbnails: {
-    direction: 'ltr',
-    maxWidth: '100%',
-    p: 0,
-    border: 'none',
-    '& .MuiTabs-indicator': { display: 'none' },
-    '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.2 },
-    '& .MuiTabs-flexContainer': { gap: 1 },
-    zIndex: 0,
-  },
-  thumbnailsVertical: {
-    direction: 'ltr',
-    maxWidth: '100%',
-    p: 0,
-    border: 'none',
-    alignSelf: 'flex-start',
-    '& .MuiTabs-indicator': { display: 'none' },
-    '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.2 },
-    '& .MuiTabs-flexContainer': { gap: 1, alignItems: 'flex-start' },
-    zIndex: 0,
-  },
-  thumbnail: {
-    width: '100%',
-    minWidth: 'unset',
-    aspectRatio: '4 / 5',
-    flexGrow: 0,
-    p: 0,
-    border: '1px solid transparent',
-    borderRadius: 1,
-    overflow: 'hidden',
-    '&.Mui-selected': { border: `1px solid ${palette.text.medium}` },
-  },
-  thumbnailImage: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' } as CSSProperties,
-  details: { gap: 2, px: { xs: 2, sm: 0 }, pt: { xs: 2, sm: 0 }, background: palette.bg.main, minWidth: 0 },
   productName: {
     fontWeight: 600,
-    fontSize: { xs: 20, sm: 24 },
-    lineHeight: { xs: '26px', sm: '30px' },
+    fontSize: 24,
+    lineHeight: '32px',
+    letterSpacing: 'normal',
+    mb: 0,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 1,
+    flexWrap: 'wrap',
+    mb: '8px',
   },
   brand: {
     display: 'flex',
@@ -120,43 +57,93 @@ const useStyles = withPalette((palette) => ({
     fontWeight: 600,
     lineHeight: 'normal',
     gap: 0.5,
-    color: palette.text.medium,
-    borderBottom: `1px solid ${palette.text.medium}`,
+    color: palette.text.main,
+    borderBottom: `1px solid ${palette.text.main}`,
+    textTransform: 'uppercase',
+    letterSpacing: '0.04em',
   },
-  priceContainer: { flexDirection: 'row', alignItems: 'center', gap: 0.5 },
+  priceContainer: { flexDirection: 'row', alignItems: 'center', gap: 1.25, flexWrap: 'wrap' },
   currentPrice: {
-    fontSize: '19px !important',
+    fontSize: '22px !important',
     fontWeight: 700,
     lineHeight: 1,
     color: palette.primary.main,
   },
   originalPrice: {
-    fontSize: 15,
+    fontSize: 20,
     fontWeight: 400,
     textDecoration: 'line-through',
     lineHeight: '20px',
   },
-  variantOptions: { gap: 1, flexDirection: 'row', flexWrap: 'wrap' },
-  variantOption: { background: palette.white.main },
-  rating: { flexDirection: 'row', alignItems: 'center', gap: '2px', pt: '2px' },
-  ratingCount: { color: palette.text.mediumLight, fontSize: 12, lineHeight: 1 },
-  description: { color: palette.text.medium, mb: 1 },
-  markdownOptions: {
-    ul: { sx: { px: 2 } },
-    li: { sx: { '&::first-letter': { textTransform: 'capitalize' } } },
+  rating: { flexDirection: 'row', alignItems: 'center', gap: 0.75, pt: '2px' },
+  ratingSeparator: {
+    color: palette.text.medium,
+    fontWeight: 600,
+    lineHeight: 1,
   },
-  attribute: {
-    textTransform: 'capitalize',
-    background: palette.bg.light,
-    borderRadius: 1,
-    p: 1.5,
-    height: '100%',
+  metaCategory: {
+    fontSize: 14,
+    lineHeight: 1,
+    color: palette.text.medium,
+    fontWeight: 500,
   },
-  review: {
-    gap: 1,
-    py: 1.5,
-    px: 2,
-    header: { flexDirection: 'row', alignItems: 'center', gap: 1, color: palette.text.medium },
+  ratingCount: { color: palette.text.medium, fontSize: 14, lineHeight: 1 },
+  summaryBlock: {
+    gap: '14px',
+  },
+  badgePill: {
+    alignSelf: 'flex-start',
+    px: 1.75,
+    py: 0.9,
+    borderRadius: 999,
+    backgroundColor: '#F1DFE4',
+  },
+  badgePillText: {
+    fontSize: 14,
+    fontWeight: 700,
+    lineHeight: 1,
+    color: palette.text.main,
+  },
+  shortDescription: {
+    fontSize: 16,
+    lineHeight: 1.45,
+    fontStyle: 'normal',
+    color: palette.text.main,
+    maxWidth: 760,
+  },
+  shortDescriptionBlock: {
+    gap: '12px',
+  },
+  shortDescriptionDivider: {
+    borderColor: palette.gray?.[200] ?? '#E2E2E2',
+    mt: '6px',
+  },
+  stockPulseDot: {
+    width: 12,
+    height: 12,
+    borderRadius: '50%',
+    flexShrink: 0,
+    position: 'relative',
+    zIndex: 0,
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      inset: -1,
+      borderRadius: '50%',
+      backgroundColor: 'currentColor',
+      opacity: 0.18,
+      zIndex: -1,
+      animation: 'stockWave 1.8s ease-out infinite',
+    },
+    '@keyframes stockWave': {
+      '0%': { opacity: 0.18, transform: 'scale(1)' },
+      '100%': { opacity: 0, transform: 'scale(1.7)' },
+    },
+  },
+  stockRow: {
+    pt: '4px',
+    mt: '4px',
+    mb: '16px',
   },
   breadcrumbs: {
     flexDirection: 'row',
@@ -165,37 +152,73 @@ const useStyles = withPalette((palette) => ({
     fontSize: 18,
     color: palette.text.main,
   },
-  mobileImagesContainer: { position: 'relative', width: '100%' },
-  mobileImages: {
-    position: 'relative',
-    width: '100%',
-    flexDirection: 'row',
-    overflowX: 'scroll',
-    scrollSnapType: 'x mandatory',
-    scrollbarWidth: 'none',
-    MsOverflowStyle: 'none',
-    '&::-webkit-scrollbar': { display: 'none' },
-    animation: `${shiftScroll} 0.7s ease-in-out 1.5s`,
-    borderTop: '1px solid',
-    borderBottom: '1px solid',
-    borderColor: palette.bg.light,
-  },
-  mobileImage: { flexShrink: 0, width: '100%', scrollSnapAlign: 'center' },
   discountBadge: {
     background: '#C1121F',
     color: '#FFFFFF',
-    py: 0.5,
-    px: 1,
-    fontSize: 12,
+    width: 'auto',
+    minWidth: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    py: 0.45,
+    px: 1.25,
+    fontSize: 11,
     fontWeight: 700,
     lineHeight: 'normal',
     borderRadius: 0.5,
-    mx: 0.5,
+    mx: 0.25,
+    whiteSpace: 'nowrap',
   },
   ctaRow: {
     flexDirection: 'row',
     gap: 1,
     mb: 2,
+    mt: 1,
+  },
+  expirationBox: {
+    mb: 2,
+    px: { xs: 2, sm: 2.5 },
+    py: { xs: 1.75, sm: 2 },
+    gap: 1.25,
+    borderRadius: 2,
+    border: `1px solid ${palette.gray?.[200] ?? '#E2E2E2'}`,
+    background: 'linear-gradient(180deg, rgba(250,250,250,0.96) 0%, rgba(246,246,246,0.92) 100%)',
+    boxShadow: '0 10px 24px rgba(15, 23, 42, 0.04)',
+  },
+  expirationEyebrow: {
+    fontSize: 12,
+    fontWeight: 700,
+    lineHeight: 1,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    color: palette.text.medium,
+  },
+  expirationRows: {
+    gap: 1,
+  },
+  expirationRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 1.25,
+  },
+  expirationDot: {
+    width: 8,
+    height: 8,
+    mt: '8px',
+    borderRadius: '50%',
+    flexShrink: 0,
+    backgroundColor: palette.text.main,
+  },
+  expirationItem: {
+    fontSize: 16,
+    lineHeight: 1.45,
+    color: palette.text.main,
+    flex: 1,
+  },
+  expirationLabel: {
+    fontSize: 'inherit',
+    lineHeight: 'inherit',
+    fontWeight: 700,
+    color: 'inherit',
   },
   buyNowButton: {
     flex: 1,
@@ -228,13 +251,6 @@ const useStyles = withPalette((palette) => ({
     '&:active .stockAlertBell': {
       animation: `${bellRing} 0.35s ease-in-out 1`,
     },
-  },
-  progressIndicatorContainer: {
-    position: 'absolute',
-    bottom: 16,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
   },
   stickyBarRoot: {
     position: 'fixed',
