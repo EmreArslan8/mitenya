@@ -23,7 +23,7 @@ export const PRICE_RANGES = [
   { label: '250 - 500 TL', min: 250, max: 500 },
   { label: '500 - 750 TL', min: 500, max: 750 },
   { label: '750 - 1000 TL', min: 750, max: 1000 },
-  { label: '1000 TL ve üzeri', min: 1000, max: Infinity },
+  { label: '1000 TL ve üzeri', min: 1000, max: Number.MAX_SAFE_INTEGER },
 ] as const;
 
 // Default currency

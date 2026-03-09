@@ -23,12 +23,16 @@ export const rateLimit = async (key: string): Promise<boolean> => {
   // Upstash Redis varsa onu kullan
   if (isUpstashEnabled()) {
     try {
+      const ttlSeconds = Math.ceil(WINDOW_MS / 1000);
       const result = await runUpstashPipeline([
         ['INCR', key],
-        ['EXPIRE', key, Math.ceil(WINDOW_MS / 1000)],
       ]);
       const current = parseUpstashResult(result[0]);
       if (typeof current === 'number') {
+        // İlk istek ise TTL set et (pencere sıfırlanmasını önler)
+        if (current === 1) {
+          await runUpstashPipeline([['EXPIRE', key, ttlSeconds]]);
+        }
         return current <= MAX_REQUESTS;
       }
       // Eğer yanıt beklenmedikse mem fallback'e düş

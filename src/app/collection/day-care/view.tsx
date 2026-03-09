@@ -91,6 +91,7 @@ const DayCareView = ({ initialData }: DayCareViewProps) => {
   useEffect(() => {
     setMounted(true);
     setSort((searchParams?.get('sort') as ShopSearchSort) ?? 'rct');
+    setIsNavigating(false);
   }, [searchParams]);
 
   const handleSortChange = (value: ShopSearchSort) => {

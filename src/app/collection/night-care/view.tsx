@@ -70,6 +70,7 @@ const NightCareView = ({ initialData, collection }: NightCareViewProps) => {
   useEffect(() => {
     setMounted(true);
     setSort((searchParams?.get('sort') as ShopSearchSort) ?? 'rct');
+    setIsNavigating(false);
   }, [searchParams]);
 
   const handleSortChange = (value: ShopSearchSort) => {

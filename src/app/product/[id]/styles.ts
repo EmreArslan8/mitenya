@@ -174,15 +174,20 @@ const useStyles = withPalette((palette) => ({
     mb: 2,
     mt: 1,
   },
+  trustCard: {
+    px: { xs: 2, sm: 2 },
+    py: { xs: 1.75, sm: 2 },
+    border: 'none',
+  },
   expirationBox: {
     mb: 2,
     px: { xs: 2, sm: 2.5 },
     py: { xs: 1.75, sm: 2 },
     gap: 1.25,
-    borderRadius: 2,
-    border: `1px solid ${palette.gray?.[200] ?? '#E2E2E2'}`,
-    background: 'linear-gradient(180deg, rgba(250,250,250,0.96) 0%, rgba(246,246,246,0.92) 100%)',
-    boxShadow: '0 10px 24px rgba(15, 23, 42, 0.04)',
+    borderRadius: 3,
+    border: 'none',
+    background: 'linear-gradient(180deg, rgba(247,247,248,0.98) 0%, rgba(242,242,244,0.94) 100%)',
+    boxShadow: '0 18px 40px rgba(15, 23, 42, 0.05)',
   },
   expirationEyebrow: {
     fontSize: 12,
@@ -194,6 +199,34 @@ const useStyles = withPalette((palette) => ({
   },
   expirationRows: {
     gap: 1,
+  },
+  trustSignal: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 1.25,
+    py: 0.25,
+  },
+  trustSignalIcon: {
+    width: 28,
+    height: 28,
+    display: 'grid',
+    placeItems: 'center',
+    flexShrink: 0,
+    color: palette.text.main,
+  },
+  trustSignalContent: {
+    gap: 0.35,
+  },
+  trustSignalTitle: {
+    fontSize: 16,
+    lineHeight: 1.2,
+    fontWeight: 700,
+    color: palette.text.main,
+  },
+  trustSignalText: {
+    fontSize: 15,
+    lineHeight: 1.4,
+    color: palette.text.medium,
   },
   expirationRow: {
     flexDirection: 'row',

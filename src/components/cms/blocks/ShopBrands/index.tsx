@@ -1,3 +1,5 @@
+'use client';
+
 // components/cms/blocks/ShopBrands/index.tsx
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import BrandItem from '../../shared/ShopBrand';

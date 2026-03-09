@@ -2,7 +2,7 @@
 
 import Button from '@/components/common/Button';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import { fetchProductData } from '@/lib/api/shop';
+import { fetchProductsByIds } from '@/lib/api/shop';
 import { ShopProductData } from '@/lib/api/types';
 import formatPrice from '@/lib/utils/formatPrice';
 import { Box, CircularProgress, Stack, Typography } from '@mui/material';
@@ -28,10 +28,10 @@ const FavoritesCard = () => {
 
       setFavoritesDataLoading(true);
       try {
-        const result = await Promise.all(favoriteIdList.map((id) => fetchProductData(id)));
+        const result = await fetchProductsByIds(favoriteIdList);
         if (cancelled) return;
         setFavoriteProducts(
-          result.filter((item): item is ShopProductData => Boolean(item?.id && item?.url))
+          result.filter((item: ShopProductData) => Boolean(item?.id && item?.url))
         );
       } catch (error) {
         if (!cancelled) {

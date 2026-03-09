@@ -52,30 +52,64 @@ export async function GET(
     }
 
     const supabase = await createSupabaseServer();
-    const { data, error } = await supabase
+
+    const { searchParams } = new URL(req.url);
+    const pageParam = searchParams.get('page');
+    const limitParam = searchParams.get('limit');
+    const shouldPaginate = pageParam !== null || limitParam !== null;
+    const page = Math.max(1, Math.min(parseInt(pageParam ?? '1', 10) || 1, 1000));
+    const limit = Math.max(1, Math.min(parseInt(limitParam ?? '20', 10) || 20, 100));
+    const offset = (page - 1) * limit;
+
+    const baseQuery = supabase
       .from('product_reviews')
       .select('id, product_id, user_id, user_name, rating, text, title, verified, created_at')
       .eq('product_id', validation.data)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('API /products/[id]/reviews GET error:', error);
+    const reviewResult = shouldPaginate
+      ? await baseQuery.range(offset, offset + limit - 1)
+      : await baseQuery;
+
+    if (reviewResult.error) {
+      console.error('API /products/[id]/reviews GET error:', reviewResult.error);
       return ApiErrors.internalError('Failed to fetch reviews');
     }
 
-    const reviews = (data ?? []).map(rowToReview);
-    const ratingCount = reviews.length;
+    const reviews = (reviewResult.data ?? []).map(rowToReview);
+    const ratingsResult = shouldPaginate
+      ? await supabase
+          .from('product_reviews')
+          .select('rating', { count: 'exact', head: false })
+          .eq('product_id', validation.data)
+      : null;
+    const allRatings = shouldPaginate
+      ? (ratingsResult?.data ?? []).map((r) => r.rating as number)
+      : (reviewResult.data ?? []).map((r) => r.rating as number);
+    const ratingCount = shouldPaginate
+      ? ratingsResult?.count ?? allRatings.length
+      : allRatings.length;
     const ratingAverage =
       ratingCount > 0
-        ? reviews.reduce((sum, r) => sum + (r.rating ?? 0), 0) / ratingCount
+        ? allRatings.reduce((sum, r) => sum + r, 0) / ratingCount
         : 0;
 
-    return NextResponse.json({
+    const response: {
+      reviews: ReturnType<typeof rowToReview>[];
+      rating?: { averageRating: number; totalCount: number };
+      pagination?: { page: number; limit: number; totalCount: number };
+    } = {
       reviews,
       rating: ratingCount
         ? { averageRating: Number(ratingAverage.toFixed(2)), totalCount: ratingCount }
         : undefined,
-    });
+    };
+
+    if (shouldPaginate) {
+      response.pagination = { page, limit, totalCount: ratingCount };
+    }
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error('API /products/[id]/reviews GET error:', error);
     return ApiErrors.internalError('Failed to fetch reviews');
@@ -133,11 +167,18 @@ export async function POST(
       return ApiErrors.validationError(parsed.error.issues);
     }
 
-    const userName =
+    const rawUserName =
       (user.user_metadata?.full_name as string | undefined) ??
       (user.user_metadata?.name as string | undefined) ??
       user.email?.split('@')[0] ??
       'User';
+
+    // XSS koruması: HTML tag'lerini ve tehlikeli karakterleri temizle
+    const userName = rawUserName
+      .replace(/<[^>]*>/g, '')
+      .replace(/[&<>"'`]/g, '')
+      .trim()
+      .slice(0, 100);
 
     const upsertPayload = {
       product_id: validation.data,
@@ -166,4 +207,3 @@ export async function POST(
     return ApiErrors.internalError('Failed to save review');
   }
 }
-

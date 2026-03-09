@@ -25,7 +25,15 @@ const ProductRecommendations = ({ brandId, productId, categoryId }: { brandId: s
 
   return (
     <Stack gap={2} >
-      <Typography variant="h3">Benzer Ürünler</Typography>
+      <Typography
+        variant="h3"
+        sx={{
+          fontSize: { xs: 16, sm: 20, md: 28 },
+          lineHeight: { xs: '20px', sm: '24px', md: '34px' },
+        }}
+      >
+        Benzer Ürünler
+      </Typography>
       <Grid container spacing={2}>
         {recommendations
           ? recommendations.map((e) => (

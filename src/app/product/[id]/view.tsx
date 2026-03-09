@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useContext } from 'react';
+import { ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import Button from '@/components/common/Button';
 import Banner from '@/components/common/Banner';
 import { CrossFade } from '@/components/common/CrossFade';
@@ -25,12 +25,18 @@ import ProductStickyBar from './components/ProductStickyBar';
 import ProductVariants from './components/ProductVariants';
 import useStyles from './styles';
 import formatPrice from '@/lib/utils/formatPrice';
-import { Check, ChevronRight } from 'lucide-react';
+import { Check, ChevronRight, RefreshCcw, Truck } from 'lucide-react';
 import copyTextOnClick from '@/lib/utils/copyTextOnClick';
 
 const MAX_CART_QUANTITY = 5;
 
-const ProductPageView = ({ data }: { data: ShopProductData }) => {
+const ProductPageView = ({
+  data,
+  pdpBlocksSlot,
+}: {
+  data: ShopProductData;
+  pdpBlocksSlot?: ReactNode;
+}) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
   const { isAuthenticated, openAuthenticator } = useAuth();
   const { isFavorite, isFavoriteLoading, toggleFavorite } = useFavorites();
@@ -425,6 +431,30 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
                   />
                 </Button>
               </Stack>
+              <Stack sx={styles.trustCard}>
+                <Stack sx={styles.trustSignal}>
+                  <Box sx={styles.trustSignalIcon}>
+                    <Truck size={18} strokeWidth={2} />
+                  </Box>
+                  <Box sx={styles.trustSignalContent}>
+                    <Typography sx={styles.trustSignalTitle}>Aynı Gün Kargo</Typography>
+                    <Typography sx={styles.trustSignalText}>
+                      Saat 15:00&apos;e kadar verilen siparişler aynı gün kargoda.
+                    </Typography>
+                  </Box>
+                </Stack>
+                <Stack sx={styles.trustSignal}>
+                  <Box sx={styles.trustSignalIcon}>
+                    <RefreshCcw size={18} strokeWidth={2} />
+                  </Box>
+                  <Box sx={styles.trustSignalContent}>
+                    <Typography sx={styles.trustSignalTitle}>Kolay İade & Değişim</Typography>
+                    <Typography sx={styles.trustSignalText}>
+                      14 gün içinde kolay iade ve değişim imkanı.
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Stack>
               {expirationDate ? (
                 <Stack sx={styles.expirationBox}>
                   <Typography sx={styles.expirationEyebrow}>
@@ -456,6 +486,7 @@ const ProductPageView = ({ data }: { data: ShopProductData }) => {
           </Grid>
         </Grid>
       </Stack>
+      {pdpBlocksSlot}
       <ProductFaq faqs={data.faqs} productName={fullName} />
       <Box ref={reviewsSectionRef} id="product-reviews">
         <ProductReviews

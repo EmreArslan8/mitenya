@@ -35,6 +35,12 @@ const SearchProductsView = ({ initialData }: SearchProductsViewProps) => {
   const loadingRef = useRef(false);
   const retryNextPageRef = useRef(3);
 
+  // Ref'ler ile stale closure önlenir — observerCallback stabil kalır
+  const pageRef = useRef(page);
+  pageRef.current = page;
+  const searchOptionsRef = useRef(searchOptions);
+  searchOptionsRef.current = searchOptions;
+
   const observerCallback = useCallback(async () => {
     if (!retryNextPageRef.current) {
       setLoading(false);
@@ -43,20 +49,24 @@ const SearchProductsView = ({ initialData }: SearchProductsViewProps) => {
     if (loadingRef.current) return;
     setLoading(true);
     loadingRef.current = true;
-    fetchProducts({ ...searchOptions, page, nf: true, _S1: _S1Ref.current }).then((data) => {
+    const currentPage = pageRef.current;
+    fetchProducts({ ...searchOptionsRef.current, page: currentPage, nf: true, _S1: _S1Ref.current }).then((data) => {
       setLoading(false);
+      loadingRef.current = false;
       if (!data?.products) return;
       _S1Ref.current = data.session?._S1;
       if (!data.products.length) {
-        loadingRef.current = false;
         retryNextPageRef.current = retryNextPageRef.current - 1;
         return;
       }
       setPage((prev) => prev + 1);
-      setProducts((prev) => [...(prev ?? []), ...data.products]);
-      loadingRef.current = false;
+      setProducts((prev) => {
+        const existingUrls = new Set((prev ?? []).map((p) => p.url));
+        const newProducts = data.products.filter((p) => !existingUrls.has(p.url));
+        return [...(prev ?? []), ...newProducts];
+      });
     });
-  }, [page, searchOptions]);
+  }, []);
 
   useEffect(() => {
     setProducts(initialData.products ?? []);

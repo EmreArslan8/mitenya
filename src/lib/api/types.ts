@@ -337,6 +337,16 @@ export type ShopSearchResponse = {
   };
 };
 
+export interface Collection {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  banner_image: string | null;
+  is_active: boolean;
+  sort_order: number;
+}
+
 export type ShopHeaderLink = { label: string; slug: string | undefined | null };
 
 export type CategorySubItem = {

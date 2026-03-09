@@ -17,6 +17,10 @@ import ShopBrands from './ShopBrands';
 import ShopFeatureBanner from './ShopFeatureBanner';
 import ShopBlogCards from './ShopBlogCards';
 import ShopBrandShowcase from './ShopBrandShowcase';
+import ProductDetailBanner from './ProductDetailBanner';
+import ProductDetailTabs from './ProductDetailTabs';
+import ProductDetailIngredients from './ProductDetailIngredients';
+import ProductDetailClinicalStats from './ProductDetailClinicalStats';
 
 
 /*
@@ -50,6 +54,10 @@ const componentMap = {
   'blocks.shop-feature-banners': ShopFeatureBanner,
   'blocks.shop-blog-card': ShopBlogCards,
   'blocks.shop-brand-showcase': ShopBrandShowcase,
+  'blocks.promo-banner': ProductDetailBanner,
+  'blocks.image-accordion': ProductDetailTabs,
+  'blocks.ingredient-cards': ProductDetailIngredients,
+  'blocks.stats-grid': ProductDetailClinicalStats,
 };
 
 /*

@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -43,13 +42,18 @@ const CategoryView = ({ category, initialData }: CategoryViewProps) => {
 
   useEffect(() => {
     setSort((searchParams?.get('sort') as ShopSearchSort) ?? 'rct');
+    setIsNavigating(false);
   }, [searchParams]);
 
   const handleSortChange = (value: ShopSearchSort) => {
     setSort(value);
     setIsNavigating(true);
     const params = new URLSearchParams(searchParams ?? undefined);
-    value ? params.set('sort', value) : params.delete('sort');
+    if (value) {
+      params.set('sort', value);
+    } else {
+      params.delete('sort');
+    }
     params.delete('page');
     const qs = params.toString();
     router.replace(qs ? `?${qs}` : '?');

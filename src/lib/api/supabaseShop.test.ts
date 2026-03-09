@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildDynamicPriceFilters } from './supabaseShop';
+import { buildDynamicPriceFilters } from '../shop/priceFilters';
 
 const getFiniteMax = (filters: ReturnType<typeof buildDynamicPriceFilters>) =>
   Math.max(
@@ -47,4 +47,3 @@ describe('buildDynamicPriceFilters', () => {
     expect(selected?.count).toBe(0);
   });
 });
-

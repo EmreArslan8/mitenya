@@ -1,11 +1,10 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
-import { Box, Tooltip, Typography, tooltipClasses } from '@mui/material';
-import { MessageCircleQuestion } from 'lucide-react';
+import { useState } from 'react';
+import { Box, Typography } from '@mui/material';
+import { Sparkles } from 'lucide-react';
 import useStyles from './styles';
-import { PRODUCT_QA_OPEN_EVENT } from './events';
 import { ProductQAData } from './ProductQAPanel';
 
 const ProductQAPanel = dynamic(() => import('./ProductQAPanel'), {
@@ -21,54 +20,30 @@ export default function ProductQA({ data }: ProductQAProps) {
   const styles = useStyles();
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    const handleOpen = () => setOpen(true);
-
-    window.addEventListener(PRODUCT_QA_OPEN_EVENT, handleOpen);
-    return () => window.removeEventListener(PRODUCT_QA_OPEN_EVENT, handleOpen);
-  }, []);
+  const handleOpenPanel = () => {
+    setOpen(true);
+  };
 
   return (
     <>
       {!open && (
-        <Tooltip
-          title="AI urun asistani"
-          placement="left"
-          arrow
-          slotProps={{
-            tooltip: {
-              sx: styles.fabTooltip,
-            },
-            arrow: {
-              sx: styles.fabTooltipArrow,
-            },
-            popper: {
-              sx: {
-                [`& .${tooltipClasses.tooltip}`]: styles.fabTooltip,
-              },
-            },
-          }}
-        >
+        <Box sx={styles.fabDock}>
           <Box
             component="button"
             type="button"
             sx={styles.fab}
-            onClick={() => setOpen(true)}
+            onClick={handleOpenPanel}
             aria-label="Urun hakkinda soru sor"
+            id="product-qa-trigger"
           >
             <Box sx={styles.fabIconWrap}>
-              <MessageCircleQuestion size={18} strokeWidth={1.9} />
+              <Sparkles size={18} strokeWidth={1.9} />
             </Box>
-            <Box sx={styles.fabTextWrap}>
-              <Typography component="span" sx={styles.fabEyebrow}>
-                AI
-              </Typography>
-              <Typography component="span" sx={styles.fabText}>
-                Asistan
-              </Typography>
-            </Box>
+            <Typography component="span" sx={styles.fabText}>
+              Danış
+            </Typography>
           </Box>
-        </Tooltip>
+        </Box>
       )}
 
       {open && <ProductQAPanel data={data} onClose={() => setOpen(false)} />}

@@ -227,7 +227,14 @@ const ProductReviews = ({
 
   return (
     <Stack gap={1}>
-      <Typography variant="h2" sx={{ fontStyle: 'italic', fontWeight: 500 }}>
+      <Typography
+        variant="h2"
+        sx={{
+          fontWeight: 500,
+          fontSize: { xs: 16, sm: 20, md: 28 },
+          lineHeight: { xs: '20px', sm: '24px', md: '34px' },
+        }}
+      >
         Müşteri Yorumları
       </Typography>
 

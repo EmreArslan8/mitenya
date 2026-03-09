@@ -34,21 +34,21 @@ export async function middleware(request: NextRequest) {
     }
   );
  
-  // Refreshing the auth token
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Protected routes
+  // Protected routes — sadece bu route'larda getUser() network call yap
   const protectedRoutes = ['/account', '/orders', '/settings'];
   const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route));
 
-  if (!user && isProtectedRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/';
-    // open login modal
-    url.searchParams.set('login', 'true');
-    return NextResponse.redirect(url);
+  if (isProtectedRoute) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/';
+      url.searchParams.set('login', 'true');
+      return NextResponse.redirect(url);
+    }
   }
  
   return supabaseResponse;

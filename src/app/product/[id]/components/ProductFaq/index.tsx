@@ -3,9 +3,9 @@
 import Markdown from '@/components/common/Markdown';
 import { ShopProductData } from '@/lib/api/types';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Stack, Typography } from '@mui/material';
-import { Minus, Plus } from 'lucide-react';
+import { ArrowUpRight, Minus, Plus } from 'lucide-react';
 import { useState } from 'react';
-import ProductQAEntryCard from '../ProductQA/EntryCard';
+import { openProductQA } from '../ProductQA/events';
 import useStyles from './styles';
 
 type ProductFaqProps = {
@@ -89,7 +89,38 @@ export default function ProductFaq({ faqs, productName }: ProductFaqProps) {
             ))}
           </Stack>
 
-          <ProductQAEntryCard variant="faq" productName={productName} />
+          <Box
+            component="button"
+            type="button"
+            onClick={openProductQA}
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.6,
+              alignSelf: 'flex-start',
+              padding: 0,
+              marginTop: 1,
+              border: 'none',
+              background: 'transparent',
+              color: 'text.primary',
+              cursor: 'pointer',
+            }}
+          >
+            <Typography
+              component="span"
+              sx={{
+                fontSize: 14,
+                fontWeight: 600,
+                lineHeight: 1.4,
+                color: 'text.primary',
+                textDecoration: 'underline',
+                textUnderlineOffset: '3px',
+              }}
+            >
+              Cevabını bulamadın mı? Ürün hakkında yapay zekaya sor
+            </Typography>
+            <ArrowUpRight size={16} />
+          </Box>
         </Stack>
       </Box>
     </Stack>

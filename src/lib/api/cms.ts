@@ -9,6 +9,10 @@ export type CMSPageData = {
   gap: 'small' | 'medium';
 };
 
+export type CMSProductPdpData = {
+  blocks: CMSBlock[];
+};
+
 const isProduction = process.env.NEXT_PUBLIC_HOST_ENV === 'production';
 
 export const fetchShopIndex = async (
@@ -37,6 +41,22 @@ export const fetchShopHeader = async (): Promise<
     });
 
     return data ?? undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+export const fetchProductPdpBlocks = async (
+  slug: string
+): Promise<CMSBlock[] | undefined> => {
+  try {
+    const [data] = await bring<CMSProductPdpData>('/api/cms/product-pdp', {
+      params: { slug },
+      static: true,
+      next: { revalidate: isProduction ? 60 : 0 },
+    });
+
+    return data?.blocks ?? [];
   } catch {
     return undefined;
   }

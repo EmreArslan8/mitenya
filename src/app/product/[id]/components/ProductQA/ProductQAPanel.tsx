@@ -2,8 +2,8 @@
 
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { useEffect, useState } from 'react';
-import { Box, Button, CircularProgress, IconButton, Stack, Typography } from '@mui/material';
-import { CheckCircle2, Droplets, Send, ShieldCheck, Sparkles, X } from 'lucide-react';
+import { Box, Button, IconButton, Stack, Typography } from '@mui/material';
+import { Send, Sparkles, X } from 'lucide-react';
 import useStyles from './styles';
 import { ShopProductData } from '@/lib/api/types';
 
@@ -11,10 +11,9 @@ const MAX_SESSION_MESSAGES = 20;
 const MAX_QUESTION_LENGTH = 500;
 const TYPING_BASE_DELAY_MS = 58;
 const SUGGESTED_QUESTIONS = [
-  'Bu urun hassas cilde uygun mu?',
-  'Nasil kullanmaliyim?',
-  'Ne kadar surede etki gosterir?',
-  'Hamileler kullanabilir mi?',
+  'Bu ürün bana uygun mu?',
+  'Nasıl kullanmalıyım?',
+  'İçeriği ne işe yarar?'
 ];
 
 export type ProductQAData = ShopProductData;
@@ -23,6 +22,7 @@ type Message = {
   id: string;
   role: 'user' | 'assistant';
   text: string;
+  time: string;
 };
 
 type ProductQAPanelProps = {
@@ -36,6 +36,22 @@ function createMessage(role: Message['role'], text: string): Message {
     id: `${role}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     role,
     text,
+    time: new Date().toLocaleTimeString('tr-TR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+  };
+}
+
+function createInitialAssistantMessage(): Message {
+  return {
+    id: 'assistant-initial',
+    role: 'assistant',
+    text: 'Merhaba, ben bu ürün için yapay zeka alışveriş asistanınızım. Size nasıl yardımcı olabilirim?',
+    time: new Date().toLocaleTimeString('tr-TR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
   };
 }
 
@@ -107,9 +123,19 @@ function MessageBubble({
           : undefined
       }
     >
+      <Box sx={styles.messageGroup}>
+        <Box sx={[styles.messageMeta, message.role === 'user' ? styles.userMeta : styles.assistantMeta]}>
+          <Typography component="span" sx={styles.messageAuthor}>
+            {message.role === 'user' ? 'Ben' : 'Mitenya Yapay Zeka'}
+          </Typography>
+          <Typography component="span" sx={styles.messageTime}>
+            {message.time}
+          </Typography>
+        </Box>
       <Box sx={message.role === 'user' ? styles.userBubble : styles.assistantBubble}>
         {visibleText}
         {showCaret && <Box component="span" sx={styles.typingCaret} />}
+      </Box>
       </Box>
     </Box>
   );
@@ -121,6 +147,7 @@ export default function ProductQAPanel({ data, onClose }: ProductQAPanelProps) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [animatedMessageId, setAnimatedMessageId] = useState<string | null>(null);
+  const initialAssistantMessage = createInitialAssistantMessage();
 
   const sessionCount = messages.reduce(
     (count, message) => count + (message.role === 'user' ? 1 : 0),
@@ -194,10 +221,10 @@ export default function ProductQAPanel({ data, onClose }: ProductQAPanelProps) {
           </Box>
           <Box>
             <Typography fontWeight={700} fontSize={15} color="inherit">
-              Urun Asistani
+              Ürün yapay zeka danışmanı
             </Typography>
             <Typography fontSize={12} color="inherit" sx={{ opacity: 0.84 }}>
-              Bu urune ozel hizli yonlendirme ve net cevaplar
+              Sadece bu ürün hakkında kısa cevaplar
             </Typography>
           </Box>
         </Box>
@@ -208,56 +235,15 @@ export default function ProductQAPanel({ data, onClose }: ProductQAPanelProps) {
       </Box>
 
       <Box sx={styles.content}>
+        <MessageBubble message={initialAssistantMessage} isLast={false} animate={false} />
+
         {messages.length === 0 && (
           <Box sx={styles.introCard}>
-            <Box sx={styles.introTopline}>
-              <Typography sx={styles.introEyebrow}>Neden burada?</Typography>
-              <Typography sx={styles.introTitle}>
-                {data.name} icin hizli bir urun yardim alani
-              </Typography>
-              <Typography fontSize={13} color="text.secondary">
-                Bu alan, urunun icerigi, kullanim sekli ve size uygunlugu hakkinda hizli cevap almaniz icin burada. Uzun aciklamalari taramak yerine dogrudan sorunuzu sorabilirsiniz.
-              </Typography>
-            </Box>
-
-            <Box sx={styles.reasonGrid}>
-              <Box sx={styles.reasonCard}>
-                <ShieldCheck size={16} />
-                <Box>
-                  <Typography sx={styles.reasonTitle}>Urune ozel</Typography>
-                  <Typography sx={styles.reasonText}>
-                    Yanitlar bu sayfadaki urun bilgisine gore verilir.
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Box sx={styles.reasonCard}>
-                <Droplets size={16} />
-                <Box>
-                  <Typography sx={styles.reasonTitle}>Kullanim odakli</Typography>
-                  <Typography sx={styles.reasonText}>
-                    Icerik, cilt uyumu ve kullanim sorulari icin idealdir.
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Box sx={styles.reasonCard}>
-                <CheckCircle2 size={16} />
-                <Box>
-                  <Typography sx={styles.reasonTitle}>Kisa ve net</Typography>
-                  <Typography sx={styles.reasonText}>
-                    Uzun metin yerine hizli karar vermenize yardim eder.
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-
-            <Typography sx={styles.suggestionHeading}>Ornek sorular</Typography>
             <Box sx={styles.suggestions}>
               {SUGGESTED_QUESTIONS.map((question) => (
                 <Button
                   type="button"
-                  variant="outlined"
+                  variant="text"
                   onClick={() => void sendQuestion(question)}
                   sx={styles.suggestionButton}
                   key={question}
@@ -280,11 +266,25 @@ export default function ProductQAPanel({ data, onClose }: ProductQAPanelProps) {
 
         {loading && (
           <Box sx={[styles.messageRow, styles.assistantRow]}>
-            <Box sx={styles.assistantBubble}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <CircularProgress size={16} color="inherit" />
-                <Typography fontSize={13}>Dusunuyorum...</Typography>
-              </Stack>
+            <Box sx={styles.messageGroup}>
+              <Box sx={[styles.messageMeta, styles.assistantMeta]}>
+                <Typography component="span" sx={styles.messageAuthor}>
+                  Mitenya Yapay Zeka
+                </Typography>
+                <Typography component="span" sx={styles.messageTime}>
+                  {new Date().toLocaleTimeString('tr-TR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </Typography>
+              </Box>
+              <Box sx={styles.assistantBubble}>
+                <Box sx={styles.typingDots}>
+                  <Box component="span" sx={styles.typingDot} />
+                  <Box component="span" sx={styles.typingDot} />
+                  <Box component="span" sx={styles.typingDot} />
+                </Box>
+              </Box>
             </Box>
           </Box>
         )}
@@ -314,9 +314,6 @@ export default function ProductQAPanel({ data, onClose }: ProductQAPanelProps) {
         </IconButton>
       </Box>
 
-      <Typography fontSize={11} sx={styles.limitText}>
-        {sessionCount}/{MAX_SESSION_MESSAGES} soru kullanildi
-      </Typography>
     </Stack>
   );
 }
