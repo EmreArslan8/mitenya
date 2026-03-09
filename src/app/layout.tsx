@@ -1,6 +1,7 @@
 
 
 import Footer from "@/components/Footer";
+import AttributionTracker from "@/components/analytics/AttributionTracker";
 import MainLayout from "@/components/layouts/MainLayout";
 import Navigation from "@/components/Navigation";
 import { AuthContextProvider } from "@/contexts/AuthContext";
@@ -87,6 +88,7 @@ export default async function RootLayout({
       <body style={{ overflowX: "hidden" }}>
         <ThemeRegistry>
           <CookieConsentProvider>
+            <AttributionTracker />
             <AuthContextProvider>
               <FavoritesContextProvider>
                 <ShopContextProvider>

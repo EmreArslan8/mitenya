@@ -34,8 +34,19 @@ export async function middleware(request: NextRequest) {
     }
   );
  
-  // Protected routes — sadece bu route'larda getUser() network call yap
-  const protectedRoutes = ['/account', '/orders', '/settings'];
+  // Affiliate ref cookie — ?ref=KOD ile gelen ziyaretçilere 30 günlük cookie yaz
+  const refCode = request.nextUrl.searchParams.get('ref');
+  if (refCode && /^[A-Z0-9_-]{3,20}$/i.test(refCode)) {
+    supabaseResponse.cookies.set('affiliate_ref', refCode.toUpperCase(), {
+      maxAge: 60 * 60 * 24 * 30,
+      path: '/',
+      sameSite: 'lax',
+      httpOnly: false,
+    });
+  }
+
+  
+  const protectedRoutes = ['/account', '/orders', '/settings', 'influencer']; 
   const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route));
 
   if (isProtectedRoute) {

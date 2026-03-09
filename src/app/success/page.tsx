@@ -5,6 +5,7 @@ import Card from '@/components/common/Card';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
 import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
+import { sendPurchaseEventForOrder } from '@/lib/utils/googleAnalytics';
 import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material';
 import { Check } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -15,7 +16,11 @@ interface OrderData {
   order_number: string;
   status: string;
   payment_status: string;
+  payment_method?: string;
   total_amount: number;
+  subtotal?: number;
+  shipping_cost?: number;
+  discount_amount?: number;
   currency: string;
   shipping_address: {
     contactName: string;
@@ -24,6 +29,7 @@ interface OrderData {
   };
   created_at: string;
   items: {
+    product_id?: string;
     product_name: string;
     quantity: number;
     price: number;
@@ -118,6 +124,23 @@ const SuccessPage = () => {
     removeItems(selected);
     cartCleanedRef.current = true;
   }, [order, selected, removeItems]);
+
+  useEffect(() => {
+    if (!order || !token) return;
+
+    const dedupeKey = `mitenya_purchase_tracked:${token}`;
+    if (window.sessionStorage.getItem(dedupeKey)) return;
+
+    sendPurchaseEventForOrder({
+      orderNumber: order.order_number,
+      totalAmount: order.total_amount,
+      currency: order.currency,
+      paymentMethod: order.payment_method,
+      items: order.items,
+    });
+
+    window.sessionStorage.setItem(dedupeKey, '1');
+  }, [order, token]);
 
   if (loading) {
     return (

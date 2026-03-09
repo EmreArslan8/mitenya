@@ -4,6 +4,8 @@ import { createSupabaseServer } from "@/lib/supabase/server";
 import { fetchProductDataSupabase } from "@/lib/api/supabaseProducts";
 import { validateSameOrigin, validateCsrfToken } from "@/lib/api/security";
 import { rateLimit } from "@/lib/api/rateLimit";
+import { createAffiliateConversion } from "@/lib/affiliates/commissionService";
+import { type OrderAttribution } from "@/lib/analytics/attribution";
 import { z } from "zod";
 
 
@@ -38,6 +40,18 @@ const consentsSchema = z.object({
   distance_sale_html: z.string().min(1).max(500000),
 });
 
+const attributionSchema = z.object({
+  affiliateCode: z.string().max(20).nullable().optional(),
+  affiliateClickId: z.string().max(100).nullable().optional(),
+  utmSource: z.string().max(120).nullable().optional(),
+  utmMedium: z.string().max(120).nullable().optional(),
+  utmCampaign: z.string().max(160).nullable().optional(),
+  utmContent: z.string().max(160).nullable().optional(),
+  utmTerm: z.string().max(160).nullable().optional(),
+  landingPath: z.string().max(255).nullable().optional(),
+  referrer: z.string().max(500).nullable().optional(),
+});
+
 const createOrderSchema = z.object({
   user_email: z.string().email().optional(),
   items: z.array(orderItemSchema).min(1).max(50),
@@ -47,10 +61,23 @@ const createOrderSchema = z.object({
   shipping_cost: z.number().nonnegative().max(10000).optional(),
   discount_amount: z.number().nonnegative().max(100000).optional(),
   discount_code: z.string().max(50).nullable().optional(),
+  affiliate_code: z.string().max(20).nullable().optional(),
+  attribution: attributionSchema.optional(),
   notes: z.string().max(500).optional(),
   currency: z.string().length(3).optional(),
   consents: consentsSchema.optional(),
 });
+
+const parseJsonIfNeeded = <T>(value: unknown): T | null => {
+  if (!value) return null;
+  if (typeof value === "object") return value as T;
+  if (typeof value !== "string") return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+};
 
 // Order number generator: ORD-2026-00001
 async function generateOrderNumber(): Promise<string> {
@@ -160,6 +187,8 @@ export async function POST(req: NextRequest) {
       shipping_cost = 0,
       discount_amount = 0,
       discount_code,
+      affiliate_code,
+      attribution,
       notes,
       currency = "TRY",
       consents,
@@ -176,6 +205,8 @@ export async function POST(req: NextRequest) {
     if (!user.email && !_user_email) {
       return NextResponse.json({ error: "Email gerekli" }, { status: 400 });
     }
+
+    const normalizedAffiliateCode = affiliate_code ?? attribution?.affiliateCode ?? null;
 
     // Hesaplamalar
     // Ürün fiyatlarını/verisini DB'den çekerek yeniden hesapla
@@ -274,6 +305,7 @@ export async function POST(req: NextRequest) {
       shipping_cost: safeShippingCost,
       discount_amount: safeDiscount,
       discount_code: discount_code ?? null,
+      affiliate_code: normalizedAffiliateCode,
       total_amount,
       shipping_address,
       billing_address: billing_address ?? null,
@@ -338,6 +370,39 @@ export async function POST(req: NextRequest) {
 
     const order = edgeData.order;
     const successToken = edgeData.success_token;
+
+    const { data: currentOrder } = await supabaseAdmin
+      .from("orders")
+      .select("metadata")
+      .eq("id", order.id)
+      .maybeSingle();
+
+    const existingMetadata = parseJsonIfNeeded<Record<string, unknown>>(currentOrder?.metadata) || {};
+    const nextMetadata: Record<string, unknown> = {
+      ...existingMetadata,
+    };
+
+    if (successToken) {
+      nextMetadata.success_token = successToken;
+    }
+
+    if (attribution && Object.values(attribution).some(Boolean)) {
+      nextMetadata.attribution = attribution as OrderAttribution;
+    }
+
+    if (Object.keys(nextMetadata).length > 0) {
+      await supabaseAdmin.from("orders").update({ metadata: nextMetadata }).eq("id", order.id);
+    }
+
+    if (normalizedAffiliateCode && order.id) {
+      await createAffiliateConversion({
+        affiliateCode: normalizedAffiliateCode,
+        orderId: order.id,
+        orderNumber: order.order_number,
+        orderAmount: order.total_amount,
+        affiliateClickId: attribution?.affiliateClickId ?? null,
+      });
+    }
 
     return NextResponse.json({
       success: true,
