@@ -77,7 +77,7 @@ export default function AttributionTracker() {
       .catch(() => {
         // Best effort tracking only.
       });
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   return null;
 }
