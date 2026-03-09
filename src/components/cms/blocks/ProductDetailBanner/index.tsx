@@ -14,7 +14,7 @@ const MARQUEE_ITEMS = [
   'PÜRÜZSÜZLÜK.',
   'YOĞUN NEM.',
   'IŞILTI.',
-  'SİKILAŞMA.',
+  'SIKILAŞMA.',
   'CANLILIK.',
 ];
 
@@ -97,16 +97,7 @@ export default function ProductDetailBanner({
   );
 
   return (
-    <SectionBase
-      sectionHeader={section?.sectionHeader}
-      sectionDescription={section?.sectionDescription}
-      sectionDescriptionMarkdownOptions={section?.sectionDescriptionMarkdownOptions}
-      sectionWidth={section?.sectionWidth}
-      sectionBackground={section?.sectionBackground}
-      sectionLabel={section?.sectionLabel}
-      sectionHref={section?.sectionHref}
-      sx={[{ mt: { xs: 4, md: 6 } }, section?.sx]}
-    >
+    <SectionBase {...(section ?? {})} sx={styles.section}>
       <Stack sx={styles.wrapper}>
         <Box sx={styles.shell}>
           {hasStandaloneBannerLink ? (
