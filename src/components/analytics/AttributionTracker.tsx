@@ -7,7 +7,7 @@ import {
   REFERRER_COOKIE,
   UTM_COOKIE_KEYS,
 } from '@/lib/analytics/attribution';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
@@ -23,10 +23,11 @@ const normalizeRefCode = (value: string | null) => {
 
 export default function AttributionTracker() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (!searchParams) return;
+    if (typeof window === 'undefined') return;
+
+    const searchParams = new URLSearchParams(window.location.search);
 
     const refCode = normalizeRefCode(searchParams.get('ref'));
     const hasUtm = UTM_COOKIE_KEYS.some((key) => Boolean(searchParams.get(key)));
