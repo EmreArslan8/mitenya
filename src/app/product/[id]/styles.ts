@@ -175,7 +175,6 @@ const useStyles = withPalette((palette) => ({
     mt: 1,
   },
   trustCard: {
-    px: { xs: 2, sm: 2 },
     py: { xs: 1.75, sm: 2 },
     border: 'none',
   },
@@ -184,7 +183,7 @@ const useStyles = withPalette((palette) => ({
     px: { xs: 2, sm: 2.5 },
     py: { xs: 1.75, sm: 2 },
     gap: 1.25,
-    borderRadius: 3,
+    borderRadius: 1,
     border: 'none',
     background: 'linear-gradient(180deg, rgba(247,247,248,0.98) 0%, rgba(242,242,244,0.94) 100%)',
     boxShadow: '0 18px 40px rgba(15, 23, 42, 0.05)',

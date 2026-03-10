@@ -25,7 +25,7 @@ import ProductStickyBar from './components/ProductStickyBar';
 import ProductVariants from './components/ProductVariants';
 import useStyles from './styles';
 import formatPrice from '@/lib/utils/formatPrice';
-import { Check, ChevronRight, RefreshCcw, Truck } from 'lucide-react';
+import { Check, ChevronRight, RefreshCcw, Truck, Undo2 } from 'lucide-react';
 import copyTextOnClick from '@/lib/utils/copyTextOnClick';
 
 const MAX_CART_QUANTITY = 5;
@@ -445,7 +445,7 @@ const ProductPageView = ({
                 </Stack>
                 <Stack sx={styles.trustSignal}>
                   <Box sx={styles.trustSignalIcon}>
-                    <RefreshCcw size={18} strokeWidth={2} />
+                    <Undo2 size={18} strokeWidth={2} />
                   </Box>
                   <Box sx={styles.trustSignalContent}>
                     <Typography sx={styles.trustSignalTitle}>Kolay İade & Değişim</Typography>

@@ -226,13 +226,18 @@ const ProductReviews = ({
   };
 
   return (
-    <Stack gap={1}>
+    <Stack
+      gap={3}
+      sx={{
+        px: { xs: '16px', sm: '32px' },
+      }}
+    >
       <Typography
         variant="h2"
         sx={{
           fontWeight: 500,
-          fontSize: { xs: 16, sm: 20, md: 28 },
-          lineHeight: { xs: '20px', sm: '24px', md: '34px' },
+          fontSize: { xs: 24, sm: 36 },
+          lineHeight: { xs: '28px', sm: '40px' },
         }}
       >
         Müşteri Yorumları

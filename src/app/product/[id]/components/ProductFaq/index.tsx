@@ -66,7 +66,7 @@ export default function ProductFaq({ faqs, productName }: ProductFaqProps) {
     <Stack sx={styles.section}>
       <Box sx={styles.layout}>
         <Stack sx={styles.headingColumn}>
-          <Typography component="h2" sx={styles.title}>
+          <Typography variant="h2" component="h2" sx={styles.title}>
             Sıkça Sorulan
             <br />
             Sorular

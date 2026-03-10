@@ -2,7 +2,6 @@ import { withPalette } from '@/theme/ThemeRegistry';
 
 const useStyles = withPalette((palette) => ({
   section: {
-    mt: { xs: 4, md: 6 },
     px: { xs: 2, sm: 3, md: 4 },
     py: { xs: 2, sm: 3, md: 4 },
     maxWidth: '100%',
@@ -10,7 +9,7 @@ const useStyles = withPalette((palette) => ({
   shell: {
     gap: { xs: 3, md: 4 },
     pl: 0,
-    pr: { xs: 1, sm: 2, md: 5 },
+    pr: 0,
     py: { xs: 3, md: 4.5 },
   },
   content: {
@@ -27,9 +26,9 @@ const useStyles = withPalette((palette) => ({
     color: '#6F675F',
   },
   title: {
-    fontSize: { xs: 30, sm: 38, md: 52 },
-    lineHeight: { xs: 1.02, md: 0.98 },
-    fontWeight: 700,
+    fontSize: { xs: 24, sm: 36 },
+    lineHeight: { xs: '28px', sm: '40px' },
+    fontWeight: 500,
     letterSpacing: '-0.05em',
     textTransform: 'uppercase',
     color: palette.text.main,
@@ -45,18 +44,18 @@ const useStyles = withPalette((palette) => ({
     columnGap: { xs: 2.5, md: 4 },
     rowGap: { xs: 2, md: 3 },
     pt: { xs: 1, md: 1.5 },
+    alignItems: 'start',
   },
   statCard: {
     position: 'relative',
     gap: 0.35,
     minHeight: { xs: 'auto', md: 92 },
     alignSelf: 'start',
-    px: { xs: 0.25, md: 0 },
-    '&:nth-of-type(4)': {
-      ml: { xs: 0, md: '12%' },
-    },
-    '&:nth-of-type(5)': {
-      ml: { xs: 0, md: '24%' },
+    ml: 0,
+    px: 0,
+    width: '100%',
+    '&:nth-of-type(n + 4)': {
+      ml: { xs: 0, md: '18%' },
     },
   },
   statValue: {

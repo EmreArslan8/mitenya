@@ -153,9 +153,11 @@ const useStyles = withPalette((palette) => ({
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
+    alignContent: 'flex-start',
     gap: 0.5,
     borderRadius: 1,
     py: 0.5,
+    minHeight: { xs: 48, sm: 52 },
   },
   price: {
     fontSize: { xs: '17px !important', sm: '18px !important' },

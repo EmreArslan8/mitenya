@@ -3,7 +3,8 @@ import { withPalette } from '@/theme/ThemeRegistry';
 const useStyles = withPalette((palette) => ({
   section: {
     gap: 2,
-    mt: 2,
+    mt: 0,
+    px: { xs: '16px', sm: '32px' },
   },
   layout: {
     display: 'grid',
@@ -16,11 +17,9 @@ const useStyles = withPalette((palette) => ({
     pr: { md: 2 },
   },
   title: {
-    fontSize: { xs: 28, sm: 34 },
-    lineHeight: 1.05,
+    fontSize: { xs: 24, sm: 36 },
     fontWeight: 500,
-    color: palette.text.main,
-    letterSpacing: '-0.04em',
+    lineHeight: { xs: '28px', sm: '40px' },
   },
   intro: {
     maxWidth: 320,
