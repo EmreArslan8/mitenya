@@ -30,7 +30,7 @@ export interface ProductDetailBannerProps extends BlockComponentBaseProps {
   button?: SharedButtonType;
 }
 
-export default function ProductDetailBanner({
+const ProductDetailBanner = ({
   section,
   eyebrow,
   title,
@@ -40,7 +40,7 @@ export default function ProductDetailBanner({
   image,
   mobileImage,
   button,
-}: ProductDetailBannerProps) {
+}: ProductDetailBannerProps) => {
   const styles = useStyles();
   const { isMobile } = useScreen();
 
@@ -126,3 +126,5 @@ export default function ProductDetailBanner({
     </SectionBase>
   );
 }
+
+export default ProductDetailBanner;

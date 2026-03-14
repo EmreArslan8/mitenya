@@ -20,7 +20,7 @@ export interface ProductDetailTabsProps extends BlockComponentBaseProps {
   }[];
 }
 
-export default function ProductDetailTabs({ section, image, items }: ProductDetailTabsProps) {
+const ProductDetailTabs = ({ section, image, items }: ProductDetailTabsProps) => {
   const styles = useStyles();
   const [activeIndex, setActiveIndex] = useState<number | null>(0);
   if (!items.length || !image?.data?.attributes?.url) return null;
@@ -108,3 +108,4 @@ export default function ProductDetailTabs({ section, image, items }: ProductDeta
     </SectionBase>
   );
 }
+export default ProductDetailTabs;

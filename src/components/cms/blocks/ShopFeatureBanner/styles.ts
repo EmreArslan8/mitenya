@@ -31,8 +31,8 @@ const useStyles = withPalette((palette) => ({
       '& li': {
         margin: 0,
         padding: 0,
-        width: 12,
-        height: 12,
+        width: 8,
+        height: 8,
         transition: 'width 0.25s ease',
       },
 
@@ -42,7 +42,7 @@ const useStyles = withPalette((palette) => ({
         padding: 0,
         border: 'none',
         borderRadius: 999,
-        backgroundColor: palette.white.main,
+        backgroundColor: 'rgba(255, 255, 255, 0.45)',
         cursor: 'pointer',
         transition: 'all 0.25s ease',
         fontSize: 0,
@@ -54,10 +54,10 @@ const useStyles = withPalette((palette) => ({
       },
 
       '& li.slick-active': {
-        width: 36,
+        width: 24,
       },
       '& li.slick-active button': {
-        backgroundColor: palette.error.main,
+        backgroundColor: palette.white.main,
         transform: 'none',
       },
     },
@@ -113,8 +113,8 @@ const useStyles = withPalette((palette) => ({
       '& li': {
         margin: 0,
         padding: 0,
-        width: 10,
-        height: 10,
+        width: 7,
+        height: 7,
         transition: 'width 0.25s ease',
       },
 
@@ -124,7 +124,7 @@ const useStyles = withPalette((palette) => ({
         padding: 0,
         border: 'none',
         borderRadius: 999,
-        backgroundColor: palette.white.main,
+        backgroundColor: 'rgba(255, 255, 255, 0.45)',
         cursor: 'pointer',
         transition: 'all 0.25s ease',
         fontSize: 0,
@@ -136,7 +136,7 @@ const useStyles = withPalette((palette) => ({
       },
 
       '& li.slick-active': {
-        width: 30,
+        width: 22,
       },
       '& li.slick-active button': {
         backgroundColor: palette.white.main,

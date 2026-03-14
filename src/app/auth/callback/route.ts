@@ -2,11 +2,13 @@ import { createServerClient } from '@supabase/ssr';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { isSafeRedirect } from '@/lib/utils/isValidUrl';
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const next = requestUrl.searchParams.get('next') ?? '/';
+  const rawNext = requestUrl.searchParams.get('next') ?? '/';
+  const next = isSafeRedirect(rawNext) ? rawNext : '/';
   const origin = requestUrl.origin;
 
   if (code) {
@@ -36,8 +38,8 @@ export async function GET(request: Request) {
     const { error, data } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
-      console.error('Auth callback error:', error.message);
-      return NextResponse.redirect(`${origin}/auth/error?message=${encodeURIComponent(error.message)}`);
+      // Hata mesajı URL'e gömülmüyor — iç detay sızmasın
+      return NextResponse.redirect(`${origin}/auth/error`);
     }
 
     // Influencer kontrolü — affiliate ise /influencer'a yönlendir

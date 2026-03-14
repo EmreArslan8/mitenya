@@ -18,13 +18,13 @@ export interface ProductDetailClinicalStatsProps extends BlockComponentBaseProps
   stats: StatItem[];
 }
 
-export default function ProductDetailClinicalStats({
+const ProductDetailClinicalStats = ({
   section,
   eyebrow,
   title,
   description,
   stats,
-}: ProductDetailClinicalStatsProps) {
+}: ProductDetailClinicalStatsProps) => {
   const styles = useStyles();
 
   if (!title || !stats.length) return null;
@@ -52,3 +52,4 @@ export default function ProductDetailClinicalStats({
     </SectionBase>
   );
 }
+export default ProductDetailClinicalStats;

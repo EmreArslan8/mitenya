@@ -3,15 +3,15 @@ import { withPalette } from '@/theme/ThemeRegistry';
 const useStyles = withPalette(() => ({
   section: {
     mt: { xs: 3, md: 5 },
-    px: { xs: 2, sm: 3, md: 4 },
+    px: { xs: '16px', sm: '32px' },
     py: { xs: 2, sm: 3, md: 4 },
     maxWidth: '100%',
   },
   sectionHeaderTypography: {
     m: 0,
-    fontSize: '36px',
-    lineHeight: '42px',
-    fontWeight: 700,
+    fontSize: { xs: 24, sm: 36 },
+    lineHeight: { xs: '28px', sm: '40px' },
+    fontWeight: 500,
     color: '#0B0B0D',
   },
   sectionButton: {
@@ -45,11 +45,12 @@ const useStyles = withPalette(() => ({
   imageWrap: {
     minWidth: 0,
     alignSelf: 'stretch',
+    display: { xs: 'none', md: 'block' },
   },
   imageBox: {
     position: 'relative',
     width: '100%',
-    aspectRatio: '1 / 1',
+    aspectRatio: '4 / 5',
     overflow: 'hidden',
     borderRadius: 0,
     background: '#EBEBE8',

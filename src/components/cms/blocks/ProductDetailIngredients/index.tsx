@@ -17,7 +17,7 @@ export interface ProductDetailIngredientsProps extends BlockComponentBaseProps {
   }[];
 }
 
-export default function ProductDetailIngredients({ section, items }: ProductDetailIngredientsProps) {
+const ProductDetailIngredients = ({ section, items }: ProductDetailIngredientsProps) => {
   const styles = useStyles();
   const validItems = items.filter((item) => item.image?.data?.attributes?.url);
 
@@ -49,3 +49,5 @@ export default function ProductDetailIngredients({ section, items }: ProductDeta
     </SectionBase>
   );
 }
+
+export default ProductDetailIngredients;
