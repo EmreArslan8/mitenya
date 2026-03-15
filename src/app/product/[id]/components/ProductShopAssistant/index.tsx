@@ -5,24 +5,20 @@ import { useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { Sparkles } from 'lucide-react';
 import useStyles from './styles';
-import { ProductQAData } from './ProductQAPanel';
+import type { ShopProductData } from '@/lib/api/types';
 
-const ProductQAPanel = dynamic(() => import('./ProductQAPanel'), {
+const ProductShopAssistantPanel = dynamic(() => import('./ProductShopAssistantPanel'), {
   ssr: false,
   loading: () => null,
 });
 
-type ProductQAProps = {
-  data: ProductQAData;
+type ProductShopAssistantProps = {
+  data: ShopProductData;
 };
 
-export default function ProductQA({ data }: ProductQAProps) {
+const ProductShopAssistant = ({ data }: ProductShopAssistantProps) => {
   const styles = useStyles();
   const [open, setOpen] = useState(false);
-
-  const handleOpenPanel = () => {
-    setOpen(true);
-  };
 
   return (
     <>
@@ -32,7 +28,7 @@ export default function ProductQA({ data }: ProductQAProps) {
             component="button"
             type="button"
             sx={styles.fab}
-            onClick={handleOpenPanel}
+            onClick={() => setOpen(true)}
             aria-label="Urun hakkinda soru sor"
             id="product-qa-trigger"
           >
@@ -46,7 +42,9 @@ export default function ProductQA({ data }: ProductQAProps) {
         </Box>
       )}
 
-      {open && <ProductQAPanel data={data} onClose={() => setOpen(false)} />}
+      {open && <ProductShopAssistantPanel productId={data.id} onClose={() => setOpen(false)} />}
     </>
   );
-}
+};
+
+export default ProductShopAssistant;

@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import ProductDescription from './components/ProductDescription';
 import ProductFaq from './components/ProductFaq';
 import ProductImageGallery from './components/ProductImageGallery';
-import ProductQA from './components/ProductQA';
+import ProductShopAssistant from './components/ProductShopAssistant';
 import ProductRecommendations from './components/ProductRecommendations';
 import ProductReviews from './components/ProductReviews';
 import ProductSizeGuide from './components/ProductSizeGuide';
@@ -25,8 +25,9 @@ import ProductStickyBar from './components/ProductStickyBar';
 import ProductVariants from './components/ProductVariants';
 import useStyles from './styles';
 import formatPrice from '@/lib/utils/formatPrice';
-import { Check, ChevronRight, RefreshCcw, Truck, Undo2 } from 'lucide-react';
+import { Check, ChevronRight, Truck, Undo2 } from 'lucide-react';
 import copyTextOnClick from '@/lib/utils/copyTextOnClick';
+import QATypewriterPill from './components/ProductShopAssistant/QATypewriterPill';
 
 const MAX_CART_QUANTITY = 5;
 
@@ -111,7 +112,7 @@ const ProductPageView = ({
   const buyNowDisabled = showCheck || isOutOfStock || isOverCartLimit || isVariantSelectionMissing;
   const addToCartDisabled = showCheck || (isOutOfStock ? stockAlertRequested : isOverCartLimit || isVariantSelectionMissing);
   const addToCartLoading = (!isOutOfStock && !isCartReady) || stockAlertLoading;
-  const shouldShowStickyBar = mdUp && !isOutOfStock && !isMainCtaVisible;
+  const shouldShowStickyBar = !isOutOfStock && !isMainCtaVisible;
   const handleSelectOption = (variantName: string, optionValue: string) => {
     setVariants((prev) =>
       prev?.map((v) =>
@@ -246,7 +247,7 @@ const ProductPageView = ({
 
   useEffect(() => {
     const target = ctaRowRef.current;
-    if (!target || !mdUp) {
+    if (!target) {
       setIsMainCtaVisible(true);
       return;
     }
@@ -261,7 +262,7 @@ const ProductPageView = ({
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, [mdUp]);
+  }, []);
 
   return (
     <Stack gap={5}>
@@ -348,6 +349,7 @@ const ProductPageView = ({
                         {paragraph}
                       </Typography>
                     ))}
+                    <QATypewriterPill />
                   </Stack>
                 ) : null}
                 <Divider sx={styles.shortDescriptionDivider} />
@@ -473,7 +475,7 @@ const ProductPageView = ({
                     <Stack sx={styles.expirationRow}>
                       <Box sx={styles.expirationDot} />
                       <Typography sx={styles.expirationItem}>
-                        Açıldıktan sonra <Typography component="span" sx={styles.expirationLabel}>12 Ay</Typography> içinde tüketilmesi önerilir.
+                        Açıldıktan sonra <Typography component="span" sx={styles.expirationLabel}>6 Ay</Typography> içinde tüketilmesi önerilir.
                       </Typography>
                     </Stack>
                   </Stack>
@@ -496,7 +498,7 @@ const ProductPageView = ({
         />
       </Box>
       {data.brandId && <ProductRecommendations brandId={data.brandId} productId={data.id} />}
-      <ProductQA data={data} />
+      <ProductShopAssistant data={data} />
       <ProductStickyBar
         imgSrc={data.imgSrc ?? data.images?.[0]}
         name={data.name}
@@ -506,6 +508,8 @@ const ProductPageView = ({
         loading={addToCartLoading}
         showCheck={showCheck}
         onAddToCart={handleAddToCart}
+        buyNowDisabled={buyNowDisabled}
+        onBuyNow={handleBuyNow}
       />
 
       <Snackbar

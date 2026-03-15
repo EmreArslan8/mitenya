@@ -5,7 +5,7 @@ import { ShopProductData } from '@/lib/api/types';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Stack, Typography } from '@mui/material';
 import { ArrowUpRight, Minus, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { openProductQA } from '../ProductQA/events';
+import { openProductQA } from '../ProductShopAssistant/events';
 import useStyles from './styles';
 
 type ProductFaqProps = {

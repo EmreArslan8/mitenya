@@ -17,6 +17,8 @@ type ProductStickyBarProps = {
   loading: boolean;
   showCheck: boolean;
   onAddToCart: () => void;
+  buyNowDisabled: boolean;
+  onBuyNow: () => void;
 };
 
 const ProductStickyBar = ({
@@ -28,28 +30,43 @@ const ProductStickyBar = ({
   loading,
   showCheck,
   onAddToCart,
+  buyNowDisabled,
+  onBuyNow,
 }: ProductStickyBarProps) => {
   const styles = useStyles();
   const { mdUp } = useScreen();
 
-  if (!mdUp || !visible) return null;
+  if (!visible) return null;
 
   return (
     <Stack sx={styles.stickyBarRoot}>
       <Stack sx={styles.stickyBarInner}>
-        <Stack sx={styles.stickyMeta}>
-          <img src={imgSrc ?? ''} alt={name ?? 'Urun'} style={styles.stickyThumb} />
-          <Stack sx={styles.stickyMetaText}>
-            <Typography sx={styles.stickyName}>{name}</Typography>
-            <Typography sx={styles.stickyPrice}>{formatPrice(price.currentPrice, price.currency)}</Typography>
+        {mdUp && (
+          <Stack sx={styles.stickyMeta}>
+            <img src={imgSrc ?? ''} alt={name ?? 'Urun'} style={styles.stickyThumb} />
+            <Stack sx={styles.stickyMetaText}>
+              <Typography sx={styles.stickyName}>{name}</Typography>
+              <Typography sx={styles.stickyPrice}>{formatPrice(price.currentPrice, price.currency)}</Typography>
+            </Stack>
           </Stack>
-        </Stack>
+        )}
+        {!mdUp && (
+          <Button
+            variant="outlined"
+            loading={loading}
+            disabled={buyNowDisabled}
+            onClick={onBuyNow}
+            sx={styles.buyNowButton}
+          >
+            Hemen Al
+          </Button>
+        )}
         <Button
           variant="contained"
           loading={loading}
           disabled={disabled}
           onClick={onAddToCart}
-          sx={styles.stickyButton}
+          sx={mdUp ? styles.stickyButton : styles.ctaButton}
         >
           <CrossFade
             components={[

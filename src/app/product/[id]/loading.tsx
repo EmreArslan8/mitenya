@@ -16,27 +16,38 @@ const Loading = () => {
 
         <Grid container columnSpacing={{ sm: 5 }} rowSpacing={{ xs: 3, sm: 0 }}>
           <Grid item xs={12} sm={6}>
-            <Stack gap={1.5}>
+            {/* Mobile */}
+            <Stack gap={1} sx={{ display: { xs: 'flex', sm: 'none' } }}>
               <Skeleton
                 variant="rounded"
                 width="100%"
                 height={0}
-                sx={{
-                  pt: { xs: '118%', sm: '110%' },
-                  borderRadius: { xs: 0, sm: 1.5 },
-                }}
+                sx={{ pt: '118%', borderRadius: 0 }}
               />
-              <Stack direction="row" gap={1} sx={{ px: { xs: 2, sm: 0 } }}>
-                {Array.from({ length: 4 }).map((_, index) => (
+              <Stack direction="row" justifyContent="center" gap={0.75} sx={{ px: 2 }}>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} variant="circular" width={8} height={8} />
+                ))}
+              </Stack>
+            </Stack>
+
+            {/* Desktop */}
+            <Stack direction="row" gap={1.5} sx={{ display: { xs: 'none', sm: 'flex' } }}>
+              <Stack gap={1} sx={{ width: 82, minWidth: 82 }}>
+                {Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton
-                    key={index}
+                    key={i}
                     variant="rounded"
-                    width={72}
-                    height={72}
-                    sx={{ borderRadius: 1 }}
+                    width={82}
+                    height={0}
+                    sx={{ pt: '125%', borderRadius: 1 }}
                   />
                 ))}
               </Stack>
+              <Skeleton
+                variant="rounded"
+                sx={{ flex: 1, height: { sm: 560, md: 760 }, borderRadius: 0 }}
+              />
             </Stack>
           </Grid>
 

@@ -7,6 +7,5 @@ export function openProductQA() {
     trigger.click();
     return;
   }
-
   window.dispatchEvent(new CustomEvent(PRODUCT_QA_OPEN_EVENT));
 }
