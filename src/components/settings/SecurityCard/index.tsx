@@ -29,19 +29,19 @@ const SecurityCard = () => {
     setSuccessMessage(null);
 
     if (!currentPassword) {
-      setPasswordError('Mevcut sifrenizi giriniz.');
+      setPasswordError('Mevcut şifrenizi giriniz.');
       return;
     }
     if (!newPassword || !newPasswordRepeat) {
-      setPasswordError('Yeni sifre alanlarini doldurunuz.');
+      setPasswordError('Yeni şifre alanlarını doldurunuz.');
       return;
     }
     if (newPassword.length < 10) {
-      setPasswordError('Yeni sifre en az 10 karakter olmalidir.');
+      setPasswordError('Yeni şifre en az 10 karakter olmalıdır.');
       return;
     }
     if (newPassword !== newPasswordRepeat) {
-      setPasswordError('Yeni sifre tekrar alani ile uyusmuyor.');
+      setPasswordError('Yeni şifre tekrar alanı ile uyuşmuyor.');
       return;
     }
 
