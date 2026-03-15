@@ -2,6 +2,7 @@ import { ApiErrors } from '@/lib/api/errors';
 import { rateLimit } from '@/lib/api/rateLimit';
 import { getClientIp } from '@/lib/api/getClientIp';
 import { hasDeliveredPurchase } from '@/lib/api/reviewEligibility';
+import { invalidateUserReviewsCache } from '@/lib/api/supabaseReviews';
 import { createSupabaseServer } from '@/lib/supabase/server';
 import { ProductIdSchema } from '@/lib/validations/products';
 import { NextRequest, NextResponse } from 'next/server';
@@ -201,6 +202,7 @@ export async function POST(
       return ApiErrors.internalError('Failed to save review');
     }
 
+    await invalidateUserReviewsCache(user.id);
     return NextResponse.json({ review: rowToReview(saved as ReviewRow) }, { status: 201 });
   } catch (error) {
     console.error('API /products/[id]/reviews POST error:', error);

@@ -17,6 +17,7 @@ const SecurityCard = () => {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
 
   const passwordFormValid =
+    currentPassword.length > 0 &&
     newPassword.length >= 10 &&
     /[A-Z]/.test(newPassword) &&
     /[a-z]/.test(newPassword) &&
@@ -27,6 +28,10 @@ const SecurityCard = () => {
     setPasswordError(null);
     setSuccessMessage(null);
 
+    if (!currentPassword) {
+      setPasswordError('Mevcut sifrenizi giriniz.');
+      return;
+    }
     if (!newPassword || !newPasswordRepeat) {
       setPasswordError('Yeni sifre alanlarini doldurunuz.');
       return;
@@ -43,8 +48,22 @@ const SecurityCard = () => {
     setSavingPassword(true);
     try {
       const supabase = createSupabaseBrowser();
+
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user?.email) throw new Error('Kullanici bilgisi alinamadi.');
+
+      const { error: verifyError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
+      });
+      if (verifyError) {
+        setPasswordError('Mevcut sifreniz yanlis.');
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
+
       setCurrentPassword('');
       setNewPassword('');
       setNewPasswordRepeat('');

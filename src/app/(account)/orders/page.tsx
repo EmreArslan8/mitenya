@@ -1,12 +1,24 @@
 import { fetchOrdersSupabase } from '@/lib/api/supabaseOrders';
+import { fetchUserReviews } from '@/lib/api/supabaseReviews';
 import OrdersPageView from './view';
 
-const OrdersPage = async () => {
-  const data = await fetchOrdersSupabase();
-  if (!data) {
-    return <OrdersPageView data={{ results: [], totalRecordCount: 0, currentPage: 1, pageCount: 1, pageSize: 50 }} />;
+const EMPTY_ORDERS = { results: [], totalRecordCount: 0, currentPage: 1, pageCount: 1, pageSize: 50 };
+
+const OrdersPage = async ({
+  searchParams,
+}: {
+  searchParams?: Promise<{ section?: string }>;
+}) => {
+  const params = await searchParams;
+  const section = params?.section === 'reviews' ? 'reviews' : 'orders';
+
+  if (section === 'reviews') {
+    const reviews = await fetchUserReviews();
+    return <OrdersPageView section="reviews" data={EMPTY_ORDERS} reviews={reviews} />;
   }
-  return <OrdersPageView data={data} />;
+
+  const data = await fetchOrdersSupabase();
+  return <OrdersPageView section="orders" data={data ?? EMPTY_ORDERS} reviews={[]} />;
 };
 
 export const metadata = {
