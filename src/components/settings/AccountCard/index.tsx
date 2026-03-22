@@ -4,6 +4,8 @@ import Button from '@/components/common/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import useCustomerData from '@/lib/api/useCustomerData';
 import { createSupabaseBrowser } from '@/lib/supabase/browser';
+import { validatePassword } from '@/lib/utils/password';
+import { withCsrfHeaders } from '@/lib/utils/csrf';
 import {
   Grid,
   MenuItem,
@@ -50,6 +52,10 @@ const AccountCard = () => {
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordRepeat, setNewPasswordRepeat] = useState('');
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const formatPhone = (raw: string): string => {
     const d = raw.replace(/\D/g, '').slice(0, 10);
@@ -74,18 +80,30 @@ const AccountCard = () => {
     setProfileError(null);
     setSuccessMessage(null);
     try {
+      const newEmail = email.trim();
+      const currentEmail = customerData?.email ?? '';
+      const emailChanged = newEmail !== currentEmail && newEmail !== '';
+
+      if (emailChanged) {
+        const supabase = createSupabaseBrowser();
+        const { error: emailError } = await supabase.auth.updateUser({ email: newEmail });
+        if (emailError) throw new Error('E-posta güncellenemedi.');
+        setEmail(currentEmail);
+        setSuccessMessage('Doğrulama linki yeni e-posta adresinize gönderildi. Lütfen e-postanızı kontrol edin.');
+      }
+
       const updated = await createCustomer({
         name: name.trim(),
         surname: surname.trim(),
-        email: email.trim(),
+        email: currentEmail,
         culture: customerData?.culture ?? 'tr',
         phoneNumber: phone.trim(),
       });
       if (!updated) throw new Error('Güncellenemedi');
       setCustomerData?.(updated);
-      setSuccessMessage('Uye bilgileri guncellendi.');
+      if (!emailChanged) setSuccessMessage('Üye bilgileri güncellendi.');
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Guncellenemedi';
+      const message = err instanceof Error ? err.message : 'Güncellenemedi';
       setProfileError(message);
     } finally {
       setSavingProfile(false);
@@ -104,8 +122,9 @@ const AccountCard = () => {
       setPasswordError('Yeni şifre alanlarını doldurunuz.');
       return;
     }
-    if (newPassword.length < 10) {
-      setPasswordError('Yeni şifre en az 10 karakter olmalıdır.');
+    const pwErr = validatePassword(newPassword);
+    if (pwErr) {
+      setPasswordError(pwErr);
       return;
     }
     if (newPassword !== newPasswordRepeat) {
@@ -115,32 +134,46 @@ const AccountCard = () => {
 
     setSavingPassword(true);
     try {
-      const supabase = createSupabaseBrowser();
-
-      const userEmail = customerData?.email;
-      if (!userEmail) throw new Error('Kullanici bilgisi alinamadi.');
-
-      const { error: verifyError } = await supabase.auth.signInWithPassword({
-        email: userEmail,
-        password: currentPassword,
-      });
-      if (verifyError) {
-        setPasswordError('Mevcut sifreniz yanlis.');
+      const res = await fetch('/api/auth/change-password', withCsrfHeaders({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      }));
+      const data = await res.json();
+      if (!res.ok) {
+        setPasswordError(data?.error ?? 'Şifre güncellenemedi.');
         return;
       }
-
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
-
       setCurrentPassword('');
       setNewPassword('');
       setNewPasswordRepeat('');
-      setSuccessMessage('Sifreniz basariyla guncellendi.');
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Sifre guncellenemedi.';
-      setPasswordError(message);
+      setSuccessMessage('Şifreniz başarıyla güncellendi.');
+    } catch {
+      setPasswordError('Şifre güncellenemedi.');
     } finally {
       setSavingPassword(false);
+    }
+  };
+
+  const handleDeleteAccount = async (password: string) => {
+    setDeletingAccount(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch('/api/auth/delete-account', withCsrfHeaders({
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword: password }),
+      }));
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data?.error ?? 'Hesap silinemedi.');
+      }
+      await signOut();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Hesap silinemedi.';
+      setDeleteError(message);
+    } finally {
+      setDeletingAccount(false);
     }
   };
 
@@ -272,7 +305,7 @@ const AccountCard = () => {
                   sx={styles.input}
                 />
                 <Typography sx={styles.passwordHint}>
-                  Sifreniz en az 10 karakter olmali. 1 buyuk harf, 1 kucuk harf ve rakam icermelidir.
+                  Şifreniz en az 8 karakter olmalı. 1 büyük harf, 1 küçük harf ve rakam içermelidir.
                 </Typography>
                 <TextField
                   label="Yeni Sifre (Tekrar)"
@@ -312,7 +345,55 @@ const AccountCard = () => {
 
         {successMessage && <Typography sx={styles.successText}>{successMessage}</Typography>}
 
-        <Stack direction="row" justifyContent="flex-end">
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
+          {showDeleteConfirm ? (
+            <Stack gap={1} sx={{ maxWidth: 360 }}>
+              <Typography sx={styles.deleteWarning}>
+                Hesabınız kalıcı olarak silinecek. Bu işlem geri alınamaz. Devam etmek için şifrenizi girin.
+              </Typography>
+              <TextField
+                size="small"
+                type="password"
+                placeholder="Şifreniz"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                sx={styles.input}
+                disabled={deletingAccount}
+              />
+              {deleteError && <Typography sx={styles.errorText}>{deleteError}</Typography>}
+              <Stack direction="row" gap={1}>
+                <Button
+                  size="small"
+                  color="error"
+                  variant="contained"
+                  onClick={() => handleDeleteAccount(deletePassword)}
+                  disabled={deletingAccount || !deletePassword}
+                  sx={styles.logoutButton}
+                >
+                  {deletingAccount ? 'Siliniyor...' : 'Hesabımı Sil'}
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => { setShowDeleteConfirm(false); setDeleteError(null); setDeletePassword(''); }}
+                  disabled={deletingAccount}
+                  sx={styles.logoutButton}
+                >
+                  İptal
+                </Button>
+              </Stack>
+            </Stack>
+          ) : (
+            <Button
+              size="small"
+              color="error"
+              variant="text"
+              onClick={() => setShowDeleteConfirm(true)}
+              sx={styles.logoutButton}
+            >
+              Hesabı Sil
+            </Button>
+          )}
           <Button
             size="small"
             color="error"

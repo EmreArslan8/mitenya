@@ -35,8 +35,12 @@ export const generateMetadata = async ({
 
   return {
     title: data.title,
+    alternates: {
+      canonical: '/',
+    },
     openGraph: {
       title: `${data.title} | Mitenya`,
+      url: '/',
       images: [{ url: '/static/images/ogBanner.webp', width: 1200, height: 630 }],
     },
   };

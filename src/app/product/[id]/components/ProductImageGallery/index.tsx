@@ -36,6 +36,7 @@ const ProductImageGallery = ({
 
   const activeImage = imageList.includes(currentImg ?? '') ? currentImg : imageList[0];
   const currentImageIndex = Math.max(0, imageList.findIndex((src) => src === activeImage));
+  const baseAlt = name?.trim() || 'Urun';
 
   useEffect(() => {
     setCurrentImg(imageList[0]);
@@ -150,9 +151,13 @@ const ProductImageGallery = ({
     <>
       <Stack sx={styles.mobileImagesContainer}>
         <Stack sx={styles.mobileImages} ref={scrollerRef}>
-          {imageList.map((src) => (
+          {imageList.map((src, index) => (
             <Stack sx={styles.mobileImage} key={src}>
-              <img src={src} alt="" style={styles.image} />
+              <img
+                src={src}
+                alt={index === 0 ? baseAlt : `${baseAlt} - gorsel ${index + 1}`}
+                style={styles.image}
+              />
             </Stack>
           ))}
         </Stack>

@@ -2,6 +2,7 @@
 
 import Footer from "@/components/Footer";
 import AttributionTracker from "@/components/analytics/AttributionTracker";
+import MetaPixelPageView from "@/components/analytics/MetaPixelPageView";
 import MainLayout from "@/components/layouts/MainLayout";
 import Navigation from "@/components/Navigation";
 import { AuthContextProvider } from "@/contexts/AuthContext";
@@ -89,6 +90,7 @@ export default async function RootLayout({
         <ThemeRegistry>
           <CookieConsentProvider>
             <AttributionTracker />
+            <MetaPixelPageView />
             <AuthContextProvider>
               <FavoritesContextProvider>
                 <ShopContextProvider>

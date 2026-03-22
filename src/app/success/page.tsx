@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
 import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
 import { sendPurchaseEventForOrder } from '@/lib/utils/googleAnalytics';
+import { trackPurchase } from '@/lib/analytics/metaPixel';
 import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material';
 import { Check } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -137,6 +138,13 @@ const SuccessPage = () => {
       currency: order.currency,
       paymentMethod: order.payment_method,
       items: order.items,
+    });
+    trackPurchase({
+      value: order.total_amount,
+      currency: order.currency,
+      content_ids: order.items.map((i) => String(i.product_id ?? i.product_name)),
+      num_items: order.items.reduce((acc, i) => acc + i.quantity, 0),
+      order_id: order.order_number,
     });
 
     window.sessionStorage.setItem(dedupeKey, '1');

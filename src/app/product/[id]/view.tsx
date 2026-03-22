@@ -27,6 +27,7 @@ import useStyles from './styles';
 import formatPrice from '@/lib/utils/formatPrice';
 import { Check, ChevronRight, Truck, Undo2 } from 'lucide-react';
 import copyTextOnClick from '@/lib/utils/copyTextOnClick';
+import { trackViewContent, trackAddToWishlist } from '@/lib/analytics/metaPixel';
 import QATypewriterPill from './components/ProductShopAssistant/QATypewriterPill';
 
 const MAX_CART_QUANTITY = 5;
@@ -231,6 +232,9 @@ const ProductPageView = ({
       withAuth(() => void handleFavoriteClick());
       return;
     }
+    if (result.isFavorite) {
+      trackAddToWishlist({ content_ids: [productId], content_name: data.name });
+    }
   };
 
   const isDesktop = smUp;
@@ -238,6 +242,16 @@ const ProductPageView = ({
   const scrollToReviews = () => {
     reviewsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+
+  useEffect(() => {
+    trackViewContent({
+      content_ids: [String(data.id)],
+      content_name: data.name,
+      content_category: data.category,
+      value: data.price.currentPrice,
+      currency: data.price.currency ?? 'TRY',
+    });
+  }, []);
 
   useEffect(() => {
     return () => {

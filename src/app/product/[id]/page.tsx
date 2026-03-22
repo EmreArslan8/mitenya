@@ -34,14 +34,19 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
 
   const title = data?.metaTitle || `${fullName} | Mitenya`;
   const description = data?.metaDescription || defaultDescription;
+  const canonical = data?.url || `/product/${id}`;
 
   return {
     title: { absolute: title },
     description,
     keywords: data?.metaKeywords?.split(',').map((k: string) => k.trim()),
+    alternates: {
+      canonical,
+    },
     openGraph: {
       title,
       description,
+      url: canonical,
       images: [
         {
           url: data?.imgSrc ?? '/static/images/ogBanner.webp',

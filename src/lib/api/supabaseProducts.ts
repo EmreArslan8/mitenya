@@ -79,7 +79,7 @@ export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopPr
       original_price,
       currency,
       product_prices(price_current, price_original, currency),
-      product_images(image_path, image_url, is_main, sort_order),
+      product_images(image_url, is_main, sort_order),
       product_stock(quantity, stock_status),
       attributes_json,
       meta_title,
@@ -172,10 +172,9 @@ export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopPr
     (a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
   );
 
-  // 🔹 R2 entegrasyonu: image_path varsa onu, yoksa image_url kullan
+  // image_url kolonu relative R2 path tutuyor; public URL burada uretiliyor
   const imageUrls: string[] = imagesSorted.map((i: any) => {
-    const pathOrUrl = i.image_path || i.image_url || "";
-    return r2Url(pathOrUrl);
+    return r2Url(i.image_url || "");
   });
 
   const imgSrc = imageUrls[0] ?? "";
@@ -184,6 +183,7 @@ export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopPr
   ? (data.attributes_json as any[]) 
   : [];
 
+  
   const filterAggregations = await getFilterAggregations();
   const brandSlug = filterAggregations.brands.find((b) => b.id === data.brand_id)?.slug;
   const categorySlug = filterAggregations.categories.find((c) => c.id === data.category_id)?.slug;

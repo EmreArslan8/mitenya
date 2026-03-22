@@ -148,6 +148,12 @@ const styles = {
     textTransform: 'none',
     fontSize: 13,
   },
+  deleteWarning: {
+    fontSize: 13,
+    color: 'error.main',
+    maxWidth: 400,
+    lineHeight: 1.5,
+  },
 };
 
 export default styles;

@@ -1,7 +1,8 @@
 'use client';
 
 import Button from '@/components/common/Button';
-import { createSupabaseBrowser } from '@/lib/supabase/browser';
+import { validatePassword } from '@/lib/utils/password';
+import { withCsrfHeaders } from '@/lib/utils/csrf';
 import { Stack, Switch, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import styles from './styles';
@@ -18,10 +19,7 @@ const SecurityCard = () => {
 
   const passwordFormValid =
     currentPassword.length > 0 &&
-    newPassword.length >= 10 &&
-    /[A-Z]/.test(newPassword) &&
-    /[a-z]/.test(newPassword) &&
-    /[0-9]/.test(newPassword) &&
+    validatePassword(newPassword) === null &&
     newPassword === newPasswordRepeat;
 
   const handlePasswordUpdate = async () => {
@@ -36,8 +34,9 @@ const SecurityCard = () => {
       setPasswordError('Yeni şifre alanlarını doldurunuz.');
       return;
     }
-    if (newPassword.length < 10) {
-      setPasswordError('Yeni şifre en az 10 karakter olmalıdır.');
+    const pwErr = validatePassword(newPassword);
+    if (pwErr) {
+      setPasswordError(pwErr);
       return;
     }
     if (newPassword !== newPasswordRepeat) {
@@ -47,30 +46,22 @@ const SecurityCard = () => {
 
     setSavingPassword(true);
     try {
-      const supabase = createSupabaseBrowser();
-
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user?.email) throw new Error('Kullanici bilgisi alinamadi.');
-
-      const { error: verifyError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: currentPassword,
-      });
-      if (verifyError) {
-        setPasswordError('Mevcut sifreniz yanlis.');
+      const res = await fetch('/api/auth/change-password', withCsrfHeaders({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      }));
+      const data = await res.json();
+      if (!res.ok) {
+        setPasswordError(data?.error ?? 'Şifre güncellenemedi.');
         return;
       }
-
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
-
       setCurrentPassword('');
       setNewPassword('');
       setNewPasswordRepeat('');
-      setSuccessMessage('Sifreniz basariyla guncellendi.');
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Sifre guncellenemedi.';
-      setPasswordError(message);
+      setSuccessMessage('Şifreniz başarıyla güncellendi.');
+    } catch {
+      setPasswordError('Şifre güncellenemedi.');
     } finally {
       setSavingPassword(false);
     }
