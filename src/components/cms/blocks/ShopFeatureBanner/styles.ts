@@ -9,20 +9,22 @@ const useStyles = withPalette((palette) => ({
   },
 
   mainSliderWrapper: {
-    flex: '0 0 65%',
-    maxWidth: '65%',
+    flex: { xs: '1 1 100%', md: '0 0 65%' },
+    maxWidth: { xs: '100%', md: '65%' },
     '& .slick-slider': { maxWidth: '100vw' },
+    '& .slick-list': { overflow: 'hidden' },
+    '& .slick-track': { display: 'flex' },
     '& .slick-slide': { lineHeight: 0 },
     '& .slick-slide > div': { display: 'block' },
     '& .slick-dots': {
       position: 'absolute',
-      bottom: 30,
+      bottom: { xs: 16, md: 30 },
       left: 0,
       right: 0,
       display: 'flex !important',
       justifyContent: 'center',
       alignItems: 'center',
-      gap: '10px',
+      gap: { xs: '8px', md: '10px' },
       margin: 0,
       padding: 0,
       listStyle: 'none',
@@ -31,8 +33,8 @@ const useStyles = withPalette((palette) => ({
       '& li': {
         margin: 0,
         padding: 0,
-        width: 8,
-        height: 8,
+        width: { xs: 7, md: 8 },
+        height: { xs: 7, md: 8 },
         transition: 'width 0.25s ease',
       },
 
@@ -54,7 +56,7 @@ const useStyles = withPalette((palette) => ({
       },
 
       '& li.slick-active': {
-        width: 24,
+        width: { xs: 22, md: 24 },
       },
       '& li.slick-active button': {
         backgroundColor: palette.white.main,
@@ -65,9 +67,9 @@ const useStyles = withPalette((palette) => ({
 
   mainSlide: {
     position: 'relative',
-    aspectRatio: '16/9',
+    aspectRatio: { xs: '4/5', sm: '16/9' },
     width: '100%',
-    borderRadius: 2,
+    borderRadius: { xs: 1.5, md: 2 },
     overflow: 'hidden',
     display: 'block',
     '& img': { objectFit: 'cover' },
