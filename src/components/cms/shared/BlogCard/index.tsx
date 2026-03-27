@@ -28,6 +28,9 @@ const BlogCard = ({
   category,
   featured = false,
 }: BlogCardProps) => {
+  const imageSizes = featured
+    ? '(max-width: 900px) 100vw, 55vw'
+    : '(max-width: 900px) 110px, 33vw';
   const formattedDate = publishedAt
     ? new Date(publishedAt).toLocaleDateString('tr-TR', {
       day: 'numeric',
@@ -53,6 +56,7 @@ const BlogCard = ({
                 src={coverImage.url}
                 alt={coverImage.alternativeText || title}
                 fill
+                sizes={imageSizes}
                 style={{ objectFit: 'cover' }}
               />
             </Box>

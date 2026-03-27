@@ -9,7 +9,6 @@ import { useEffect, useState } from 'react';
 import { BlockComponentBaseProps } from '..';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import { SharedButtonType, SharedImageType } from '../../shared/cmsTypes';
-import CMSImage from '../../shared/CMSImage';
 import useStyles from './styles';
 import useScreen from '@/lib/hooks/useScreen';
 
@@ -21,6 +20,23 @@ export interface ShopBrandShowcaseProps extends BlockComponentBaseProps {
   button?: SharedButtonType;
   searchOptions: ShopSearchOptions;
 }
+
+const BRAND_SHOWCASE_IMAGE_SIZES = '(max-width: 900px) 100vw, 55vw';
+const BRAND_SHOWCASE_IMAGE_WIDTHS = [384, 768, 1024];
+
+const resolveCmsImageUrl = (src: string) =>
+  src.startsWith('http://') || src.startsWith('https://')
+    ? src
+    : `${process.env.NEXT_PUBLIC_IMAGE_HOST}${src}`;
+
+const buildCloudinaryWidthUrl = (src: string, width: number) => {
+  const resolvedSrc = resolveCmsImageUrl(src);
+  if (!resolvedSrc.includes('res.cloudinary.com/')) {
+    return resolvedSrc;
+  }
+
+  return resolvedSrc.replace('/image/upload/', `/image/upload/f_auto,w_${width}/`);
+};
 
 const ShopBrandShowcase = ({
   section,
@@ -35,6 +51,10 @@ const ShopBrandShowcase = ({
   const [, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const styles = useStyles();
+  const showcaseImageSrc = buildCloudinaryWidthUrl(image.data.attributes.url, 768);
+  const showcaseImageSrcSet = BRAND_SHOWCASE_IMAGE_WIDTHS.map(
+    (width) => `${buildCloudinaryWidthUrl(image.data.attributes.url, width)} ${width}w`
+  ).join(', ');
 
   const searchOptions = Object.fromEntries(
     Object.entries(_searchOptions).filter(
@@ -69,10 +89,15 @@ const ShopBrandShowcase = ({
       <Stack sx={styles.wrapper}>
         <Stack sx={styles.body}>
           <Stack sx={styles.imageWrapper}>
-            <CMSImage
-              src={image.data.attributes.url}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={showcaseImageSrc}
+              srcSet={showcaseImageSrcSet}
+              sizes={BRAND_SHOWCASE_IMAGE_SIZES}
               alt={image.data.attributes.alternativeText || title}
-              fill
+              loading="lazy"
+              decoding="async"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </Stack>
           <Stack sx={styles.header}>
