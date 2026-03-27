@@ -112,6 +112,7 @@ export type ShopOrderSummaryData = {
     codBalance: { amount: number; currency: string };
     failureReason: CODFailureReason | "NOT_SUPPORTED" | null;
   };
+  affiliateCode?: string | null;
 };
 
 export type ShopOrderStatus = 'processing' | 'preparing' | 'shipped' | 'delivered' | 'cancelled';
@@ -161,8 +162,15 @@ export type ShopProductListItemData = {
   name: string;
   url: string;
   createdAt?: string;
-  images?: { url: string }[];
+  images?: Array<{
+    url: string;
+    srcSet?: string;
+    sizes?: string;
+    originalUrl?: string;
+  }>;
   imgSrc: string;
+  imgSrcSet?: string;
+  imgSizes?: string;
   price: ShopProductPrice;
   rating?: ShopProductRating;
   breadcrumbs?: string;

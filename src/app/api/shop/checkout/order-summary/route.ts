@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchProductDataSupabase } from "@/lib/api/supabaseProducts";
 import { OrderSummaryRequestData, ShopCoupon, ShopProductData } from "@/lib/api/types";
 import { calculateOrderSummary } from "@/lib/shop/calculateOrderSummary";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const cmsApiUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
 const cmsBearer = process.env.STRAPI_BEARER;
 
-const fetchCouponDiscountPercent = async (
+const fetchCouponData = async (
   normalizedCode?: string
-): Promise<number | undefined> => {
+): Promise<{ percent: number; affiliateCode: string | null } | undefined> => {
   if (!normalizedCode || !cmsApiUrl || !cmsBearer) return undefined;
 
   try {
@@ -44,9 +45,17 @@ const fetchCouponDiscountPercent = async (
     const percent = activeCoupon?.discountPercent;
     if (typeof percent !== "number" || percent <= 0) return undefined;
 
-    return percent;
+    // Aynı kod bir influencer'a ait mi kontrol et
+    const { data: affiliate } = await supabaseAdmin
+      .from("affiliates")
+      .select("code")
+      .eq("code", normalizedCode)
+      .eq("status", "active")
+      .maybeSingle();
+
+    return { percent, affiliateCode: affiliate?.code ?? null };
   } catch (error) {
-    console.error("fetchCouponDiscountPercent error:", error);
+    console.error("fetchCouponData error:", error);
     return undefined;
   }
 };
@@ -88,15 +97,17 @@ export const POST = async (req: NextRequest) => {
     }
 
     const normalizedCode = discountCode?.trim().toUpperCase();
-    const couponDiscountPercent = await fetchCouponDiscountPercent(normalizedCode);
+    const couponData = await fetchCouponData(normalizedCode);
 
     const summary = calculateOrderSummary({
       products: revalidatedProducts,
       discountCode: normalizedCode,
-      couponDiscountPercent,
+      couponDiscountPercent: couponData?.percent,
     });
 
-    return NextResponse.json({ orderSummary: summary });
+    return NextResponse.json({
+      orderSummary: { ...summary, affiliateCode: couponData?.affiliateCode ?? null },
+    });
   } catch (err) {
     console.error("order-summary API ERROR:", err);
     return NextResponse.json(

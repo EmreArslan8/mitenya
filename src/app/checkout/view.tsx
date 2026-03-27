@@ -160,7 +160,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
             shipping_cost: orderSummary?.shipmentCost || 0,
             discount_amount: orderSummary?.promotionDiscount || 0,
             discount_code: discountCode,
-            affiliate_code: affiliateCode,
+            affiliate_code: orderSummary?.affiliateCode ?? affiliateCode,
             attribution,
             currency: 'TRY',
             consents,

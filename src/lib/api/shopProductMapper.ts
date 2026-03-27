@@ -1,4 +1,4 @@
-import { r2Url } from "../utils/r2";
+import { R2_IMAGE_PROFILES, r2ImageSrcSet, r2ImageUrl, r2Url } from "../utils/r2";
 import { ShopProductListItemData } from "./types";
 
 type ProductImageRow = {
@@ -40,6 +40,21 @@ export const mapShopProductRow = (product: ShopProductRow): ShopProductListItemD
   const imagesSorted = [...(product.product_images ?? [])].sort(
     (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
   );
+  const profile = R2_IMAGE_PROFILES.productCard;
+  const buildListingImage = (pathOrUrl: string) => ({
+    url: r2ImageUrl(pathOrUrl, {
+      width: profile.widths[1],
+      format: profile.format,
+    }),
+    srcSet: r2ImageSrcSet(pathOrUrl, profile.widths, {
+      format: profile.format,
+    }),
+    sizes: profile.sizes,
+    originalUrl: r2Url(pathOrUrl),
+  });
+  const primaryImage = imagesSorted[0]?.image_url
+    ? buildListingImage(imagesSorted[0].image_url)
+    : null;
 
   return {
     id: product.id,
@@ -49,10 +64,10 @@ export const mapShopProductRow = (product: ShopProductRow): ShopProductListItemD
     name: product.name,
     url: `/product/${product.slug || product.id}`,
     createdAt: product.created_at ?? undefined,
-    images: imagesSorted.map((image) => ({
-      url: r2Url(image.image_url),
-    })),
-    imgSrc: r2Url(imagesSorted[0]?.image_url ?? ""),
+    images: imagesSorted.map((image) => buildListingImage(image.image_url)),
+    imgSrc: primaryImage?.url ?? "",
+    imgSrcSet: primaryImage?.srcSet,
+    imgSizes: primaryImage?.sizes,
     price: {
       currentPrice: Number(product.current_price ?? priceRow?.price_current ?? 0),
       originalPrice: Number(

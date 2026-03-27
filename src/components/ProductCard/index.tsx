@@ -33,6 +33,17 @@ interface ShopProductCardProps {
   data: ShopProductListItemData;
 }
 
+type ProductCardImageData = ShopProductListItemData & {
+  imgSrcSet?: string;
+  imgSizes?: string;
+  images?: Array<{
+    url: string;
+    srcSet?: string;
+    sizes?: string;
+    originalUrl?: string;
+  }>;
+};
+
 const CANONICAL_BRAND_MAP: Record<string, string> = {
   celimax: 'CELIMAX',
   'mary&may': 'MARY&MAY',
@@ -49,6 +60,7 @@ const normalizeBrandName = (brand?: string) => {
 };
 
 const ProductCard = ({ data }: ShopProductCardProps) => {
+  const imageData = data as ProductCardImageData;
   const isMobileApp = useIsMobileApp();
   const { smUp } = useScreen();
   const styles = useStyles();
@@ -76,7 +88,7 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
   const isOutOfStock = typeof data.quantity === 'number' && data.quantity <= 0;
-  const secondaryImage = data.images?.[1]?.url;
+  const secondaryImage = imageData.images?.[1]?.url;
   const hasSecondaryImage = Boolean(secondaryImage && secondaryImage !== data.imgSrc);
   const isTopRated = (data.rating?.averageRating ?? 0) >= 4.5 && (data.rating?.totalCount ?? 0) >= 50;
   const productTag = normalizeBrandName(data.brand);
@@ -233,9 +245,13 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
                 )}
               </IconButton>
             </Stack>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={data.imgSrc}
+              srcSet={imageData.imgSrcSet}
+              sizes={imageData.imgSizes}
               alt={data.name}
+              loading="lazy"
               decoding="async"
               style={{
                 ...styles.image,
@@ -243,17 +259,22 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
               }}
             />
             {hasSecondaryImage && shouldLoadSecondaryImage && (
-              <img
-                src={secondaryImage}
-                alt={data.name}
-                loading="lazy"
-                decoding="async"
-                style={{
-                  ...styles.image,
-                  ...styles.imageSecondary,
-                  opacity: showSecondaryImage ? 1 : 0,
-                }}
-              />
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={secondaryImage}
+                  srcSet={imageData.images?.[1]?.srcSet}
+                  sizes={imageData.images?.[1]?.sizes ?? imageData.imgSizes}
+                  alt={data.name}
+                  loading="lazy"
+                  decoding="async"
+                  style={{
+                    ...styles.image,
+                    ...styles.imageSecondary,
+                    opacity: showSecondaryImage ? 1 : 0,
+                  }}
+                />
+              </>
             )}
           </Stack>
           <Stack sx={styles.infoContainer}>
