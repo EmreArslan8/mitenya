@@ -2,29 +2,34 @@
 
 import AddressbookCard from '@/components/settings/AddressbookCard';
 import AccountCard from '@/components/settings/AccountCard';
+import FavoritesCard from '@/components/settings/FavoritesCard';
 import SecurityCard from '@/components/settings/SecurityCard';
 import Button from '@/components/common/Button';
 import { AddressData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import { Box, Divider, MenuItem, Select, Stack, Typography } from '@mui/material';
-import { Bell, LockKeyhole, MapPinned, PackageSearch, UserRound } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Bell, Heart, LockKeyhole, MapPinned, PackageSearch, UserRound } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 
-type SettingsTab = 'profile' | 'addresses' | 'security' | 'notifications';
+type SettingsTab = 'profile' | 'addresses' | 'security' | 'notifications' | 'favorites';
+type SectionIcon = LucideIcon;
 
 const TAB_LABELS: Record<SettingsTab, string> = {
   profile: 'Profil Bilgilerim',
   addresses: 'Adreslerim',
-  security: 'Guvenlik',
+  security: 'Güvenlik',
   notifications: 'Bildirimlerim',
+  favorites: 'Favorilerim',
 };
 
 const TAB_LABELS_MOBILE: Record<SettingsTab, string> = {
   profile: 'Profil',
   addresses: 'Adres',
-  security: 'Guvenlik',
+  security: 'Güvenlik',
   notifications: 'Bildirim',
+  favorites: 'Favoriler',
 };
 
 const SettingsView = ({ addresses, section }: { addresses: AddressData[]; section: SettingsTab }) => {
@@ -39,7 +44,8 @@ const SettingsView = ({ addresses, section }: { addresses: AddressData[]; sectio
         addresses: { label: TAB_LABELS_MOBILE.addresses, Icon: MapPinned },
         security: { label: TAB_LABELS_MOBILE.security, Icon: LockKeyhole },
         notifications: { label: TAB_LABELS_MOBILE.notifications, Icon: Bell },
-      }) satisfies Record<SettingsTab, { label: string; Icon: any }>,
+        favorites: { label: TAB_LABELS_MOBILE.favorites, Icon: Heart },
+      }) satisfies Record<SettingsTab, { label: string; Icon: SectionIcon }>,
     []
   );
 
@@ -86,7 +92,7 @@ const SettingsView = ({ addresses, section }: { addresses: AddressData[]; sectio
                     py: 0.6,
                   }}
                 >
-                  Siparislerim
+                  Siparişlerim
                 </Button>
               </Stack>
 
@@ -205,6 +211,9 @@ const SettingsView = ({ addresses, section }: { addresses: AddressData[]; sectio
       )}
       {section === 'notifications' && (
         <SectionPlaceholder title="Bildirim tercihleri yakinda eklenecek." />
+      )}
+      {section === 'favorites' && (
+        <FavoritesCard />
       )}
     </Stack>
   );

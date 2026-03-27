@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
+import { isSafeRedirect } from '@/lib/utils/isValidUrl';
 
 const {
   GOOGLE_CLIENT_ID,
@@ -20,31 +21,35 @@ export async function GET(req: NextRequest) {
   const code = requestUrl.searchParams.get('code');
   const stateParam = requestUrl.searchParams.get('state');
 
-  console.log('[google/callback] incoming', {
-    codePresent: !!code,
-    stateParam,
-  });
-
   if (!code || !stateParam) {
-    console.error('[google/callback] missing code or state');
-    return NextResponse.redirect(
-      new URL('/?auth_error=google', origin),
-    );
+    return NextResponse.redirect(new URL('/?auth_error=google', origin));
   }
 
-  const { next } = JSON.parse(
-    decodeURIComponent(stateParam),
-  ) as { next?: string };
+  // State parse + CSRF nonce doğrulama
+  let next: string | undefined;
+  let nonce: string | undefined;
+  try {
+    // URLSearchParams.get() zaten decode ediyor — tekrar decodeURIComponent çağrılmıyor
+    const parsed = JSON.parse(stateParam) as {
+      next?: string;
+      nonce?: string;
+    };
+    next = parsed.next;
+    nonce = parsed.nonce;
+  } catch {
+    return NextResponse.redirect(new URL('/?auth_error=invalid_state', origin));
+  }
 
-  const redirectAfterLogin = next || '/';
+  const cookieStore = await cookies();
+  const storedNonce = cookieStore.get('oauth_nonce')?.value;
+
+  if (!storedNonce || !nonce || storedNonce !== nonce) {
+    return NextResponse.redirect(new URL('/?auth_error=csrf', origin));
+  }
+
+  const safeRedirect = isSafeRedirect(next ?? '/') ? (next ?? '/') : '/';
 
   try {
-    console.log('[google/callback] exchanging code for tokens', {
-      GOOGLE_REDIRECT_URI,
-      GOOGLE_CLIENT_ID,
-      hasSecret: !!GOOGLE_CLIENT_SECRET,
-    });
-
     // 1️⃣ Google → token exchange
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -59,34 +64,17 @@ export async function GET(req: NextRequest) {
     });
 
     if (!tokenRes.ok) {
-      const errText = await tokenRes.text();
-      console.error('[google/callback] Token exchange FAILED', {
-        status: tokenRes.status,
-        body: errText,
-      });
-
-      return NextResponse.redirect(
-        new URL('/?auth_error=google_token', origin),
-      );
+      return NextResponse.redirect(new URL('/?auth_error=google_token', origin));
     }
 
     const tokenJson = await tokenRes.json();
     const id_token = tokenJson.id_token as string | undefined;
 
     if (!id_token) {
-      console.error('[google/callback] no id_token in token response', tokenJson);
-      return NextResponse.redirect(
-        new URL('/?auth_error=no_id_token', origin),
-      );
+      return NextResponse.redirect(new URL('/?auth_error=no_id_token', origin));
     }
 
-    console.log('[google/callback] token response', {
-      access_token_present: !!tokenJson.access_token,
-      id_token_present: !!id_token,
-    });
-
     // 2️⃣ Supabase login (COOKIE yazarak)
-    const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -108,33 +96,20 @@ export async function GET(req: NextRequest) {
       },
     );
 
-    console.log('[google/callback] signing in to Supabase');
-
     const { error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: id_token,
     });
 
     if (error) {
-      console.error('[google/callback] Supabase signInWithIdToken ERROR', error);
-      return NextResponse.redirect(
-        new URL('/?auth_error=supabase', origin),
-      );
+      return NextResponse.redirect(new URL('/?auth_error=supabase', origin));
     }
 
-    console.log(
-      '[google/callback] SUCCESS → redirecting to',
-      redirectAfterLogin,
-    );
-
-    // ⚠ Mutlaka ABSOLUTE URL kullan
-    return NextResponse.redirect(
-      new URL(redirectAfterLogin, origin),
-    );
-  } catch (e) {
-    console.error('[google/callback] FATAL ERROR', e);
-    return NextResponse.redirect(
-      new URL('/?auth_error=callback_500', origin),
-    );
+    // Nonce cookie'yi kullanıldıktan sonra temizle
+    const response = NextResponse.redirect(new URL(safeRedirect, origin));
+    response.cookies.delete('oauth_nonce');
+    return response;
+  } catch {
+    return NextResponse.redirect(new URL('/?auth_error=callback_500', origin));
   }
 }

@@ -12,9 +12,9 @@ const Loading = () => {
     <TwoColumnLayout>
       <SecondaryColumn
         sx={{
-          width: { sm: '100%', md: 200 },
-          minWidth: { md: 200 },
-          maxWidth: { sm: 200 },
+          width: { sm: '100%', md: 280 },
+          minWidth: { md: 280 },
+          maxWidth: { sm: 280 },
           gap: 1,
           display: { xs: 'none', sm: 'flex' },
         }}
@@ -37,7 +37,7 @@ const Loading = () => {
           />
           <Grid container columnSpacing={2.5} rowSpacing={3}>
             {Array.from(Array(20).keys()).map((e) => (
-              <Grid item xs={6} sm={4} md={3} key={e}>
+              <Grid item xs={6} sm={4} md={4} key={e}>
                 <ProductCardSkeleton />
               </Grid>
             ))}

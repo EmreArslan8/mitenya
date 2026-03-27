@@ -7,19 +7,17 @@ import { ShopContext } from '@/contexts/ShopContext';
 import { ShopHeaderData, ShopHeaderLink } from '@/lib/api/types';
 import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
 import useScreen from '@/lib/hooks/useScreen';
+import useTypewriter from '@/lib/hooks/useTypewriter';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
 import { signOut } from '@/lib/utils/signOut';
 import { headerHeight } from '@/theme/theme';
 import {
   Badge,
-  BottomNavigation,
-  BottomNavigationAction,
   Box,
   Collapse,
   Divider,
   Grid,
   IconButton,
-  keyframes,
   MenuItem,
   Stack,
   TextField,
@@ -39,26 +37,11 @@ import {
 } from 'react';
 import LoadingOverlay from '../LoadingOverlay';
 import ShoppingCartButton from '../ShoppingCart/ShoppingCartButton';
-import { CrossFade } from '../common/CrossFade';
 import ModalCard from '../common/ModalCard';
 import CategoriesDrawer from './CategoriesDrawer';
 import useStyles, { ANNOUNCEMENT_HEIGHT } from './styles';
 import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, Home, History, Settings, Menu, Heart, User, ChevronRight } from 'lucide-react';
 
-const pulseAnimation = keyframes`
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1);
-  }
-  75% {
-    transform: scale(0.95);
-  }
-  100% {
-    transform: scale(1);
-  }
-`;
 
 const getSupportUrl = 'https://api.whatsapp.com/send?phone=905070617930';
 
@@ -89,7 +72,6 @@ const Navigation = ({ data }: NavigationProps) => {
   const marqueeMeasureRef = useRef<HTMLDivElement>(null);
   const isMobileRef = useRef(true);
   const navVarsSyncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
@@ -648,7 +630,7 @@ const Navigation = ({ data }: NavigationProps) => {
             isAuthenticated={isAuthenticated ?? undefined}
             onAccount={() => handleAccountButtonClick('/settings')}
             onOrders={() => handleAccountButtonClick('/orders')}
-            onFavorites={() => router.push('/favorites')}
+            onFavorites={() => handleAccountButtonClick('/settings?section=favorites')}
             onNavigate={(slug) => router.push(`/${slug}`)}
           />
         </>
@@ -673,15 +655,22 @@ const SearchBar = ({ onFocus, onBlur, autoFocus }: SearchBarProps) => {
   const [loading, setLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
   const { searchHistory, addSearchQuery, removeSearchQuery, clearAllHistory } =
     useContext(ShopContext);
   const searchHistoryRef = useRef<HTMLDivElement>(null);
   const placeholderPhrases = [
-    'Bugun kendini simart, favorini kesfet.',
-    'Sepetine ekle, pariltiyi hemen hisset.',
-    'Yeni gelenleri kacirma, tukenmeden yakala.',
+    'Bugün kendini şımartmaya ne dersin?',
+    'Cilt bakım rutinini keşfet...',
+    'Tükenmeden yakala, sepetine ekle.',
   ];
+  const animatedPlaceholder = useTypewriter({
+    texts: placeholderPhrases,
+    enabled: smUp && !isFocused && !query,
+    typeSpeed: 80,
+    deleteSpeed: 40,
+    pauseAfterType: 1200,
+    pauseAfterDelete: 400,
+  });
 
   useEffect(() => {
     setQuery('');
@@ -700,43 +689,6 @@ const SearchBar = ({ onFocus, onBlur, autoFocus }: SearchBarProps) => {
     setLoading(false);
   }, [searchParams, pathname]);
 
-  useEffect(() => {
-    if (!smUp || isFocused || query) {
-      setAnimatedPlaceholder('');
-      return;
-    }
-
-    let phraseIndex = 0;
-    let charIndex = 0;
-    let deleting = false;
-    let timeoutId: ReturnType<typeof setTimeout>;
-
-    const tick = () => {
-      const phrase = placeholderPhrases[phraseIndex];
-
-      if (!deleting) {
-        charIndex += 1;
-        setAnimatedPlaceholder(phrase.slice(0, charIndex));
-        if (charIndex === phrase.length) {
-          deleting = true;
-          timeoutId = setTimeout(tick, 1200);
-          return;
-        }
-      } else {
-        charIndex -= 1;
-        setAnimatedPlaceholder(phrase.slice(0, charIndex));
-        if (charIndex === 0) {
-          deleting = false;
-          phraseIndex = (phraseIndex + 1) % placeholderPhrases.length;
-        }
-      }
-
-      timeoutId = setTimeout(tick, deleting ? 40 : 80);
-    };
-
-    timeoutId = setTimeout(tick, 400);
-    return () => clearTimeout(timeoutId);
-  }, [smUp, isFocused, query]);
   const handleHistoryClick = (historyItem: string) => {
     setQuery(historyItem);
     setShowHistory(false);

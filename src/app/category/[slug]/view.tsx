@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -6,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Box, Grid, Stack, Typography, Select, MenuItem } from '@mui/material';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import { ShopSearchResponse, ShopSearchSort } from '@/lib/api/types';
+import { UI_SORT_OPTIONS } from '@/lib/constants/shop';
 import styles from './styles';
 
 type CategoryViewProps = {
@@ -13,7 +13,20 @@ type CategoryViewProps = {
   initialData: ShopSearchResponse;
 };
 
+const SORT_LABELS: Record<ShopSearchSort, string> = {
+  rct: 'Önerilen',
+  disc: 'İndirimli',
+  pasc: 'Fiyat (Artan)',
+  pdsc: 'Fiyat (Azalan)',
+  rcc: 'En Çok Değerlendirilen',
+  bst: 'En çok satan',
+  fav: 'En favori',
+  asc: 'Fiyat (Artan)',
+  dsc: 'Fiyat (Azalan)',
+};
+
 const CategoryView = ({ category, initialData }: CategoryViewProps) => {
+  const allowedUiSorts = UI_SORT_OPTIONS as readonly ShopSearchSort[];
   const router = useRouter();
   const searchParams = useSearchParams();
   const [sort, setSort] = useState<ShopSearchSort>(
@@ -22,16 +35,25 @@ const CategoryView = ({ category, initialData }: CategoryViewProps) => {
   const [isNavigating, setIsNavigating] = useState(false);
 
   const products = initialData.products ?? [];
+  const visibleSortOptions = (initialData.sortOptions ?? ['rct', 'pdsc', 'pasc']).filter(
+    (opt) => allowedUiSorts.includes(opt)
+  );
+  const selectedSort = visibleSortOptions.includes(sort) ? sort : (visibleSortOptions[0] ?? 'rct');
 
   useEffect(() => {
     setSort((searchParams?.get('sort') as ShopSearchSort) ?? 'rct');
+    setIsNavigating(false);
   }, [searchParams]);
 
   const handleSortChange = (value: ShopSearchSort) => {
     setSort(value);
     setIsNavigating(true);
     const params = new URLSearchParams(searchParams ?? undefined);
-    value ? params.set('sort', value) : params.delete('sort');
+    if (value) {
+      params.set('sort', value);
+    } else {
+      params.delete('sort');
+    }
     params.delete('page');
     const qs = params.toString();
     router.replace(qs ? `?${qs}` : '?');
@@ -59,19 +81,13 @@ const CategoryView = ({ category, initialData }: CategoryViewProps) => {
         </Typography>
         <Select
           size="small"
-          value={sort}
+          value={selectedSort}
           onChange={(e) => handleSortChange(e.target.value as ShopSearchSort)}
           sx={styles.sort}
         >
-          {(initialData.sortOptions ?? ['rct', 'dsc', 'asc']).map((opt) => (
+          {visibleSortOptions.map((opt) => (
             <MenuItem key={opt} value={opt}>
-              {opt === 'rct'
-                ? 'En yeni'
-                : opt === 'dsc'
-                  ? 'Fiyat (yüksek → düşük)'
-                  : opt === 'asc'
-                    ? 'Fiyat (düşük → yüksek)'
-                    : opt}
+              {SORT_LABELS[opt] ?? opt}
             </MenuItem>
           ))}
         </Select>

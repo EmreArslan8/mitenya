@@ -46,6 +46,16 @@ describe('searchUrlFromOptions', () => {
     expect(result).toContain('collection=summer-2024');
   });
 
+  it('should include concern in URL', () => {
+    const result = searchUrlFromOptions({ concern: 'akne' });
+    expect(result).toContain('concern=akne');
+  });
+
+  it('should include benefit in URL', () => {
+    const result = searchUrlFromOptions({ benefit: 'yaslanma-karsiti' });
+    expect(result).toContain('benefit=yaslanma-karsiti');
+  });
+
   it('should include multiple options', () => {
     const result = searchUrlFromOptions({
       category: 'makeup',

@@ -11,6 +11,7 @@ import React, {
   Dispatch,
   ReactNode,
   SetStateAction,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -28,9 +29,13 @@ interface AuthContextState {
   closeAuthenticator: () => void;
 }
 
-export const AuthContext = React.createContext<AuthContextState>({} as AuthContextState);
+export const AuthContext = React.createContext<AuthContextState | null>(null);
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = (): AuthContextState => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthContextProvider');
+  return ctx;
+};
 
 interface AuthContextProviderProps {
   children: ReactNode;
@@ -48,6 +53,8 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const supabaseRef = useRef(createClient());
   const initializedRef = useRef(false);
   const initializingRef = useRef(false);
+  // customerData'nın güncel değerine closure'dan erişmek için ref
+  const customerDataRef = useRef<CustomerData | undefined>(undefined);
 
   // Store latest functions in refs to avoid dependency issues
   const getCustomerDataRef = useRef(getCustomerData);
@@ -57,6 +64,11 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     getCustomerDataRef.current = getCustomerData;
     createCustomerRef.current = createCustomer;
   }, [getCustomerData, createCustomer]);
+
+  // customerDataRef'i her güncellemede senkronize et (stale closure önlemi)
+  useEffect(() => {
+    customerDataRef.current = customerData;
+  }, [customerData]);
 
   const initCustomerData = async (user: User) => {
     // Prevent multiple simultaneous calls
@@ -81,15 +93,18 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       const surname = user.user_metadata?.full_name?.split(' ').slice(1).join(' ') ?? user.user_metadata?.family_name ?? "";
       const email = user.email ?? "";
       const culture = user.user_metadata?.locale ?? "tr";
-      const phoneCookie = JSON.parse(getCookie("phone") as string ?? "{}");
+      let phoneCookie: { phoneNumber?: string; phoneCode?: string } = {};
+      try {
+        phoneCookie = JSON.parse(getCookie("phone") as string ?? "{}");
+      } catch { /* malformed cookie, ignore */ }
 
       const payload = {
         name,
         surname,
         email,
         culture,
-        phoneNumber: phoneCookie.phoneNumber ?? null,
-        phoneCode: phoneCookie.phoneCode ?? null,
+        phoneNumber: phoneCookie.phoneNumber ?? undefined,
+        phoneCode: phoneCookie.phoneCode ?? undefined,
       };
 
       const created = await createCustomerRef.current(payload);
@@ -99,10 +114,12 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       setCustomerData(created);
       setIsAuthenticated(true);
 
+      // Google/magic-link ile kayıtta kullanıcı SMS iznini kabul etmedi
+      // — KVKK 5. madde gereği açık rıza alınmadan true gönderilemez
       pushItemToDataLayer({
         event: "sign_up",
         email_permission: true,
-        sms_permission: true,
+        sms_permission: false,
         userId: user.id,
       });
     } catch (err) {
@@ -135,7 +152,8 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
             return;
           }
 
-          setIsAuthenticated(true);
+          // setIsAuthenticated(true) burada çağrılmıyor —
+          // initCustomerData içinde customerData hazır olduktan sonra set ediliyor
           initCustomerData(user);
         } else {
           setIsAuthenticated(false);
@@ -156,9 +174,12 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
         if (event === 'INITIAL_SESSION') return;
 
         if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
-          setIsAuthenticated(true);
-          // Only init customer data if not already set
-          if (!customerData) {
+          if (customerDataRef.current) {
+            // customerData zaten var (örn. token yenileme) — hemen set et
+            setIsAuthenticated(true);
+          } else {
+            // customerData hazır olmadan önce authenticated göstermemek için
+            // initCustomerData içinde set ediliyor
             initCustomerData(session.user);
           }
         } else if (event === 'SIGNED_OUT') {
@@ -173,18 +194,17 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     };
   }, []); // Empty dependency array - runs only once
 
-  const setCustomerCulture = (newCulture: string) => {
-    if (!customerData) return;
-    setCustomerData({ ...customerData, culture: newCulture });
-  };
+  const setCustomerCulture = useCallback((newCulture: string) => {
+    setCustomerData((prev) => (prev ? { ...prev, culture: newCulture } : prev));
+  }, []);
 
-  const openAuthenticator = (options?: { onClose?: () => void; onSuccess?: () => void }) => {
+  const openAuthenticator = useCallback((options?: { onClose?: () => void; onSuccess?: () => void }) => {
     setAuthenticatorOpen(true);
     setOnAuthenticatorClose(() => options?.onClose);
     setOnAuthenticatorSuccess(() => options?.onSuccess);
-  };
+  }, []);
 
-  const closeAuthenticator = () => setAuthenticatorOpen(false);
+  const closeAuthenticator = useCallback(() => setAuthenticatorOpen(false), []);
 
   const value = useMemo(
     () => ({
@@ -196,7 +216,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       openAuthenticator,
       closeAuthenticator,
     }),
-    [customerData, isAuthenticated]
+    [customerData, isAuthenticated, setCustomerCulture, openAuthenticator, closeAuthenticator]
   );
 
   return (

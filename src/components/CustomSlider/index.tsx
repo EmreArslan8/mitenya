@@ -43,7 +43,7 @@ const CustomSlider = ({
             sx={styles.prevButton}
             aria-label="Previous"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={18} />
           </Button>
 
           <Button
@@ -54,7 +54,7 @@ const CustomSlider = ({
             sx={styles.nextButton}
             aria-label="Next"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={18} />
           </Button>
         </>
       )}

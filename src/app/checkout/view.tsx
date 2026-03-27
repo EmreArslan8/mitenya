@@ -17,11 +17,13 @@ import TwoColumnLayout, {
 import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
 import { getOrderSummary } from '@/lib/api/checkout';
+import { buildAttributionFromDocument } from '@/lib/analytics/attribution';
 import { AddressData, PaymentType, ShopOrderSummaryData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import { withCsrfHeaders } from '@/lib/utils/csrf';
 import formatPrice from '@/lib/utils/formatPrice';
 import { useCheckoutAnalytics } from '@/lib/utils/googleAnalytics';
+import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 import {
   generatePreInfoHtml,
   generateDistanceSaleHtml,
@@ -52,6 +54,16 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   const [paymentType, setPaymentType] = useState<PaymentType>('Stripe');
   const [orderSummary, setOrderSummary] = useState<ShopOrderSummaryData | undefined>();
   const [discountCode, setDiscountCode] = useState<string | null>(searchParams?.get('dc') ?? null);
+  const attribution = useMemo(
+    () =>
+      typeof document !== 'undefined'
+        ? buildAttributionFromDocument(document.cookie, {
+            referrer: document.referrer || undefined,
+          })
+        : null,
+    []
+  );
+  const affiliateCode = attribution?.affiliateCode ?? null;
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [continueButtonLoading, setContinueButtonLoading] = useState(false);
   const [newAddressModalOpen, setNewAddressModalOpen] = useState(false);
@@ -148,6 +160,8 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
             shipping_cost: orderSummary?.shipmentCost || 0,
             discount_amount: orderSummary?.promotionDiscount || 0,
             discount_code: discountCode,
+            affiliate_code: affiliateCode,
+            attribution,
             currency: 'TRY',
             consents,
           }),
@@ -211,6 +225,12 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   useEffect(() => {
     if (!selected?.length) return;
     sendBeginCheckout(selected);
+    trackInitiateCheckout({
+      content_ids: selected.map((p) => String(p.id)),
+      value: selected.reduce((acc, p) => acc + p.price.currentPrice * p.quantity, 0),
+      currency: selected[0]?.price.currency ?? 'TRY',
+      num_items: selected.reduce((acc, p) => acc + p.quantity, 0),
+    });
   }, [selected]);
 
   // Adres, ürün veya ödeme yöntemi değiştiğinde sözleşme onaylarını sıfırla

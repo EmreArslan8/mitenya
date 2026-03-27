@@ -1,5 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { CustomerData, ShopOrderSummaryData, ShopProductData } from '../api/types';
+import { buildAttributionFromDocument } from '../analytics/attribution';
 
 interface CommonEventParams {
   page_type?: string;
@@ -7,17 +8,35 @@ interface CommonEventParams {
   cd_country?: string;
   cd_page_url?: string;
   cd_page_path?: string;
+  affiliate_code?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
+  landing_path?: string;
 }
 
-const getCommonEventParams = (): CommonEventParams => ({
-  page_type: document.title,
-  cd_language:
-    window.location.pathname.split('/')[1].length === 2
-      ? window.location.pathname.split('/')[1]
-      : 'en',
-  cd_page_url: window.location.href,
-  cd_page_path: window.location.pathname,
-});
+const getCommonEventParams = (): CommonEventParams => {
+  const attribution = buildAttributionFromDocument(document.cookie);
+
+  return {
+    page_type: document.title,
+    cd_language:
+      window.location.pathname.split('/')[1].length === 2
+        ? window.location.pathname.split('/')[1]
+        : 'en',
+    cd_page_url: window.location.href,
+    cd_page_path: window.location.pathname,
+    affiliate_code: attribution?.affiliateCode ?? undefined,
+    utm_source: attribution?.utmSource ?? undefined,
+    utm_medium: attribution?.utmMedium ?? undefined,
+    utm_campaign: attribution?.utmCampaign ?? undefined,
+    utm_content: attribution?.utmContent ?? undefined,
+    utm_term: attribution?.utmTerm ?? undefined,
+    landing_path: attribution?.landingPath ?? undefined,
+  };
+};
 
 export type DataLayerEvent = Record<string, unknown>;
 
@@ -52,14 +71,12 @@ export const sendButtonClickEvent = (button_id: string) => {
 };
 
 export const sendAddToCardEvent = (
-  customerData: CustomerData | undefined,
+  _customerData: CustomerData | undefined,
   product: ShopProductData
 ) => {
   sendEvent({
     event: 'add_to_cart',
     ecommerce: {
-      customer_email: customerData?.email,
-      customer_phone_number: `${customerData?.phoneCode ?? ''}${customerData?.phoneNumber ?? ''}`,
       items: [
         {
           item_id: product.id,
@@ -81,59 +98,56 @@ export type CheckoutFunnelEventType =
   | 'add_payment_info'
   | 'purchase';
 
-  export const sendCheckoutFunnelEvent = (data: {
-    type: CheckoutFunnelEventType;
-    customerData: CustomerData | undefined;
-    products: ShopProductData[];
-    orderSummary?: ShopOrderSummaryData;
-    transactionId?: string;
-    paymentType?: string;
-  }) => {
-    const items = data.products.map((e) => ({
-      item_id: e.id,
-      item_name: e.name,
-      item_brand: e.brand,
-      price: e.price.currentPrice,
-      currency: e.price.currency,
-      item_url: e.url,
-      quantity: e.quantity,
-    }));
-  
-    const baseEvent: DataLayerEvent = {
-      event: data.type,
-      ecommerce: {
-        customer_email: data.customerData?.email,
-        customer_phone_number: `${data.customerData?.phoneCode ?? ''}${data.customerData?.phoneNumber ?? ''}`,
-        items,
-      },
-    };
-  
-    // ek alanlar — mutate yerine shallow merge
-    const ecommerceExt: DataLayerEvent = {};
-  
-    if (data.type === 'add_shipping_info' || data.type === 'purchase') {
-      ecommerceExt.currency = data.orderSummary?.currency;
-      ecommerceExt.value = data.orderSummary?.totalDue;
-    }
-  
-    if (data.type === 'add_payment_info') {
-      ecommerceExt.currency = data.orderSummary?.currency;
-      ecommerceExt.paymentType = data.paymentType;
-    }
-  
-    if (data.type === 'purchase') {
-      ecommerceExt.transactionId = data.transactionId;
-    }
-  
-    sendEvent({
-      ...baseEvent,
-      ecommerce: { 
-        ...(baseEvent.ecommerce as object),
-        ...ecommerceExt
-      },
-    });
+export const sendCheckoutFunnelEvent = (data: {
+  type: CheckoutFunnelEventType;
+  customerData: CustomerData | undefined;
+  products: ShopProductData[];
+  orderSummary?: ShopOrderSummaryData;
+  transactionId?: string;
+  paymentType?: string;
+}) => {
+  const items = data.products.map((e) => ({
+    item_id: e.id,
+    item_name: e.name,
+    item_brand: e.brand,
+    price: e.price.currentPrice,
+    currency: e.price.currency,
+    item_url: e.url,
+    quantity: e.quantity,
+  }));
+
+  const baseEvent: DataLayerEvent = {
+    event: data.type,
+    ecommerce: {
+      items,
+    },
   };
-  
+
+  const ecommerceExt: DataLayerEvent = {};
+
+  if (data.type === 'add_shipping_info' || data.type === 'purchase') {
+    ecommerceExt.currency = data.orderSummary?.currency;
+    ecommerceExt.value = data.orderSummary?.totalDue;
+  }
+
+  if (data.type === 'add_payment_info') {
+    ecommerceExt.currency = data.orderSummary?.currency;
+    ecommerceExt.payment_type = data.paymentType;
+  }
+
+  if (data.type === 'purchase') {
+    ecommerceExt.transaction_id = data.transactionId;
+  }
+
+  sendEvent({
+    ...baseEvent,
+    ecommerce: {
+      ...(baseEvent.ecommerce as object),
+      ...ecommerceExt,
+    },
+  });
+};
+
 
 export const useCheckoutAnalytics = () => {
   const { customerData } = useAuth();
@@ -173,4 +187,33 @@ export const useCheckoutAnalytics = () => {
     });
 
   return { sendBeginCheckout, sendAddShippingInfo, sendAddPaymentInfo, sendPurchase };
+};
+
+export const sendPurchaseEventForOrder = (order: {
+  orderNumber: string;
+  totalAmount: number;
+  currency: string;
+  paymentMethod?: string | null;
+  items: Array<{
+    product_id?: string | null;
+    product_name: string;
+    price: number;
+    quantity: number;
+  }>;
+}) => {
+  sendEvent({
+    event: 'purchase',
+    ecommerce: {
+      transaction_id: order.orderNumber,
+      value: order.totalAmount,
+      currency: order.currency,
+      payment_type: order.paymentMethod ?? undefined,
+      items: order.items.map((item) => ({
+        item_id: item.product_id ?? item.product_name,
+        item_name: item.product_name,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+    },
+  });
 };

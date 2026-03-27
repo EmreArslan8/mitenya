@@ -2,6 +2,7 @@
 
 import { ShopSearchSort } from '@/lib/api/types';
 import searchUrlFromOptions, { searchOptionsFromSearchParams } from '@/lib/shop/searchHelpers';
+import { UI_SORT_OPTIONS } from '@/lib/constants/shop';
 import { Box, MenuItem, Select } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -21,11 +22,16 @@ const SearchSort = ({
   buttonLike = false,
   hideSelectedValue = false,
 }: SearchSortProps) => {
-
+  const allowedUiSorts = UI_SORT_OPTIONS as readonly ShopSearchSort[];
   const searchParams = useSearchParams()!;
   const router = useRouter();
   const [sort, setSort] = useState<ShopSearchSort>('rct');
   const [loading, setLoading] = useState(false);
+  const visibleSortOptions = useMemo(
+    () => sortOptions.filter((option) => allowedUiSorts.includes(option)),
+    [sortOptions, allowedUiSorts]
+  );
+  const selectedSort = visibleSortOptions.includes(sort) ? sort : (visibleSortOptions[0] ?? 'rct');
 
   const sortLabels = useMemo<Record<ShopSearchSort, string>>(
     () => ({
@@ -33,11 +39,11 @@ const SearchSort = ({
       disc: 'İndirimli',
       pasc: 'Fiyat (Artan)',
       pdsc: 'Fiyat (Azalan)',
-      rcc: 'Önerilen',
+      rcc: 'En Çok Değerlendirilen',
       bst: 'En çok satan',
       fav: 'En favori',
-      asc: 'Fiyat (Artan)',
-      dsc: 'Fiyat (Azalan)',
+      asc: 'En eski',
+      dsc: 'En yeni',
     }),
     []
   );
@@ -53,15 +59,16 @@ const SearchSort = ({
 
   useEffect(() => {
     const currentSearchOptions = searchOptionsFromSearchParams(searchParams);
-    setSort((currentSearchOptions.sort as ShopSearchSort) ?? 'rct');
+    const currentSort = (currentSearchOptions.sort as ShopSearchSort) ?? 'rct';
+    setSort(visibleSortOptions.includes(currentSort) ? currentSort : (visibleSortOptions[0] ?? 'rct'));
     setLoading(false);
-  }, [searchParams]);
+  }, [searchParams, visibleSortOptions]);
 
   return (
     <>
       <Select
         size="small"
-        value={sort}
+        value={selectedSort}
         displayEmpty
         IconComponent={(props) => (
           buttonLike ? <Box {...props} sx={{ display: 'none' }} /> : (
@@ -144,7 +151,7 @@ const SearchSort = ({
             : undefined
         }
       >
-        {sortOptions.map((e) => (
+        {visibleSortOptions.map((e) => (
           <MenuItem value={e} key={e}>
             {sortLabels[e] ?? e}
           </MenuItem>

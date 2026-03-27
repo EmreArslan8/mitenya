@@ -31,6 +31,13 @@ export const generateMetadata = async ({
     description: query
       ? `"${query}" araması için Kore kozmetik ve cilt bakım ürünleri sonuçları.`
       : 'Mitenya\'da Kore kozmetik, K-beauty ve cilt bakım ürünlerini arayın.',
+    alternates: {
+      canonical: '/search',
+    },
+    robots: {
+      index: false,
+      follow: false,
+    },
   };
 };
 

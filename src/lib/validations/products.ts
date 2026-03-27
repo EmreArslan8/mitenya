@@ -27,6 +27,18 @@ export const ProductsQuerySchema = z.object({
     .refine((val) => !val || /^[\w-]+(,[\w-]+)*$/.test(val), {
       message: 'Invalid category format',
     }),
+  concern: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^[\w-]+(,[\w-]+)*$/.test(val), {
+      message: 'Invalid concern format',
+    }),
+  benefit: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^[\w-]+(,[\w-]+)*$/.test(val), {
+      message: 'Invalid benefit format',
+    }),
   collection: z
     .string()
     .optional()

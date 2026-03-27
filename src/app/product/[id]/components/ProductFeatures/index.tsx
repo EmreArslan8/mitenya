@@ -1,33 +1,33 @@
 'use client'; 
 
-import { Grid, Stack, Typography } from '@mui/material';
-import { Truck, ShieldCheck, CreditCard } from 'lucide-react'; 
+import { Stack, Typography } from '@mui/material';
+import { BadgeCheck, Box, Headset, LockKeyhole } from 'lucide-react';
 import useStyles from './styles';
 
 
 const features = [
-  { Icon: Truck, label: 'Hızlı & Güvenli Kargo' },
-  { Icon: ShieldCheck, label: '%100 Orijinal Ürün' },
-  { Icon: CreditCard, label: 'Güvenli Ödeme' },
+  { Icon: LockKeyhole, label: 'GÜVENLİ ÖDEME', tone: 'gold' as const },
+  { Icon: BadgeCheck, label: '%100 ORİJİNAL ÜRÜN', tone: 'wine' as const },
+  { Icon: Box, label: 'STANDART TESLİMAT', tone: 'gold' as const },
+  { Icon: Headset, label: '7/24 MÜŞTERİ DESTEĞİ', tone: 'wine' as const },
 ];
 
 const ProductFeatures = () => {
   const styles = useStyles();
   
   return (
-    <Grid container spacing={1}>
+    <Stack sx={styles.container}>
       {features.map((item) => (
-        <Grid item xs={6} key={item.label}>
-          <Stack sx={styles.item}>
-            <item.Icon 
-              size={28} 
-              strokeWidth={1.5} 
-            />
-            <Typography variant="warningSemibold">{item.label}</Typography>
-          </Stack>
-        </Grid>
+        <Stack key={item.label} sx={styles.item}>
+          <item.Icon
+            size={32}
+            strokeWidth={1.75}
+            style={item.tone === 'gold' ? styles.iconGold : styles.iconWine}
+          />
+          <Typography sx={styles.label}>{item.label}</Typography>
+        </Stack>
       ))}
-    </Grid>
+    </Stack>
   );
 };
 

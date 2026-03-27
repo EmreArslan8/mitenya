@@ -1,7 +1,8 @@
 'use client';
 
 import Button from '@/components/common/Button';
-import { createSupabaseBrowser } from '@/lib/supabase/browser';
+import { validatePassword } from '@/lib/utils/password';
+import { withCsrfHeaders } from '@/lib/utils/csrf';
 import { Stack, Switch, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import styles from './styles';
@@ -17,41 +18,50 @@ const SecurityCard = () => {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
 
   const passwordFormValid =
-    newPassword.length >= 10 &&
-    /[A-Z]/.test(newPassword) &&
-    /[a-z]/.test(newPassword) &&
-    /[0-9]/.test(newPassword) &&
+    currentPassword.length > 0 &&
+    validatePassword(newPassword) === null &&
     newPassword === newPasswordRepeat;
 
   const handlePasswordUpdate = async () => {
     setPasswordError(null);
     setSuccessMessage(null);
 
-    if (!newPassword || !newPasswordRepeat) {
-      setPasswordError('Yeni sifre alanlarini doldurunuz.');
+    if (!currentPassword) {
+      setPasswordError('Mevcut şifrenizi giriniz.');
       return;
     }
-    if (newPassword.length < 10) {
-      setPasswordError('Yeni sifre en az 10 karakter olmalidir.');
+    if (!newPassword || !newPasswordRepeat) {
+      setPasswordError('Yeni şifre alanlarını doldurunuz.');
+      return;
+    }
+    const pwErr = validatePassword(newPassword);
+    if (pwErr) {
+      setPasswordError(pwErr);
       return;
     }
     if (newPassword !== newPasswordRepeat) {
-      setPasswordError('Yeni sifre tekrar alani ile uyusmuyor.');
+      setPasswordError('Yeni şifre tekrar alanı ile uyuşmuyor.');
       return;
     }
 
     setSavingPassword(true);
     try {
-      const supabase = createSupabaseBrowser();
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
+      const res = await fetch('/api/auth/change-password', withCsrfHeaders({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      }));
+      const data = await res.json();
+      if (!res.ok) {
+        setPasswordError(data?.error ?? 'Şifre güncellenemedi.');
+        return;
+      }
       setCurrentPassword('');
       setNewPassword('');
       setNewPasswordRepeat('');
-      setSuccessMessage('Sifreniz basariyla guncellendi.');
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Sifre guncellenemedi.';
-      setPasswordError(message);
+      setSuccessMessage('Şifreniz başarıyla güncellendi.');
+    } catch {
+      setPasswordError('Şifre güncellenemedi.');
     } finally {
       setSavingPassword(false);
     }

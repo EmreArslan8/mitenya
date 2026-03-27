@@ -109,6 +109,40 @@ describe('ProductsQuerySchema', () => {
     });
   });
 
+  describe('concern validation', () => {
+    it('should accept valid single concern', () => {
+      const result = ProductsQuerySchema.safeParse({ concern: 'akne' });
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept valid multiple concerns', () => {
+      const result = ProductsQuerySchema.safeParse({ concern: 'akne,leke,kuruluk' });
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid concern format', () => {
+      const result = ProductsQuerySchema.safeParse({ concern: 'akne;DROP TABLE' });
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('benefit validation', () => {
+    it('should accept valid single benefit', () => {
+      const result = ProductsQuerySchema.safeParse({ benefit: 'yaslanma-karsiti' });
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept valid multiple benefits', () => {
+      const result = ProductsQuerySchema.safeParse({ benefit: 'yaslanma-karsiti,aydinlik-parlaklik,yogun-nem-destegi' });
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid benefit format', () => {
+      const result = ProductsQuerySchema.safeParse({ benefit: 'yaslanma-karsiti;DROP TABLE' });
+      expect(result.success).toBe(false);
+    });
+  });
+
   describe('query validation', () => {
     it('should accept valid search query', () => {
       const result = ProductsQuerySchema.safeParse({ query: 'lipstick' });

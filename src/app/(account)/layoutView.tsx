@@ -5,16 +5,17 @@ import {
   LogIn,
   PackageSearch,
   MessageSquareText,
-  RotateCcw,
   UserRound,
   MapPinned,
   CreditCard,
   Bell,
+  Heart,
   LockKeyhole,
   BookUser,
   CircleHelp,
   ChevronRight,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 import SupportButton from '@/components/SupportButtonSimple';
 import Button from '@/components/common/Button';
@@ -25,14 +26,13 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ReactNode } from 'react';
 import useStyles from './styles';
 
-const getSupportUrl = 'https://api.whatsapp.com';
+const getSupportUrl = 'https://api.whatsapp.com/send?phone=905070617930';
 type NavItem = {
   label: string;
   url?: string;
   external?: boolean;
-  section?: 'profile' | 'addresses' | 'security' | 'notifications';
-  badge?: string;
-  Icon: React.ComponentType<any>;
+  section?: 'profile' | 'addresses' | 'security' | 'notifications' | 'favorites';
+  Icon: LucideIcon;
 };
 
 const navGroups: { title: string; items: NavItem[] }[] = [
@@ -40,8 +40,7 @@ const navGroups: { title: string; items: NavItem[] }[] = [
     title: 'Siparişlerim',
     items: [
       { label: 'Tüm Siparişlerim', url: '/orders', Icon: PackageSearch },
-      { label: 'Değerlendirmelerim', Icon: MessageSquareText, badge: '3' },
-      { label: 'Tekrar Satın Al', url: '/orders', Icon: RotateCcw },
+      { label: 'Değerlendirmelerim', url: '/orders?section=reviews', Icon: MessageSquareText },
     ],
   },
   {
@@ -49,6 +48,7 @@ const navGroups: { title: string; items: NavItem[] }[] = [
     items: [
       { label: 'Kullanıcı Bilgilerim', url: '/settings?section=profile', section: 'profile', Icon: UserRound },
       { label: 'Adres Bilgilerim', url: '/settings?section=addresses', section: 'addresses', Icon: MapPinned },
+      { label: 'Favorilerim', url: '/settings?section=favorites', section: 'favorites', Icon: Heart },
       { label: 'Kayıtlı Kartlarım', Icon: CreditCard },
       { label: 'Duyuru Tercihlerim', url: '/settings?section=notifications', section: 'notifications', Icon: Bell },
       { label: 'Şifre Değişikliği', url: '/settings?section=security', section: 'security', Icon: LockKeyhole },
@@ -58,7 +58,7 @@ const navGroups: { title: string; items: NavItem[] }[] = [
   },
 ];
 
-const AccountPagesLayoutView = ({ children }: { children: ReactNode }) => {
+const AccountPagesLayoutView = ({ children, reviewCount }: { children: ReactNode; reviewCount: number }) => {
   const { isAuthenticated, openAuthenticator, customerData } = useAuth();
   const { smDown, smUp } = useScreen();
   const styles = useStyles();
@@ -70,7 +70,12 @@ const AccountPagesLayoutView = ({ children }: { children: ReactNode }) => {
 
   const isItemSelected = (item: NavItem) => {
     if (!item.url) return false;
-    if (item.url.startsWith('/orders')) return safePathname.startsWith('/orders');
+    if (item.url === '/orders?section=reviews') {
+      return safePathname.startsWith('/orders') && selectedSection === 'reviews';
+    }
+    if (item.url.startsWith('/orders')) {
+      return safePathname.startsWith('/orders') && selectedSection !== 'reviews';
+    }
     if (item.url.startsWith('/settings')) {
       return safePathname.startsWith('/settings') && (!item.section || selectedSection === item.section);
     }
@@ -153,8 +158,9 @@ const AccountPagesLayoutView = ({ children }: { children: ReactNode }) => {
                         />
                       </Box>
                       <Typography sx={styles.menuItemLabel}>{item.label}</Typography>
-                      {item.badge && <Box sx={styles.menuBadge}>{item.badge}</Box>}
-                      {!item.badge && !isDisabled && <ChevronRight size={14} color="#8E8E93" />}
+                      {item.label === 'Değerlendirmelerim' && reviewCount > 0
+                        ? <Box sx={styles.menuBadge}>{reviewCount}</Box>
+                        : !isDisabled && <ChevronRight size={14} color="#8E8E93" />}
                     </MenuItem>
                   );
                 })}

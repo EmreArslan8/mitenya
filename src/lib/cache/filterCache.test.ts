@@ -26,6 +26,17 @@ function getMockDataForTable(table: string) {
         { id: 'p3', category_id: 'cat-2', category_name: 'Cilt Bakımı', brand_id: 'brand-1', brand_name: 'Maybelline', current_price: 600 },
         { id: 'p4', category_id: 'cat-2', category_name: 'Cilt Bakımı', brand_id: 'brand-2', brand_name: 'Loreal', current_price: 1200 },
       ];
+    case 'benefits':
+      return [
+        { id: 'benefit-1', slug: 'nemlendirme', name_tr: 'Nemlendirme', is_active: true, sort_order: 10 },
+        { id: 'benefit-2', slug: 'aydinlatma', name_tr: 'Aydınlatma', is_active: true, sort_order: 20 },
+      ];
+    case 'product_benefits':
+      return [
+        { product_id: 'p1', benefit_id: 'benefit-1' },
+        { product_id: 'p2', benefit_id: 'benefit-1' },
+        { product_id: 'p3', benefit_id: 'benefit-2' },
+      ];
     default:
       return [];
   }
@@ -79,6 +90,17 @@ describe('filterCache', () => {
       const maybelline = result.brands.find((b) => b.name === 'Maybelline');
       expect(maybelline).toBeDefined();
       expect(maybelline?.count).toBe(2);
+    });
+
+    it('should return benefit aggregations', async () => {
+      const result = await getFilterAggregations();
+
+      expect(result.benefits).toBeDefined();
+      expect(result.benefits.length).toBeGreaterThan(0);
+
+      const hydrating = result.benefits.find((b) => b.slug === 'nemlendirme');
+      expect(hydrating).toBeDefined();
+      expect(hydrating?.count).toBe(2);
     });
 
     it('should return price range aggregations', async () => {

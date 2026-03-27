@@ -64,8 +64,24 @@ const SectionBase = ({
                   color="neutral"
                   arrow="end"
                   size="small"
-                  variant="text"
-                  sx={{ color: 'gray.900', fontSize: 16 }}
+                  variant="outlined"
+                  sx={{
+                    color: 'gray.900',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    lineHeight: 1,
+                    px: 1.25,
+                    py: 0.75,
+                    minHeight: 28,
+                    borderRadius: 1,
+                    borderColor: 'gray.300',
+                    backgroundColor: 'common.white',
+                    letterSpacing: '0.02em',
+                    '&:hover': {
+                      borderColor: 'gray.400',
+                      backgroundColor: 'gray.50',
+                    },
+                  }}
                   href={sectionHref}
                 >
                   {sectionLabel}

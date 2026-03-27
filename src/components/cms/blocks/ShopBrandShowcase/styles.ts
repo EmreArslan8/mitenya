@@ -64,14 +64,14 @@ const useStyles = withPalette((palette) => ({
   
 
   title: {
-    fontSize: { xs: '1.125rem', md: '1.25rem' },
+    fontSize: { xs: '18px', md: '28px' },
     fontWeight: 700,
     color: palette.text.main,
     lineHeight: 1.3,
   },
 
   description: {
-    fontSize: { xs: '0.875rem', md: '1rem' },
+    fontSize: { xs: '14px', md: '16px' },
     fontWeight: 400,
     color: palette.text.secondary ?? palette.text.main,
     lineHeight: 1.4,

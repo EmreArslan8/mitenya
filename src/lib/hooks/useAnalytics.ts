@@ -10,7 +10,7 @@ type AnalyticsEvent = ActionEvent | AlertEvent;
 const baseUrl = '/api/analytics';
 
 const useAnalytics = () => {
-  const { customerData } = useContext(AuthContext);
+  useContext(AuthContext);
 
   const sendAnalyticsEvent = ({
     type,
@@ -19,20 +19,18 @@ const useAnalytics = () => {
   }: {
     type: AnalyticsType;
     event: AnalyticsEvent;
-    details: any;
+    details: unknown;
   }) => {
     let url = `${baseUrl}?type=${type}&event=${event}`;
-    if (customerData) url += `&c=${encodeURIComponent(JSON.stringify(customerData))}`;
     if (details) url += `&details=${encodeURIComponent(JSON.stringify(details).substring(0, 1024))}`;
     fetch(url, { method: 'POST' });
   };
 
-  const sendAlert = ({ event, details }: { event: AlertEvent; details: any }) => {
+  const sendAlert = ({ event, details }: { event: AlertEvent; details: unknown }) => {
     sendAnalyticsEvent({ type: 'alert', event, details });
   };
 
-  const sendAction = ({ event, details }: { event: ActionEvent; details: any }) => {
-    if (!customerData) return;
+  const sendAction = ({ event, details }: { event: ActionEvent; details: unknown }) => {
     sendAnalyticsEvent({ type: 'action', event, details });
   };
 

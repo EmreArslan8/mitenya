@@ -13,26 +13,14 @@ const handler = async (
     return;
   }
 
-  const { type, event, c: _customerData, details } = req.query;
-
-  let customerData = "guest";
-  if (_customerData) {
-    const reqCustomerData = JSON.parse(_customerData as string);
-    customerData =
-      reqCustomerData.fullName +
-      " " +
-      reqCustomerData.phoneCode +
-      reqCustomerData.phoneNumber +
-      " " +
-      reqCustomerData.email;
-  }
+  const { type, event, details } = req.query;
 
   try {
     const response = await fetch(
       `https://maker.ifttt.com/trigger/${type}/json/with/key/blQ7IOIguoq6qAGEF_cr0g`,
       {
         method: "POST",
-        body: JSON.stringify({ event, customerData, details }),
+        body: JSON.stringify({ event, details }),
         headers: {
           "Content-Type": "application/json",
         },

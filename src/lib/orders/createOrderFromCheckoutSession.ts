@@ -1,5 +1,7 @@
 import { createOrderViaEdge } from '@/lib/orders/createOrderViaEdge';
 import { generateOrderNumber } from '@/lib/orders/generateOrderNumber';
+import { createAffiliateConversion } from '@/lib/affiliates/commissionService';
+import { parseCheckoutNotes } from '@/lib/analytics/attribution';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 type SnapshotOrderItem = {
@@ -64,6 +66,7 @@ export async function createOrderFromCheckoutSession(params: {
     expires_at?: string | null;
     success_token?: string | null;
     success_token_expires_at?: string | null;
+    affiliate_code?: string | null;
     cart_snapshot?: unknown;
     pricing_snapshot?: unknown;
     shipping_address_snapshot?: unknown;
@@ -79,6 +82,7 @@ export async function createOrderFromCheckoutSession(params: {
   const nowIso = new Date().toISOString();
 
   const cartItems = parseJsonIfNeeded<SnapshotOrderItem[]>(checkoutSession.cart_snapshot) || [];
+  const { customerNote, attribution } = parseCheckoutNotes(checkoutSession.notes);
   const pricing =
     parseJsonIfNeeded<{
       subtotal?: number;
@@ -169,10 +173,11 @@ export async function createOrderFromCheckoutSession(params: {
     shipping_cost: Number(pricing.shipping_cost ?? 0),
     discount_amount: Number(pricing.discount_amount ?? discountSnapshot.amount ?? 0),
     discount_code: discountSnapshot.code ?? null,
+    affiliate_code: checkoutSession.affiliate_code ?? null,
     total_amount: Number(pricing.total_amount ?? 0),
     shipping_address: shippingAddress,
     billing_address: billingAddress ?? null,
-    notes: checkoutSession.notes ?? null,
+    notes: customerNote,
     order_items: cartItems.map((item) => ({
       product_id: item.product_id,
       product_name: item.product_name,
@@ -245,9 +250,20 @@ export async function createOrderFromCheckoutSession(params: {
         success_token: checkoutSession.success_token,
         success_token_expires_at: checkoutSession.success_token_expires_at,
         late_success: isLateSuccess,
+        attribution: attribution ?? existingMetadata.attribution,
       },
     })
     .eq('id', createdOrder.id);
+
+  if (checkoutSession.affiliate_code) {
+    await createAffiliateConversion({
+      affiliateCode: checkoutSession.affiliate_code,
+      orderId: createdOrder.id,
+      orderNumber: createdOrder.order_number,
+      orderAmount: Number(pricing.total_amount ?? 0),
+      affiliateClickId: attribution?.affiliateClickId ?? null,
+    });
+  }
 
   return {
     ok: true as const,

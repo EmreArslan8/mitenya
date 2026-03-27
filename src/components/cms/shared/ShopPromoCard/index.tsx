@@ -18,6 +18,7 @@ export interface ShopPromoCardProps {
   descriptionColor?: string;
   buttonBgColor?: string;
   buttonTextColor?: string;
+  buttonBorderColor?: string;
 }
 
 const ShopPromoCard = ({
@@ -30,6 +31,7 @@ const ShopPromoCard = ({
   descriptionColor = 'black',
   buttonBgColor = 'transparent',
   buttonTextColor = 'black',
+  buttonBorderColor,
 }: ShopPromoCardProps) => {
   return (
     <Box sx={styles.card}>
@@ -53,6 +55,7 @@ const ShopPromoCard = ({
             ...styles.cta,
             backgroundColor: `${buttonBgColor} !important`,
             color: `${buttonTextColor} !important`,
+            ...(buttonBorderColor ? { border: `${buttonBorderColor} !important` } : {}),
             '&:hover': {
               backgroundColor: buttonBgColor,
               opacity: 0.9,

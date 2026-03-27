@@ -1,10 +1,13 @@
 
 
 import Footer from "@/components/Footer";
+import AttributionTracker from "@/components/analytics/AttributionTracker";
+import MetaPixelPageView from "@/components/analytics/MetaPixelPageView";
 import MainLayout from "@/components/layouts/MainLayout";
 import Navigation from "@/components/Navigation";
 import { AuthContextProvider } from "@/contexts/AuthContext";
 import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
+import { FavoritesContextProvider } from "@/contexts/FavoritesContext";
 import { ShopContextProvider } from "@/contexts/ShopContext";
 import { fetchShopFooter, fetchShopHeader } from "@/lib/api/cms";
 import { albertSans } from "@/lib/fonts";
@@ -86,18 +89,22 @@ export default async function RootLayout({
       <body style={{ overflowX: "hidden" }}>
         <ThemeRegistry>
           <CookieConsentProvider>
+            <AttributionTracker />
+            <MetaPixelPageView />
             <AuthContextProvider>
-              <ShopContextProvider>
-                <Suspense fallback={<div style={{ height: '100px' }} />}>
-                  <Navigation data={headerData} />
-                </Suspense>
+              <FavoritesContextProvider>
+                <ShopContextProvider>
+                  <Suspense fallback={<div style={{ height: '100px' }} />}>
+                    <Navigation data={headerData} />
+                  </Suspense>
 
-                <MainLayout>
-                  <Suspense fallback={<div>Yükleniyor...</div>}>{children}</Suspense>
-                </MainLayout>
+                  <MainLayout>
+                    <Suspense fallback={<div>Yükleniyor...</div>}>{children}</Suspense>
+                  </MainLayout>
 
-                <Footer data={footerData} />
-              </ShopContextProvider>
+                  <Footer data={footerData} />
+                </ShopContextProvider>
+              </FavoritesContextProvider>
             </AuthContextProvider>
           </CookieConsentProvider>
         </ThemeRegistry>
@@ -115,9 +122,12 @@ export const generateMetadata = async () => ({
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
+      { url: "/static/images/favicon-16x16-v2026.png", sizes: "16x16", type: "image/png" },
+      { url: "/static/images/favicon-32x32-v2026.png", sizes: "32x32", type: "image/png" },
+      { url: "/static/images/favicon-48x48-v2026.png", sizes: "48x48", type: "image/png" },
       { url: "/favicon-2026.ico", sizes: "48x48", type: "image/x-icon" },
     ],
-    shortcut: ["/favicon-2026.ico"],
+    shortcut: ["/static/images/favicon-32x32-v2026.png"],
     apple: [{ url: "/static/images/apple-touch-icon-v2026.png", type: "image/png" }],
   },
   openGraph: {

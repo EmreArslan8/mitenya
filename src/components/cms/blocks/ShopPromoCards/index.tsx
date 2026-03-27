@@ -21,9 +21,9 @@ const ShopPromoCards = ({ cards = [], section }: ShopPromoCardsProps) => {
             <ShopPromoCard
               {...leftCard}
               titleColor="white"
-              descriptionColor="#d4c8e8"
-              buttonBgColor="#F7EFFF"
-              buttonTextColor="#4B3665"
+              descriptionColor="white"
+              buttonBgColor="#1C2432"
+              buttonTextColor="white"
             />
           </Grid>
         )}
@@ -32,10 +32,11 @@ const ShopPromoCards = ({ cards = [], section }: ShopPromoCardsProps) => {
           <Grid item xs={12} sm={6}>
             <ShopPromoCard
               {...rightCard}
-              titleColor="#a7a098"
-              descriptionColor="#2E2520"
-              buttonBgColor="#FFEAC0"
-              buttonTextColor="#4A3A24"
+              titleColor="#8C6F5A"
+              descriptionColor="#5A4639"
+              buttonBgColor="#EDE1CC"
+              buttonTextColor="#544338"
+              buttonBorderColor="1px solid rgba(140, 111, 90, 0.16)"
             />
           </Grid>
         )}

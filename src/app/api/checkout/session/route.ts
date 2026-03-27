@@ -8,6 +8,7 @@ import { validateSameOrigin, validateCsrfToken } from '@/lib/api/security';
 import { rateLimit } from '@/lib/api/rateLimit';
 import { getClientIp } from '@/lib/api/getClientIp';
 import { reserveCheckoutStock } from '@/lib/inventory/stockReservationService';
+import { serializeCheckoutNotes } from '@/lib/analytics/attribution';
 
 const SESSION_TTL_MINUTES = 30;
 
@@ -42,6 +43,18 @@ const consentsSchema = z.object({
   distance_sale_html: z.string().min(1).max(500000),
 });
 
+const attributionSchema = z.object({
+  affiliateCode: z.string().max(20).nullable().optional(),
+  affiliateClickId: z.string().max(100).nullable().optional(),
+  utmSource: z.string().max(120).nullable().optional(),
+  utmMedium: z.string().max(120).nullable().optional(),
+  utmCampaign: z.string().max(160).nullable().optional(),
+  utmContent: z.string().max(160).nullable().optional(),
+  utmTerm: z.string().max(160).nullable().optional(),
+  landingPath: z.string().max(255).nullable().optional(),
+  referrer: z.string().max(500).nullable().optional(),
+});
+
 const createCheckoutSessionSchema = z.object({
   user_email: z.string().email().optional(),
   items: z.array(orderItemSchema).min(1).max(50),
@@ -51,6 +64,8 @@ const createCheckoutSessionSchema = z.object({
   shipping_cost: z.number().nonnegative().max(10000).optional(),
   discount_amount: z.number().nonnegative().max(100000).optional(),
   discount_code: z.string().max(50).nullable().optional(),
+  affiliate_code: z.string().max(20).nullable().optional(),
+  attribution: attributionSchema.optional(),
   notes: z.string().max(500).optional(),
   currency: z.string().length(3).optional(),
   consents: consentsSchema.optional(),
@@ -110,6 +125,8 @@ export async function POST(req: NextRequest) {
       shipping_cost = 0,
       discount_amount = 0,
       discount_code,
+      affiliate_code,
+      attribution,
       notes,
       currency = 'TRY',
       consents,
@@ -155,6 +172,12 @@ export async function POST(req: NextRequest) {
     const successToken = createSuccessToken();
     const successTokenExpiresAt = new Date(now + 2 * 60 * 60_000).toISOString();
 
+    const normalizedAffiliateCode = affiliate_code ?? attribution?.affiliateCode ?? null;
+    const serializedNotes = serializeCheckoutNotes(notes, {
+      ...attribution,
+      affiliateCode: normalizedAffiliateCode,
+    });
+
     const { data: session, error: sessionError } = await supabaseAdmin
       .from('checkout_sessions')
       .insert({
@@ -177,7 +200,8 @@ export async function POST(req: NextRequest) {
           code: discount_code ?? null,
           amount: safeDiscount,
         },
-        notes: notes ?? null,
+        notes: serializedNotes ?? null,
+        affiliate_code: normalizedAffiliateCode,
         consents_snapshot: consents ?? null,
         success_token: successToken,
         success_token_expires_at: successTokenExpiresAt,

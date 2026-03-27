@@ -8,6 +8,7 @@ import Link from '@/components/common/Link';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import { ShopSearchResponse, ShopSearchSort } from '@/lib/api/types';
 import { Collection } from '@/lib/api/supabaseShop';
+import { UI_SORT_OPTIONS } from '@/lib/constants/shop';
 import { useStyles } from './styles';
 
 type NightCareViewProps = {
@@ -50,6 +51,7 @@ const FloatingParticle = ({ delay, size, left, top }: { delay: number; size: num
 );
 
 const NightCareView = ({ initialData, collection }: NightCareViewProps) => {
+  const allowedUiSorts = UI_SORT_OPTIONS as readonly ShopSearchSort[];
   const router = useRouter();
   const searchParams = useSearchParams();
   const styles = useStyles();
@@ -60,10 +62,15 @@ const NightCareView = ({ initialData, collection }: NightCareViewProps) => {
   const [mounted, setMounted] = useState(false);
 
   const products = initialData.products ?? [];
+  const visibleSortOptions = (initialData.sortOptions ?? ['rct', 'pdsc', 'pasc']).filter(
+    (opt) => allowedUiSorts.includes(opt)
+  );
+  const selectedSort = visibleSortOptions.includes(sort) ? sort : (visibleSortOptions[0] ?? 'rct');
 
   useEffect(() => {
     setMounted(true);
     setSort((searchParams?.get('sort') as ShopSearchSort) ?? 'rct');
+    setIsNavigating(false);
   }, [searchParams]);
 
   const handleSortChange = (value: ShopSearchSort) => {
@@ -185,11 +192,11 @@ const NightCareView = ({ initialData, collection }: NightCareViewProps) => {
 
           <Select
             size="small"
-            value={sort}
+            value={selectedSort}
             onChange={(e) => handleSortChange(e.target.value as ShopSearchSort)}
             sx={styles.sortSelect}
           >
-            {(initialData.sortOptions ?? ['rct', 'pdsc', 'pasc']).map((opt) => (
+            {visibleSortOptions.map((opt) => (
               <MenuItem key={opt} value={opt}>
                 {SORT_LABELS[opt] ?? opt}
               </MenuItem>

@@ -26,7 +26,8 @@ const ShopInlineProducts = ({
   cta,
   displayType,
 }: ShopInlineProductsProps) => {
-  const MIN_PRODUCTS = 5;
+  const MIN_PRODUCTS = 4;
+  const RENDER_LIMIT = 4;
   const router = useRouter();
   const [products, setProducts] = useState<ShopProductListItemData[]>([]);
   const [error, setError] = useState(false);
@@ -36,9 +37,9 @@ const ShopInlineProducts = ({
   const styles = useStyles();
 
   useEffect(() => {
-    setSlidesToShow(mdUp ? 5.05 : smUp ? 3 : 2);
-    setSlidesToScroll(mdUp ? 5 : smUp ? 3 : 1);
-  }, [mdUp, smUp]);
+    setSlidesToShow(mdUp ? 4 : 2);
+    setSlidesToScroll(1);
+  }, [mdUp]);
 
   const searchOptions = useMemo(
     () =>
@@ -130,17 +131,17 @@ const ShopInlineProducts = ({
 
   return (
     <SectionBase {...section} sectionWidth="100%" sx={{ gap: 2 }}>
-      <Stack alignItems="center">
+      <Stack alignItems="stretch" width="100%">
         {displayType === 'grid' ? (
           <Grid container spacing={2} pb={{ xs: 1, sm: 2 }}>
             {products.length
-                ? products.slice(0, smUp ? 12 : 8).map((e) => (
-                  <Stack px={{ xs: 0.75, sm: 1 }} key={e.id} sx={{ boxSizing: 'border-box' }}>
+                ? products.slice(0, RENDER_LIMIT).map((e) => (
+                  <Grid item xs={6} md={3} key={e.id}>
                     <ProductCard data={e} />
-                  </Stack>
+                  </Grid>
                 ))
-              : Array.from(Array(smUp ? 12 : 8).keys()).map((e) => (
-                  <Grid item xs={6} sm={3} md={2} key={e}>
+              : Array.from(Array(RENDER_LIMIT).keys()).map((e) => (
+                  <Grid item xs={6} md={3} key={e}>
                     <ProductCardSkeleton />
                   </Grid>
                 ))}
@@ -159,7 +160,7 @@ const ShopInlineProducts = ({
                       <ProductCard data={e} />
                     </Stack>
                   ))
-                : Array.from(Array(5).keys()).map((e) => (
+                : Array.from(Array(RENDER_LIMIT).keys()).map((e) => (
                     <Stack key={e} p={{ xs: 0.75, sm: 1 }} sx={{ boxSizing: 'border-box' }}>
                       <ProductCardSkeleton />
                     </Stack>
@@ -169,15 +170,17 @@ const ShopInlineProducts = ({
         )}
 
         {cta && (
-          <Button
-            color="neutral"
-            arrow="end"
-            size="small"
-            variant="tonal"
-            onClick={() => router.push(searchUrlFromOptions(searchOptions))}
-          >
-            {cta}
-          </Button>
+          <Stack alignItems="center">
+            <Button
+              color="neutral"
+              arrow="end"
+              size="small"
+              variant="tonal"
+              onClick={() => router.push(searchUrlFromOptions(searchOptions))}
+            >
+              {cta}
+            </Button>
+          </Stack>
         )}
       </Stack>
     </SectionBase>

@@ -151,6 +151,8 @@ export type ShopProductPrice = {
   currency: Currency;
 };
 
+export type ProductStockStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
+
 export type ShopProductListItemData = {
   id: string;
   brand: string;
@@ -166,6 +168,7 @@ export type ShopProductListItemData = {
   breadcrumbs?: string;
   hasVariant?: boolean;
   quantity?: number;
+  stockStatus?: ProductStockStatus;
 };
 
 export type ShopProductVariantOptionData = {
@@ -190,13 +193,13 @@ export type ShopProductReview = {
   id?: string;
   name?: string;
   rating?: number;
+  title?: string;
   text: string;
   date?: string;
+  verified?: boolean;
 };
 
 export type ShopProductBreadcrumb = { text: string; searchOptions: ShopSearchOptions };
-
-export type Spec = { label: string; value: string };
 
 export type ShopProductData = {
   id: string;
@@ -212,8 +215,9 @@ export type ShopProductData = {
   variants?: ShopProductVariantData[];
   name?: string;
   price: ShopProductPrice;
-  note?: string;
+  shortDescription?: string;
   quantity: number;
+  stockStatus?: ProductStockStatus;
   rating?: ShopProductRating;
   description?: string;
   attributes?: ShopProductAttribute[];
@@ -247,7 +251,7 @@ export type CheckoutRequestData = {
   paymentType: PaymentType;
 };
 
-export type ShopFilterType = 'brand' | 'category' | 'gender' | 'size' | 'price' | 'color';
+export type ShopFilterType = 'brand' | 'category' | 'gender' | 'size' | 'price' | 'color' | 'concern' | 'benefit';
 
 export type ShopGender =
   | '1' // women
@@ -271,6 +275,8 @@ export type ShopFilter<T extends ShopFilterType> = {
     colors?: string;
     price?: string;
     color?: string;
+    concern?: string;
+    benefit?: string;
   };
   selected?: boolean;
   allowMultiple?: boolean;
@@ -283,6 +289,8 @@ export type ShopSearchResponseFilters = {
   genders?: ShopFilter<'gender'>[];
   sizes?: ShopFilter<'size'>[];
   colors?: ShopFilter<'color'>[];
+  benefits?: ShopFilter<'benefit'>[];
+  concerns?: ShopFilter<'concern'>[];
   priceRanges?: ShopFilter<'price'>[];
 };
 
@@ -314,6 +322,8 @@ export type ShopSearchOptions = {
   collection?: string;
   color?: string;
   price?: string; // min-max
+  concern?: string;
+  benefit?: string;
 };
 
 export type ShopSearchResponse = {
@@ -326,6 +336,16 @@ export type ShopSearchResponse = {
     _S1?: string; // NOTE: refer to h-1-index
   };
 };
+
+export interface Collection {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  banner_image: string | null;
+  is_active: boolean;
+  sort_order: number;
+}
 
 export type ShopHeaderLink = { label: string; slug: string | undefined | null };
 

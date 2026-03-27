@@ -11,6 +11,7 @@ import useAnalytics from '@/lib/hooks/useAnalytics';
 import clamp from '@/lib/utils/clamp';
 import { Currency } from '@/lib/utils/currencies';
 import { sendAddToCardEvent } from '@/lib/utils/googleAnalytics';
+import { trackAddToCart } from '@/lib/analytics/metaPixel';
 import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -228,6 +229,12 @@ export const ShopContextProvider = ({ children }: ShopContextProviderProps) => {
 
     // Analytics
     sendAddToCardEvent(customerData, product);
+    trackAddToCart({
+      content_ids: [String(product.id)],
+      content_name: product.name,
+      value: product.price.currentPrice,
+      currency: product.price.currency ?? 'TRY',
+    });
     sendAction({
       event: 'add_to_cart',
       details: {

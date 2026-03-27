@@ -2,7 +2,7 @@ import { ReadonlyURLSearchParams } from 'next/navigation';
 import { ShopSearchOptions } from '../api/types';
 
 export const searchUrlFromOptions = (options: Partial<ShopSearchOptions>, withSalt = false) => {
-  const { category, brand, gender, query, size, sort, nt, nf, ph, xt, collection, price, color } = options;
+  const { category, brand, gender, query, size, sort, nt, nf, ph, xt, collection, price, color, concern, benefit } = options;
   const searchParams = new URLSearchParams();
   if (category) searchParams.append('category', category);
   if (brand) searchParams.append('brand', brand);
@@ -18,6 +18,8 @@ export const searchUrlFromOptions = (options: Partial<ShopSearchOptions>, withSa
   if (collection) searchParams.append('collection', collection);
   if (color) searchParams.append('color', color);
   if (price) searchParams.append('price', price);
+  if (concern) searchParams.append('concern', concern);
+  if (benefit) searchParams.append('benefit', benefit);
   return `/search?${searchParams}`;
 };
 
@@ -65,6 +67,8 @@ export const searchOptionsFromSearchParams = (searchParams: ReadonlyURLSearchPar
   if (searchParams.getAll('category').length)
     options.category = searchParams.getAll('category').join(',');
   if (searchParams.getAll('brand').length) options.brand = searchParams.getAll('brand').join(',');
+  if (searchParams.getAll('concern').length) options.concern = searchParams.getAll('concern').join(',');
+  if (searchParams.getAll('benefit').length) options.benefit = searchParams.getAll('benefit').join(',');
   return options;
 };
 

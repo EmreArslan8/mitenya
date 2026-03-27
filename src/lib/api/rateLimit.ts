@@ -5,22 +5,41 @@
  */
 import { isUpstashEnabled, parseUpstashResult, runUpstashPipeline } from '@/lib/cache/upstashRedis';
 
-const WINDOW_MS = 60_000; // 1 dakika
-const MAX_REQUESTS = 60; // dakika başına 60 istek
+const DEFAULT_WINDOW_MS = 60_000; // 1 dakika
+const DEFAULT_MAX_REQUESTS = 60;  // dakika başına 60 istek
 
 const buckets = new Map<string, { count: number; expiresAt: number }>();
 
-export const rateLimit = async (key: string): Promise<boolean> => {
+// Expired entry'leri periyodik olarak temizle (her 5 dakikada bir)
+const CLEANUP_INTERVAL_MS = 5 * 60_000;
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of buckets) {
+    if (v.expiresAt < now) buckets.delete(k);
+  }
+}, CLEANUP_INTERVAL_MS).unref();
+
+export const rateLimit = async (
+  key: string,
+  options?: { windowMs?: number; max?: number }
+): Promise<boolean> => {
+  const windowMs = options?.windowMs ?? DEFAULT_WINDOW_MS;
+  const max = options?.max ?? DEFAULT_MAX_REQUESTS;
+
   // Upstash Redis varsa onu kullan
   if (isUpstashEnabled()) {
     try {
+      const ttlSeconds = Math.ceil(windowMs / 1000);
       const result = await runUpstashPipeline([
         ['INCR', key],
-        ['EXPIRE', key, Math.ceil(WINDOW_MS / 1000)],
       ]);
       const current = parseUpstashResult(result[0]);
       if (typeof current === 'number') {
-        return current <= MAX_REQUESTS;
+        // İlk istek ise TTL set et (pencere sıfırlanmasını önler)
+        if (current === 1) {
+          await runUpstashPipeline([['EXPIRE', key, ttlSeconds]]);
+        }
+        return current <= max;
       }
       // Eğer yanıt beklenmedikse mem fallback'e düş
     } catch (err) {
@@ -34,12 +53,14 @@ export const rateLimit = async (key: string): Promise<boolean> => {
   const entry = buckets.get(key);
 
   if (!entry || entry.expiresAt < now) {
-    buckets.set(key, { count: 1, expiresAt: now + WINDOW_MS });
+    buckets.set(key, { count: 1, expiresAt: now + windowMs });
     return true;
   }
 
-  if (entry.count >= MAX_REQUESTS) return false;
+  if (entry.count >= max) return false;
 
   entry.count += 1;
   return true;
 };
+
+

@@ -134,7 +134,7 @@ const useStyles = withPalette((palette) => ({
   },
   filterListLabel: {
     fontWeight: 700,
-    fontSize: 18,
+    fontSize: 16,
     color: palette.text.main,
   },
   filterListMeta: {
@@ -158,7 +158,7 @@ const useStyles = withPalette((palette) => ({
     pb: 2,
     borderTop: `1px solid ${palette.gray[200]}`,
     '& .MuiTypography-cardTitle': {
-      fontSize: 20,
+      fontSize: 16,
       fontWeight: 800,
     },
     '& .MuiFormControlLabel-label, & .MuiTypography-body1, & .MuiTypography-body2': {

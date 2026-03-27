@@ -1,11 +1,14 @@
 import { createServerClient } from '@supabase/ssr';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { isSafeRedirect } from '@/lib/utils/isValidUrl';
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const next = requestUrl.searchParams.get('next') ?? '/';
+  const rawNext = requestUrl.searchParams.get('next') ?? '/';
+  const next = isSafeRedirect(rawNext) ? rawNext : '/';
   const origin = requestUrl.origin;
 
   if (code) {
@@ -32,11 +35,45 @@ export async function GET(request: Request) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { error, data } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
-      console.error('Auth callback error:', error.message);
-      return NextResponse.redirect(`${origin}/auth/error?message=${encodeURIComponent(error.message)}`);
+      // Hata mesajı URL'e gömülmüyor — iç detay sızmasın
+      return NextResponse.redirect(`${origin}/auth/error`);
+    }
+
+    // Influencer kontrolü — affiliate ise /influencer'a yönlendir
+    if (data?.user?.id) {
+      // Önce user_id ile ara (sonraki girişler)
+      let { data: affiliate } = await supabaseAdmin
+        .from('affiliates')
+        .select('id, user_id')
+        .eq('user_id', data.user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      // Bulunamazsa email ile ara (ilk magic link girişi)
+      if (!affiliate && data.user.email) {
+        const { data: affiliateByEmail } = await supabaseAdmin
+          .from('affiliates')
+          .select('id, user_id')
+          .eq('email', data.user.email)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (affiliateByEmail) {
+          // user_id'yi otomatik doldur
+          await supabaseAdmin
+            .from('affiliates')
+            .update({ user_id: data.user.id })
+            .eq('id', affiliateByEmail.id);
+          affiliate = affiliateByEmail;
+        }
+      }
+
+      if (affiliate) {
+        return NextResponse.redirect(`${origin}/influencer`);
+      }
     }
   }
 

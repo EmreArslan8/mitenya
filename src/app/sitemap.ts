@@ -3,6 +3,9 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 
 const baseUrl = (process.env.NEXT_PUBLIC_HOST_URL ?? 'https://mitenya.com').replace(/\/$/, '');
 const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
+const cmsBearer = process.env.STRAPI_BEARER;
+
+export const revalidate = 300;
 
 type BlogEntity = {
   attributes?: {
@@ -13,7 +16,7 @@ type BlogEntity = {
 };
 
 const fetchBlogSlugs = async () => {
-  if (!strapiUrl) return [];
+  if (!strapiUrl || !cmsBearer) return [];
 
   const pageSize = 100;
   let page = 1;
@@ -22,8 +25,13 @@ const fetchBlogSlugs = async () => {
 
   while (page <= pageCount) {
     const res = await fetch(
-      `${strapiUrl}/blogs?fields[0]=slug&fields[1]=updatedAt&fields[2]=publishedAt&pagination[page]=${page}&pagination[pageSize]=${pageSize}`,
-      { next: { revalidate: 3600 } },
+      `${strapiUrl}/blogs?fields[0]=slug&fields[1]=updatedAt&fields[2]=publishedAt&publicationState=live&pagination[page]=${page}&pagination[pageSize]=${pageSize}`,
+      {
+        headers: {
+          Authorization: `Bearer ${cmsBearer}`,
+        },
+        next: { revalidate: 300 },
+      },
     );
 
     if (!res.ok) break;

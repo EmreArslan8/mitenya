@@ -49,6 +49,24 @@ export const fetchProductData = async (
   }
 };
 
+export const fetchProductsByIds = async (
+  ids: string[]
+): Promise<ShopProductData[]> => {
+  try {
+    const res = await fetch('/api/products/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.products ?? [];
+  } catch (error) {
+    console.error('Fetch products batch error:', error);
+    return [];
+  }
+};
+
 export async function fetchProductVariants(productId: string) {
   try {
     const res = await fetch(`/api/products/${productId}/variants`);
