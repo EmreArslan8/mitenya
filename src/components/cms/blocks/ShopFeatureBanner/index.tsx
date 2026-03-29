@@ -12,6 +12,7 @@ import { BlockComponentBaseProps } from '..';
 import 'slick-carousel/slick/slick.css';
 import Button from '@/components/common/Button';
 import { splitTitle } from '@/lib/utils/splitTitle';
+import useScreen from '@/lib/hooks/useScreen';
 
 export interface ShopFeatureBannerProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
@@ -59,11 +60,14 @@ const resolveCmsSrc = (src: string) =>
 
 const FeatureBannerCard = ({ banner, index, children }: FeatureBannerCardProps) => {
   const styles = useStyles();
+  const { isMobile } = useScreen();
   const href = banner.mobileUrl?.trim() || banner.url;
   const desktopImage = banner.image?.data;
   const mobileImage = banner.mobileImage?.data;
-  const fallbackSrc = desktopImage?.attributes.url || mobileImage?.attributes.url;
+  const selectedImage = isMobile ? mobileImage || desktopImage : desktopImage;
+  const fallbackSrc = selectedImage?.attributes.url;
   const alt =
+    selectedImage?.attributes.alternativeText ||
     desktopImage?.attributes.alternativeText ||
     mobileImage?.attributes.alternativeText ||
     banner.title ||
@@ -74,23 +78,21 @@ const FeatureBannerCard = ({ banner, index, children }: FeatureBannerCardProps) 
   return (
     <Link href={href} style={{ display: 'block', height: '100%' }}>
       <Box sx={styles.mediaWrapper}>
-        <picture style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-          {mobileImage && (
-            <source
-              media="(max-width: 899px)"
-              srcSet={resolveCmsSrc(mobileImage.attributes.url)}
-            />
-          )}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={resolveCmsSrc(fallbackSrc)}
-            alt={alt}
-            sizes={CMS_IMAGE_SIZES.bannerMain}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            loading={index === 0 ? 'eager' : 'lazy'}
-            fetchPriority={index === 0 ? 'high' : 'auto'}
-          />
-        </picture>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={resolveCmsSrc(fallbackSrc)}
+          alt={alt}
+          sizes={CMS_IMAGE_SIZES.bannerMain}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          }}
+          loading={index === 0 ? 'eager' : 'lazy'}
+          fetchPriority={index === 0 ? 'high' : 'auto'}
+        />
 
         <Box sx={styles.overlay}>
           <Stack sx={styles.overlayInner} spacing={{ xs: 1, sm: 1.5, md: 2.5 }}>
@@ -120,8 +122,11 @@ const ShopFeatureBanner = ({
   sideBanners = [],
 }: ShopFeatureBannerProps) => {
   const styles = useStyles();
+  const { isMobile } = useScreen();
 
-  const validBanners = mainBanners.filter((b) => b.image?.data || b.mobileImage?.data);
+  const validBanners = mainBanners.filter((b) =>
+    isMobile ? b.mobileImage?.data || b.image?.data : b.image?.data,
+  );
 
   if (!validBanners.length) return null;
 
