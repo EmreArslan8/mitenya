@@ -1,7 +1,9 @@
 "use client";
 
 import BlockManager from "@/components/cms/blocks";
+import WelcomeCouponModal from '@/components/WelcomeCouponModal';
 import { CMSPageData } from "@/lib/api/cms";
+import { ShopCoupon } from '@/lib/api/types';
 import { Box, Stack } from "@mui/material";
 
 const gapValues = {
@@ -22,7 +24,7 @@ const srOnly = {
   borderWidth: 0,
 } as const;
 
-const HomePageView = ({ data }: { data?: CMSPageData }) => {
+const HomePageView = ({ data, coupons = [] }: { data?: CMSPageData; coupons?: ShopCoupon[] }) => {
   if (!data) {
     console.warn("⚠️ [HomePageView] data yok!");
     return <p style={{ color: "red" }}>Veri bulunamadı (data undefined)</p>;
@@ -32,6 +34,7 @@ const HomePageView = ({ data }: { data?: CMSPageData }) => {
     <Stack
       gap={gapValues[data?.gap ?? "medium"]}
     >
+      <WelcomeCouponModal coupons={coupons} placement="home" />
       <Box component="h1" sx={srOnly}>
         Kore Kozmetik ve Cilt Bakım Ürünleri - Mitenya
       </Box>

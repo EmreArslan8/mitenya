@@ -20,9 +20,10 @@ import { getOrderSummary } from '@/lib/api/checkout';
 import { buildAttributionFromDocument } from '@/lib/analytics/attribution';
 import { AddressData, PaymentType, ShopOrderSummaryData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
+import { readStoredWelcomeCoupon, storeWelcomeCoupon } from '@/lib/shop/welcomeCoupon';
 import { withCsrfHeaders } from '@/lib/utils/csrf';
 import formatPrice from '@/lib/utils/formatPrice';
-import { useCheckoutAnalytics } from '@/lib/utils/googleAnalytics';
+import { pushItemToDataLayer, useCheckoutAnalytics } from '@/lib/utils/googleAnalytics';
 import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 import {
   generatePreInfoHtml,
@@ -33,7 +34,7 @@ import LegalDocumentModal from '@/components/contracts/LegalDocumentModal';
 import { Box, Checkbox, Divider, Snackbar, Stack, Typography, debounce } from '@mui/material';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import useStyles from './styles';
 import { Check, CheckCircle, ChevronDown, CreditCard, ShoppingBag, Truck } from 'lucide-react';
 
@@ -70,6 +71,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   const [directToPaymentOnAddressAdded, setDirectToPaymentOnAddressAdded] = useState(false);
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
   const [showDiscountCodeSnackbar, setShowDiscountCodeSnackbar] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [preInfoAccepted, setPreInfoAccepted] = useState(false);
   const [distanceSaleAccepted, setDistanceSaleAccepted] = useState(false);
   const [preInfoModalOpen, setPreInfoModalOpen] = useState(false);
@@ -80,6 +82,8 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
     setDestination(newAddress);
     setAddresses((prev) => [...(prev ?? []), newAddress]);
   };
+
+  const handleCheckoutRef = useRef<() => Promise<void>>(async () => {});
 
   const handleCheckout = async () => {
     if (summaryLoading || !selected || selected.length === 0) return;
@@ -93,7 +97,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
 
     // Email kontrolü
     if (!customerData?.email) {
-      alert('Lütfen giriş yapın');
+      setCheckoutError('Devam etmek için lütfen giriş yapın.');
       return;
     }
 
@@ -190,25 +194,50 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
     } catch (error: unknown) {
       console.error('Checkout error:', error);
       const message = error instanceof Error ? error.message : 'Bir hata oluştu';
-      alert(message);
+      setCheckoutError(message);
     } finally {
       setContinueButtonLoading(false);
     }
   };
 
+  // Ref'i her render'da güncelle — stale closure'ı engeller
+  handleCheckoutRef.current = handleCheckout;
+
   const handleUpdateOrderSummary = useCallback(
     debounce(async (selected, destination, paymentType, discountCode) => {
-      const data = await getOrderSummary({
-        products: selected,
-        destination,
-        discountCode,
-        draftPaymentMethod: paymentType,
-      });
-      setOrderSummary(data?.orderSummary);
-      setSummaryLoading(false);
+      try {
+        const data = await getOrderSummary({
+          products: selected,
+          destination,
+          discountCode,
+          draftPaymentMethod: paymentType,
+        });
+        setOrderSummary(data?.orderSummary);
+      } catch {
+        // summary yüklenemedi, mevcut değer korunur
+      } finally {
+        setSummaryLoading(false);
+      }
     }, 1000),
     []
   );
+
+  useEffect(() => {
+    const queryCode = searchParams?.get('dc')?.trim().toUpperCase() ?? null;
+    const storedCode = readStoredWelcomeCoupon();
+    const nextCode = queryCode || storedCode;
+
+    if (!nextCode || discountCode === nextCode) return;
+
+    storeWelcomeCoupon(nextCode);
+    setDiscountCode(nextCode);
+    pushItemToDataLayer({
+      event: 'promo_code_applied',
+      promo_location: 'checkout',
+      promo_code: nextCode,
+      apply_method: queryCode ? 'query' : 'auto',
+    });
+  }, [searchParams]);
 
   useEffect(() => {
     if (isAuthenticated === false && !searchParams?.get('allow')) {
@@ -218,9 +247,10 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
 
   useEffect(() => {
     if (!selected?.length) return setOrderSummary(undefined);
+    if (isAuthenticated === undefined) return;
     setSummaryLoading(true);
     handleUpdateOrderSummary(selected, destination, paymentType, discountCode);
-  }, [selected, destination, paymentType, discountCode]);
+  }, [selected, destination, paymentType, discountCode, isAuthenticated]);
 
   useEffect(() => {
     if (!selected?.length) return;
@@ -231,7 +261,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
       currency: selected[0]?.price.currency ?? 'TRY',
       num_items: selected.reduce((acc, p) => acc + p.quantity, 0),
     });
-  }, [selected]);
+  }, []);
 
   // Adres, ürün veya ödeme yöntemi değiştiğinde sözleşme onaylarını sıfırla
   useEffect(() => {
@@ -302,11 +332,10 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   }, [destination, selected, customerData, orderSummary, paymentMethodLabel]);
 
   useEffect(() => {
-    if (directToPaymentOnAddressAdded) {
-      setDirectToPaymentOnAddressAdded(false);
-      handleCheckout();
-    }
-  }, [orderSummary]);
+    if (!directToPaymentOnAddressAdded || !orderSummary) return;
+    setDirectToPaymentOnAddressAdded(false);
+    void handleCheckoutRef.current();
+  }, [directToPaymentOnAddressAdded, orderSummary]);
 
   return (
     <>
@@ -324,6 +353,14 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
           />
         </Snackbar>
       )}
+      <Snackbar
+        open={!!checkoutError}
+        autoHideDuration={4000}
+        onClose={() => setCheckoutError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Banner variant="error" title={checkoutError ?? ''} sx={{ width: '100%' }} />
+      </Snackbar>
       {!orderSummary && <LoadingOverlay loading />}
       <Stack gap={3}>
         <TwoColumnLayout sx={{ pb: 3, gap: { xs: 2, sm: 3 } }}>
@@ -506,7 +543,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
               >
                 <Stack sx={styles.products}>
                   {selected?.map((e, i) => (
-                    <Stack gap={2} px={2} key={JSON.stringify(e)}>
+                    <Stack gap={2} px={2} key={`${e.id}-${e.variants?.map(v => v.options.find(o => o.selected)?.value ?? '').join('-') ?? ''}`}>
                       <ShopCartProductCard data={e} />
                       {i < selected.length - 1 && <Divider flexItem />}
                     </Stack>
@@ -595,7 +632,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
               >
                 <Stack sx={styles.products}>
                   {selected?.map((e, i) => (
-                    <Stack gap={2} px={2} key={JSON.stringify(e)}>
+                    <Stack gap={2} px={2} key={`${e.id}-${e.variants?.map(v => v.options.find(o => o.selected)?.value ?? '').join('-') ?? ''}`}>
                       <ShopCartProductCard data={e} />
                       {i < selected.length - 1 && <Divider flexItem />}
                     </Stack>

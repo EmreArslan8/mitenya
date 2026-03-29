@@ -5,10 +5,11 @@ import Button from '@/components/common/Button';
 import Banner from '@/components/common/Banner';
 import { CrossFade } from '@/components/common/CrossFade';
 import Link from '@/components/common/Link';
+import WelcomeCouponModal from '@/components/WelcomeCouponModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { ShopContext } from '@/contexts/ShopContext';
-import { ShopProductData } from '@/lib/api/types';
+import { ShopCoupon, ShopProductData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
@@ -34,9 +35,11 @@ const MAX_CART_QUANTITY = 5;
 
 const ProductPageView = ({
   data,
+  coupons = [],
   pdpBlocksSlot,
 }: {
   data: ShopProductData;
+  coupons?: ShopCoupon[];
   pdpBlocksSlot?: ReactNode;
 }) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
@@ -279,8 +282,10 @@ const ProductPageView = ({
   }, []);
 
   return (
-    <Stack gap={5}>
-      <Stack gap={2}>
+    <>
+      <WelcomeCouponModal coupons={coupons} placement="product" />
+      <Stack gap={5}>
+        <Stack gap={2}>
         <Stack direction="row" alignItems="center" gap={0.5} sx={styles.breadcrumbs}>
           <Link href="/" prefetch={false}>
             <Typography component="span">Ana Sayfa</Typography>
@@ -526,18 +531,19 @@ const ProductPageView = ({
         onBuyNow={handleBuyNow}
       />
 
-      <Snackbar
-        open={!!feedback}
-        autoHideDuration={3000}
-        onClose={() => setFeedback(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Banner
-          variant={feedback?.variant ?? 'success'}
-          title={feedback?.title}
-        />
-      </Snackbar>
-    </Stack>
+        <Snackbar
+          open={!!feedback}
+          autoHideDuration={3000}
+          onClose={() => setFeedback(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Banner
+            variant={feedback?.variant ?? 'success'}
+            title={feedback?.title}
+          />
+        </Snackbar>
+      </Stack>
+    </>
   );
 };
 

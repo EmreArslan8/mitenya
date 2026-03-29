@@ -1,5 +1,5 @@
 import { Button, Stack } from '@mui/material';
-import { useRef } from 'react';
+import { RefObject, useRef } from 'react';
 import Slider, { Settings as ReactSlickSliderSettings } from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import useStyles from './styles';
@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CustomSliderProps extends ReactSlickSliderSettings {
   showControls?: boolean;
+  sliderRef?: RefObject<Slider>;
 }
 
 const CustomSlider = ({
@@ -18,9 +19,11 @@ const CustomSlider = ({
   swipe = true,
   touchMove = true,
   showControls = true,
+  sliderRef: externalRef,
   ...rest
 }: CustomSliderProps) => {
-  const sliderRef = useRef<Slider>(null);
+  const internalRef = useRef<Slider>(null);
+  const sliderRef = externalRef ?? internalRef;
   const styles = useStyles();
 
   return (

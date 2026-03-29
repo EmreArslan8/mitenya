@@ -5,8 +5,8 @@ const BlogPage = async () => {
 };
 
 export const metadata = {
-  title: 'Blog',
-  description: 'Kore kozmetik trendleri, K-beauty cilt bakım rutinleri ve makyaj ipuçları. Kore güzellik sırları ve ürün incelemeleri Mitenya Blog\'da.',
+  title: 'Kozmetik & Cilt Bakım Blogu',
+  description: 'Cilt bakım rutinleri, makyaj tüyoları ve kozmetik ürün incelemeleri. Güzellik trendleri ve uzman önerileri için Mitenya Blog\'u keşfedin.',
   alternates: {
     canonical: '/blogs',
   },

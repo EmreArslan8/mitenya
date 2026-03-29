@@ -1,4 +1,4 @@
-import { fetchShopIndex } from '@/lib/api/cms';
+import { fetchShopCouponSet, fetchShopIndex } from '@/lib/api/cms';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import HomePageView from './view';
@@ -11,7 +11,10 @@ const HomePage = async ({ params }: { params: { slug?: string } }) => {
     return null;
   }
   const slug = params?.slug;
-  const data = await fetchShopIndex(slug);
+  const [data, couponSet] = await Promise.all([
+    fetchShopIndex(slug),
+    fetchShopCouponSet(),
+  ]);
 
   if (!data) {
     console.error('❌ No data found, calling notFound()');
@@ -20,7 +23,7 @@ const HomePage = async ({ params }: { params: { slug?: string } }) => {
 
   return (
     <main>
-      <HomePageView data={data} />
+      <HomePageView data={data} coupons={couponSet?.coupons ?? []} />
     </main>
   );
 };

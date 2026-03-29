@@ -7,12 +7,55 @@ import { fetchProducts } from '@/lib/api/shop';
 import { ShopProductListItemData, ShopSearchOptions } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
-import { Grid, Stack } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { Box, Grid, Stack } from '@mui/material';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import Slider from 'react-slick';
 import { BlockComponentBaseProps } from '..';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import useStyles from './styles';
 import { useRouter } from 'next/navigation';
+
+type SliderWithDotsProps = {
+  children: React.ReactNode;
+  count: number;
+  slidesToShow: number;
+  slidesToScroll: number;
+  styles: ReturnType<typeof useStyles>;
+};
+
+const SliderWithDots = ({ children, count, slidesToShow, slidesToScroll, styles }: SliderWithDotsProps) => {
+  const [current, setCurrent] = useState(0);
+  const sliderRef = useRef<Slider>(null);
+
+  return (
+    <Stack sx={styles.sliderContainer}>
+      <CustomSlider
+        sliderRef={sliderRef}
+        slidesToShow={slidesToShow}
+        slidesToScroll={slidesToScroll}
+        infinite
+        autoplay
+        autoplaySpeed={3200}
+        pauseOnHover
+        dots={false}
+        afterChange={setCurrent}
+      >
+        {children}
+      </CustomSlider>
+      <Stack direction="row" justifyContent="center" gap={0.75} sx={styles.pillDots}>
+        {Array.from({ length: count }).map((_, i) => (
+          <Box
+            key={i}
+            component="button"
+            onClick={() => sliderRef.current?.slickGoTo(i)}
+            aria-label={`Slayt ${i + 1}`}
+            sx={styles.pillDot(i === current)}
+          />
+        ))}
+      </Stack>
+    </Stack>
+  );
+};
 
 export interface ShopInlineProductsProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
@@ -146,6 +189,25 @@ const ShopInlineProducts = ({
                   </Grid>
                 ))}
           </Grid>
+        ) : !smUp ? (
+          <SliderWithDots
+            count={10}
+            slidesToShow={slidesToShow}
+            slidesToScroll={slidesToScroll}
+            styles={styles}
+          >
+            {products.length
+              ? products.map((e) => (
+                  <Stack key={e.id} p={0.75} sx={{ boxSizing: 'border-box' }}>
+                    <ProductCard data={e} />
+                  </Stack>
+                ))
+              : Array.from(Array(RENDER_LIMIT).keys()).map((e) => (
+                  <Stack key={e} p={0.75} sx={{ boxSizing: 'border-box' }}>
+                    <ProductCardSkeleton />
+                  </Stack>
+                ))}
+          </SliderWithDots>
         ) : (
           <Stack sx={styles.sliderContainer}>
             <CustomSlider
@@ -156,12 +218,12 @@ const ShopInlineProducts = ({
             >
               {products.length
                 ? products.map((e) => (
-                    <Stack key={e.id} p={{ xs: 0.75, sm: 1 }} sx={{ boxSizing: 'border-box' }}>
+                    <Stack key={e.id} p={1} sx={{ boxSizing: 'border-box' }}>
                       <ProductCard data={e} />
                     </Stack>
                   ))
                 : Array.from(Array(RENDER_LIMIT).keys()).map((e) => (
-                    <Stack key={e} p={{ xs: 0.75, sm: 1 }} sx={{ boxSizing: 'border-box' }}>
+                    <Stack key={e} p={1} sx={{ boxSizing: 'border-box' }}>
                       <ProductCardSkeleton />
                     </Stack>
                   ))}
