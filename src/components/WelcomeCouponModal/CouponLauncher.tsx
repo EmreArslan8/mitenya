@@ -45,7 +45,7 @@ const CouponLauncher = ({ discountPercent, onReopen, onDismiss }: Props) => {
         onClick={onDismiss}
         sx={s.dismiss}
       >
-        <X size={12} />
+        <X size={isMobile ? 20 : 12} />
       </Box>
     </Box>
   );

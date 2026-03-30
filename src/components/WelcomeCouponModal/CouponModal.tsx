@@ -42,7 +42,7 @@ const CouponModal = ({
       >
         <Stack direction={{ xs: 'column', md: 'row' }} sx={s.modalContent}>
           <IconButton aria-label="Popup'ı kapat" onClick={onClose} sx={s.closeButton}>
-            <X size={20} />
+            <X size={24} />
           </IconButton>
 
           <Box sx={s.visualPanel}>
@@ -54,7 +54,7 @@ const CouponModal = ({
               <Typography sx={s.title}>
                 İlk siparişinizde
                 <br />
-                geçerli %{discountPercent} indirim!
+                {' '}geçerli %{discountPercent} indirim!
               </Typography>
 
               <Typography sx={s.subtitle}>
@@ -75,17 +75,13 @@ const CouponModal = ({
             </Stack>
 
             <Stack sx={s.actions}>
-              <Button variant="contained" fullWidth onClick={onContinue} href="/cart" sx={s.primaryButton}>
-                İndirimi Kullan
-              </Button>
-
-              <Button variant="text" fullWidth onClick={onClose} sx={s.secondaryButton}>
-                Hayır, Teşekkürler!
+              <Button variant="contained" fullWidth onClick={onContinue} sx={s.primaryButton}>
+                Alışverişe Başla
               </Button>
 
               <Typography sx={s.footerText}>
-                İndirim kodunuz otomatik olarak kaydedildi. Kampanya yalnızca yeni müşteriler için
-                geçerlidir.
+                İndirim kodunuz otomatik kaydedildi. Hazır olduğunuzda sepet ekranında
+                kullanabilirsiniz. Kampanya yalnızca yeni müşteriler için geçerlidir.
               </Typography>
             </Stack>
           </Stack>
