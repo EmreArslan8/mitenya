@@ -1,5 +1,6 @@
 'use client';
 
+import { useCookieConsent } from '@/contexts/CookieConsentContext';
 import { ShopCoupon } from '@/lib/api/types';
 import {
   getActiveCoupon,
@@ -15,8 +16,9 @@ import copyTextOnClick from '@/lib/utils/copyTextOnClick';
 import { pushItemToDataLayer } from '@/lib/utils/googleAnalytics';
 import { useEffect, useMemo, useReducer, useState } from 'react';
 
-const OPEN_DELAY_MS = 1200;
+const OPEN_DELAY_MS = 7000;
 const COPY_CLOSE_DELAY_MS = 700;
+const SCROLL_TRIGGER_RATIO = 0.25;
 
 export type Phase = 'hidden' | 'modal' | 'launcher';
 
@@ -50,12 +52,13 @@ export const useWelcomeCoupon = (
     const c = getActiveCoupon(coupons);
     return c?.code ? { ...c, code: c.code.trim().toUpperCase() } : null;
   }, [coupons]);
+  const { isReady: isConsentReady, isConsentUiBlocking } = useCookieConsent();
 
   const [phase, dispatch] = useReducer(phaseReducer, 'hidden');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   useEffect(() => {
-    if (!activeCoupon?.code) return;
+    if (!activeCoupon?.code || !isConsentReady || isConsentUiBlocking) return;
 
     const { code } = activeCoupon;
     storeWelcomeCoupon(code);
@@ -67,20 +70,63 @@ export const useWelcomeCoupon = (
       return;
     }
 
-    const timer = window.setTimeout(() => {
-      dispatch('open');
-      markWelcomeCouponSeenInSession(code);
-      setWelcomeCouponLauncherVisible(false);
-      pushItemToDataLayer({
-        event: 'promo_popup_impression',
-        promo_location: placement,
-        promo_code: code,
-        discount_percent: activeCoupon.discountPercent,
-      });
+    let openTimer: number | null = null;
+    let hasMetDelay = false;
+    let hasMetScroll = false;
+
+    const hasReachedScrollThreshold = () => {
+      const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollableHeight <= 0) return true;
+
+      return window.scrollY / scrollableHeight >= SCROLL_TRIGGER_RATIO;
+    };
+
+    const openCoupon = () => {
+      if (openTimer) return;
+      openTimer = window.setTimeout(() => {
+        dispatch('open');
+        markWelcomeCouponSeenInSession(code);
+        setWelcomeCouponLauncherVisible(false);
+        pushItemToDataLayer({
+          event: 'promo_popup_impression',
+          promo_location: placement,
+          promo_code: code,
+          discount_percent: activeCoupon.discountPercent,
+        });
+      }, 0);
+    };
+
+    const tryOpenCoupon = () => {
+      if (!hasMetDelay || !hasMetScroll) return;
+      window.removeEventListener('scroll', handleScroll);
+      openCoupon();
+    };
+
+    const handleScroll = () => {
+      if (!hasReachedScrollThreshold()) return;
+      hasMetScroll = true;
+      tryOpenCoupon();
+    };
+
+    if (hasReachedScrollThreshold()) {
+      hasMetScroll = true;
+    } else {
+      window.addEventListener('scroll', handleScroll, { passive: true });
+    }
+
+    const delayTimer = window.setTimeout(() => {
+      hasMetDelay = true;
+      tryOpenCoupon();
     }, OPEN_DELAY_MS);
 
-    return () => window.clearTimeout(timer);
-  }, [activeCoupon, placement]);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.clearTimeout(delayTimer);
+      if (openTimer) {
+        window.clearTimeout(openTimer);
+      }
+    };
+  }, [activeCoupon, isConsentReady, isConsentUiBlocking, placement]);
 
   if (!activeCoupon?.code) return null;
 

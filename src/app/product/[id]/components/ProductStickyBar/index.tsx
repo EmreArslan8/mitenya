@@ -11,14 +11,12 @@ import useStyles from '../../styles';
 type ProductStickyBarProps = {
   imgSrc?: string;
   name?: string;
-  price: { currentPrice: number; currency: string };
+  price: { currentPrice: number; originalPrice?: number; currency: string };
   visible: boolean;
   disabled: boolean;
   loading: boolean;
   showCheck: boolean;
   onAddToCart: () => void;
-  buyNowDisabled: boolean;
-  onBuyNow: () => void;
 };
 
 const ProductStickyBar = ({
@@ -30,8 +28,6 @@ const ProductStickyBar = ({
   loading,
   showCheck,
   onAddToCart,
-  buyNowDisabled,
-  onBuyNow,
 }: ProductStickyBarProps) => {
   const styles = useStyles();
   const { mdUp } = useScreen();
@@ -51,22 +47,23 @@ const ProductStickyBar = ({
           </Stack>
         )}
         {!mdUp && (
-          <Button
-            variant="outlined"
-            loading={loading}
-            disabled={buyNowDisabled}
-            onClick={onBuyNow}
-            sx={styles.buyNowButton}
-          >
-            Hemen Al
-          </Button>
+          <Stack sx={styles.stickyPriceBlock}>
+            {price.originalPrice && price.originalPrice > price.currentPrice && (
+              <Typography sx={styles.stickyOriginalPrice}>
+                {formatPrice(price.originalPrice, price.currency)}
+              </Typography>
+            )}
+            <Typography sx={styles.stickyCurrentPrice}>
+              {formatPrice(price.currentPrice, price.currency)}
+            </Typography>
+          </Stack>
         )}
         <Button
           variant="contained"
           loading={loading}
           disabled={disabled}
           onClick={onAddToCart}
-          sx={mdUp ? styles.stickyButton : styles.ctaButton}
+          sx={mdUp ? styles.stickyButton : styles.stickyCta}
         >
           <CrossFade
             components={[

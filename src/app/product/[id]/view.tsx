@@ -527,8 +527,6 @@ const ProductPageView = ({
         loading={addToCartLoading}
         showCheck={showCheck}
         onAddToCart={handleAddToCart}
-        buyNowDisabled={buyNowDisabled}
-        onBuyNow={handleBuyNow}
       />
 
         <Snackbar

@@ -18,6 +18,7 @@ export type CookieConsentDraft = Pick<CookieConsentState, 'analytics' | 'marketi
 interface CookieConsentContextState {
   consent: CookieConsentState | null;
   isReady: boolean;
+  isConsentUiBlocking: boolean;
   openPreferences: () => void;
   closePreferences: () => void;
   acceptAll: () => void;
@@ -32,6 +33,12 @@ const CookieConsentContext = createContext<CookieConsentContextState>(
 const CONSENT_STORAGE_KEY = 'mitenya_cookie_consent';
 const CONSENT_VERSION = 1;
 const POLICY_URL = '/cerez-politikasi';
+
+declare global {
+  interface Window {
+    [key: `ga-disable-${string}`]: boolean | undefined;
+  }
+}
 
 const buildConsent = (draft: CookieConsentDraft): CookieConsentState => ({
   version: CONSENT_VERSION,
@@ -99,7 +106,7 @@ export const CookieConsentProvider = ({ children }: { children: ReactNode }) => 
     if (!isReady || typeof window === 'undefined') return;
     const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? 'G-W2DHP8ZRJN';
     if (gaId) {
-      (window as any)[`ga-disable-${gaId}`] = !consent?.analytics;
+      window[`ga-disable-${gaId}`] = !consent?.analytics;
     }
   }, [consent, isReady]);
 
@@ -134,12 +141,14 @@ export const CookieConsentProvider = ({ children }: { children: ReactNode }) => 
   const closePreferences = () => setPreferencesOpen(false);
 
   const showBanner = isReady && !consent && !preferencesOpen;
+  const isConsentUiBlocking = preferencesOpen || (showBanner && !bannerDismissed);
 
   return (
     <CookieConsentContext.Provider
       value={{
         consent,
         isReady,
+        isConsentUiBlocking,
         openPreferences,
         closePreferences,
         acceptAll,
