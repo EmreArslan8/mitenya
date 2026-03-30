@@ -5,8 +5,31 @@ import { CrossFade } from '@/components/common/CrossFade';
 import useScreen from '@/lib/hooks/useScreen';
 import formatPrice from '@/lib/utils/formatPrice';
 import { Check } from 'lucide-react';
-import { Stack, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import useStyles from '../../styles';
+
+const SplitPrice = ({ value, currency, priceStyle, suffixStyle }: {
+  value: number;
+  currency: string;
+  priceStyle: object;
+  suffixStyle: object;
+}) => {
+  const formatted = formatPrice(value, currency);
+  const commaIdx = formatted.indexOf(',');
+  if (commaIdx === -1) return <Typography component="span" sx={priceStyle}>{formatted}</Typography>;
+  const main = formatted.slice(0, commaIdx + 1);
+  const suffix = formatted.slice(commaIdx + 1).trim(); // "00 TL"
+  const [decimal, unit] = suffix.split(' ');
+  return (
+    <Typography component="span" sx={priceStyle}>
+      {main}
+      <Box component="span" sx={suffixStyle}>
+        <span>{decimal}</span>
+        <span>{unit}</span>
+      </Box>
+    </Typography>
+  );
+};
 
 type ProductStickyBarProps = {
   imgSrc?: string;
@@ -49,13 +72,19 @@ const ProductStickyBar = ({
         {!mdUp && (
           <Stack sx={styles.stickyPriceBlock}>
             {price.originalPrice && price.originalPrice > price.currentPrice && (
-              <Typography sx={styles.stickyOriginalPrice}>
-                {formatPrice(price.originalPrice, price.currency)}
-              </Typography>
+              <SplitPrice
+                value={price.originalPrice}
+                currency={price.currency}
+                priceStyle={styles.stickyOriginalPrice}
+                suffixStyle={styles.stickyOriginalPriceSuffix}
+              />
             )}
-            <Typography sx={styles.stickyCurrentPrice}>
-              {formatPrice(price.currentPrice, price.currency)}
-            </Typography>
+            <SplitPrice
+              value={price.currentPrice}
+              currency={price.currency}
+              priceStyle={styles.stickyCurrentPrice}
+              suffixStyle={styles.stickyCurrentPriceSuffix}
+            />
           </Stack>
         )}
         <Button
