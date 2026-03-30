@@ -9,6 +9,14 @@ type BlogEntity = {
     slug?: string;
     excerpt?: string;
     cover?: { data?: { attributes?: { url?: string; alternativeText?: string } } };
+    seo?: {
+      metaTitle?: string;
+      metaDescription?: string;
+      canonicalURL?: string;
+      keywords?: string;
+      structuredData?: Record<string, unknown>;
+      metaImage?: { data?: { attributes?: { url?: string } } };
+    };
   };
 };
 
@@ -26,26 +34,32 @@ const fetchBlog = async (slug: string): Promise<BlogEntity | null> => {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const blog = await fetchBlog(params.slug);
-  const title = blog?.attributes?.title ?? params.slug;
+  const { slug } = await params;
+  const blog = await fetchBlog(slug);
+  const seo = blog?.attributes?.seo;
+
+  const title = seo?.metaTitle ?? blog?.attributes?.title ?? slug;
   const description =
+    seo?.metaDescription ??
     blog?.attributes?.excerpt?.slice(0, 160) ??
     `${title} | Mitenya Blog`;
+  const canonical = seo?.canonicalURL ?? `${host}/blog/${slug}`;
   const image =
+    seo?.metaImage?.data?.attributes?.url ??
     blog?.attributes?.cover?.data?.attributes?.url ??
     '/static/images/ogBanner.webp';
-  const url = `${host}/blog/${params.slug}`;
 
   return {
     title,
     description,
-    alternates: { canonical: url },
+    ...(seo?.keywords && { keywords: seo.keywords }),
+    alternates: { canonical },
     openGraph: {
       title,
       description,
-      url,
+      url: canonical,
       images: [{ url: image, alt: title }],
     },
     twitter: {
@@ -60,9 +74,23 @@ export async function generateMetadata({
 const BlogDetailPage = async ({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) => {
-  return <BlogDetailPageView slug={params.slug} />;
+  const { slug } = await params;
+  const blog = await fetchBlog(slug);
+  const structuredData = blog?.attributes?.seo?.structuredData;
+
+  return (
+    <>
+      {structuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+      )}
+      <BlogDetailPageView slug={slug} />
+    </>
+  );
 };
 
 export default BlogDetailPage;

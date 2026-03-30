@@ -7,8 +7,10 @@ const cmsBearer = process.env.STRAPI_BEARER;
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
+  const { slug } = await params;
+
   // Rate limiting
   const userIp = getClientIp(req);
   if (!(await rateLimit(`blog_detail:${userIp}`))) {
@@ -19,7 +21,7 @@ export async function GET(
 
   try {
     const res = await fetch(
-      `${strapiUrl}/blogs?filters[slug][$eq]=${params.slug}&populate[cover]=*&publicationState=live`,
+      `${strapiUrl}/blogs?filters[slug][$eq]=${slug}&populate[cover]=*&populate[seo]=*&publicationState=live`,
       {
         headers: {
           Authorization: `Bearer ${cmsBearer}`,
