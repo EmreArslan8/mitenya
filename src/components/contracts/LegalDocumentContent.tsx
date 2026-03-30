@@ -41,11 +41,19 @@ const sanitizeConfig = {
 };
 
 const sanitizeHtml = (dirty: string) => DOMPurify.sanitize(dirty, sanitizeConfig);
+const wrapTables = (cleanHtml: string) =>
+  cleanHtml.replace(/<table\b[\s\S]*?<\/table>/g, (tableHtml) => {
+    return `<div class="legal-table-wrap">${tableHtml}</div>`;
+  });
 
 const LegalDocumentContent = ({ html }: { html: string }) => {
+  const safeHtml = wrapTables(sanitizeHtml(html));
+
   return (
     <Box
       sx={{
+        width: '100%',
+        minWidth: 0,
         '& p': {
           fontSize: 15,
           lineHeight: '22px',
@@ -61,12 +69,19 @@ const LegalDocumentContent = ({ html }: { html: string }) => {
           lineHeight: '22px',
           mb: 1,
         },
+        '& .legal-table-wrap': {
+          width: '100%',
+          maxWidth: '100%',
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          mb: 2,
+        },
         '& table': {
           width: '100%',
+          minWidth: 640,
           borderCollapse: 'collapse',
           border: '1px solid',
           borderColor: 'tertiary.light',
-          mb: 2,
         },
         '& th, & td': {
           border: '1px solid',
@@ -78,10 +93,15 @@ const LegalDocumentContent = ({ html }: { html: string }) => {
           mb: 0,
         },
         '& strong': { fontWeight: 700 },
-        '& a': { color: 'primary.main', textDecoration: 'underline' },
+        '& a': {
+          color: 'primary.main',
+          textDecoration: 'underline',
+          overflowWrap: 'anywhere',
+          wordBreak: 'break-word',
+        },
       }}
     >
-      <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />
+      <div dangerouslySetInnerHTML={{ __html: safeHtml }} />
     </Box>
   );
 };

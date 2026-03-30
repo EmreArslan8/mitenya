@@ -75,6 +75,7 @@ export const CookieConsentProvider = ({ children }: { children: ReactNode }) => 
   const [consent, setConsent] = useState<CookieConsentState | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const [draft, setDraft] = useState<CookieConsentDraft>({
     analytics: false,
     marketing: false,
@@ -104,8 +105,16 @@ export const CookieConsentProvider = ({ children }: { children: ReactNode }) => 
 
   const savePreferences = (nextDraft: CookieConsentDraft) => {
     const next = buildConsent(nextDraft);
+    const shouldReload =
+      Boolean(consent?.analytics && !next.analytics) ||
+      Boolean(consent?.marketing && !next.marketing);
+
     setConsent(next);
     writeConsent(next);
+
+    if (shouldReload && typeof window !== 'undefined') {
+      window.location.reload();
+    }
   };
 
   const acceptAll = () => {
@@ -118,7 +127,10 @@ export const CookieConsentProvider = ({ children }: { children: ReactNode }) => 
     setPreferencesOpen(false);
   };
 
-  const openPreferences = () => setPreferencesOpen(true);
+  const openPreferences = () => {
+    setBannerDismissed(false);
+    setPreferencesOpen(true);
+  };
   const closePreferences = () => setPreferencesOpen(false);
 
   const showBanner = isReady && !consent && !preferencesOpen;
@@ -139,10 +151,12 @@ export const CookieConsentProvider = ({ children }: { children: ReactNode }) => 
       <CookieConsentScripts consent={consent} isReady={isReady} />
       <CookieConsentBanner
         open={showBanner}
+        collapsed={bannerDismissed}
         policyHref={POLICY_URL}
         onAcceptAll={acceptAll}
-        onRejectAll={rejectAll}
         onManage={openPreferences}
+        onDismiss={() => setBannerDismissed(true)}
+        onReopen={() => setBannerDismissed(false)}
       />
       <CookiePreferencesModal
         open={preferencesOpen}
