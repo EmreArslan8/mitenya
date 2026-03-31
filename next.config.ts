@@ -76,9 +76,9 @@ const nextConfig = {
                 imgSrc + " https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com",
                 "font-src 'self' data: https://fonts.gstatic.com",
                 "connect-src 'self' https://*.supabase.co https://www.paytr.com https://www.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://challenges.cloudflare.com https://connect.facebook.net https://www.facebook.com",
-                "frame-src https://www.paytr.com https://challenges.cloudflare.com https://www.googletagmanager.com",
+                "frame-src https://www.paytr.com https://challenges.cloudflare.com https://www.googletagmanager.com https://www.facebook.com",
                 "frame-ancestors 'self'",
-                "form-action 'self'",
+                "form-action 'self' https://www.facebook.com",
                 "base-uri 'self'",
                 "object-src 'none'"
               ].join('; ')

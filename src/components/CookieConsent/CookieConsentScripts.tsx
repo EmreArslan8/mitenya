@@ -38,11 +38,12 @@ gtag('config', '${gaMeasurementId}');`,
       )}
 
       {consent?.marketing && metaPixelId && (
-        <Script
-          id="meta-pixel-init"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `!function(f,b,e,v,n,t,s)
+        <>
+          <Script
+            id="meta-pixel-init"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `!function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
 if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
@@ -54,8 +55,19 @@ fbq('init', '${metaPixelId}');
 window.__metaPixelReady = true;
 fbq('track', 'PageView');
 window.dispatchEvent(new Event('meta-pixel-ready'));`,
-          }}
-        />
+            }}
+          />
+          <noscript>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              height="1"
+              width="1"
+              style={{ display: 'none' }}
+              src={`https://www.facebook.com/tr?id=${metaPixelId}&ev=PageView&noscript=1`}
+              alt=""
+            />
+          </noscript>
+        </>
       )}
 
       {consent?.marketing && gtmId && (
