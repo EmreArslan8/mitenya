@@ -24,7 +24,7 @@ import { readStoredWelcomeCoupon, storeWelcomeCoupon } from '@/lib/shop/welcomeC
 import { withCsrfHeaders } from '@/lib/utils/csrf';
 import formatPrice from '@/lib/utils/formatPrice';
 import { pushItemToDataLayer, useCheckoutAnalytics } from '@/lib/utils/googleAnalytics';
-import { trackInitiateCheckout } from '@/lib/analytics/metaPixel';
+import { onMetaPixelReady, trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 import {
   generatePreInfoHtml,
   generateDistanceSaleHtml,
@@ -255,13 +255,15 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   useEffect(() => {
     if (!selected?.length) return;
     sendBeginCheckout(selected);
-    trackInitiateCheckout({
-      content_ids: selected.map((p) => String(p.id)),
-      value: selected.reduce((acc, p) => acc + p.price.currentPrice * p.quantity, 0),
-      currency: selected[0]?.price.currency ?? 'TRY',
-      num_items: selected.reduce((acc, p) => acc + p.quantity, 0),
+    return onMetaPixelReady(() => {
+      trackInitiateCheckout({
+        content_ids: selected.map((p) => String(p.id)),
+        value: selected.reduce((acc, p) => acc + p.price.currentPrice * p.quantity, 0),
+        currency: selected[0]?.price.currency ?? 'TRY',
+        num_items: selected.reduce((acc, p) => acc + p.quantity, 0),
+      });
     });
-  }, []);
+  }, [selected]);
 
   // Adres, ürün veya ödeme yöntemi değiştiğinde sözleşme onaylarını sıfırla
   useEffect(() => {

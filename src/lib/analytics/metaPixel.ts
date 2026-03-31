@@ -2,6 +2,7 @@ declare global {
   interface Window {
     fbq: (...args: unknown[]) => void;
     _fbq: unknown;
+    __metaPixelReady?: boolean;
   }
 }
 
@@ -9,6 +10,25 @@ export const fbq = (...args: unknown[]) => {
   if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
     window.fbq(...args);
   }
+};
+
+export const isMetaPixelReady = () =>
+  typeof window !== 'undefined' &&
+  Boolean(window.__metaPixelReady) &&
+  typeof window.fbq === 'function';
+
+export const onMetaPixelReady = (callback: () => void) => {
+  if (typeof window === 'undefined') return () => undefined;
+
+  if (isMetaPixelReady()) {
+    callback();
+    return () => undefined;
+  }
+
+  const handleReady = () => callback();
+  window.addEventListener('meta-pixel-ready', handleReady, { once: true });
+
+  return () => window.removeEventListener('meta-pixel-ready', handleReady);
 };
 
 export const trackPageView = () => fbq('track', 'PageView');
