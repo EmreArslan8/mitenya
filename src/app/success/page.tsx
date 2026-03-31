@@ -140,13 +140,16 @@ const SuccessPage = () => {
       items: order.items,
     });
     return onMetaPixelReady(() => {
-      trackPurchase({
-        value: order.total_amount,
-        currency: order.currency,
-        content_ids: order.items.map((i) => String(i.product_id ?? i.product_name)),
-        num_items: order.items.reduce((acc, i) => acc + i.quantity, 0),
-        order_id: order.order_number,
-      });
+      trackPurchase(
+        {
+          value: order.total_amount,
+          currency: order.currency,
+          content_ids: order.items.map((i) => String(i.product_id ?? i.product_name)),
+          num_items: order.items.reduce((acc, i) => acc + i.quantity, 0),
+          order_id: order.order_number,
+        },
+        `purchase_${order.order_number}`,
+      );
 
       window.sessionStorage.setItem(dedupeKey, '1');
     });

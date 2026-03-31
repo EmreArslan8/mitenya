@@ -56,13 +56,16 @@ export const trackInitiateCheckout = (params: {
   num_items?: number;
 }) => fbq('track', 'InitiateCheckout', params);
 
-export const trackPurchase = (params: {
-  value: number;
-  currency: string;
-  content_ids: string[];
-  num_items?: number;
-  order_id?: string;
-}) => fbq('track', 'Purchase', params);
+export const trackPurchase = (
+  params: {
+    value: number;
+    currency: string;
+    content_ids: string[];
+    num_items?: number;
+    order_id?: string;
+  },
+  eventID?: string,
+) => fbq('track', 'Purchase', params, ...(eventID ? [{ eventID }] : []));
 
 export const trackSearch = (params: { search_string: string }) =>
   fbq('track', 'Search', params);

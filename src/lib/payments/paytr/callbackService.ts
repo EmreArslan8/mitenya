@@ -12,6 +12,7 @@ import {
   isInventoryNoopCode,
   releaseCheckoutStock,
 } from '@/lib/inventory/stockReservationService';
+import { sendCapiPurchase } from '@/lib/analytics/metaCapi';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -408,6 +409,39 @@ export async function processPaytrCallback(input: ProcessPaytrCallbackInput) {
       });
       return;
     }
+
+    const cartItems = Array.isArray(checkoutSession.cart_snapshot)
+      ? (checkoutSession.cart_snapshot as { product_id?: string; product_name?: string; quantity?: number }[])
+      : [];
+    const pricing = (checkoutSession.pricing_snapshot ?? {}) as {
+      total_amount?: number;
+      currency?: string;
+    };
+    const shippingAddr = (checkoutSession.shipping_address_snapshot ?? {}) as {
+      contactName?: string;
+      city?: string;
+      phone?: string;
+    };
+    const nameParts = (shippingAddr.contactName ?? '').trim().split(' ');
+
+    sendCapiPurchase({
+      eventId: `purchase_${result.order.order_number}`,
+      value: Number(pricing.total_amount ?? amountKurus / 100),
+      currency: pricing.currency ?? 'TRY',
+      contentIds: cartItems.map((i) => String(i.product_id ?? i.product_name ?? '')),
+      numItems: cartItems.reduce((acc, i) => acc + (i.quantity ?? 1), 0),
+      orderId: result.order.order_number,
+      userData: {
+        email: checkoutSession.user_email ?? null,
+        phone: shippingAddr.phone ?? null,
+        firstName: nameParts[0] ?? null,
+        lastName: nameParts.length > 1 ? nameParts.slice(1).join(' ') : null,
+        city: shippingAddr.city ?? null,
+        country: 'turkey',
+        clientIp: callerIp,
+        clientUserAgent: userAgent,
+      },
+    }).catch((err) => console.error('[MetaCAP] Purchase send error', err));
 
     await markWebhookInbox({ supabase, inboxId: inbox.inboxId, status: 'processed' });
     return;

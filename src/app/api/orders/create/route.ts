@@ -6,6 +6,7 @@ import { validateSameOrigin, validateCsrfToken } from "@/lib/api/security";
 import { rateLimit } from "@/lib/api/rateLimit";
 import { createAffiliateConversion } from "@/lib/affiliates/commissionService";
 import { type OrderAttribution } from "@/lib/analytics/attribution";
+import { sendCapiPurchase } from "@/lib/analytics/metaCapi";
 import { z } from "zod";
 
 
@@ -403,6 +404,26 @@ export async function POST(req: NextRequest) {
         affiliateClickId: attribution?.affiliateClickId ?? null,
       });
     }
+
+    const nameParts = (shipping_address.contactName ?? '').trim().split(' ');
+    sendCapiPurchase({
+      eventId: `purchase_${order.order_number}`,
+      value: total_amount,
+      currency: orderCurrency,
+      contentIds: sanitizedItems.map((i) => String(i.product_id)),
+      numItems: sanitizedItems.reduce((acc, i) => acc + i.quantity, 0),
+      orderId: order.order_number,
+      userData: {
+        email: user.email ?? undefined,
+        phone: shipping_address.phone ?? null,
+        firstName: nameParts[0] ?? null,
+        lastName: nameParts.length > 1 ? nameParts.slice(1).join(' ') : null,
+        city: shipping_address.city ?? null,
+        country: 'turkey',
+        clientIp: userIp !== 'unknown' ? userIp : null,
+        clientUserAgent: req.headers.get('user-agent'),
+      },
+    }).catch((err) => console.error('[MetaCAP] Purchase send error', err));
 
     return NextResponse.json({
       success: true,
