@@ -23,35 +23,39 @@ const fetchBlogSlugs = async () => {
   let pageCount = 1;
   const entries: { slug: string; lastmod?: string }[] = [];
 
-  while (page <= pageCount) {
-    const res = await fetch(
-      `${strapiUrl}/blogs?fields[0]=slug&fields[1]=updatedAt&fields[2]=publishedAt&publicationState=live&pagination[page]=${page}&pagination[pageSize]=${pageSize}`,
-      {
-        headers: {
-          Authorization: `Bearer ${cmsBearer}`,
+  try {
+    while (page <= pageCount) {
+      const res = await fetch(
+        `${strapiUrl}/blogs?fields[0]=slug&fields[1]=updatedAt&fields[2]=publishedAt&publicationState=live&pagination[page]=${page}&pagination[pageSize]=${pageSize}`,
+        {
+          headers: {
+            Authorization: `Bearer ${cmsBearer}`,
+          },
+          next: { revalidate: 300 },
         },
-        next: { revalidate: 300 },
-      },
-    );
+      );
 
-    if (!res.ok) break;
-    const json = (await res.json()) as {
-      data?: BlogEntity[];
-      meta?: { pagination?: { pageCount?: number } };
-    };
+      if (!res.ok) break;
+      const json = (await res.json()) as {
+        data?: BlogEntity[];
+        meta?: { pagination?: { pageCount?: number } };
+      };
 
-    const data = json.data ?? [];
-    data.forEach((blog) => {
-      const slug = blog.attributes?.slug;
-      if (!slug) return;
-      entries.push({
-        slug,
-        lastmod: blog.attributes?.updatedAt ?? blog.attributes?.publishedAt,
+      const data = json.data ?? [];
+      data.forEach((blog) => {
+        const slug = blog.attributes?.slug;
+        if (!slug) return;
+        entries.push({
+          slug,
+          lastmod: blog.attributes?.updatedAt ?? blog.attributes?.publishedAt,
+        });
       });
-    });
 
-    pageCount = json.meta?.pagination?.pageCount ?? pageCount;
-    page += 1;
+      pageCount = json.meta?.pagination?.pageCount ?? pageCount;
+      page += 1;
+    }
+  } catch {
+    return entries;
   }
 
   return entries;

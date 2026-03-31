@@ -90,7 +90,9 @@ export default async function RootLayout({
         <ThemeRegistry>
           <CookieConsentProvider>
             <AttributionTracker />
-            <MetaPixelPageView />
+            <Suspense fallback={null}>
+              <MetaPixelPageView />
+            </Suspense>
             <AuthContextProvider>
               <FavoritesContextProvider>
                 <ShopContextProvider>
