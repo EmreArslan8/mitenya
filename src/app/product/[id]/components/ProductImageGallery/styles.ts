@@ -27,6 +27,11 @@ const useStyles = withPalette((palette) => ({
     boxShadow: 'none',
     border: 'none',
   },
+  galleryPlaceholder: {
+    width: '100%',
+    minHeight: { xs: '100vw', sm: 560, md: 760 },
+    background: '#FFFFFF',
+  },
   mobileWrapper: {
     display: { xs: 'flex', sm: 'none' },
   },

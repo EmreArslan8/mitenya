@@ -1,12 +1,12 @@
 import { Stack } from '@mui/material';
-import { RefObject, useEffect, useRef, useState } from 'react';
+import { MutableRefObject, useEffect, useRef, useState } from 'react';
 import useStyles from './styles';
 
 const ProgressIndicator = ({
   scrollerRef,
   total,
 }: {
-  scrollerRef: RefObject<HTMLDivElement>;
+  scrollerRef: MutableRefObject<HTMLDivElement | null>;
   total: number;
 }) => {
   const styles = useStyles();
