@@ -1,20 +1,20 @@
 import { withPalette } from '@/theme/ThemeRegistry';
 
-const useStyles = withPalette((palette) => ({
+const useStyles = withPalette(() => ({
   progressIndicator: {
     flexDirection: 'row',
-    background: '#00000080',
-    backdropFilter: 'blur(20px)',
-    borderRadius: 99,
-    gap: '6px',
-    p: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '10px',
+    px: 0.5,
+    py: 0.5,
   },
   progressNode: (current = false) => ({
-    width: 6,
-    height: 6,
+    width: current ? 28 : 8,
+    height: 8,
     borderRadius: 99,
-    background: current ? palette.text.main : palette.text.light,
-    transition: 'background 0.2s',
+    background: current ? '#111111' : '#D8D2CC',
+    transition: 'width 0.2s ease, background-color 0.2s ease',
   }),
 }));
 

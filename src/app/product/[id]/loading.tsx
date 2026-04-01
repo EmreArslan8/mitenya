@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Divider, Grid, Skeleton, Stack } from '@mui/material';
 
 const Loading = () => {
@@ -44,10 +45,32 @@ const Loading = () => {
                   />
                 ))}
               </Stack>
-              <Skeleton
-                variant="rounded"
-                sx={{ flex: 1, height: { sm: 560, md: 760 }, borderRadius: 0 }}
-              />
+              <Stack
+                sx={{
+                  position: 'relative',
+                  flex: 1,
+                  height: { sm: 560, md: 760 },
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Skeleton
+                  variant="rounded"
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: 0,
+                  }}
+                />
+                <Image
+                  src="/static/images/logo.svg"
+                  alt="Mitenya"
+                  width={128}
+                  height={37}
+                  priority={false}
+                  style={{ position: 'relative', zIndex: 1, opacity: 0.92 }}
+                />
+              </Stack>
             </Stack>
           </Grid>
 

@@ -1,16 +1,17 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { ShopResponsiveImage } from '@/lib/api/types';
 import Card from '@/components/common/Card';
-import useScreen from '@/lib/hooks/useScreen';
 import { Box, CircularProgress, IconButton, Stack, Typography } from '@mui/material';
-import { ChevronLeft, ChevronRight, Heart, Share2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, Share  } from 'lucide-react';
 import ProductImageMagnifier from '../ProductImageMagnifier';
 import ProgressIndicator from '../ProgressIndicator';
 import useStyles from './styles';
 
 interface ProductImageGalleryProps {
   images?: string[];
+  galleryImages?: ShopResponsiveImage[];
   fallbackSrc?: string;
   name?: string;
   isFavorited: boolean;
@@ -21,6 +22,7 @@ interface ProductImageGalleryProps {
 
 const ProductImageGallery = ({
   images,
+  galleryImages,
   fallbackSrc,
   name,
   isFavorited,
@@ -29,9 +31,15 @@ const ProductImageGallery = ({
   onShareClick,
 }: ProductImageGalleryProps) => {
   const styles = useStyles();
-  const { smUp } = useScreen();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const imageList = images?.length ? images : fallbackSrc ? [fallbackSrc] : [];
+  const mobileGallery: ShopResponsiveImage[] =
+    galleryImages?.length
+      ? galleryImages
+      : imageList.map((src) => ({
+          src,
+          originalSrc: src,
+        }));
   const [currentImg, setCurrentImg] = useState(imageList[0]);
 
   const activeImage = imageList.includes(currentImg ?? '') ? currentImg : imageList[0];
@@ -56,8 +64,8 @@ const ProductImageGallery = ({
 
   if (!imageList.length) return null;
 
-  if (smUp) {
-    return (
+  return (
+    <>
       <Card sx={styles.imageCard}>
         <Stack sx={styles.imageSplitGrid}>
           {imageList.length > 1 ? (
@@ -95,7 +103,7 @@ const ProductImageGallery = ({
                   aria-label="Paylas"
                   onClick={onShareClick}
                 >
-                  <Share2 size={18} />
+                  <Share size={18} />
                 </IconButton>
                 <IconButton
                   size="small"
@@ -144,29 +152,53 @@ const ProductImageGallery = ({
           </Stack>
         </Stack>
       </Card>
-    );
-  }
 
-  return (
-    <>
-      <Stack sx={styles.mobileImagesContainer}>
+      <Stack sx={styles.mobileWrapper}>
+        <Stack sx={styles.mobileImagesContainer}>
+        <Stack sx={styles.mobileActions}>
+          <IconButton
+            size="small"
+            sx={styles.mobileActionButton}
+            aria-label={isFavorited ? 'Favorilerden cikar' : 'Favorilere ekle'}
+            onClick={onFavoriteClick}
+            disabled={favoriteLoading}
+          >
+            {favoriteLoading ? (
+              <CircularProgress size={16} />
+            ) : (
+              <Heart size={24} fill={isFavorited ? 'currentColor' : 'none'} />
+            )}
+          </IconButton>
+          <IconButton
+            size="small"
+            sx={styles.mobileActionButton}
+            aria-label="Paylas"
+            onClick={onShareClick}
+          >
+            <Share size={24} />
+          </IconButton>
+        </Stack>
         <Stack sx={styles.mobileImages} ref={scrollerRef}>
-          {imageList.map((src, index) => (
-            <Stack sx={styles.mobileImage} key={src}>
+          {mobileGallery.map((image, index) => (
+            <Stack sx={styles.mobileImage} key={image.originalSrc ?? image.src}>
               <img
-                src={src}
+                src={image.src}
+                srcSet={image.srcSet}
+                sizes={image.sizes ?? '100vw'}
                 alt={index === 0 ? baseAlt : `${baseAlt} - gorsel ${index + 1}`}
+                fetchPriority={index === 0 ? 'high' : 'auto'}
+                loading={index === 0 ? 'eager' : 'lazy'}
+                decoding="async"
                 style={styles.image}
               />
             </Stack>
           ))}
         </Stack>
       </Stack>
-      {!!imageList.length && (
         <Stack sx={styles.progressIndicatorContainer}>
-          <ProgressIndicator scrollerRef={scrollerRef} total={imageList.length} />
+          <ProgressIndicator scrollerRef={scrollerRef} total={mobileGallery.length} />
         </Stack>
-      )}
+      </Stack>
     </>
   );
 };

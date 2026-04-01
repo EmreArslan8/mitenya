@@ -16,6 +16,7 @@ const shiftScroll = keyframes`
 
 const useStyles = withPalette((palette) => ({
   imageCard: {
+    display: { xs: 'none', sm: 'flex' },
     width: '100%',
     alignSelf: 'center',
     gap: 0,
@@ -25,6 +26,9 @@ const useStyles = withPalette((palette) => ({
     background: 'transparent',
     boxShadow: 'none',
     border: 'none',
+  },
+  mobileWrapper: {
+    display: { xs: 'flex', sm: 'none' },
   },
   imageSplitGrid: {
     width: '100%',
@@ -160,13 +164,31 @@ const useStyles = withPalette((palette) => ({
     borderBottom: '1px solid',
     borderColor: palette.bg.light,
   },
-  mobileImage: { flexShrink: 0, width: '100%', scrollSnapAlign: 'center' },
-  progressIndicatorContainer: {
+  mobileImage: {
+    position: 'relative',
+    flexShrink: 0,
+    width: '100%',
+    aspectRatio: '1 / 1',
+    scrollSnapAlign: 'center',
+    background: '#FFFFFF',
+  },
+  mobileActions: {
     position: 'absolute',
-    bottom: 16,
-    left: 0,
-    right: 0,
+    top: 12,
+    right: 12,
+    zIndex: 2,
+    flexDirection: 'column',
+    gap: 0.5,
+  },
+  mobileActionButton: {
+    width: 44,
+    height: 44,
+    color: '#111111',
+    filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.18))',
+  },
+  progressIndicatorContainer: {
     alignItems: 'center',
+    mt: 0,
   },
 }));
 

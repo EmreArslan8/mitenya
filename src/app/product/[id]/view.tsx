@@ -51,7 +51,7 @@ const ProductPageView = ({
   const { isFavorite, isFavoriteLoading, toggleFavorite } = useFavorites();
   const router = useRouter();
   const styles = useStyles();
-  const { smUp, mdUp } = useScreen();
+  const { smUp } = useScreen();
   const ctaRowRef = useRef<HTMLDivElement>(null);
   const reviewsSectionRef = useRef<HTMLDivElement>(null);
   const [variants, setVariants] = useState(data.variants);
@@ -218,7 +218,6 @@ const ProductPageView = ({
   const handleShareClick = async () => {
     try {
       const didCopy = await copyTextOnClick(window.location.href);
-
       setFeedback({
         title: didCopy ? 'Urun linki kopyalandi' : 'Urun linki kopyalanamadi',
         variant: didCopy ? 'success' : 'error',
@@ -318,6 +317,7 @@ const ProductPageView = ({
           >
             <ProductImageGallery
               images={data.images}
+              galleryImages={data.galleryImages}
               fallbackSrc={data.imgSrc}
               name={data.name}
               isFavorited={isFavorited}

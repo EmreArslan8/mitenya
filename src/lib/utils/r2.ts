@@ -43,6 +43,11 @@ export const R2_IMAGE_PROFILES = {
     sizes: '(max-width: 600px) 50vw, (max-width: 900px) 33vw, 300px',
     format: 'auto',
   },
+  productPdpMobile: {
+    widths: [720, 960, 1200],
+    sizes: '100vw',
+    format: 'auto',
+  },
 } satisfies Record<string, R2ImageProfile>;
 
 export function r2ImageUrl(
@@ -52,10 +57,11 @@ export function r2ImageUrl(
   const source = r2Url(pathOrUrl);
   if (!source) return '';
 
-  const url = new URL(source);
   const base = getR2BaseUrl();
+  if (!base) return source;
 
-  if (!base || url.origin !== base) {
+  const url = new URL(source);
+  if (url.origin !== base) {
     return source;
   }
 

@@ -209,6 +209,13 @@ export type ShopProductReview = {
 
 export type ShopProductBreadcrumb = { text: string; searchOptions: ShopSearchOptions };
 
+export type ShopResponsiveImage = {
+  src: string;
+  srcSet?: string;
+  sizes?: string;
+  originalSrc?: string;
+};
+
 export type ShopProductData = {
   id: string;
   url: string;
@@ -220,6 +227,7 @@ export type ShopProductData = {
   categorySlug?: string;
   imgSrc?: string;
   images?: string[];
+  galleryImages?: ShopResponsiveImage[];
   variants?: ShopProductVariantData[];
   name?: string;
   price: ShopProductPrice;

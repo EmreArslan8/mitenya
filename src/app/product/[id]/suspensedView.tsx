@@ -4,6 +4,7 @@ import ProductPageView from './view';
 import { notFound } from 'next/navigation';
 import JsonLdScript from '@/components/SEO/JsonLdScript';
 import { buildBreadcrumbJsonLd, buildFaqJsonLd, buildProductJsonLd } from '@/lib/seo/productJsonLd';
+import { mapProductToPdpViewData } from '@/lib/shop/productGallery';
 import ProductPdpBlocks from './components/ProductPdpBlocks';
 
 const SuspensedView = async ({ params }: { params: { id: string } }) => {
@@ -19,6 +20,7 @@ const SuspensedView = async ({ params }: { params: { id: string } }) => {
     fetchProductPdpBlocks(pdpSlug),
     fetchShopCouponSet(),
   ]);
+  const viewData = mapProductToPdpViewData(data);
   const productJsonLd = buildProductJsonLd(data);
   const faqJsonLd = buildFaqJsonLd(data);
   const breadcrumbJsonLd = buildBreadcrumbJsonLd(data);
@@ -29,7 +31,7 @@ const SuspensedView = async ({ params }: { params: { id: string } }) => {
       {faqJsonLd && <JsonLdScript json={faqJsonLd} />}
       <JsonLdScript json={breadcrumbJsonLd} />
       <ProductPageView
-        data={data}
+        data={viewData}
         coupons={couponSet?.coupons ?? []}
         pdpBlocksSlot={pdpBlocks?.length ? <ProductPdpBlocks blocks={pdpBlocks} /> : undefined}
       />
