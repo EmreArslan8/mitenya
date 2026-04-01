@@ -10,7 +10,7 @@ import { onMetaPixelReady, trackPurchase } from '@/lib/analytics/metaPixel';
 import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material';
 import { Check } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { Suspense, useContext, useEffect, useRef, useState } from 'react';
 
 interface OrderData {
   id: string;
@@ -38,7 +38,7 @@ interface OrderData {
   }[];
 }
 
-const SuccessPage = () => {
+const SuccessPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { openAuthenticator } = useAuth();
@@ -294,6 +294,20 @@ const SuccessPage = () => {
         </Stack>
       </Card>
     </Stack>
+  );
+};
+
+const SuccessPageFallback = () => (
+  <Stack alignItems="center" justifyContent="center" minHeight="60vh">
+    <CircularProgress />
+  </Stack>
+);
+
+const SuccessPage = () => {
+  return (
+    <Suspense fallback={<SuccessPageFallback />}>
+      <SuccessPageContent />
+    </Suspense>
   );
 };
 

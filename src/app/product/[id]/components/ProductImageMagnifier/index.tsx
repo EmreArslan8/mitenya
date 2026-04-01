@@ -12,11 +12,23 @@ import {
 
 interface ProductImageMagnifierProps {
   src?: string;
+  srcSet?: string;
+  sizes?: string;
   alt?: string;
   zoomLevel?: number;
+  loading?: 'eager' | 'lazy';
+  fetchPriority?: 'high' | 'low' | 'auto';
 }
 
-const ProductImageMagnifier = ({ src = '', alt = '', zoomLevel = 2.5 }: ProductImageMagnifierProps) => {
+const ProductImageMagnifier = ({
+  src = '',
+  srcSet,
+  sizes,
+  alt = '',
+  zoomLevel = 2.5,
+  loading = 'eager',
+  fetchPriority = 'auto',
+}: ProductImageMagnifierProps) => {
   const [showZoom, setShowZoom] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [lensPosition, setLensPosition] = useState({ x: 0, y: 0 });
@@ -68,7 +80,11 @@ const ProductImageMagnifier = ({ src = '', alt = '', zoomLevel = 2.5 }: ProductI
         <Box
           component="img"
           src={src}
+          srcSet={srcSet}
+          sizes={sizes}
           alt={alt}
+          loading={loading}
+          fetchPriority={fetchPriority}
           sx={mainImageSx}
         />
 

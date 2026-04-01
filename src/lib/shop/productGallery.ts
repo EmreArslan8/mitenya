@@ -9,9 +9,11 @@ export function buildMobileProductGalleryImages(images?: string[]): ShopResponsi
   return images.map((image) => ({
     src: r2ImageUrl(image, {
       width: 960,
+      quality: profile.quality,
       format: profile.format,
     }),
     srcSet: r2ImageSrcSet(image, profile.widths, {
+      quality: profile.quality,
       format: profile.format,
     }),
     sizes: profile.sizes,

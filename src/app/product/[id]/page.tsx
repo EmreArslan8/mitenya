@@ -22,7 +22,11 @@ const ProductPage = async ({ params }: { params: { id: string } }) => {
 
 export const maxDuration = 30;
 
-export async function generateMetadata({ params }: any): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
   const { id } = await params; // ✔ zorunlu çözüm
 
   if (!isSSR() && !isPreviewBot()) return {};

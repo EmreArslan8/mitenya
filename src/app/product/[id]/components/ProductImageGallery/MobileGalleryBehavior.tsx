@@ -4,9 +4,9 @@ import { CircularProgress, IconButton, Stack } from '@mui/material';
 import { Heart, Share } from 'lucide-react';
 import ProgressIndicator from '../ProgressIndicator';
 import useStyles from './styles';
-import { MobileProductImageGalleryProps } from './types';
+import { MobileGalleryBehaviorProps } from './types';
 
-const MobileProductImageGallery = ({
+const MobileGalleryBehavior = ({
   baseAlt,
   mobileGallery,
   scrollerRef,
@@ -14,7 +14,7 @@ const MobileProductImageGallery = ({
   favoriteLoading,
   onFavoriteClick,
   onShareClick,
-}: MobileProductImageGalleryProps) => {
+}: MobileGalleryBehaviorProps) => {
   const styles = useStyles();
 
   return (
@@ -69,4 +69,4 @@ const MobileProductImageGallery = ({
   );
 };
 
-export default MobileProductImageGallery;
+export default MobileGalleryBehavior;

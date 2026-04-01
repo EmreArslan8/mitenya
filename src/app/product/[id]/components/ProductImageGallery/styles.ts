@@ -1,18 +1,5 @@
 import { withPalette } from '@/theme/ThemeRegistry';
-import { keyframes } from '@mui/material';
 import { CSSProperties } from 'react';
-
-const shiftScroll = keyframes`
-  0% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(-10vw);
-  }
-  100% {
-    transform: translateX(0);
-  }
-`;
 
 const useStyles = withPalette((palette) => ({
   imageCard: {
@@ -32,6 +19,23 @@ const useStyles = withPalette((palette) => ({
     minHeight: { xs: '100vw', sm: 560, md: 760 },
     background: '#FFFFFF',
   },
+  staticGallery: {
+    width: '100%',
+    minHeight: { xs: '100vw', sm: 560, md: 760 },
+    height: { xs: 'auto', sm: 560, md: 760 },
+    alignSelf: 'center',
+    overflow: 'hidden',
+    background: '#FFFFFF',
+    borderTop: { xs: '1px solid', sm: '1px solid #E7E1DC' },
+    borderBottom: { xs: '1px solid', sm: '1px solid #E7E1DC' },
+    borderLeft: { xs: 'none', sm: '1px solid #E7E1DC' },
+    borderRight: { xs: 'none', sm: '1px solid #E7E1DC' },
+  },
+  staticImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain',
+  } as CSSProperties,
   mobileWrapper: {
     display: { xs: 'flex', sm: 'none' },
   },
@@ -164,7 +168,6 @@ const useStyles = withPalette((palette) => ({
     scrollbarWidth: 'none',
     MsOverflowStyle: 'none',
     '&::-webkit-scrollbar': { display: 'none' },
-    animation: `${shiftScroll} 0.7s ease-in-out 1.5s`,
     borderTop: '1px solid',
     borderBottom: '1px solid',
     borderColor: palette.bg.light,

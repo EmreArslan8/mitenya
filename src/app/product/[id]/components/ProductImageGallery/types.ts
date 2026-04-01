@@ -9,11 +9,11 @@ export interface ProductImageGalleryBaseProps {
   onShareClick: () => void;
 }
 
-export interface DesktopProductImageGalleryProps extends ProductImageGalleryBaseProps {
+export interface DesktopGalleryBehaviorProps extends ProductImageGalleryBaseProps {
   imageList: string[];
 }
 
-export interface MobileProductImageGalleryProps extends ProductImageGalleryBaseProps {
+export interface MobileGalleryBehaviorProps extends ProductImageGalleryBaseProps {
   baseAlt: string;
   mobileGallery: ShopResponsiveImage[];
   scrollerRef: MutableRefObject<HTMLDivElement | null>;

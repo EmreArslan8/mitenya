@@ -2,21 +2,24 @@
 
 import { useEffect, useState } from 'react';
 import Card from '@/components/common/Card';
+import { R2_IMAGE_PROFILES, r2ImageSrcSet, r2ImageUrl } from '@/lib/utils/r2';
 import { Box, CircularProgress, IconButton, Stack, Typography } from '@mui/material';
 import { ChevronLeft, ChevronRight, Heart, Share } from 'lucide-react';
 import ProductImageMagnifier from '../ProductImageMagnifier';
 import useStyles from './styles';
-import { DesktopProductImageGalleryProps } from './types';
+import { DesktopGalleryBehaviorProps } from './types';
 
-const DesktopProductImageGallery = ({
+const DesktopGalleryBehavior = ({
   imageList,
   name,
   isFavorited,
   favoriteLoading,
   onFavoriteClick,
   onShareClick,
-}: DesktopProductImageGalleryProps) => {
+}: DesktopGalleryBehaviorProps) => {
   const styles = useStyles();
+  const primaryProfile = R2_IMAGE_PROFILES.productPdpPrimary;
+  const thumbnailProfile = R2_IMAGE_PROFILES.productPdpThumbnail;
   const [currentImg, setCurrentImg] = useState(imageList[0]);
 
   useEffect(() => {
@@ -24,6 +27,15 @@ const DesktopProductImageGallery = ({
   }, [imageList]);
 
   const activeImage = imageList.includes(currentImg ?? '') ? currentImg : imageList[0];
+  const activeDisplaySrc = r2ImageUrl(activeImage, {
+    width: 960,
+    quality: primaryProfile.quality,
+    format: primaryProfile.format,
+  });
+  const activeDisplaySrcSet = r2ImageSrcSet(activeImage, primaryProfile.widths, {
+    quality: primaryProfile.quality,
+    format: primaryProfile.format,
+  });
   const currentImageIndex = Math.max(0, imageList.findIndex((src) => src === activeImage));
 
   const handlePrevImage = () => {
@@ -55,7 +67,22 @@ const DesktopProductImageGallery = ({
                 }}
                 aria-label={`Urun gorseli ${index + 1}`}
               >
-                <img src={src} alt="" style={styles.thumbnailImage} />
+                <img
+                  src={r2ImageUrl(src, {
+                    width: thumbnailProfile.widths[1],
+                    quality: thumbnailProfile.quality,
+                    format: thumbnailProfile.format,
+                  })}
+                  srcSet={r2ImageSrcSet(src, thumbnailProfile.widths, {
+                    quality: thumbnailProfile.quality,
+                    format: thumbnailProfile.format,
+                  })}
+                  sizes={thumbnailProfile.sizes}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  style={styles.thumbnailImage}
+                />
               </Box>
             ))}
           </Stack>
@@ -95,7 +122,15 @@ const DesktopProductImageGallery = ({
           </Stack>
 
           <Box sx={styles.imageContainer}>
-            <ProductImageMagnifier src={activeImage} alt={name} zoomLevel={2.5} />
+            <ProductImageMagnifier
+              src={activeDisplaySrc}
+              srcSet={activeDisplaySrcSet}
+              sizes={primaryProfile.sizes}
+              alt={name}
+              zoomLevel={2.5}
+              loading={currentImageIndex === 0 ? 'eager' : 'lazy'}
+              fetchPriority={currentImageIndex === 0 ? 'high' : 'auto'}
+            />
           </Box>
 
           <Stack sx={styles.galleryBottomBar}>
@@ -124,4 +159,4 @@ const DesktopProductImageGallery = ({
   );
 };
 
-export default DesktopProductImageGallery;
+export default DesktopGalleryBehavior;

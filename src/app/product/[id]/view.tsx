@@ -17,7 +17,7 @@ import { Box, Divider, Grid, Rating, Snackbar, Stack, Typography } from '@mui/ma
 import { useRouter } from 'next/navigation';
 import ProductDescription from './components/ProductDescription';
 import ProductFaq from './components/ProductFaq';
-import ProductImageGallery from './components/ProductImageGallery';
+import ProductImageGalleryClient from './components/ProductImageGallery/ProductImageGalleryClient';
 import ProductShopAssistant from './components/ProductShopAssistant';
 import ProductRecommendations from './components/ProductRecommendations';
 import ProductReviews from './components/ProductReviews';
@@ -40,10 +40,12 @@ const MAX_CART_QUANTITY = 5;
 const ProductPageView = ({
   data,
   coupons = [],
+  initialGalleryIsDesktop = true,
   pdpBlocksSlot,
 }: {
   data: ShopProductData;
   coupons?: ShopCoupon[];
+  initialGalleryIsDesktop?: boolean;
   pdpBlocksSlot?: ReactNode;
 }) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
@@ -315,10 +317,11 @@ const ProductPageView = ({
             sm={6}
             sx={styles.imageGridItem}
           >
-            <ProductImageGallery
-              images={data.images}
-              galleryImages={data.galleryImages}
-              fallbackSrc={data.imgSrc}
+            <ProductImageGalleryClient
+              imageList={data.images?.length ? data.images : data.imgSrc ? [data.imgSrc] : []}
+              mobileGallery={data.galleryImages ?? []}
+              baseAlt={data.name?.trim() || 'Urun'}
+              initialIsDesktop={initialGalleryIsDesktop}
               name={data.name}
               isFavorited={isFavorited}
               favoriteLoading={favoriteLoading}

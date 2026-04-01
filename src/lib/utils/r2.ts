@@ -43,9 +43,22 @@ export const R2_IMAGE_PROFILES = {
     sizes: '(max-width: 600px) 50vw, (max-width: 900px) 33vw, 300px',
     format: 'auto',
   },
+  productPdpThumbnail: {
+    widths: [96, 160, 240],
+    sizes: '96px',
+    quality: 75,
+    format: 'auto',
+  },
+  productPdpPrimary: {
+    widths: [720, 960, 1280],
+    sizes: '(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 640px',
+    quality: 82,
+    format: 'auto',
+  },
   productPdpMobile: {
     widths: [720, 960, 1200],
     sizes: '100vw',
+    quality: 82,
     format: 'auto',
   },
 } satisfies Record<string, R2ImageProfile>;

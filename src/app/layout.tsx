@@ -100,9 +100,7 @@ export default async function RootLayout({
                     <Navigation data={headerData} />
                   </Suspense>
 
-                  <MainLayout>
-                    <Suspense fallback={<div>Yükleniyor...</div>}>{children}</Suspense>
-                  </MainLayout>
+                  <MainLayout>{children}</MainLayout>
 
                   <Footer data={footerData} />
                 </ShopContextProvider>
