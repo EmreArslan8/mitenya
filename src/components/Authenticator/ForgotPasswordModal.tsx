@@ -3,18 +3,21 @@
 import { Stack, TextField, Typography } from '@mui/material';
 import { useFormik } from 'formik';
 import { useState } from 'react';
+import Banner from '../common/Banner';
 import Button from '../common/Button';
 import ModalCard from '../common/ModalCard';
 
 interface Props {
   onClose: () => void;
   onBack: () => void;
-  onSubmit: (email: string) => Promise<boolean>;
+  onSubmit: (email: string) => Promise<{ ok: boolean; message?: string }>;
 }
 
 const ForgotPasswordModal = ({ onClose, onBack, onSubmit }: Props) => {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedbackVariant, setFeedbackVariant] = useState<'success' | 'error'>('success');
 
   const formik = useFormik({
     initialValues: { email: '' },
@@ -26,8 +29,19 @@ const ForgotPasswordModal = ({ onClose, onBack, onSubmit }: Props) => {
     },
     onSubmit: async (values) => {
       setLoading(true);
-      await onSubmit(values.email);
-      setSent(true);
+      setFeedback(null);
+      const result = await onSubmit(values.email);
+      if (result.ok) {
+        setSent(true);
+        setFeedbackVariant('success');
+        setFeedback(
+          result.message ??
+            'Şifre sıfırlama bağlantısı e-posta adresine gönderildi. Lütfen gelen kutunu kontrol et.'
+        );
+      } else {
+        setFeedbackVariant('error');
+        setFeedback(result.message ?? 'İşlem şu anda tamamlanamadı. Lütfen tekrar dene.');
+      }
       setLoading(false);
     },
   });
@@ -51,6 +65,8 @@ const ForgotPasswordModal = ({ onClose, onBack, onSubmit }: Props) => {
           </Typography>
         </Stack>
 
+        {feedback && <Banner variant={feedbackVariant} title={feedback} />}
+
         {!sent && (
           <Stack component="form" gap={2} onSubmit={formik.handleSubmit}>
             <TextField
@@ -64,16 +80,28 @@ const ForgotPasswordModal = ({ onClose, onBack, onSubmit }: Props) => {
               error={formik.touched.email && !!formik.errors.email}
               helperText={formik.touched.email && formik.errors.email}
             />
-            <Button loading={loading} variant="contained" arrow="end" type="submit" fullWidth>
+            <Button
+              loading={loading}
+              disabled={loading || !formik.values.email || !!formik.errors.email}
+              variant="contained"
+              arrow="end"
+              type="submit"
+              fullWidth
+            >
               Bağlantı Gönder
             </Button>
           </Stack>
         )}
 
         {sent && (
-          <Button variant="outlined" fullWidth onClick={onBack}>
-            Giriş sayfasına dön
-          </Button>
+          <Stack gap={1.5}>
+            <Button variant="outlined" fullWidth onClick={onBack}>
+              Giriş ekranına dön
+            </Button>
+            <Button variant="text" fullWidth onClick={onClose}>
+              Kapat
+            </Button>
+          </Stack>
         )}
       </Stack>
     </ModalCard>

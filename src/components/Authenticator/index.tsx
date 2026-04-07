@@ -113,7 +113,7 @@ const Authenticator = ({
   const handleForgotPassword = async (email: string) => {
     // Supabase doğrudan çağrı yerine kendi API route'umuzu kullan:
     // sunucu katmanında IP + email bazlı rate limit uygulanıyor
-    await fetch('/api/auth/forgot-password', {
+    const response = await fetch('/api/auth/forgot-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -121,8 +121,30 @@ const Authenticator = ({
         redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
       }),
     });
-    // Email enumeration önlemi: başarı ya da hata olsa da true dön
-    return true;
+
+    if (response.status === 429) {
+      return {
+        ok: false,
+        message: 'Çok fazla deneme yaptın. Lütfen kısa bir süre bekleyip tekrar dene.',
+      };
+    }
+
+    if (!response.ok) {
+      console.error('[auth/forgot-password] request failed', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      return {
+        ok: false,
+        message: 'Şu anda şifre sıfırlama bağlantısı gönderilemedi. Lütfen tekrar dene.',
+      };
+    }
+
+    // Email enumeration önlemi: kullanıcı var/yok ayrımı yapmadan aynı başarı mesajı gösterilir
+    return {
+      ok: true,
+      message: 'E-posta adresi sistemde kayıtlıysa şifre sıfırlama bağlantısı kısa süre içinde gönderilir.',
+    };
   };
 
   if (!open) return null;
