@@ -31,6 +31,7 @@ const CookieConsentContext = createContext<CookieConsentContextState>(
 );
 
 const CONSENT_STORAGE_KEY = 'mitenya_cookie_consent';
+const MARKETING_CONSENT_COOKIE = 'mitenya_marketing_consent';
 const CONSENT_VERSION = 1;
 const POLICY_URL = '/cerez-politikasi';
 
@@ -71,6 +72,10 @@ const writeConsent = (consent: CookieConsentState) => {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(consent));
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `${MARKETING_CONSENT_COOKIE}=${consent.marketing ? '1' : '0'}; Max-Age=${
+      60 * 60 * 24 * 180
+    }; Path=/; SameSite=Lax${secure}`;
   } catch (error) {
     console.warn('[CookieConsent] Failed to save consent:', error);
   }
@@ -91,6 +96,7 @@ export const CookieConsentProvider = ({ children }: { children: ReactNode }) => 
   useEffect(() => {
     const stored = readConsent();
     setConsent(stored);
+    if (stored) writeConsent(stored);
     setIsReady(true);
   }, []);
 

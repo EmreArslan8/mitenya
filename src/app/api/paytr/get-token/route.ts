@@ -6,6 +6,8 @@ import { validateSameOrigin, validateCsrfToken } from '@/lib/api/security';
 import { rateLimit } from '@/lib/api/rateLimit';
 import { getClientIp } from '@/lib/api/getClientIp';
 import { reserveCheckoutStock } from '@/lib/inventory/stockReservationService';
+import { parseCheckoutNotes, parseCookieHeader } from '@/lib/analytics/attribution';
+import { sendTikTokServerEvent } from '@/lib/analytics/tiktokEventsApi';
 
 type PayTRTokenRequest = {
   checkoutSessionId: string;
@@ -385,6 +387,37 @@ export const POST = async (req: NextRequest) => {
         },
         { status: 400 }
       );
+    }
+
+    const cookies = parseCookieHeader(req.headers.get('cookie'));
+    const { attribution } = parseCheckoutNotes(checkoutSession.notes);
+    if (cookies.mitenya_marketing_consent === '1' || attribution?.tikTokMarketingConsent === true) {
+      sendTikTokServerEvent({
+        event: 'AddPaymentInfo',
+        eventId: `add_payment_info_${paymentAttempt.provider_attempt_id}`,
+        value: totalAmount,
+        currency: currencyRaw,
+        contents: cartItems
+          .filter((item) => item.product_id)
+          .map((item) => ({
+            content_id: String(item.product_id),
+            content_type: 'product',
+            content_name: item.product_name,
+            quantity: Number(item.quantity || 1),
+            price: Number(item.price || 0),
+          })),
+        pageUrl: `${process.env.NEXT_PUBLIC_HOST_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mitenya.com'}/payment/${checkoutSession.id}`,
+        referrer: attribution?.referrer ?? null,
+        user: {
+          email,
+          phone: userPhone,
+          externalId: user.id,
+          ip: requestIp,
+          userAgent: req.headers.get('user-agent'),
+          ttclid: attribution?.tikTokClickId ?? cookies.ttclid ?? null,
+          ttp: attribution?.tikTokTtp ?? cookies._ttp ?? null,
+        },
+      }).catch((error) => console.error('[TikTokEventsAPI] AddPaymentInfo send error', error));
     }
 
     return NextResponse.json(

@@ -13,6 +13,8 @@ import {
   releaseCheckoutStock,
 } from '@/lib/inventory/stockReservationService';
 import { sendCapiPurchase } from '@/lib/analytics/metaCapi';
+import { parseCheckoutNotes } from '@/lib/analytics/attribution';
+import { sendTikTokServerEvent } from '@/lib/analytics/tiktokEventsApi';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -411,7 +413,12 @@ export async function processPaytrCallback(input: ProcessPaytrCallbackInput) {
     }
 
     const cartItems = Array.isArray(checkoutSession.cart_snapshot)
-      ? (checkoutSession.cart_snapshot as { product_id?: string; product_name?: string; quantity?: number }[])
+      ? (checkoutSession.cart_snapshot as {
+          product_id?: string;
+          product_name?: string;
+          quantity?: number;
+          price?: number;
+        }[])
       : [];
     const pricing = (checkoutSession.pricing_snapshot ?? {}) as {
       total_amount?: number;
@@ -422,6 +429,7 @@ export async function processPaytrCallback(input: ProcessPaytrCallbackInput) {
       city?: string;
       phone?: string;
     };
+    const { attribution } = parseCheckoutNotes(checkoutSession.notes);
     const nameParts = (shippingAddr.contactName ?? '').trim().split(' ');
 
     sendCapiPurchase({
@@ -442,6 +450,36 @@ export async function processPaytrCallback(input: ProcessPaytrCallbackInput) {
         clientUserAgent: userAgent,
       },
     }).catch((err) => console.error('[MetaCAP] Purchase send error', err));
+
+    if (attribution?.tikTokMarketingConsent === true) {
+      sendTikTokServerEvent({
+        event: 'Purchase',
+        eventId: `purchase_${result.order.order_number}`,
+        value: Number(pricing.total_amount ?? amountKurus / 100),
+        currency: pricing.currency ?? 'TRY',
+        contents: cartItems
+          .filter((item) => item.product_id)
+          .map((item) => ({
+            content_id: String(item.product_id),
+            content_type: 'product',
+            content_name: item.product_name,
+            quantity: item.quantity ?? 1,
+            price: item.price,
+          })),
+        orderId: result.order.order_number,
+        pageUrl: `${process.env.NEXT_PUBLIC_HOST_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mitenya.com'}/success`,
+        referrer: attribution?.referrer ?? null,
+        user: {
+          email: checkoutSession.user_email ?? null,
+          phone: shippingAddr.phone ?? null,
+          externalId: checkoutSession.user_id ?? null,
+          ip: callerIp,
+          userAgent,
+          ttclid: attribution?.tikTokClickId ?? null,
+          ttp: attribution?.tikTokTtp ?? null,
+        },
+      }).catch((err) => console.error('[TikTokEventsAPI] Purchase send error', err));
+    }
 
     await markWebhookInbox({ supabase, inboxId: inbox.inboxId, status: 'processed' });
     return;

@@ -7,6 +7,8 @@ import { rateLimit } from "@/lib/api/rateLimit";
 import { createAffiliateConversion } from "@/lib/affiliates/commissionService";
 import { type OrderAttribution } from "@/lib/analytics/attribution";
 import { sendCapiPurchase } from "@/lib/analytics/metaCapi";
+import { parseCookieHeader } from "@/lib/analytics/attribution";
+import { sendTikTokServerEvent } from "@/lib/analytics/tiktokEventsApi";
 import { z } from "zod";
 
 
@@ -51,6 +53,9 @@ const attributionSchema = z.object({
   utmTerm: z.string().max(160).nullable().optional(),
   landingPath: z.string().max(255).nullable().optional(),
   referrer: z.string().max(500).nullable().optional(),
+  tikTokClickId: z.string().max(500).nullable().optional(),
+  tikTokTtp: z.string().max(500).nullable().optional(),
+  tikTokMarketingConsent: z.boolean().nullable().optional(),
 });
 
 const createOrderSchema = z.object({
@@ -424,6 +429,35 @@ export async function POST(req: NextRequest) {
         clientUserAgent: req.headers.get('user-agent'),
       },
     }).catch((err) => console.error('[MetaCAP] Purchase send error', err));
+
+    const cookies = parseCookieHeader(req.headers.get('cookie'));
+    if (cookies.mitenya_marketing_consent === '1' || attribution?.tikTokMarketingConsent === true) {
+      sendTikTokServerEvent({
+        event: 'Purchase',
+        eventId: `purchase_${order.order_number}`,
+        value: total_amount,
+        currency: orderCurrency,
+        contents: sanitizedItems.map((item) => ({
+          content_id: String(item.product_id),
+          content_type: 'product',
+          content_name: item.product_name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        orderId: order.order_number,
+        pageUrl: `${process.env.NEXT_PUBLIC_HOST_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mitenya.com'}/success`,
+        referrer: attribution?.referrer ?? null,
+        user: {
+          email: user.email ?? undefined,
+          phone: shipping_address.phone ?? null,
+          externalId: user.id,
+          ip: userIp !== 'unknown' ? userIp : null,
+          userAgent: req.headers.get('user-agent'),
+          ttclid: attribution?.tikTokClickId ?? cookies.ttclid ?? null,
+          ttp: attribution?.tikTokTtp ?? cookies._ttp ?? null,
+        },
+      }).catch((err) => console.error('[TikTokEventsAPI] Purchase send error', err));
+    }
 
     return NextResponse.json({
       success: true,

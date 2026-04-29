@@ -2,6 +2,8 @@ export const AFFILIATE_REF_COOKIE = 'affiliate_ref';
 export const AFFILIATE_CLICK_ID_COOKIE = 'affiliate_click_id';
 export const LANDING_PATH_COOKIE = 'mitenya_landing_path';
 export const REFERRER_COOKIE = 'mitenya_referrer';
+export const TIKTOK_CLICK_ID_COOKIE = 'ttclid';
+export const TIKTOK_TTP_COOKIE = '_ttp';
 
 export const UTM_COOKIE_KEYS = [
   'utm_source',
@@ -23,6 +25,9 @@ export type OrderAttribution = {
   utmTerm?: string | null;
   landingPath?: string | null;
   referrer?: string | null;
+  tikTokClickId?: string | null;
+  tikTokTtp?: string | null;
+  tikTokMarketingConsent?: boolean | null;
 };
 
 type CookieMap = Record<string, string>;
@@ -76,6 +81,9 @@ export const buildAttributionFromCookieMap = (
     utmTerm: sanitizeValue(cookies.utm_term, 160),
     landingPath: sanitizeValue(cookies[LANDING_PATH_COOKIE], 255),
     referrer: sanitizeValue(cookies[REFERRER_COOKIE], 500),
+    tikTokClickId: sanitizeValue(cookies[TIKTOK_CLICK_ID_COOKIE], 500),
+    tikTokTtp: sanitizeValue(cookies[TIKTOK_TTP_COOKIE], 500),
+    tikTokMarketingConsent: cookies.mitenya_marketing_consent === '1' ? true : null,
     ...extras,
   };
 
@@ -96,10 +104,10 @@ export const serializeCheckoutNotes = (
 
   if (!normalizedAttribution) return note;
 
-  const encodeEnvelope = (payload: OrderAttribution | null) =>
+  const encodeEnvelope = (payload: OrderAttribution | null, customerNote = note) =>
     `${CHECKOUT_NOTES_PREFIX}${encodeURIComponent(
       JSON.stringify({
-        customerNote: note,
+        customerNote,
         attribution: payload,
       } satisfies CheckoutNotesEnvelope)
     )}`;
@@ -125,14 +133,20 @@ export const serializeCheckoutNotes = (
   }
 
   const minimalAttribution: OrderAttribution = {
-    affiliateCode: trimmedAttribution.affiliateCode ?? null,
-    affiliateClickId: trimmedAttribution.affiliateClickId ?? null,
+    affiliateCode: normalizedAttribution.affiliateCode ?? null,
+    affiliateClickId: normalizedAttribution.affiliateClickId ?? null,
+    tikTokClickId: normalizedAttribution.tikTokClickId ?? null,
+    tikTokTtp: normalizedAttribution.tikTokTtp ?? null,
+    tikTokMarketingConsent: normalizedAttribution.tikTokMarketingConsent ?? null,
   };
 
   serialized = encodeEnvelope(
     Object.values(minimalAttribution).some(Boolean) ? minimalAttribution : null
   );
 
+  if (serialized.length <= CHECKOUT_NOTES_MAX_LENGTH) return serialized;
+
+  serialized = encodeEnvelope(minimalAttribution, null);
   if (serialized.length <= CHECKOUT_NOTES_MAX_LENGTH) return serialized;
 
   return note;

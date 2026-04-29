@@ -5,6 +5,7 @@ import {
   AFFILIATE_REF_COOKIE,
   LANDING_PATH_COOKIE,
   REFERRER_COOKIE,
+  TIKTOK_CLICK_ID_COOKIE,
   UTM_COOKIE_KEYS,
 } from '@/lib/analytics/attribution';
 import { usePathname } from 'next/navigation';
@@ -31,8 +32,9 @@ export default function AttributionTracker() {
 
     const refCode = normalizeRefCode(searchParams.get('ref'));
     const hasUtm = UTM_COOKIE_KEYS.some((key) => Boolean(searchParams.get(key)));
+    const tikTokClickId = searchParams.get(TIKTOK_CLICK_ID_COOKIE)?.trim();
 
-    if (!refCode && !hasUtm) return;
+    if (!refCode && !hasUtm && !tikTokClickId) return;
 
     setCookie(LANDING_PATH_COOKIE, pathname || '/');
 
@@ -43,6 +45,10 @@ export default function AttributionTracker() {
     for (const key of UTM_COOKIE_KEYS) {
       const value = searchParams.get(key)?.trim();
       if (value) setCookie(key, value);
+    }
+
+    if (tikTokClickId) {
+      setCookie(TIKTOK_CLICK_ID_COOKIE, tikTokClickId, 60 * 60 * 24 * 7);
     }
 
     if (!refCode) return;

@@ -8,7 +8,8 @@ import { validateSameOrigin, validateCsrfToken } from '@/lib/api/security';
 import { rateLimit } from '@/lib/api/rateLimit';
 import { getClientIp } from '@/lib/api/getClientIp';
 import { reserveCheckoutStock } from '@/lib/inventory/stockReservationService';
-import { serializeCheckoutNotes } from '@/lib/analytics/attribution';
+import { parseCookieHeader, serializeCheckoutNotes } from '@/lib/analytics/attribution';
+import { sendTikTokServerEvent } from '@/lib/analytics/tiktokEventsApi';
 
 const SESSION_TTL_MINUTES = 30;
 
@@ -53,6 +54,9 @@ const attributionSchema = z.object({
   utmTerm: z.string().max(160).nullable().optional(),
   landingPath: z.string().max(255).nullable().optional(),
   referrer: z.string().max(500).nullable().optional(),
+  tikTokClickId: z.string().max(500).nullable().optional(),
+  tikTokTtp: z.string().max(500).nullable().optional(),
+  tikTokMarketingConsent: z.boolean().nullable().optional(),
 });
 
 const createCheckoutSessionSchema = z.object({
@@ -172,10 +176,15 @@ export async function POST(req: NextRequest) {
     const successToken = createSuccessToken();
     const successTokenExpiresAt = new Date(now + 2 * 60 * 60_000).toISOString();
 
+    const cookies = parseCookieHeader(req.headers.get('cookie'));
+    const hasTikTokMarketingConsent = cookies.mitenya_marketing_consent === '1';
     const normalizedAffiliateCode = affiliate_code ?? attribution?.affiliateCode ?? null;
     const serializedNotes = serializeCheckoutNotes(notes, {
       ...attribution,
       affiliateCode: normalizedAffiliateCode,
+      tikTokClickId: attribution?.tikTokClickId ?? cookies.ttclid ?? null,
+      tikTokTtp: attribution?.tikTokTtp ?? cookies._ttp ?? null,
+      tikTokMarketingConsent: hasTikTokMarketingConsent,
     });
 
     const { data: session, error: sessionError } = await supabaseAdmin
@@ -244,6 +253,33 @@ export async function POST(req: NextRequest) {
         },
         { status: statusCode }
       );
+    }
+
+    if (hasTikTokMarketingConsent) {
+      sendTikTokServerEvent({
+        event: 'InitiateCheckout',
+        eventId: `initiate_checkout_${session.id}`,
+        value: totalAmount,
+        currency: orderCurrency,
+        contents: sanitizedItems.map((item) => ({
+          content_id: String(item.product_id),
+          content_type: 'product',
+          content_name: item.product_name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        pageUrl: `${process.env.NEXT_PUBLIC_HOST_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mitenya.com'}/checkout`,
+        referrer: attribution?.referrer ?? null,
+        user: {
+          email: user.email ?? userEmailFromBody ?? null,
+          phone: shipping_address.phone ?? null,
+          externalId: user.id,
+          ip: userIp,
+          userAgent: req.headers.get('user-agent'),
+          ttclid: attribution?.tikTokClickId ?? cookies.ttclid ?? null,
+          ttp: attribution?.tikTokTtp ?? cookies._ttp ?? null,
+        },
+      }).catch((error) => console.error('[TikTokEventsAPI] InitiateCheckout send error', error));
     }
 
     return NextResponse.json(
