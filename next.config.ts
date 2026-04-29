@@ -78,7 +78,7 @@ const nextConfig = {
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
                 imgSrc + " https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com https://analytics.tiktok.com https://ads.tiktok.com",
                 "font-src 'self' data: https://fonts.gstatic.com",
-                "connect-src 'self' https://*.supabase.co https://www.paytr.com https://www.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://challenges.cloudflare.com https://connect.facebook.net https://www.facebook.com https://analytics.tiktok.com https://ads.tiktok.com https://*.ingest.de.sentry.io https://*.ingest.sentry.io",
+                "connect-src 'self' https://*.supabase.co https://www.paytr.com https://www.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://challenges.cloudflare.com https://connect.facebook.net https://www.facebook.com https://analytics.tiktok.com https://ads.tiktok.com https://*.ingest.de.sentry.io https://*.ingest.sentry.io https://*.ecs.us-east-2.on.aws https://*.us-central1.run.app",
                 "frame-src https://www.paytr.com https://challenges.cloudflare.com https://www.googletagmanager.com https://www.facebook.com https://analytics.tiktok.com https://ads.tiktok.com",
                 "frame-ancestors 'self'",
                 "form-action 'self' https://www.facebook.com",
