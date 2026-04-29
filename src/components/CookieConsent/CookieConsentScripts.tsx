@@ -6,7 +6,7 @@ import { CookieConsentState } from '@/contexts/CookieConsentContext';
 const gtmId = process.env.NEXT_PUBLIC_GTM_ID ?? 'GTM-5CR26XHK';
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? 'G-W2DHP8ZRJN';
 const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
-const tiktokPixelId = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID;
+const tiktokPixelId = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID ?? 'D7OHH8BC77UFV4P7K660';
 const isProduction = process.env.NEXT_PUBLIC_HOST_ENV === 'production';
 
 interface CookieConsentScriptsProps {
