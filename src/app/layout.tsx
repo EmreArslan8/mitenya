@@ -3,6 +3,7 @@
 import Footer from "@/components/Footer";
 import AttributionTracker from "@/components/analytics/AttributionTracker";
 import MetaPixelPageView from "@/components/analytics/MetaPixelPageView";
+import TikTokPixelPageView from "@/components/analytics/TikTokPixelPageView";
 import MainLayout from "@/components/layouts/MainLayout";
 import Navigation from "@/components/Navigation";
 import { AuthContextProvider } from "@/contexts/AuthContext";
@@ -92,6 +93,7 @@ export default async function RootLayout({
             <AttributionTracker />
             <Suspense fallback={null}>
               <MetaPixelPageView />
+              <TikTokPixelPageView />
             </Suspense>
             <AuthContextProvider>
               <FavoritesContextProvider>

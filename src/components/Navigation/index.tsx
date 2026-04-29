@@ -8,6 +8,7 @@ import { ShopHeaderData, ShopHeaderLink } from '@/lib/api/types';
 import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
 import useScreen from '@/lib/hooks/useScreen';
 import useTypewriter from '@/lib/hooks/useTypewriter';
+import { trackTikTokSearch, trackTikTokWithUser } from '@/lib/analytics/tiktokPixel';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
 import { signOut } from '@/lib/utils/signOut';
 import { headerHeight } from '@/theme/theme';
@@ -648,6 +649,7 @@ interface SearchBarProps {
 const SearchBar = ({ onFocus, onBlur, autoFocus }: SearchBarProps) => {
   const styles = useStyles();
   const router = useRouter();
+  const { customerData } = useAuth();
   const { smUp } = useScreen();
   const searchParams = useSearchParams()!;
   const pathname = usePathname();
@@ -681,6 +683,13 @@ const SearchBar = ({ onFocus, onBlur, autoFocus }: SearchBarProps) => {
     if (!query) return;
     setLoading(true);
     addSearchQuery(query);
+    trackTikTokWithUser({
+      userData: {
+        email: customerData?.email,
+        phone: customerData?.phone,
+      },
+      track: () => trackTikTokSearch({ search_string: query }),
+    });
     setShowHistory(false);
     router.push(searchUrlFromOptions({ query }, query === searchParams.get('query')));
   };
@@ -692,6 +701,13 @@ const SearchBar = ({ onFocus, onBlur, autoFocus }: SearchBarProps) => {
   const handleHistoryClick = (historyItem: string) => {
     setQuery(historyItem);
     setShowHistory(false);
+    trackTikTokWithUser({
+      userData: {
+        email: customerData?.email,
+        phone: customerData?.phone,
+      },
+      track: () => trackTikTokSearch({ search_string: historyItem }),
+    });
     router.push(searchUrlFromOptions({ query: historyItem }, true));
   };
 

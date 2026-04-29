@@ -7,6 +7,7 @@ import { ShopContext } from '@/contexts/ShopContext';
 import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
 import { sendPurchaseEventForOrder } from '@/lib/utils/googleAnalytics';
 import { onMetaPixelReady, trackPurchase } from '@/lib/analytics/metaPixel';
+import { trackTikTokPurchase, trackTikTokWithUser } from '@/lib/analytics/tiktokPixel';
 import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material';
 import { Check } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -41,7 +42,7 @@ interface OrderData {
 const SuccessPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { openAuthenticator } = useAuth();
+  const { customerData, openAuthenticator } = useAuth();
   const { selected, removeItems } = useContext(ShopContext);
   const token = searchParams?.get('t');
   const [order, setOrder] = useState<OrderData | null>(null);
@@ -139,21 +140,45 @@ const SuccessPageContent = () => {
       paymentMethod: order.payment_method,
       items: order.items,
     });
-    return onMetaPixelReady(() => {
+    const params = {
+      value: order.total_amount,
+      currency: order.currency,
+      content_ids: order.items.map((i) => String(i.product_id ?? i.product_name)),
+      contents: order.items.map((i) => ({
+        content_id: String(i.product_id ?? i.product_name),
+        content_type: 'product' as const,
+        content_name: i.product_name,
+        num_items: i.quantity,
+      })),
+      num_items: order.items.reduce((acc, i) => acc + i.quantity, 0),
+      order_id: order.order_number,
+    };
+    const markPurchaseTracked = () => {
+      window.sessionStorage.setItem(dedupeKey, '1');
+    };
+    const cleanupMeta = onMetaPixelReady(() => {
       trackPurchase(
-        {
-          value: order.total_amount,
-          currency: order.currency,
-          content_ids: order.items.map((i) => String(i.product_id ?? i.product_name)),
-          num_items: order.items.reduce((acc, i) => acc + i.quantity, 0),
-          order_id: order.order_number,
-        },
+        params,
         `purchase_${order.order_number}`,
       );
-
-      window.sessionStorage.setItem(dedupeKey, '1');
+      markPurchaseTracked();
     });
-  }, [order, token]);
+    const cleanupTikTok = trackTikTokWithUser({
+      userData: {
+        email: customerData?.email,
+        phone: customerData?.phone,
+      },
+      onReady: markPurchaseTracked,
+      track: () => {
+        trackTikTokPurchase(params);
+      },
+    });
+
+    return () => {
+      cleanupMeta();
+      cleanupTikTok();
+    };
+  }, [customerData?.email, customerData?.phone, order, token]);
 
   if (loading) {
     return (

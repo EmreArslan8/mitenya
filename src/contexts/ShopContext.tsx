@@ -12,6 +12,7 @@ import clamp from '@/lib/utils/clamp';
 import { Currency } from '@/lib/utils/currencies';
 import { sendAddToCardEvent } from '@/lib/utils/googleAnalytics';
 import { trackAddToCart } from '@/lib/analytics/metaPixel';
+import { trackTikTokAddToCart, trackTikTokWithUser } from '@/lib/analytics/tiktokPixel';
 import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -234,6 +235,20 @@ export const ShopContextProvider = ({ children }: ShopContextProviderProps) => {
       content_name: product.name,
       value: product.price.currentPrice,
       currency: product.price.currency ?? 'TRY',
+    });
+    trackTikTokWithUser({
+      userData: {
+        email: customerData?.email,
+        phone: customerData?.phone,
+      },
+      track: () => trackTikTokAddToCart({
+        content_ids: [String(product.id)],
+        content_name: product.name,
+        content_category: product.category,
+        value: product.price.currentPrice,
+        currency: product.price.currency ?? 'TRY',
+        num_items: 1,
+      }),
     });
     sendAction({
       event: 'add_to_cart',

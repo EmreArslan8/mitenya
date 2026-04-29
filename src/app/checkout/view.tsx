@@ -26,6 +26,11 @@ import formatPrice from '@/lib/utils/formatPrice';
 import { pushItemToDataLayer, useCheckoutAnalytics } from '@/lib/utils/googleAnalytics';
 import { onMetaPixelReady, trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 import {
+  trackTikTokAddPaymentInfo,
+  trackTikTokInitiateCheckout,
+  trackTikTokWithUser,
+} from '@/lib/analytics/tiktokPixel';
+import {
   generatePreInfoHtml,
   generateDistanceSaleHtml,
   type ContractData,
@@ -78,6 +83,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   const [distanceSaleModalOpen, setDistanceSaleModalOpen] = useState(false);
   const mobileCheckoutBarOffset = 'calc(56px + env(safe-area-inset-bottom, 0px) - 2px)';
   const handleDestinationChange = (newValue: AddressData) => setDestination(newValue);
+  const tikTokUserRef = useRef<{ email?: string; phone?: string }>();
   const handleAddressAdded = (newAddress: AddressData) => {
     setDestination(newAddress);
     setAddresses((prev) => [...(prev ?? []), newAddress]);
@@ -108,6 +114,25 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
       if (orderSummary) {
         sendAddShippingInfo(selected, orderSummary);
         sendAddPaymentInfo(selected, orderSummary, paymentType);
+        trackTikTokWithUser({
+          userData: {
+            email: customerData?.email,
+            phone: destination ? `${destination.phoneCode}${destination.phoneNumber}` : customerData?.phone,
+          },
+          track: () => trackTikTokAddPaymentInfo({
+            content_ids: selected.map((p) => String(p.id)),
+            contents: selected.map((p) => ({
+              content_id: String(p.id),
+              content_type: 'product',
+              content_name: p.name,
+              num_items: p.quantity,
+            })),
+            value: orderSummary.totalDue,
+            currency: orderSummary.currency ?? 'TRY',
+            num_items: selected.reduce((acc, p) => acc + p.quantity, 0),
+            payment_type: paymentType,
+          }),
+        });
       }
 
       // Ürünleri order items formatına dönüştür
@@ -253,16 +278,41 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   }, [selected, destination, paymentType, discountCode, isAuthenticated]);
 
   useEffect(() => {
+    tikTokUserRef.current = {
+      email: customerData?.email,
+      phone: destination ? `${destination.phoneCode}${destination.phoneNumber}` : customerData?.phone,
+    };
+  }, [customerData?.email, customerData?.phone, destination]);
+
+  useEffect(() => {
     if (!selected?.length) return;
     sendBeginCheckout(selected);
-    return onMetaPixelReady(() => {
+    const params = {
+      content_ids: selected.map((p) => String(p.id)),
+      contents: selected.map((p) => ({
+        content_id: String(p.id),
+        content_type: 'product' as const,
+        content_name: p.name,
+        num_items: p.quantity,
+      })),
+      value: selected.reduce((acc, p) => acc + p.price.currentPrice * p.quantity, 0),
+      currency: selected[0]?.price.currency ?? 'TRY',
+      num_items: selected.reduce((acc, p) => acc + p.quantity, 0),
+    };
+    const cleanupMeta = onMetaPixelReady(() => {
       trackInitiateCheckout({
-        content_ids: selected.map((p) => String(p.id)),
-        value: selected.reduce((acc, p) => acc + p.price.currentPrice * p.quantity, 0),
-        currency: selected[0]?.price.currency ?? 'TRY',
-        num_items: selected.reduce((acc, p) => acc + p.quantity, 0),
+        ...params,
       });
     });
+    const cleanupTikTok = trackTikTokWithUser({
+      userData: tikTokUserRef.current,
+      track: () => trackTikTokInitiateCheckout(params),
+    });
+
+    return () => {
+      cleanupMeta();
+      cleanupTikTok();
+    };
   }, [selected]);
 
   // Adres, ürün veya ödeme yöntemi değiştiğinde sözleşme onaylarını sıfırla

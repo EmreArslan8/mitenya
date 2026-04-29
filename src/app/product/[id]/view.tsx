@@ -33,6 +33,11 @@ import {
   trackAddToWishlist,
   trackViewContent,
 } from '@/lib/analytics/metaPixel';
+import {
+  trackTikTokAddToWishlist,
+  trackTikTokWithUser,
+  trackTikTokViewContent,
+} from '@/lib/analytics/tiktokPixel';
 import QATypewriterPill from './components/ProductShopAssistant/QATypewriterPill';
 
 const MAX_CART_QUANTITY = 5;
@@ -49,13 +54,14 @@ const ProductPageView = ({
   pdpBlocksSlot?: ReactNode;
 }) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
-  const { isAuthenticated, openAuthenticator } = useAuth();
+  const { customerData, isAuthenticated, openAuthenticator } = useAuth();
   const { isFavorite, isFavoriteLoading, toggleFavorite } = useFavorites();
   const router = useRouter();
   const styles = useStyles();
   const { smUp } = useScreen();
   const ctaRowRef = useRef<HTMLDivElement>(null);
   const reviewsSectionRef = useRef<HTMLDivElement>(null);
+  const tikTokUserRef = useRef<{ email?: string; phone?: string }>();
   const [variants, setVariants] = useState(data.variants);
   const [isMainCtaVisible, setIsMainCtaVisible] = useState(true);
   const [showCheck, setShowCheck] = useState(false);
@@ -242,6 +248,19 @@ const ProductPageView = ({
     }
     if (result.isFavorite) {
       trackAddToWishlist({ content_ids: [productId], content_name: data.name });
+      trackTikTokWithUser({
+        userData: {
+          email: customerData?.email,
+          phone: customerData?.phone,
+        },
+        track: () => trackTikTokAddToWishlist({
+          content_ids: [productId],
+          content_name: data.name,
+          content_category: data.category,
+          value: data.price.currentPrice,
+          currency: data.price.currency ?? 'TRY',
+        }),
+      });
     }
   };
 
@@ -252,7 +271,14 @@ const ProductPageView = ({
   };
 
   useEffect(() => {
-    return onMetaPixelReady(() => {
+    tikTokUserRef.current = {
+      email: customerData?.email,
+      phone: customerData?.phone,
+    };
+  }, [customerData?.email, customerData?.phone]);
+
+  useEffect(() => {
+    const cleanupMeta = onMetaPixelReady(() => {
       trackViewContent({
         content_ids: [String(data.id)],
         content_name: data.name,
@@ -261,6 +287,21 @@ const ProductPageView = ({
         currency: data.price.currency ?? 'TRY',
       });
     });
+    const cleanupTikTok = trackTikTokWithUser({
+      userData: tikTokUserRef.current,
+      track: () => trackTikTokViewContent({
+        content_ids: [String(data.id)],
+        content_name: data.name,
+        content_category: data.category,
+        value: data.price.currentPrice,
+        currency: data.price.currency ?? 'TRY',
+      }),
+    });
+
+    return () => {
+      cleanupMeta();
+      cleanupTikTok();
+    };
   }, [data.category, data.id, data.name, data.price.currency, data.price.currentPrice]);
 
   useEffect(() => {
