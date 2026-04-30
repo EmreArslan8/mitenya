@@ -54,7 +54,7 @@ const ProductPageView = ({
   pdpBlocksSlot?: ReactNode;
 }) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
-  const { customerData, isAuthenticated, openAuthenticator } = useAuth();
+  const { customerData, isAuthenticated, isGuest, openAuthenticator } = useAuth();
   const { isFavorite, isFavoriteLoading, toggleFavorite } = useFavorites();
   const router = useRouter();
   const styles = useStyles();
@@ -212,7 +212,7 @@ const ProductPageView = ({
   };
 
   const withAuth = (cb: () => void) => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isGuest) {
       cb();
       return;
     }
@@ -237,7 +237,7 @@ const ProductPageView = ({
 
   const handleFavoriteClick = async () => {
     if (!productId) return;
-    if (isAuthenticated !== true) {
+    if (isAuthenticated !== true || isGuest) {
       withAuth(() => void handleFavoriteClick());
       return;
     }

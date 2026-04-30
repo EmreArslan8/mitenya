@@ -419,7 +419,7 @@ export async function POST(req: NextRequest) {
       numItems: sanitizedItems.reduce((acc, i) => acc + i.quantity, 0),
       orderId: order.order_number,
       userData: {
-        email: user.email ?? undefined,
+        email: user.email ?? _user_email ?? undefined,
         phone: shipping_address.phone ?? null,
         firstName: nameParts[0] ?? null,
         lastName: nameParts.length > 1 ? nameParts.slice(1).join(' ') : null,
@@ -448,7 +448,7 @@ export async function POST(req: NextRequest) {
         pageUrl: `${process.env.NEXT_PUBLIC_HOST_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mitenya.com'}/success`,
         referrer: attribution?.referrer ?? null,
         user: {
-          email: user.email ?? undefined,
+          email: user.email ?? _user_email ?? undefined,
           phone: shipping_address.phone ?? null,
           externalId: user.id,
           ip: userIp !== 'unknown' ? userIp : null,

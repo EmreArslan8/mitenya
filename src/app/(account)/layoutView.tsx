@@ -59,7 +59,7 @@ const navGroups: { title: string; items: NavItem[] }[] = [
 ];
 
 const AccountPagesLayoutView = ({ children, reviewCount }: { children: ReactNode; reviewCount: number }) => {
-  const { isAuthenticated, openAuthenticator, customerData } = useAuth();
+  const { isAuthenticated, isGuest, openAuthenticator, customerData } = useAuth();
   const { smDown, smUp } = useScreen();
   const styles = useStyles();
   const pathname = usePathname();
@@ -93,7 +93,7 @@ const AccountPagesLayoutView = ({ children, reviewCount }: { children: ReactNode
 
   if (isAuthenticated === undefined || (!smDown && !smUp)) return <></>;
 
-  if (isAuthenticated === false)
+  if (isAuthenticated === false || isGuest)
     return (
       <Stack sx={styles.authContainer}>
         <Box sx={styles.authIconBox}>

@@ -5,6 +5,7 @@ import Card from '@/components/common/Card';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
 import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
+import { clearGuestCheckoutDraft } from '@/lib/checkout/guestCheckoutStorage';
 import { sendPurchaseEventForOrder } from '@/lib/utils/googleAnalytics';
 import { onMetaPixelReady, trackPurchase } from '@/lib/analytics/metaPixel';
 import { trackTikTokPurchase, trackTikTokWithUser } from '@/lib/analytics/tiktokPixel';
@@ -42,7 +43,7 @@ interface OrderData {
 const SuccessPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { customerData, openAuthenticator } = useAuth();
+  const { customerData, isGuest, openAuthenticator } = useAuth();
   const { selected, removeItems } = useContext(ShopContext);
   const token = searchParams?.get('t');
   const [order, setOrder] = useState<OrderData | null>(null);
@@ -122,6 +123,7 @@ const SuccessPageContent = () => {
 
   useEffect(() => {
     if (!order || cartCleanedRef.current) return;
+    clearGuestCheckoutDraft();
     if (!selected?.length) return;
     removeItems(selected);
     cartCleanedRef.current = true;
@@ -310,8 +312,16 @@ const SuccessPageContent = () => {
         <Divider sx={{ my: 2 }} />
 
         <Stack gap={1.5}>
-          <Button variant="contained" fullWidth onClick={() => router.push('/orders')}>
-            Siparişlerimi Gör
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={() =>
+              isGuest
+                ? openAuthenticator?.({ onSuccess: () => router.push('/orders') })
+                : router.push('/orders')
+            }
+          >
+            {isGuest ? 'Hesap Oluştur / Giriş Yap' : 'Siparişlerimi Gör'}
           </Button>
           <Button variant="outlined" fullWidth onClick={() => router.push('/')}>
             Alışverişe Devam Et

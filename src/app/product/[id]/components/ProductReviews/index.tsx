@@ -41,7 +41,7 @@ const ProductReviews = ({
 }) => {
   const styles = useStyles();
   const palette = usePalette();
-  const { isAuthenticated, openAuthenticator, customerData } = useAuth();
+  const { isAuthenticated, isGuest, openAuthenticator, customerData } = useAuth();
 
   const [reviews, setReviews] = useState<ShopProductReview[]>(initialReviews);
   const [rating, setRating] = useState<ShopProductRating | undefined>(initialRating);
@@ -56,7 +56,7 @@ const ProductReviews = ({
   const [eligibilityLoading, setEligibilityLoading] = useState(false);
   const eligibilityCache = useRef<{ eligible: boolean; reason?: string } | null>(null);
 
-  const canWrite = isAuthenticated === true;
+  const canWrite = isAuthenticated === true && !isGuest;
 
   const getEligibilityMessage = (reason?: string) =>
     reason === 'already_reviewed'

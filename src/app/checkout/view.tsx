@@ -1,6 +1,7 @@
 'use client';
 
 import NewAddressModal from '@/components/AddressCard/modals/NewAddressModal';
+import AddressForm from '@/components/AddressCard/AddressForm';
 import AddressSelector from '@/components/AddressSelector';
 import InfoItem from '@/components/InfoItem';
 import LoadingOverlay from '@/components/LoadingOverlay';
@@ -19,6 +20,10 @@ import { ShopContext } from '@/contexts/ShopContext';
 import { getOrderSummary } from '@/lib/api/checkout';
 import { buildAttributionFromDocument } from '@/lib/analytics/attribution';
 import { AddressData, PaymentType, ShopOrderSummaryData } from '@/lib/api/types';
+import {
+  readGuestCheckoutDraft,
+  saveGuestCheckoutDraft,
+} from '@/lib/checkout/guestCheckoutStorage';
 import useScreen from '@/lib/hooks/useScreen';
 import { readStoredWelcomeCoupon, storeWelcomeCoupon } from '@/lib/shop/welcomeCoupon';
 import { withCsrfHeaders } from '@/lib/utils/csrf';
@@ -52,7 +57,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   const styles = useStyles();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated, customerData } = useAuth();
+  const { isAuthenticated, isGuest, customerData, openAuthenticator, signInAsGuest } = useAuth();
   const { sendBeginCheckout, sendAddShippingInfo, sendAddPaymentInfo } = useCheckoutAnalytics();
   const { selected, numSelected, removeItems } = useContext(ShopContext);
   const [addresses, setAddresses] = useState<AddressData[]>(initialAddresses ?? []);
@@ -72,13 +77,19 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   const affiliateCode = attribution?.affiliateCode ?? null;
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [continueButtonLoading, setContinueButtonLoading] = useState(false);
+  const [guestChoiceLoading, setGuestChoiceLoading] = useState(false);
   const [newAddressModalOpen, setNewAddressModalOpen] = useState(false);
   const [directToPaymentOnAddressAdded, setDirectToPaymentOnAddressAdded] = useState(false);
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
   const [showDiscountCodeSnackbar, setShowDiscountCodeSnackbar] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [guestEmail, setGuestEmail] = useState<string>('');
+  const [guestInitialValues, setGuestInitialValues] = useState<Partial<AddressData>>();
+  const [guestLiveAddress, setGuestLiveAddress] = useState<Partial<AddressData>>();
+  const [guestAddressReady, setGuestAddressReady] = useState(false);
   const [preInfoAccepted, setPreInfoAccepted] = useState(false);
   const [distanceSaleAccepted, setDistanceSaleAccepted] = useState(false);
+  const [addressFormTrigger, setAddressFormTrigger] = useState(0);
   const [preInfoModalOpen, setPreInfoModalOpen] = useState(false);
   const [distanceSaleModalOpen, setDistanceSaleModalOpen] = useState(false);
   const mobileCheckoutBarOffset = 'calc(56px + env(safe-area-inset-bottom, 0px) - 2px)';
@@ -88,11 +99,36 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
     setDestination(newAddress);
     setAddresses((prev) => [...(prev ?? []), newAddress]);
   };
+  const isCompleteGuestAddress = (address: Partial<AddressData>) =>
+    !!(
+      address.contactName &&
+      address.contactSurname &&
+      address.phoneNumber &&
+      address.line1 &&
+      address.city &&
+      address.district &&
+      address.email
+    );
 
   const handleCheckoutRef = useRef<() => Promise<void>>(async () => {});
+  const summaryLoadingRef = useRef(false);
 
   const handleCheckout = async () => {
     if (summaryLoading || !selected || selected.length === 0) return;
+    if (isAuthenticated === undefined) return;
+
+    if (isAuthenticated === false) {
+      setCheckoutError('Devam etmek için giriş yapın veya misafir olarak devam edin.');
+      return;
+    }
+
+    // Misafir için önce inline adres formunu submit edip değerleri state'e al.
+    if (isGuest && !guestAddressReady) {
+      setGuestAddressReady(false);
+      setDirectToPaymentOnAddressAdded(true);
+      setAddressFormTrigger((prev) => prev + 1);
+      return;
+    }
 
     // Adres kontrolü
     if (!destination) {
@@ -101,9 +137,9 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
       return;
     }
 
-    // Email kontrolü
-    if (!customerData?.email) {
-      setCheckoutError('Devam etmek için lütfen giriş yapın.');
+    const effectiveEmail = customerData?.email ?? guestEmail;
+    if (!effectiveEmail) {
+      setCheckoutError('Devam etmek için lütfen e-posta adresinizi girin.');
       return;
     }
 
@@ -182,7 +218,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_email: customerData.email,
+            user_email: effectiveEmail,
             items: orderItems,
             shipping_address: shippingAddress,
             payment_method: paymentType === 'COD' ? 'cod' : 'paytr',
@@ -218,6 +254,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
       router.push(`/success${tokenParam}`);
     } catch (error: unknown) {
       console.error('Checkout error:', error);
+      if (isGuest) setGuestAddressReady(false);
       const message = error instanceof Error ? error.message : 'Bir hata oluştu';
       setCheckoutError(message);
     } finally {
@@ -242,10 +279,23 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         // summary yüklenemedi, mevcut değer korunur
       } finally {
         setSummaryLoading(false);
+        summaryLoadingRef.current = false;
       }
     }, 1000),
     []
   );
+
+  const handleStartGuestCheckout = async () => {
+    setGuestChoiceLoading(true);
+    try {
+      await signInAsGuest();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Misafir oturumu başlatılamadı';
+      setCheckoutError(message);
+    } finally {
+      setGuestChoiceLoading(false);
+    }
+  };
 
   useEffect(() => {
     const queryCode = searchParams?.get('dc')?.trim().toUpperCase() ?? null;
@@ -265,15 +315,24 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   }, [searchParams]);
 
   useEffect(() => {
-    if (isAuthenticated === false && !searchParams?.get('allow')) {
-      router.push('/cart');
+    if (!isGuest) return;
+
+    const draft = readGuestCheckoutDraft();
+    if (!draft) return;
+
+    setGuestInitialValues(draft.address);
+    setGuestEmail(draft.email);
+    if (isCompleteGuestAddress(draft.address)) {
+      setDestination(draft.address as AddressData);
     }
-  }, [isAuthenticated, router, searchParams]);
+    setGuestAddressReady(false);
+  }, [isGuest]);
 
   useEffect(() => {
     if (!selected?.length) return setOrderSummary(undefined);
     if (isAuthenticated === undefined) return;
     setSummaryLoading(true);
+    summaryLoadingRef.current = true;
     handleUpdateOrderSummary(selected, destination, paymentType, discountCode);
   }, [selected, destination, paymentType, discountCode, isAuthenticated]);
 
@@ -315,11 +374,20 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
     };
   }, [selected]);
 
-  // Adres, ürün veya ödeme yöntemi değiştiğinde sözleşme onaylarını sıfırla
+  // Ürün veya ödeme yöntemi değiştiğinde sözleşme onaylarını sıfırla
   useEffect(() => {
     setPreInfoAccepted(false);
     setDistanceSaleAccepted(false);
-  }, [destination, selected, paymentType]);
+  }, [selected, paymentType]);
+
+  // Kayıtlı kullanıcı farklı adres seçtiğinde sıfırla
+  // Misafir için destination form gönderiminden gelir; onaylar o sırada zaten doğrudur
+  useEffect(() => {
+    if (isGuest) return;
+    setPreInfoAccepted(false);
+    setDistanceSaleAccepted(false);
+  }, [destination, isGuest]);
+
 
   const paymentMethodLabel =
     paymentType === 'COD'
@@ -331,13 +399,16 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   const contractData = useMemo((): ContractData | null => {
     if (!selected?.length) return null;
 
-    const buyerAddress = destination
+    // Misafir için destination henüz set edilmemişse canlı form verisi kullan
+    const effectiveAddr = destination ?? (isGuest ? guestLiveAddress : undefined);
+
+    const buyerAddress = effectiveAddr
       ? [
-          destination.line1,
-          destination.line2,
-          destination.district,
-          destination.city,
-          destination.postcode,
+          effectiveAddr.line1,
+          effectiveAddr.line2,
+          effectiveAddr.district,
+          effectiveAddr.city,
+          effectiveAddr.postcode,
         ]
           .filter(Boolean)
           .join(', ')
@@ -345,14 +416,14 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
 
     return {
       buyer: {
-        fullName: destination
-          ? `${destination.contactName} ${destination.contactSurname}`
+        fullName: effectiveAddr
+          ? `${effectiveAddr.contactName} ${effectiveAddr.contactSurname}`
           : (customerData?.fullName ?? ''),
         address: buyerAddress,
-        phone: destination
-          ? `${destination.phoneCode}${destination.phoneNumber}`
+        phone: effectiveAddr
+          ? `${effectiveAddr.phoneCode}${effectiveAddr.phoneNumber}`
           : (customerData?.phone ?? ''),
-        email: customerData?.email ?? '',
+        email: customerData?.email ?? guestEmail,
       },
       products: selected.map((item) => {
         const variantStr = item.variants
@@ -381,13 +452,18 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
       deliveryAddress: buyerAddress,
       date: new Date().toLocaleDateString('tr-TR'),
     };
-  }, [destination, selected, customerData, orderSummary, paymentMethodLabel]);
+  }, [destination, isGuest, guestLiveAddress, selected, customerData, guestEmail, orderSummary, paymentMethodLabel]);
 
   useEffect(() => {
-    if (!directToPaymentOnAddressAdded || !orderSummary) return;
+    if (!directToPaymentOnAddressAdded) return;
+    if (!orderSummary) return;
+    // summaryLoadingRef is set synchronously before this effect runs in the same
+    // render cycle, so it correctly blocks when destination just changed.
+    if (summaryLoadingRef.current) return;
+    if (isGuest && !guestAddressReady) return;
     setDirectToPaymentOnAddressAdded(false);
     void handleCheckoutRef.current();
-  }, [directToPaymentOnAddressAdded, orderSummary]);
+  }, [directToPaymentOnAddressAdded, orderSummary, summaryLoading, isGuest, guestAddressReady]);
 
   return (
     <>
@@ -460,12 +536,93 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
               <Stack px={{ xs: 1, sm: 2 }} py={1}>
                 <Stack>
                   <Card sx={{ maxWidth: { xs: '100%', sm: 350 }, gap: 1 }}>
-                    <AddressSelector
-                      value={destination}
-                      options={addresses}
-                      onAddressAdded={handleAddressAdded}
-                      onChange={handleDestinationChange}
-                    />
+                    {isAuthenticated === undefined ? (
+                      <Stack alignItems="center" justifyContent="center" minHeight={120}>
+                        <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>
+                          Oturum kontrol ediliyor...
+                        </Typography>
+                      </Stack>
+                    ) : isAuthenticated === false ? (
+                      <Stack gap={{ xs: 1.5, sm: 1 }} sx={{ width: '100%', maxWidth: 420 }}>
+                        <Stack gap={0.5}>
+                          <Typography
+                            sx={{
+                              fontSize: { xs: 16, sm: 12.5 },
+                              color: 'text.secondary',
+                              lineHeight: { xs: 1.45, sm: 1.35 },
+                            }}
+                          >
+                            Kayıtlı adreslerinle devam edebilir veya misafir olarak sipariş verebilirsin.
+                          </Typography>
+                        </Stack>
+                        <Stack gap={{ xs: 1.5, sm: 0.5 }} sx={{ width: '100%' }}>
+                          <Button
+                            variant="outlined"
+                            fullWidth
+                            onClick={() => openAuthenticator?.({ onSuccess: () => router.refresh() })}
+                            sx={{
+                              minHeight: { xs: 56, sm: 36 },
+                              borderRadius: 1,
+                              borderColor: 'text.primary',
+                              borderWidth: { xs: 2, sm: 1 },
+                              color: 'text.primary',
+                              fontSize: { xs: 15, sm: 12 },
+                              fontWeight: 800,
+                              '&:hover': {
+                                borderColor: 'text.primary',
+                                borderWidth: { xs: 2, sm: 1 },
+                                backgroundColor: 'rgba(0,0,0,0.035)',
+                              },
+                            }}
+                          >
+                            GİRİŞ YAP
+                          </Button>
+                          <Button
+                            variant="text"
+                            fullWidth
+                            loading={guestChoiceLoading}
+                            onClick={handleStartGuestCheckout}
+                            sx={{
+                              minHeight: { xs: 34, sm: 32 },
+                              borderRadius: 1,
+                              fontSize: { xs: 15, sm: 12 },
+                              fontWeight: 800,
+                              color: 'text.primary',
+                              textDecoration: 'underline',
+                              textUnderlineOffset: '4px',
+                              '&:hover': { textDecoration: 'underline' },
+                            }}
+                          >
+                            MİSAFİR OLARAK DEVAM ET →
+                          </Button>
+                        </Stack>
+                      </Stack>
+                    ) : isGuest ? (
+                      <AddressForm
+                        showEmail
+                        autoName="Teslimat Adresi"
+                        initialValues={guestInitialValues}
+                        submitTrigger={addressFormTrigger}
+                        onDraftChange={(addr) => {
+                          saveGuestCheckoutDraft(addr);
+                          setGuestEmail(addr.email ?? '');
+                          setGuestLiveAddress(addr);
+                        }}
+                        onSubmit={(addr) => {
+                          saveGuestCheckoutDraft(addr);
+                          setDestination(addr);
+                          setGuestEmail(addr.email ?? '');
+                          setGuestAddressReady(true);
+                        }}
+                      />
+                    ) : (
+                      <AddressSelector
+                        value={destination}
+                        options={addresses}
+                        onAddressAdded={handleAddressAdded}
+                        onChange={handleDestinationChange}
+                      />
+                    )}
                     <Banner
                       title="Ücretsiz kargo avantajı"
                       variant="neutral"
@@ -658,6 +815,8 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                     disabled={
                       !selected?.length ||
                       summaryLoading ||
+                      isAuthenticated === undefined ||
+                      isAuthenticated === false ||
                       !preInfoAccepted ||
                       !distanceSaleAccepted ||
                       (paymentType === 'COD' &&
@@ -714,6 +873,9 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                   arrow="end"
                   disabled={
                     !selected?.length ||
+                    summaryLoading ||
+                    isAuthenticated === undefined ||
+                    isAuthenticated === false ||
                     !preInfoAccepted ||
                     !distanceSaleAccepted ||
                     (paymentType === 'COD' &&

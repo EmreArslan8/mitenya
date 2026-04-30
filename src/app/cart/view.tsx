@@ -23,7 +23,7 @@ import { Box, Checkbox, Divider, Portal, Stack, Typography, debounce } from '@mu
 import { useCallback, useContext, useEffect, useState } from 'react';
 import useStyles from './styles';
 import { usePathname, useRouter } from 'next/navigation';
-import { ChevronDown, Trash, User } from 'lucide-react';
+import { ChevronDown, Trash } from 'lucide-react';
 
 
 export interface CartPageViewProps {
@@ -57,7 +57,7 @@ const CartPageView = ({
   const [buttonLoading, setButtonLoading] = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
-  const { isAuthenticated, openAuthenticator } = useAuth();
+  const { isAuthenticated } = useAuth();
   const isCartPage = pathname?.includes('/cart') ?? false;
   const currencyLabel = getDisplayCurrencyCode(orderSummary?.currency ?? 'TRY');
 
@@ -77,15 +77,18 @@ const CartPageView = ({
     []
   );
 
+  const navigateToCheckout = () => {
+    const params = new URLSearchParams();
+    if (discountCode) params.set('dc', discountCode);
+    const qs = params.toString();
+    router.push(`/checkout${qs ? `?${qs}` : ''}`);
+  };
+
   const handleContinue = async () => {
-    if (!selected?.length) {
-      return;
-    }
+    if (!selected?.length) return;
     setButtonLoading(true);
     onContinue?.();
-    const params = new URLSearchParams({ allow: 'guest' });
-    if (discountCode) params.set('dc', discountCode);
-    router.push(`/checkout?${params.toString()}`);
+    navigateToCheckout();
   };
 
   useEffect(() => {
@@ -121,47 +124,6 @@ const CartPageView = ({
       {!hideTitle && <Typography variant="h1">Sepet</Typography>}
       <TwoColumnLayout sx={{ pb: 3, gap: 3 }}>
         <PrimaryColumn sx={{ gap: 0.5 }}>
-          {isAuthenticated === false && !!cart?.length && (
-            <Stack
-              direction="row"
-              alignItems="center"
-              gap={1.5}
-              sx={{
-                px: 2,
-                py: 1.25,
-                mb: 1.5,
-                borderRadius: 2,
-                backgroundColor: '#FFFEF2', 
-                border: '1px solid #F0E4C0', 
-              }}
-            >
-              <User size={22} />
-
-              <Typography variant="body" sx={{ fontSize: 14, color: 'text.primary' }}>
-                Alışverişini daha hızlı tamamlamak için{' '}
-                <Typography
-                  component="span"
-                  sx={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: 'warning.main',
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() =>
-                    openAuthenticator?.({
-                      onSuccess: () => {
-                        // Sadece login olsun diye bırakıyoruz;
-                        // istersen burada otomatik /checkout yönlendirmesi de ekleyebilirsin.
-                      },
-                    })
-                  }
-                >
-                  Giriş Yap
-                </Typography>
-              </Typography>
-            </Stack>
-          )}
           <Stack sx={styles.products}>
             {cart &&
               (cart.length ? (

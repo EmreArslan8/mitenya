@@ -1,8 +1,13 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { withSentryConfig } = require('@sentry/nextjs');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const path = require('path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {
+    root: path.resolve(__dirname),
+  },
   /**
    * GÜVENLİK UYARISI: Bu ayarlar geçici olarak aktif.
    * Production öncesi tüm TypeScript ve ESLint hatalarının düzeltilmesi önerilir.

@@ -39,16 +39,16 @@ interface FavoritesContextProviderProps {
 }
 
 export const FavoritesContextProvider = ({ children }: FavoritesContextProviderProps) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isGuest } = useAuth();
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
   const [isFavoritesLoading, setIsFavoritesLoading] = useState(false);
   const [isFavoritesReady, setIsFavoritesReady] = useState(false);
 
   const refreshFavorites = useCallback(async () => {
-    if (isAuthenticated !== true) {
+    if (isAuthenticated !== true || isGuest) {
       setFavoriteIds(new Set());
-      setIsFavoritesReady(isAuthenticated === false);
+      setIsFavoritesReady(isAuthenticated === false || isGuest);
       return;
     }
 
@@ -67,7 +67,7 @@ export const FavoritesContextProvider = ({ children }: FavoritesContextProviderP
       setIsFavoritesLoading(false);
       setIsFavoritesReady(true);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isGuest]);
 
   useEffect(() => {
     setIsFavoritesReady(false);
@@ -86,7 +86,7 @@ export const FavoritesContextProvider = ({ children }: FavoritesContextProviderP
 
   const toggleFavorite = useCallback(
     async (productId: string): Promise<ToggleFavoriteResult> => {
-      if (isAuthenticated !== true) {
+      if (isAuthenticated !== true || isGuest) {
         return { ok: false, unauthorized: true };
       }
       if (!productId || loadingIds.has(productId)) {
@@ -143,7 +143,7 @@ export const FavoritesContextProvider = ({ children }: FavoritesContextProviderP
         });
       }
     },
-    [favoriteIds, isAuthenticated, loadingIds]
+    [favoriteIds, isAuthenticated, isGuest, loadingIds]
   );
 
   const value = useMemo(

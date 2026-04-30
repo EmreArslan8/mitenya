@@ -15,7 +15,7 @@ interface AddressSelectorProps {
 }
 
 const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSelectorProps) => {
-  const { isAuthenticated, openAuthenticator } = useAuth();
+  const { isAuthenticated, isGuest, openAuthenticator } = useAuth();
   const styles = useStyles();
   // TODO: Read the locale from cookie in the redirect helper.
 
@@ -78,7 +78,9 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
           size="small"
           variant="contained"
           startIcon={<Plus />}
-          onClick={() => (isAuthenticated ? setNewAddressModalOpen(true) : openAuthenticator())}
+          onClick={() =>
+            isAuthenticated && !isGuest ? setNewAddressModalOpen(true) : openAuthenticator()
+          }
           sx={styles.addButton}
         >
           Yeni adres ekle

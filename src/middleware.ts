@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) {
+    if (!user || user.is_anonymous) {
       const url = request.nextUrl.clone();
       url.pathname = '/';
       url.searchParams.set('login', 'true');

@@ -10,7 +10,7 @@ import tokenize from '@/lib/utils/tokenize';
 import { Stack, Typography } from '@mui/material';
 import { useFormik } from 'formik';
 import { Asterisk } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 type AddressFormFields = {
   name: string;
@@ -31,13 +31,21 @@ interface AddressFormProps {
   initialValues?: Partial<AddressData>;
   disabledFields?: Partial<Record<keyof AddressData, boolean>>;
   submitTrigger?: unknown;
+  showEmail?: boolean;
+  autoName?: string;
+  onDraftChange?: (address: Partial<AddressData>) => void;
 }
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const AddressForm = ({
   onSubmit,
   initialValues,
   disabledFields = {},
   submitTrigger,
+  showEmail = false,
+  autoName,
+  onDraftChange,
 }: AddressFormProps) => {
   const isMounted = useRef(false);
   const [cities, setCities] = useState<Array<{ id: number; name: string; plaka: number }>>([]);
@@ -51,13 +59,17 @@ const AddressForm = ({
   const validate = (values: AddressFormFields) => {
     const errors: Partial<Record<keyof AddressFormFields, string>> = {};
 
-    if (!values.name) errors.name = 'Zorunlu alan';
+    if (!autoName && !values.name) errors.name = 'Zorunlu alan';
     if (!values.contactName) errors.contactName = 'Zorunlu alan';
     if (!values.contactSurname) errors.contactSurname = 'Zorunlu alan';
     if (!values.phoneNumber) errors.phoneNumber = 'Zorunlu alan';
     if (!values.lines || values.lines.length < 10) errors.lines = 'En az 10 karakter girin';
     if (!values.city) errors.city = 'Zorunlu alan';
     if (!values.district) errors.district = 'Zorunlu alan';
+    if (showEmail) {
+      if (!values.email) errors.email = 'Zorunlu alan';
+      else if (!emailRegex.test(values.email)) errors.email = 'Geçerli bir e-posta girin';
+    }
 
     return errors;
   };
@@ -83,8 +95,9 @@ const AddressForm = ({
     },
   } as const;
 
-  const formik = useFormik<AddressFormFields>({
-    initialValues: {
+  const normalizedInitialValues = useMemo(() => {
+    const formValues = initialValues as Partial<AddressFormFields> | undefined;
+    return {
       name: '',
       contactName: '',
       contactSurname: '',
@@ -97,23 +110,36 @@ const AddressForm = ({
       countryCode: 'TR',
       email: '',
       ...initialValues,
-    },
+      lines:
+        formValues?.lines ??
+        [initialValues?.line1, initialValues?.line3].filter(Boolean).join(' '),
+      neighborhood: formValues?.neighborhood ?? initialValues?.line2 ?? '',
+    };
+  }, [initialValues]);
+
+  const valuesToAddress = (values: AddressFormFields): Partial<AddressData> => {
+    const { lines, ...rest } = values;
+    const [line1, line2] = tokenize(lines, 30);
+
+    return {
+      ...rest,
+      name: autoName ?? rest.name,
+      phoneCode: '+90',
+      countryCode: rest.countryCode as DestinationCountry,
+      line1,
+      line2: values.neighborhood || line2,
+      line3: '',
+      postcode: '',
+      state: '',
+    };
+  };
+
+  const formik = useFormik<AddressFormFields>({
+    initialValues: normalizedInitialValues,
     enableReinitialize: true,
     validate,
     onSubmit: (values) => {
-      const { lines, ...rest } = values;
-      const [line1, line2] = tokenize(lines, 30);
-
-      onSubmit({
-        ...rest,
-        phoneCode: '+90',
-        countryCode: rest.countryCode as DestinationCountry,
-        line1,
-        line2: values.neighborhood || line2,
-        line3: '',
-        postcode: '',
-        state: '',
-      });
+      onSubmit(valuesToAddress(values) as AddressData);
     },
   });
 
@@ -166,6 +192,10 @@ const AddressForm = ({
     else isMounted.current = true;
   }, [submitTrigger]);
 
+  useEffect(() => {
+    onDraftChange?.(valuesToAddress(formik.values));
+  }, [formik.values, onDraftChange]);
+
   return (
     <Stack gap={2}>
       <form onSubmit={formik.handleSubmit}>
@@ -190,6 +220,17 @@ const AddressForm = ({
               props={{ sx: fieldSx }}
             />
           </Stack>
+
+          {showEmail && (
+            <FormikTextField
+              fieldKey="email"
+              label="E-posta"
+              formik={formik}
+              required
+              placeholder="ornek@email.com"
+              props={{ sx: fieldSx, type: 'email' }}
+            />
+          )}
 
           <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
             <Stack width="100%">
@@ -253,15 +294,17 @@ const AddressForm = ({
             />
           </Stack>
 
-          <FormikTextField
-            fieldKey="name"
-            label="Adres Başlığı"
-            formik={formik}
-            required
-            disabled={disabledFields.name}
-            placeholder="Adres Başlığı Giriniz"
-            props={{ sx: fieldSx }}
-          />
+          {!autoName && (
+            <FormikTextField
+              fieldKey="name"
+              label="Adres Başlığı"
+              formik={formik}
+              required
+              disabled={disabledFields.name}
+              placeholder="Adres Başlığı Giriniz"
+              props={{ sx: fieldSx }}
+            />
+          )}
 
 
           {/*

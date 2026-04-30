@@ -41,7 +41,7 @@ import ShoppingCartButton from '../ShoppingCart/ShoppingCartButton';
 import ModalCard from '../common/ModalCard';
 import CategoriesDrawer from './CategoriesDrawer';
 import useStyles, { ANNOUNCEMENT_HEIGHT } from './styles';
-import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, Home, History, Settings, Menu, Heart, User, ChevronRight } from 'lucide-react';
+import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, History, Settings, Menu, User } from 'lucide-react';
 
 
 const getSupportUrl = 'https://api.whatsapp.com/send?phone=905070617930';
@@ -65,7 +65,7 @@ const Navigation = ({ data }: NavigationProps) => {
   const isSearchRoute = pathname === '/search';
   const isMobileSearchRoute = smDown && isSearchRoute;
   const isMinimal = MINIMAL_ROUTES.some((r) => pathname?.startsWith(r));
-  const { isAuthenticated, openAuthenticator } = useAuth();
+  const { isAuthenticated, isGuest, openAuthenticator } = useAuth();
   const { numItems, newProductAdded } = useContext(ShopContext);
   const isCartEmpty = !numItems;
   const prevScrollPosition = useRef(0);
@@ -122,7 +122,7 @@ const Navigation = ({ data }: NavigationProps) => {
   };
 
   const handleAccountButtonClick = (destination: string = '/orders') => {
-    if (isAuthenticated) return router.push(destination);
+    if (isAuthenticated && !isGuest) return router.push(destination);
     const options = {
       onSuccess: () => router.push(destination),
     };
@@ -414,7 +414,7 @@ const Navigation = ({ data }: NavigationProps) => {
                     <Stack sx={styles.actions}>
                       <MenuItem sx={styles.action} onClick={() => handleAccountButtonClick()}>
                         <User />
-                        {isAuthenticated ? 'Hesabım' : 'Giriş Yap'}
+                        {isAuthenticated && !isGuest ? 'Hesabım' : 'Giriş Yap'}
                       </MenuItem>
                       <ShoppingCartButton />
                     </Stack>
@@ -572,7 +572,7 @@ const Navigation = ({ data }: NavigationProps) => {
             <Grid container spacing={1} pb={9}>
               <Grid item xs={12}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  {isAuthenticated ? (
+                  {isAuthenticated && !isGuest ? (
                     <MenuItem onClick={signOut} sx={styles.logoutButton}>
                       <LogOut /> Çıkış
                     </MenuItem>
@@ -629,6 +629,7 @@ const Navigation = ({ data }: NavigationProps) => {
             onClose={() => setCategoriesOpen(false)}
             categories={data?.categories}
             isAuthenticated={isAuthenticated ?? undefined}
+            isGuest={isGuest}
             onAccount={() => handleAccountButtonClick('/settings')}
             onOrders={() => handleAccountButtonClick('/orders')}
             onFavorites={() => handleAccountButtonClick('/settings?section=favorites')}

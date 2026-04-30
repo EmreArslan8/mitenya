@@ -18,6 +18,7 @@ interface CategoriesDrawerProps {
   open: boolean;
   categories?: CategoryParent[];
   isAuthenticated?: boolean;
+  isGuest?: boolean;
   onClose: () => void;
   onAccount?: () => void;
   onFavorites?: () => void;
@@ -29,6 +30,7 @@ const CategoriesDrawer = ({
   open,
   categories,
   isAuthenticated,
+  isGuest,
   onClose,
   onAccount,
   onFavorites,
@@ -108,7 +110,7 @@ const CategoriesDrawer = ({
             <MenuItem sx={styles.actionItem} onClick={() => handleAction(onAccount)} disabled={!onAccount}>
               <User size={32} strokeWidth={1.5} style={styles.actionIcon} />
               <Typography sx={styles.actionLabel}>
-                {isAuthenticated ? 'Hesabım' : 'Giriş yap'}
+                {isAuthenticated && !isGuest ? 'Hesabım' : 'Giriş yap'}
               </Typography>
             </MenuItem>
             

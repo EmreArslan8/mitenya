@@ -135,6 +135,11 @@ export async function POST(req: NextRequest) {
       currency = 'TRY',
       consents,
     } = validation.data;
+    const effectiveEmail = user.email ?? userEmailFromBody;
+
+    if (!effectiveEmail) {
+      return NextResponse.json({ error: 'Email zorunludur' }, { status: 400 });
+    }
 
     const productResults = await Promise.all(
       items.map(async (item) => {
@@ -191,7 +196,7 @@ export async function POST(req: NextRequest) {
       .from('checkout_sessions')
       .insert({
         user_id: user.id,
-        user_email: user.email ?? userEmailFromBody ?? null,
+        user_email: effectiveEmail,
         status: 'active',
         payment_method,
         cart_snapshot: sanitizedItems,
@@ -271,7 +276,7 @@ export async function POST(req: NextRequest) {
         pageUrl: `${process.env.NEXT_PUBLIC_HOST_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mitenya.com'}/checkout`,
         referrer: attribution?.referrer ?? null,
         user: {
-          email: user.email ?? userEmailFromBody ?? null,
+          email: effectiveEmail,
           phone: shipping_address.phone ?? null,
           externalId: user.id,
           ip: userIp,

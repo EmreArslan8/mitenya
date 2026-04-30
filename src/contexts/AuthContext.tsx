@@ -21,12 +21,14 @@ import React, {
 
 interface AuthContextState {
   isAuthenticated: boolean | undefined;
+  isGuest: boolean;
   setIsAuthenticated: Dispatch<SetStateAction<boolean | undefined>>;
   customerData: CustomerData | undefined;
   setCustomerData: Dispatch<SetStateAction<CustomerData | undefined>>;
   setCustomerCulture: (newCulture: string) => void;
   openAuthenticator: (options?: { onClose?: () => void; onSuccess?: () => void }) => void;
   closeAuthenticator: () => void;
+  signInAsGuest: () => Promise<void>;
 }
 
 export const AuthContext = React.createContext<AuthContextState | null>(null);
@@ -45,6 +47,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const [customerData, setCustomerData] = useState<CustomerData>();
   const { getCustomerData, createCustomer } = useCustomerData();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>();
+  const [isGuest, setIsGuest] = useState<boolean>(false);
   const [authenticatorOpen, setAuthenticatorOpen] = useState<boolean>(false);
   const [onAuthenticatorClose, setOnAuthenticatorClose] = useState<(() => void) | undefined>();
   const [onAuthenticatorSuccess, setOnAuthenticatorSuccess] = useState<(() => void) | undefined>();
@@ -71,14 +74,18 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   }, [customerData]);
 
   const initCustomerData = async (user: User) => {
-    // Prevent multiple simultaneous calls
-    if (initializingRef.current) {
-      return;
-    }
-
+    if (initializingRef.current) return;
     initializingRef.current = true;
 
     try {
+      if (user.is_anonymous) {
+        setIsGuest(true);
+        setIsAuthenticated(true);
+        setCustomerData(undefined);
+        return;
+      }
+      setIsGuest(false);
+
       // EXISTING CUSTOMER CHECK
       const existing = await getCustomerDataRef.current();
 
@@ -122,7 +129,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
         sms_permission: false,
         userId: user.id,
       });
-    } catch (err) {
+    } catch {
       setIsAuthenticated(false);
     } finally {
       initializingRef.current = false;
@@ -159,7 +166,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
           setIsAuthenticated(false);
           setCustomerData(undefined);
         }
-      } catch (err) {
+      } catch {
         setIsAuthenticated(false);
         setCustomerData(undefined);
       }
@@ -184,6 +191,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
           }
         } else if (event === 'SIGNED_OUT') {
           setIsAuthenticated(false);
+          setIsGuest(false);
           setCustomerData(undefined);
         }
       }
@@ -196,6 +204,17 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
 
   const setCustomerCulture = useCallback((newCulture: string) => {
     setCustomerData((prev) => (prev ? { ...prev, culture: newCulture } : prev));
+  }, []);
+
+  const signInAsGuest = useCallback(async () => {
+    const supabase = supabaseRef.current;
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) throw error;
+    if (data.user?.is_anonymous) {
+      setIsGuest(true);
+      setIsAuthenticated(true);
+      setCustomerData(undefined);
+    }
   }, []);
 
   const openAuthenticator = useCallback((options?: { onClose?: () => void; onSuccess?: () => void }) => {
@@ -211,12 +230,14 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       customerData,
       setCustomerData,
       isAuthenticated,
+      isGuest,
       setIsAuthenticated,
       setCustomerCulture,
       openAuthenticator,
       closeAuthenticator,
+      signInAsGuest,
     }),
-    [customerData, isAuthenticated, setCustomerCulture, openAuthenticator, closeAuthenticator]
+    [customerData, isAuthenticated, isGuest, setCustomerCulture, openAuthenticator, closeAuthenticator, signInAsGuest]
   );
 
   return (
