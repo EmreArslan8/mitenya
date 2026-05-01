@@ -5,7 +5,6 @@ import Button from '@/components/common/Button';
 import Banner from '@/components/common/Banner';
 import { CrossFade } from '@/components/common/CrossFade';
 import Link from '@/components/common/Link';
-import WelcomeCouponModal from '@/components/WelcomeCouponModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { ShopContext } from '@/contexts/ShopContext';
@@ -15,15 +14,12 @@ import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
 import { Box, Divider, Grid, Rating, Snackbar, Stack, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import ProductDescription from './components/ProductDescription';
-import ProductFaq from './components/ProductFaq';
+import dynamic from 'next/dynamic';
 import ProductImageGalleryClient from './components/ProductImageGallery/ProductImageGalleryClient';
-import ProductShopAssistant from './components/ProductShopAssistant';
-import ProductRecommendations from './components/ProductRecommendations';
-import ProductReviews from './components/ProductReviews';
-import ProductSizeGuide from './components/ProductSizeGuide';
 import ProductStickyBar from './components/ProductStickyBar';
 import ProductVariants from './components/ProductVariants';
+import ProductSizeGuide from './components/ProductSizeGuide';
+import ProductDescription from './components/ProductDescription';
 import useStyles from './styles';
 import formatPrice from '@/lib/utils/formatPrice';
 import { Check, ChevronRight, Truck, Undo2 } from 'lucide-react';
@@ -38,8 +34,14 @@ import {
   trackTikTokWithUser,
   trackTikTokViewContent,
 } from '@/lib/analytics/tiktokPixel';
-import QATypewriterPill from './components/ProductShopAssistant/QATypewriterPill';
 import { useLiveProductData } from './hooks/useLiveProductData';
+
+const ProductReviews = dynamic(() => import('./components/ProductReviews'), { ssr: false });
+const ProductRecommendations = dynamic(() => import('./components/ProductRecommendations'), { ssr: false });
+const ProductFaq = dynamic(() => import('./components/ProductFaq'), { ssr: false });
+const ProductShopAssistant = dynamic(() => import('./components/ProductShopAssistant'), { ssr: false });
+const QATypewriterPill = dynamic(() => import('./components/ProductShopAssistant/QATypewriterPill'), { ssr: false });
+const WelcomeCouponModal = dynamic(() => import('@/components/WelcomeCouponModal'), { ssr: false });
 
 const MAX_CART_QUANTITY = 5;
 
