@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import Button from '@/components/common/Button';
 import Banner from '@/components/common/Banner';
 import { CrossFade } from '@/components/common/CrossFade';
@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { ShopContext } from '@/contexts/ShopContext';
 import { ShopCoupon, ShopProductData } from '@/lib/api/types';
+import type { CMSBlock } from '@/components/cms/blocks';
 import useScreen from '@/lib/hooks/useScreen';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
@@ -19,7 +20,6 @@ import ProductImageGalleryClient from './components/ProductImageGallery/ProductI
 import ProductStickyBar from './components/ProductStickyBar';
 import ProductVariants from './components/ProductVariants';
 import ProductSizeGuide from './components/ProductSizeGuide';
-import ProductDescription from './components/ProductDescription';
 import useStyles from './styles';
 import formatPrice from '@/lib/utils/formatPrice';
 import { Check, ChevronRight, Truck, Undo2 } from 'lucide-react';
@@ -34,13 +34,15 @@ import {
   trackTikTokWithUser,
   trackTikTokViewContent,
 } from '@/lib/analytics/tiktokPixel';
+import QATypewriterPill from './components/ProductShopAssistant/QATypewriterPill';
 import { useLiveProductData } from './hooks/useLiveProductData';
 
+const ProductDescription = dynamic(() => import('./components/ProductDescription'), { ssr: false });
 const ProductReviews = dynamic(() => import('./components/ProductReviews'), { ssr: false });
 const ProductRecommendations = dynamic(() => import('./components/ProductRecommendations'), { ssr: false });
 const ProductFaq = dynamic(() => import('./components/ProductFaq'), { ssr: false });
 const ProductShopAssistant = dynamic(() => import('./components/ProductShopAssistant'), { ssr: false });
-const QATypewriterPill = dynamic(() => import('./components/ProductShopAssistant/QATypewriterPill'), { ssr: false });
+const ProductPdpBlocks = dynamic(() => import('./components/ProductPdpBlocks'), { ssr: false });
 const WelcomeCouponModal = dynamic(() => import('@/components/WelcomeCouponModal'), { ssr: false });
 
 const MAX_CART_QUANTITY = 5;
@@ -49,12 +51,12 @@ const ProductPageView = ({
   data,
   coupons = [],
   initialGalleryIsDesktop = true,
-  pdpBlocksSlot,
+  pdpBlocks = [],
 }: {
   data: ShopProductData;
   coupons?: ShopCoupon[];
   initialGalleryIsDesktop?: boolean;
-  pdpBlocksSlot?: ReactNode;
+  pdpBlocks?: CMSBlock[];
 }) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
   const { customerData, isAuthenticated, isGuest, openAuthenticator } = useAuth();
@@ -568,7 +570,7 @@ const ProductPageView = ({
           </Grid>
         </Grid>
       </Stack>
-      {pdpBlocksSlot}
+      {pdpBlocks.length ? <ProductPdpBlocks blocks={pdpBlocks} /> : null}
       <ProductFaq faqs={data.faqs} productName={fullName} />
       <Box ref={reviewsSectionRef} id="product-reviews">
         <ProductReviews

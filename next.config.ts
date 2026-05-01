@@ -2,6 +2,11 @@
 const { withSentryConfig } = require('@sentry/nextjs');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const path = require('path');
+const withBundleAnalyzer =
+  process.env.ANALYZE === 'true'
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    ? require('@next/bundle-analyzer')({ enabled: true })
+    : (config: unknown) => config;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -151,7 +156,7 @@ const nextConfig = {
   },
 };
 
-module.exports = withSentryConfig(nextConfig, {
+const sentryNextConfig = withSentryConfig(nextConfig, {
   org: 'mitenya',
   project: 'javascript-nextjs',
   silent: !process.env.CI,
@@ -159,3 +164,5 @@ module.exports = withSentryConfig(nextConfig, {
   disableLogger: true,
   automaticVercelMonitors: false,
 });
+
+module.exports = withBundleAnalyzer(sentryNextConfig);

@@ -7,7 +7,6 @@ import { unstable_cache } from 'next/cache';
 import JsonLdScript from '@/components/SEO/JsonLdScript';
 import { buildBreadcrumbJsonLd, buildFaqJsonLd, buildProductJsonLd } from '@/lib/seo/productJsonLd';
 import { mapProductToPdpViewData } from '@/lib/shop/productGallery';
-import ProductPdpBlocks from './components/ProductPdpBlocks';
 
 // Ürün verisi 1 saat cache'lenir. Fiyat/stok client-side live endpoint'ten alınır.
 // Module level'da tanımlanır — her çağrıda yeni wrapper oluşmasını engeller.
@@ -85,7 +84,7 @@ const SuspensedView = async ({ params }: { params: { id: string } }) => {
         data={viewData}
         coupons={couponSet?.coupons ?? []}
         initialGalleryIsDesktop={initialGalleryIsDesktop}
-        pdpBlocksSlot={pdpBlocks?.length ? <ProductPdpBlocks blocks={pdpBlocks} /> : undefined}
+        pdpBlocks={pdpBlocks ?? []}
       />
     </>
   );
