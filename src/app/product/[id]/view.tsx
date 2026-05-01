@@ -39,6 +39,7 @@ import {
   trackTikTokViewContent,
 } from '@/lib/analytics/tiktokPixel';
 import QATypewriterPill from './components/ProductShopAssistant/QATypewriterPill';
+import { useLiveProductData } from './hooks/useLiveProductData';
 
 const MAX_CART_QUANTITY = 5;
 
@@ -70,17 +71,24 @@ const ProductPageView = ({
   const [feedback, setFeedback] = useState<{ title: string; variant: 'success' | 'error' } | null>(null);
   const checkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const hasDiscount = data.price.originalPrice > data.price.currentPrice;
-  const isOutOfStock = typeof data.quantity === 'number' && data.quantity <= 0;
+  // Fiyat ve stok her zaman live endpoint'ten alınır — cache'lenmez
+  const { price, quantity, stockStatus } = useLiveProductData(String(data.id ?? ''), {
+    price: data.price,
+    quantity: data.quantity,
+    stockStatus: data.stockStatus,
+  });
+
+  const hasDiscount = price.originalPrice > price.currentPrice;
+  const isOutOfStock = typeof quantity === 'number' && quantity <= 0;
   const stockStatusConfig =
-    data.stockStatus === 'in_stock'
+    stockStatus === 'in_stock'
       ? { label: 'Stokta var', color: 'success.main' }
-      : data.stockStatus === 'low_stock'
+      : stockStatus === 'low_stock'
         ? { label: 'Tükenmek üzere, hemen sipariş edin', color: 'warning.main' }
-        : data.stockStatus === 'out_of_stock'
+        : stockStatus === 'out_of_stock'
           ? { label: 'Stokta yok', color: 'error.main' }
           : undefined;
-  const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
+  const discountPercent = hasDiscount ? getDiscountPercent(price) : 0;
   const brandLabel = data.brand?.trim();
   const brandSearchToken = data.brandSlug ?? data.brandId;
   const brandHref = brandSearchToken
@@ -147,7 +155,7 @@ const ProductPageView = ({
   };
 
   const handleAddToCart = () => {
-    const success = handleAddItem({ ...data, variants: variants });
+    const success = handleAddItem({ ...data, price, quantity, stockStatus, variants });
     if (!success) return;
     setShowCheck(true);
     if (checkTimeoutRef.current) clearTimeout(checkTimeoutRef.current);
@@ -156,7 +164,7 @@ const ProductPageView = ({
 
   const handleBuyNow = () => {
     if (isOutOfStock) return;
-    const success = handleAddItem({ ...data, variants: variants });
+    const success = handleAddItem({ ...data, price, quantity, stockStatus, variants });
     if (!success) return;
     router.push('/checkout');
   };
@@ -257,8 +265,8 @@ const ProductPageView = ({
           content_ids: [productId],
           content_name: data.name,
           content_category: data.category,
-          value: data.price.currentPrice,
-          currency: data.price.currency ?? 'TRY',
+          value: price.currentPrice,
+          currency: price.currency ?? 'TRY',
         }),
       });
     }
@@ -302,6 +310,7 @@ const ProductPageView = ({
       cleanupMeta();
       cleanupTikTok();
     };
+    // data.price: initial (cached) değer kullanılır — live price gelince tekrar tetiklemez
   }, [data.category, data.id, data.name, data.price.currency, data.price.currentPrice]);
 
   useEffect(() => {
@@ -437,11 +446,11 @@ const ProductPageView = ({
               <Stack sx={styles.priceContainer}>
                 {hasDiscount && (
                   <Typography sx={styles.originalPrice}>
-                    {formatPrice(data.price.originalPrice, data.price.currency)}
+                    {formatPrice(price.originalPrice, price.currency)}
                   </Typography>
                 )}
                 <Typography variant="infoValue" sx={styles.currentPrice}>
-                  {formatPrice(data.price.currentPrice, data.price.currency)}
+                  {formatPrice(price.currentPrice, price.currency)}
                 </Typography>
                 {hasDiscount && <Stack sx={styles.discountBadge}>{`%${discountPercent} İndirim`}</Stack>}
               </Stack>
@@ -571,7 +580,7 @@ const ProductPageView = ({
       <ProductStickyBar
         imgSrc={data.imgSrc ?? data.images?.[0]}
         name={data.name}
-        price={data.price}
+        price={price}
         visible={shouldShowStickyBar}
         disabled={addToCartDisabled}
         loading={addToCartLoading}

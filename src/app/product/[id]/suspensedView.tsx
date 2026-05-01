@@ -3,10 +3,19 @@ import { fetchProductPdpBlocks, fetchShopCouponSet } from '@/lib/api/cms';
 import ProductPageView from './view';
 import { notFound } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
+import { unstable_cache } from 'next/cache';
 import JsonLdScript from '@/components/SEO/JsonLdScript';
 import { buildBreadcrumbJsonLd, buildFaqJsonLd, buildProductJsonLd } from '@/lib/seo/productJsonLd';
 import { mapProductToPdpViewData } from '@/lib/shop/productGallery';
 import ProductPdpBlocks from './components/ProductPdpBlocks';
+
+// Ürün verisi 1 saat cache'lenir. Fiyat/stok client-side live endpoint'ten alınır.
+// Module level'da tanımlanır — her çağrıda yeni wrapper oluşmasını engeller.
+const getCachedProductData = unstable_cache(
+  async (id: string) => fetchProductDataSupabase(id),
+  ['product-data'],
+  { revalidate: 3600 }
+);
 
 const GALLERY_VIEWPORT_COOKIE = 'gallery_viewport';
 const MOBILE_USER_AGENT_PATTERN =
@@ -52,7 +61,7 @@ const SuspensedView = async ({ params }: { params: { id: string } }) => {
     userAgent,
   });
 
-  const data = await fetchProductDataSupabase(id);
+  const data = await getCachedProductData(id);
 
   if (!data) {
     notFound();

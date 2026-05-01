@@ -5,6 +5,11 @@ const path = require('path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  cacheHandler:
+    process.env.NODE_ENV === 'production'
+      ? path.resolve(__dirname, 'cache-handler.js')
+      : undefined,
+  cacheMaxMemorySize: 0, // disable in-memory LRU when Redis is active
   turbopack: {
     root: path.resolve(__dirname),
   },

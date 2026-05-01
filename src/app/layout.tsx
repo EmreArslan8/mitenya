@@ -39,6 +39,9 @@ export default async function RootLayout({
         )}
 
 
+        {/* CDN ve external image servisleri için bağlantı önceden açılır */}
+        <link rel="preconnect" href="https://cdn.mitenya.com" />
+        <link rel="preconnect" href="https://res.cloudinary.com" />
         <meta
           name="emotion-insertion-point"
           content="emotion-insertion-point"
