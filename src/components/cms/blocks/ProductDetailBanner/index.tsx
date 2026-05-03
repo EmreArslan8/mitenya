@@ -57,8 +57,6 @@ const ProductDetailBanner = ({
           src={imageAttributes.url}
           alt={imageAttributes.alternativeText || title}
           fill
-          priority
-          fetchPriority="high"
           style={styles.image}
         />
       </Box>
