@@ -1,10 +1,11 @@
 import { ShopProductData, ShopResponsiveImage } from '@/lib/api/types';
-import { R2_IMAGE_PROFILES, r2ImageSrcSet, r2ImageUrl, r2Url } from '@/lib/utils/r2';
+import { r2ImageSrcSet, r2ImageUrl, r2Url } from '@/lib/utils/r2';
+import { PRODUCT_PDP_MOBILE_IMAGE_PROFILE } from './productPdpImageProfile';
 
 export function buildMobileProductGalleryImages(images?: string[]): ShopResponsiveImage[] {
   if (!images?.length) return [];
 
-  const profile = R2_IMAGE_PROFILES.productPdpMobile;
+  const profile = PRODUCT_PDP_MOBILE_IMAGE_PROFILE;
 
   return images.map((image) => ({
     src: r2ImageUrl(image, {

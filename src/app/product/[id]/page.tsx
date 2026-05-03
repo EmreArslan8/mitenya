@@ -1,12 +1,13 @@
 import { fetchProductDataSupabase } from '@/lib/api/supabaseProducts';
-import isPreviewBot from '@/lib/utils/isPreviewBot';
-import isSSR from '@/lib/utils/isSSR';
+import { PRODUCT_PDP_MOBILE_IMAGE_PROFILE } from '@/lib/shop/productPdpImageProfile';
 import { r2ImageSrcSet, r2ImageUrl } from '@/lib/utils/r2';
 import { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
 import { Suspense } from 'react';
 import Loading from './loading';
 import SuspensedView from './suspensedView';
+
+export const revalidate = 3600;
 
 // suspensedView ile aynı cache — Supabase'e tek seferinde gidilir
 const getCachedProductData = unstable_cache(
@@ -16,16 +17,26 @@ const getCachedProductData = unstable_cache(
 );
 
 const ProductPage = async ({ params }: { params: { id: string } }) => {
-  if (await isPreviewBot()) return <></>;
-
   const { id } = await params;
 
   // LCP fotoğrafını Suspense çözülmeden preload et.
-  // Slug → image path pattern tutarlı olduğu için spekülatif olarak eklenebilir.
   const r2Base = process.env.NEXT_PUBLIC_R2_BASE_URL;
-  const lcpPath = `products/${id}/main.webp`;
-  const lcpSrc = r2Base ? r2ImageUrl(lcpPath, { width: 960, quality: 82, format: 'auto' }) : null;
-  const lcpSrcSet = r2Base ? r2ImageSrcSet(lcpPath, [720, 960, 1200], { quality: 82, format: 'auto' }) : null;
+  const data = await getCachedProductData(id);
+  const lcpPath = data?.images?.[0] ?? data?.imgSrc;
+  const lcpProfile = PRODUCT_PDP_MOBILE_IMAGE_PROFILE;
+  const lcpSrc = r2Base && lcpPath
+    ? r2ImageUrl(lcpPath, {
+        width: lcpProfile.widths[1],
+        quality: lcpProfile.quality,
+        format: lcpProfile.format,
+      })
+    : null;
+  const lcpSrcSet = r2Base && lcpPath
+    ? r2ImageSrcSet(lcpPath, lcpProfile.widths, {
+        quality: lcpProfile.quality,
+        format: lcpProfile.format,
+      })
+    : null;
 
   return (
     <>
@@ -34,9 +45,10 @@ const ProductPage = async ({ params }: { params: { id: string } }) => {
           rel="preload"
           as="image"
           href={lcpSrc}
-          // @ts-expect-error — imagesrcset/imagesizes geçerli HTML attr, React tipleri henüz eksik
-          imagesrcset={lcpSrcSet}
-          imagesizes="100vw"
+          fetchPriority="high"
+          // @ts-expect-error — imageSrcSet/imageSizes preload attr'lari React tiplerinde eksik olabilir.
+          imageSrcSet={lcpSrcSet}
+          imageSizes={lcpProfile.sizes}
         />
       )}
       <Suspense fallback={<Loading />} key={id}>
@@ -54,8 +66,6 @@ export async function generateMetadata({
   params: { id: string };
 }): Promise<Metadata> {
   const { id } = await params;
-
-  if (!isSSR() && !isPreviewBot()) return {};
 
   const data = await getCachedProductData(id);
 
@@ -87,7 +97,6 @@ export async function generateMetadata({
   };
 }
 
-// force-dynamic kaldırıldı — isPreviewBot() headers() çağırdığı için route zaten dynamic.
 // Ürün verisi suspensedView içinde unstable_cache ile 1 saat cache'leniyor.
 
 export default ProductPage;

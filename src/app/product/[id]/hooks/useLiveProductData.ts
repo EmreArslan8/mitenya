@@ -9,19 +9,47 @@ export type LiveProductData = {
   stockStatus: ShopProductData['stockStatus'];
 };
 
-export function useLiveProductData(id: string, initial: LiveProductData): LiveProductData {
+export type LiveProductState = LiveProductData & {
+  isLoading: boolean;
+  isLive: boolean;
+  error: boolean;
+};
+
+export function useLiveProductData(id: string, initial: LiveProductData): LiveProductState {
   const [data, setData] = useState<LiveProductData>(initial);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLive, setIsLive] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
+    setData(initial);
+    setIsLoading(true);
+    setIsLive(false);
+    setError(false);
 
-    fetch(`/api/products/${id}/live`, { signal: controller.signal })
-      .then((r) => (r.ok ? (r.json() as Promise<LiveProductData>) : null))
-      .then((json) => { if (json) setData(json); })
-      .catch(() => {});
+    fetch(`/api/products/${encodeURIComponent(id)}/live`, {
+      cache: 'no-store',
+      signal: controller.signal,
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error('Live product data request failed');
+        return r.json() as Promise<LiveProductData>;
+      })
+      .then((json) => {
+        setData(json);
+        setIsLive(true);
+      })
+      .catch((err) => {
+        if (err?.name === 'AbortError') return;
+        setError(true);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false);
+      });
 
     return () => controller.abort();
-  }, [id]);
+  }, [id, initial]);
 
-  return data;
+  return { ...data, isLoading, isLive, error };
 }

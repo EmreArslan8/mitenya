@@ -109,39 +109,7 @@ const nextConfig = {
         hostname: 'localhost',
         port: '1337',
         pathname: '/uploads/**',
-      },
-      {
-        protocol: "https",
-        hostname: "funny-animal-09dc5ed329.media.strapiapp.com", 
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "funny-animal-09dc5ed329.strapiapp.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "funny-animal-09dc5ed329.media.strapiapp.com", 
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "genuine-blessing-adf56ff856.strapiapp.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "genuine-blessing-adf56ff856.media.strapiapp.com",
-        pathname: "/**",
-      },
-            
-      {
-        protocol: "https",
-        hostname: "kozmedo-cms.onrender.com",
-        port: "",
-        pathname: "/uploads/**",
-      },
+      },      
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
