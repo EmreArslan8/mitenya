@@ -1,3 +1,5 @@
+'use client';
+
 import CustomSlider from '@/components/CustomSlider';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import { fetchRecommendations } from '@/lib/api/shop';

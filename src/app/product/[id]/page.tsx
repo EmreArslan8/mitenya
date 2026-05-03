@@ -1,20 +1,47 @@
-import { fetchProductDataSupabase } from '@/lib/api/supabaseProducts';
+import { R2_IMAGE_PROFILES, r2ImageSrcSet, r2ImageUrl } from '@/lib/utils/r2';
 import isPreviewBot from '@/lib/utils/isPreviewBot';
 import isSSR from '@/lib/utils/isSSR';
 import { Metadata } from 'next';
+import { preload } from 'react-dom';
 import { Suspense } from 'react';
+import { getProductData } from './data';
 import Loading from './loading';
 import SuspensedView from './suspensedView';
+
+const preloadProductMainImage = (imagePathOrUrl?: string) => {
+  if (!imagePathOrUrl) return;
+
+  const profile = R2_IMAGE_PROFILES.productPdpPrimary;
+
+  preload(
+    r2ImageUrl(imagePathOrUrl, {
+      width: 960,
+      quality: profile.quality,
+      format: profile.format,
+    }),
+    {
+      as: 'image',
+      fetchPriority: 'high',
+      imageSrcSet: r2ImageSrcSet(imagePathOrUrl, profile.widths, {
+        quality: profile.quality,
+        format: profile.format,
+      }),
+      imageSizes: profile.sizes,
+    }
+  );
+};
 
 const ProductPage = async ({ params }: { params: { id: string } }) => {
   if (await isPreviewBot()) return <></>;
 
-  const { id } = await params; 
+  const { id } = await params;
+  const data = await getProductData(id);
+  preloadProductMainImage(data?.images?.[0] ?? data?.imgSrc);
 
   return (
     <>
       <Suspense fallback={<Loading />} key={id}> 
-        <SuspensedView params={{ id }} />
+        <SuspensedView params={{ id }} initialData={data} />
       </Suspense>
     </>
   );
@@ -31,7 +58,7 @@ export async function generateMetadata({
 
   if (!isSSR() && !isPreviewBot()) return {};
 
-  const data = await fetchProductDataSupabase(id);
+  const data = await getProductData(id);
 
   const fullName = `${data?.brand ?? ''} ${data?.name ?? ''}`.trim();
   const defaultDescription = `${fullName} - Orijinal Kore kozmetik ürünü. En uygun fiyat ve hızlı kargo ile Mitenya'da.`;

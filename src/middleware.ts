@@ -5,10 +5,6 @@ export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
-  supabaseResponse.headers.set('Accept-CH', 'Sec-CH-Viewport-Width, Sec-CH-UA-Mobile');
-  supabaseResponse.headers.set('Critical-CH', 'Sec-CH-Viewport-Width, Sec-CH-UA-Mobile');
-  supabaseResponse.headers.append('Vary', 'Sec-CH-Viewport-Width');
-  supabaseResponse.headers.append('Vary', 'Sec-CH-UA-Mobile');
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

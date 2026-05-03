@@ -14,13 +14,10 @@ import useScreen from '@/lib/hooks/useScreen';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
 import { Box, Divider, Grid, Rating, Snackbar, Stack, Typography } from '@mui/material';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import ProductDescription from './components/ProductDescription';
-import ProductFaq from './components/ProductFaq';
 import ProductImageGalleryClient from './components/ProductImageGallery/ProductImageGalleryClient';
-import ProductShopAssistant from './components/ProductShopAssistant';
-import ProductRecommendations from './components/ProductRecommendations';
-import ProductReviews from './components/ProductReviews';
 import ProductSizeGuide from './components/ProductSizeGuide';
 import ProductStickyBar from './components/ProductStickyBar';
 import ProductVariants from './components/ProductVariants';
@@ -39,6 +36,22 @@ import {
   trackTikTokViewContent,
 } from '@/lib/analytics/tiktokPixel';
 import QATypewriterPill from './components/ProductShopAssistant/QATypewriterPill';
+
+const ProductFaq = dynamic(() => import('./components/ProductFaq'), {
+  loading: () => null,
+});
+const ProductRecommendations = dynamic(() => import('./components/ProductRecommendations'), {
+  ssr: false,
+  loading: () => null,
+});
+const ProductReviews = dynamic(() => import('./components/ProductReviews'), {
+  ssr: false,
+  loading: () => null,
+});
+const ProductShopAssistant = dynamic(() => import('./components/ProductShopAssistant'), {
+  ssr: false,
+  loading: () => null,
+});
 
 const MAX_CART_QUANTITY = 5;
 

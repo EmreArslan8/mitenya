@@ -1,4 +1,3 @@
-import { fetchProductDataSupabase } from '@/lib/api/supabaseProducts';
 import { fetchProductPdpBlocks, fetchShopCouponSet } from '@/lib/api/cms';
 import ProductPageView from './view';
 import { notFound } from 'next/navigation';
@@ -6,7 +5,9 @@ import { cookies, headers } from 'next/headers';
 import JsonLdScript from '@/components/SEO/JsonLdScript';
 import { buildBreadcrumbJsonLd, buildFaqJsonLd, buildProductJsonLd } from '@/lib/seo/productJsonLd';
 import { mapProductToPdpViewData } from '@/lib/shop/productGallery';
+import { ShopProductData } from '@/lib/api/types';
 import ProductPdpBlocks from './components/ProductPdpBlocks';
+import { getProductData } from './data';
 
 const GALLERY_VIEWPORT_COOKIE = 'gallery_viewport';
 const MOBILE_USER_AGENT_PATTERN =
@@ -37,7 +38,13 @@ const getInitialGalleryMode = ({
   return !MOBILE_USER_AGENT_PATTERN.test(userAgent);
 };
 
-const SuspensedView = async ({ params }: { params: { id: string } }) => {
+const SuspensedView = async ({
+  params,
+  initialData,
+}: {
+  params: { id: string };
+  initialData?: ShopProductData | null;
+}) => {
   const id = params.id;
   const requestHeaders = await headers();
   const cookieStore = await cookies();
@@ -52,7 +59,7 @@ const SuspensedView = async ({ params }: { params: { id: string } }) => {
     userAgent,
   });
 
-  const data = await fetchProductDataSupabase(id);
+  const data = initialData ?? await getProductData(id);
 
   if (!data) {
     notFound();
