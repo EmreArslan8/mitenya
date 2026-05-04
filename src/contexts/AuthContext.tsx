@@ -1,6 +1,7 @@
 'use client';
 
-import Authenticator from '@/components/Authenticator';
+import dynamic from 'next/dynamic';
+const Authenticator = dynamic(() => import('@/components/Authenticator'), { ssr: false });
 import { CustomerData } from '@/lib/api/types';
 import useCustomerData from '@/lib/api/useCustomerData';
 import { pushItemToDataLayer } from '@/lib/utils/googleAnalytics';

@@ -88,7 +88,7 @@ const getBlockComponent = (block: CMSBlock, index: number) => {
   return Block ? <Block key={`index-${index}`} {...props} blockIndex={index} /> : null;
 };
 
-const BlockManager = ({ blocks }: { blocks: CMSBlock[] }) => {
+const  BlockManager = ({ blocks }: { blocks: CMSBlock[] }) => {
   return blocks.map((block, index) => getBlockComponent(block, index));
 };
 

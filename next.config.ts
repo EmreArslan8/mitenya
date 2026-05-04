@@ -1,5 +1,7 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
+  productionBrowserSourceMaps: process.env.MITENYA_SOURCE_MAPS === 'true',
   /**
    * GÜVENLİK UYARISI: Bu ayarlar geçici olarak aktif.
    * Production öncesi tüm TypeScript ve ESLint hatalarının düzeltilmesi önerilir.
@@ -143,4 +145,12 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = async () => {
+  if (process.env.ANALYZE !== 'true') return nextConfig;
+
+  const withBundleAnalyzer = (await import('@next/bundle-analyzer')).default({
+    enabled: true,
+  });
+
+  return withBundleAnalyzer(nextConfig);
+};
