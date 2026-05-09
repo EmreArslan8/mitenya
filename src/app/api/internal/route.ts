@@ -7,7 +7,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const response = NextResponse.redirect(new URL('/', request.url));
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? 'mitenya.com';
+  const proto = request.headers.get('x-forwarded-proto') ?? 'https';
+  const response = NextResponse.redirect(`${proto}://${host}/`);
   response.cookies.set('traffic_type', 'internal', {
     maxAge: 60 * 60 * 24 * 365,
     path: '/',
