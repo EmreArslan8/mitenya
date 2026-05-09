@@ -2,6 +2,7 @@
 
 import { onMetaPixelReady, trackPageView } from '@/lib/analytics/metaPixel';
 import { useCookieConsent } from '@/contexts/CookieConsentContext';
+import { isInternalTraffic } from '@/lib/analytics/isInternalTraffic';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 
@@ -13,7 +14,7 @@ export default function MetaPixelPageView() {
   const routeKey = searchParams?.size ? `${pathname}?${searchParams.toString()}` : pathname;
 
   useEffect(() => {
-    if (!consent?.marketing) {
+    if (!consent?.marketing || isInternalTraffic()) {
       initialized.current = false;
       return;
     }

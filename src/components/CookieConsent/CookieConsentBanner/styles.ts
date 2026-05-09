@@ -7,10 +7,11 @@ const useStyles = withPalette((palette) => ({
     right: { xs: 0, sm: 'auto' },
     bottom: { xs: 12, sm: 16 },
     zIndex: 1400,
-    pointerEvents: 'auto',
+    pointerEvents: 'none',
     px: { xs: 1.5, sm: 0 },
   },
   bar: {
+    pointerEvents: 'auto',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'stretch',
@@ -111,6 +112,7 @@ const useStyles = withPalette((palette) => ({
     letterSpacing: '0.02em',
   },
   triggerButton: {
+    pointerEvents: 'auto',
     width: 52,
     height: 52,
     minWidth: 52,

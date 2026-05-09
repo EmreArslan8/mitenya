@@ -2,6 +2,7 @@
 
 import Script from 'next/script';
 import { CookieConsentState } from '@/contexts/CookieConsentContext';
+import { isInternalTraffic } from '@/lib/analytics/isInternalTraffic';
 
 const gtmId = process.env.NEXT_PUBLIC_GTM_ID ?? 'GTM-5CR26XHK';
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? 'G-W2DHP8ZRJN';
@@ -15,7 +16,7 @@ interface CookieConsentScriptsProps {
 }
 
 const CookieConsentScripts = ({ consent, isReady }: CookieConsentScriptsProps) => {
-  if (!isProduction || !isReady) return null;
+  if (!isProduction || !isReady || isInternalTraffic()) return null;
 
   return (
     <>

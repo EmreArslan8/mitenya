@@ -1,6 +1,7 @@
 'use client';
 
 import { useCookieConsent } from '@/contexts/CookieConsentContext';
+import { isInternalTraffic } from '@/lib/analytics/isInternalTraffic';
 import { onTikTokPixelReady, trackTikTokPageView } from '@/lib/analytics/tiktokPixel';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useRef } from 'react';
@@ -13,7 +14,7 @@ export default function TikTokPixelPageView() {
   const routeKey = searchParams?.size ? `${pathname}?${searchParams.toString()}` : pathname;
 
   useEffect(() => {
-    if (!consent?.marketing) {
+    if (!consent?.marketing || isInternalTraffic()) {
       initialized.current = false;
       return;
     }
