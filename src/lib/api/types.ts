@@ -252,7 +252,7 @@ export type ShopProductData = {
   }[];
 };
 
-export type PaymentType = 'Stripe' | 'UniversalBank' | 'COD' ;
+export type PaymentType = 'PayTR' | 'Stripe' | 'UniversalBank' | 'COD';
 
 export type OrderSummaryRequestData = {
   products: ShopProductData[];

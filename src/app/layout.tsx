@@ -1,16 +1,10 @@
-
-
-import Footer from "@/components/Footer";
 import AttributionTracker from "@/components/analytics/AttributionTracker";
 import MetaPixelPageView from "@/components/analytics/MetaPixelPageView";
 import TikTokPixelPageView from "@/components/analytics/TikTokPixelPageView";
-import MainLayout from "@/components/layouts/MainLayout";
-import Navigation from "@/components/Navigation";
 import { AuthContextProvider } from "@/contexts/AuthContext";
 import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
 import { FavoritesContextProvider } from "@/contexts/FavoritesContext";
 import { ShopContextProvider } from "@/contexts/ShopContext";
-import { fetchShopFooter, fetchShopHeader } from "@/lib/api/cms";
 import { albertSans } from "@/lib/fonts";
 import ThemeRegistry from "@/theme/ThemeRegistry";
 import { Suspense } from "react";
@@ -18,15 +12,11 @@ import { Suspense } from "react";
 const isProduction = process.env.NEXT_PUBLIC_HOST_ENV === "production";
 const baseUrl = process.env.NEXT_PUBLIC_HOST_URL ?? "https://mitenya.com";
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const headerData = await fetchShopHeader();
-  const footerData = await fetchShopFooter();
-
-
   return (
   <html lang="tr" className={albertSans.variable}>
       <head>
@@ -98,13 +88,7 @@ export default async function RootLayout({
             <AuthContextProvider>
               <FavoritesContextProvider>
                 <ShopContextProvider>
-                  <Suspense fallback={<div style={{ height: '100px' }} />}>
-                    <Navigation data={headerData} />
-                  </Suspense>
-
-                  <MainLayout>{children}</MainLayout>
-
-                  <Footer data={footerData} />
+                  {children}
                 </ShopContextProvider>
               </FavoritesContextProvider>
             </AuthContextProvider>

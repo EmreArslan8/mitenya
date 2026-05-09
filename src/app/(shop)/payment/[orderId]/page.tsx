@@ -40,7 +40,8 @@ const PaymentPage = () => {
   useEffect(() => {
     const fetchCheckoutSession = async () => {
       try {
-        const res = await fetch(`/api/checkout/session/${checkoutSessionId}`);
+        const tokenParam = successToken ? `?t=${encodeURIComponent(successToken)}` : '';
+        const res = await fetch(`/api/checkout/session/${checkoutSessionId}${tokenParam}`);
         if (res.ok) {
           const data = await res.json();
           setCheckoutSession(data.session);
@@ -55,7 +56,7 @@ const PaymentPage = () => {
     if (checkoutSessionId) {
       fetchCheckoutSession();
     }
-  }, [checkoutSessionId]);
+  }, [checkoutSessionId, successToken]);
 
   const handlePayWithPayTR = async () => {
     if (!checkoutSession) return;
@@ -67,7 +68,7 @@ const PaymentPage = () => {
         withCsrfHeaders({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ checkoutSessionId: checkoutSession.id }),
+          body: JSON.stringify({ checkoutSessionId: checkoutSession.id, successToken: successToken ?? undefined }),
         })
       );
 

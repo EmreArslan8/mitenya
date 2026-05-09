@@ -1,10 +1,8 @@
 'use client';
 
-import InfoItem from '@/components/InfoItem';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import CheckoutCard, { PriceLines } from '@/components/ShoppingCart/CheckoutCard';
 import ShopCartProductCard from '@/components/ShoppingCart/ShopCartProductCard';
-import Banner from '@/components/common/Banner';
 import Button from '@/components/common/Button';
 import ModalCard from '@/components/common/ModalCard';
 import TwoColumnLayout, {
@@ -23,7 +21,8 @@ import { Box, Checkbox, Divider, Portal, Stack, Typography, debounce } from '@mu
 import { useCallback, useContext, useEffect, useState } from 'react';
 import useStyles from './styles';
 import { usePathname, useRouter } from 'next/navigation';
-import { ChevronDown, Trash, User } from 'lucide-react';
+import InfoItem from '@/components/InfoItem';
+import { ChevronDown, ChevronUp, Trash, User } from 'lucide-react';
 
 
 export interface CartPageViewProps {
@@ -54,9 +53,9 @@ const CartPageView = ({
   } = useContext(ShopContext);
   const [orderSummary, setOrderSummary] = useState<ShopOrderSummaryData | undefined>();
   const [discountCode, setDiscountCode] = useState<string | null>(null);
+  const [summaryModalOpen, setSummaryModalOpen] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(false);
-  const [summaryModalOpen, setSummaryModalOpen] = useState(false);
   const { isAuthenticated, openAuthenticator } = useAuth();
   const isCartPage = pathname?.includes('/cart') ?? false;
   const currencyLabel = getDisplayCurrencyCode(orderSummary?.currency ?? 'TRY');
@@ -235,52 +234,41 @@ const CartPageView = ({
               }
             />
           )}
-          {isMobile && (
-            <Stack gap={2}>
-              <PriceLines numSelected={numSelected} orderSummary={orderSummary} />
-              <Banner
-                variant="info"
-                title={
-                  orderSummary?.productCost && orderSummary.productCost >= 1000
-                    ? 'Kargo ücretsiz'
-                    : `Ücretsiz kargo için ${
-                        Math.max(1000 - (orderSummary?.productCost ?? 0), 0)
-                      } ${currencyLabel} değerinde daha ürün ekleyin`
-                }
-                IconProps={{ name: 'truck', size: 26 }}
-                sx={{ p: 2 }}
-              />
-            </Stack>
-          )}
         </SecondaryColumn>
        
       </TwoColumnLayout>
-      {isMobile && (
+      {isMobile && !!selected?.length && (
         <Portal disablePortal={!visible}>
           <Stack sx={styles.mobileCheckoutBar} zIndex={isCartPage ? 0 : 1300}>
-            <Box onClick={() => setSummaryModalOpen((prev) => !prev)}>
-                  <InfoItem
-                    sx={{ gap: 0 }}
-                    label="Ödenecek tutar"
-                    value={
-                      <Stack direction="row" alignItems="center" gap={1} sx={{ cursor: 'pointer' }}>
-                        {orderSummary?.totalDue} {currencyLabel}
-                        <Box component="span" sx={styles.expandIcon(summaryModalOpen)}>
-                          <ChevronDown size={18} />
-                        </Box>
-                      </Stack>
-                    }
-              />
-            </Box>
+            <Stack direction="row" alignItems="center" gap={1.5} flex={1}>
+              <Box
+                onClick={() => setSummaryModalOpen((prev) => !prev)}
+                sx={{
+                  width: 36, height: 36, borderRadius: '50%',
+                  border: '1.5px solid', borderColor: 'divider',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', flexShrink: 0,
+                  transition: 'transform 0.2s',
+                  transform: summaryModalOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              >
+                <ChevronUp size={18} />
+              </Box>
+              <Stack sx={{ flex: 1, alignItems: 'center' }}>
+                <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.2 }}>Toplam</Typography>
+                <Typography sx={{ fontSize: 16, fontWeight: 700, lineHeight: 1.3 }}>
+                  {orderSummary?.totalDue} {currencyLabel}
+                </Typography>
+              </Stack>
+            </Stack>
             <Button
               variant="contained"
-              size="small"
-              arrow="end"
               loading={buttonLoading}
               disabled={!selected?.length}
               onClick={handleContinue}
+              sx={{ whiteSpace: 'nowrap' }}
             >
-              Sipariş Ver
+              Sepeti Onayla
             </Button>
           </Stack>
         </Portal>
@@ -289,8 +277,10 @@ const CartPageView = ({
         <ModalCard
           open={visible && summaryModalOpen}
           onClose={() => setSummaryModalOpen(false)}
+          layout="bottom-sheet"
+          fullWidth
           BodyProps={{ sx: { p: 0 } }}
-          sx={{ zIndex: 1298, mb: '112px', '& .MuiBackdrop-root': { bottom: 112 } }}
+          sx={{ zIndex: 1298, mb: '64px', '& .MuiBackdrop-root': { bottom: 64 } }}
         >
           <CheckoutCard
             showLines

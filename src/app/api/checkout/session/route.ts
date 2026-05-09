@@ -10,6 +10,13 @@ import { getClientIp } from '@/lib/api/getClientIp';
 import { reserveCheckoutStock } from '@/lib/inventory/stockReservationService';
 import { parseCookieHeader, serializeCheckoutNotes } from '@/lib/analytics/attribution';
 import { sendTikTokServerEvent } from '@/lib/analytics/tiktokEventsApi';
+import { fetchCouponData } from '@/lib/shop/fetchCouponData';
+import { calculateOrderSummary } from '@/lib/shop/calculateOrderSummary';
+import {
+  generateDistanceSaleHtml,
+  generatePreInfoHtml,
+  type ContractData,
+} from '@/lib/legal/contractTemplates';
 
 const SESSION_TTL_MINUTES = 30;
 
@@ -40,8 +47,6 @@ const consentsSchema = z.object({
   distance_sale_accepted: z.boolean().refine((v) => v === true, {
     message: 'Mesafeli satış sözleşmesi kabul edilmelidir',
   }),
-  pre_info_html: z.string().min(1).max(500000),
-  distance_sale_html: z.string().min(1).max(500000),
 });
 
 const attributionSchema = z.object({
@@ -59,29 +64,95 @@ const attributionSchema = z.object({
   tikTokMarketingConsent: z.boolean().nullable().optional(),
 });
 
+const optionalEmailSchema = z.preprocess(
+  (value) => (typeof value === 'string' ? value.trim() || undefined : value),
+  z.string().email().optional()
+);
+
 const createCheckoutSessionSchema = z.object({
-  user_email: z.string().email().optional(),
+  user_email: optionalEmailSchema,
+  guest_email: optionalEmailSchema,
   items: z.array(orderItemSchema).min(1).max(50),
   shipping_address: shippingAddressSchema,
   billing_address: shippingAddressSchema.optional(),
   payment_method: z.enum(['stripe', 'paytr']),
-  shipping_cost: z.number().nonnegative().max(10000).optional(),
-  discount_amount: z.number().nonnegative().max(100000).optional(),
+  // shipping_cost and discount_amount are NOT accepted from client — computed server-side
   discount_code: z.string().max(50).nullable().optional(),
   affiliate_code: z.string().max(20).nullable().optional(),
   attribution: attributionSchema.optional(),
   notes: z.string().max(500).optional(),
   currency: z.string().length(3).optional(),
-  consents: consentsSchema.optional(),
+  consents: consentsSchema,
 });
-
-function calculateSubtotal(items: { price: number; quantity: number }[]): number {
-  return items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-}
 
 function createSuccessToken() {
   return `${crypto.randomUUID().replace(/-/g, '')}${Date.now().toString(36)}`.slice(0, 64);
 }
+
+const formatAddress = (address: {
+  line1?: string;
+  line2?: string;
+  district?: string;
+  city?: string;
+  postalCode?: string;
+}) =>
+  [address.line1, address.line2, address.district, address.city, address.postalCode]
+    .filter(Boolean)
+    .join(', ');
+
+const buildServerContractData = ({
+  effectiveEmail,
+  shippingAddress,
+  billingAddress,
+  items,
+  summary,
+  currency,
+}: {
+  effectiveEmail: string;
+  shippingAddress: z.infer<typeof shippingAddressSchema>;
+  billingAddress?: z.infer<typeof shippingAddressSchema>;
+  items: Array<{
+    product_name: string;
+    quantity: number;
+    price: number;
+    variant_data?: Record<string, string> | null;
+  }>;
+  summary: ReturnType<typeof calculateOrderSummary>;
+  currency: string;
+}): ContractData => {
+  const deliveryAddress = formatAddress(shippingAddress);
+  const buyerAddress = formatAddress(billingAddress ?? shippingAddress);
+
+  return {
+    buyer: {
+      fullName: shippingAddress.contactName,
+      address: buyerAddress,
+      phone: shippingAddress.phone ?? '',
+      email: effectiveEmail,
+    },
+    products: items.map((item) => ({
+      name: item.product_name,
+      quantity: item.quantity,
+      unitPrice: item.price,
+      totalPrice: item.price * item.quantity,
+      variant: item.variant_data
+        ? Object.entries(item.variant_data)
+            .map(([name, value]) => `${name}: ${value}`)
+            .join(', ')
+        : undefined,
+    })),
+    orderSummary: {
+      subtotal: summary.productCost,
+      shippingCost: summary.shipmentCost ?? 0,
+      discount: summary.totalDiscount ?? 0,
+      total: summary.totalDue,
+      currency,
+    },
+    paymentMethod: 'Kredi / Banka Kartı',
+    deliveryAddress,
+    date: new Date().toLocaleDateString('tr-TR'),
+  };
+};
 
 export async function POST(req: NextRequest) {
   try {
@@ -98,12 +169,7 @@ export async function POST(req: NextRequest) {
     const supabase = await createSupabaseServer();
     const {
       data: { user },
-      error: authError,
     } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     let body;
     try {
@@ -122,12 +188,11 @@ export async function POST(req: NextRequest) {
 
     const {
       user_email: userEmailFromBody,
+      guest_email,
       items,
       shipping_address,
       billing_address,
       payment_method,
-      shipping_cost = 0,
-      discount_amount = 0,
       discount_code,
       affiliate_code,
       attribution,
@@ -135,6 +200,33 @@ export async function POST(req: NextRequest) {
       currency = 'TRY',
       consents,
     } = validation.data;
+
+    const effectiveEmail = (user?.email || guest_email || userEmailFromBody || '').trim();
+    if (!effectiveEmail) {
+      return NextResponse.json({ error: 'Email gerekli' }, { status: 400 });
+    }
+
+    // Misafir profili oluştur
+    let guestCustomerId: string | null = null;
+    if (!user && guest_email) {
+      const nameParts = (shipping_address?.contactName ?? '').trim().split(' ');
+      const { data: guestCustomer } = await supabaseAdmin
+        .from('customers')
+        .upsert(
+          {
+            email: guest_email,
+            phone: shipping_address?.phone ?? null,
+            name: nameParts[0] ?? null,
+            surname: nameParts.length > 1 ? nameParts.slice(1).join(' ') : null,
+            type: 'guest',
+            provider_id: null,
+          },
+          { onConflict: 'email' }
+        )
+        .select('id')
+        .single();
+      guestCustomerId = guestCustomer?.id ?? null;
+    }
 
     const productResults = await Promise.all(
       items.map(async (item) => {
@@ -162,10 +254,25 @@ export async function POST(req: NextRequest) {
     });
 
     const orderCurrency = sanitizedItems[0]?.currency ?? currency;
-    const safeShippingCost = Math.max(shipping_cost, 0);
-    const safeDiscount = Math.max(discount_amount, 0);
-    const subtotal = calculateSubtotal(sanitizedItems);
-    const totalAmount = subtotal + safeShippingCost - safeDiscount;
+
+    // Server-side pricing: ignore client shipping_cost / discount_amount
+    const normalizedDiscountCode = discount_code?.trim().toUpperCase() ?? undefined;
+    const couponData = await fetchCouponData(normalizedDiscountCode);
+    const summaryProducts = productResults.map(({ item, product }) => ({
+      ...product!,
+      listingId: item.product_id,
+      quantity: item.quantity,
+    }));
+    const serverSummary = calculateOrderSummary({
+      products: summaryProducts,
+      discountCode: normalizedDiscountCode,
+      couponDiscountPercent: couponData?.percent,
+    });
+
+    const safeShippingCost = serverSummary.shipmentCost;
+    const safeDiscount = serverSummary.promotionDiscount;
+    const subtotal = serverSummary.productCost;
+    const totalAmount = serverSummary.totalDue;
 
     if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
       return NextResponse.json({ error: 'Geçersiz sipariş tutarı' }, { status: 400 });
@@ -178,7 +285,7 @@ export async function POST(req: NextRequest) {
 
     const cookies = parseCookieHeader(req.headers.get('cookie'));
     const hasTikTokMarketingConsent = cookies.mitenya_marketing_consent === '1';
-    const normalizedAffiliateCode = affiliate_code ?? attribution?.affiliateCode ?? null;
+    const normalizedAffiliateCode = couponData?.affiliateCode ?? affiliate_code ?? attribution?.affiliateCode ?? null;
     const serializedNotes = serializeCheckoutNotes(notes, {
       ...attribution,
       affiliateCode: normalizedAffiliateCode,
@@ -186,12 +293,27 @@ export async function POST(req: NextRequest) {
       tikTokTtp: attribution?.tikTokTtp ?? cookies._ttp ?? null,
       tikTokMarketingConsent: hasTikTokMarketingConsent,
     });
+    const serverContractData = buildServerContractData({
+      effectiveEmail,
+      shippingAddress: shipping_address,
+      billingAddress: billing_address,
+      items: sanitizedItems,
+      summary: serverSummary,
+      currency: orderCurrency,
+    });
+    const serverConsents = {
+      pre_info_accepted: consents.pre_info_accepted,
+      distance_sale_accepted: consents.distance_sale_accepted,
+      pre_info_html: generatePreInfoHtml(serverContractData),
+      distance_sale_html: generateDistanceSaleHtml(serverContractData),
+    };
 
     const { data: session, error: sessionError } = await supabaseAdmin
       .from('checkout_sessions')
       .insert({
-        user_id: user.id,
-        user_email: user.email ?? userEmailFromBody ?? null,
+        user_id: user?.id ?? null,
+        customer_id: guestCustomerId,
+        user_email: effectiveEmail,
         status: 'active',
         payment_method,
         cart_snapshot: sanitizedItems,
@@ -211,7 +333,7 @@ export async function POST(req: NextRequest) {
         },
         notes: serializedNotes ?? null,
         affiliate_code: normalizedAffiliateCode,
-        consents_snapshot: consents ?? null,
+        consents_snapshot: serverConsents,
         success_token: successToken,
         success_token_expires_at: successTokenExpiresAt,
         expires_at: expiresAt,
@@ -271,9 +393,9 @@ export async function POST(req: NextRequest) {
         pageUrl: `${process.env.NEXT_PUBLIC_HOST_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mitenya.com'}/checkout`,
         referrer: attribution?.referrer ?? null,
         user: {
-          email: user.email ?? userEmailFromBody ?? null,
+          email: effectiveEmail,
           phone: shipping_address.phone ?? null,
-          externalId: user.id,
+          externalId: user?.id ?? guestCustomerId ?? undefined,
           ip: userIp,
           userAgent: req.headers.get('user-agent'),
           ttclid: attribution?.tikTokClickId ?? cookies.ttclid ?? null,

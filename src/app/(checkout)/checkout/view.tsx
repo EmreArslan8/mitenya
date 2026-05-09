@@ -2,14 +2,12 @@
 
 import NewAddressModal from '@/components/AddressCard/modals/NewAddressModal';
 import AddressSelector from '@/components/AddressSelector';
-import InfoItem from '@/components/InfoItem';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import CheckoutCard from '@/components/ShoppingCart/CheckoutCard';
 import ShopCartProductCard from '@/components/ShoppingCart/ShopCartProductCard';
 import Banner from '@/components/common/Banner';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
-import ModalCard from '@/components/common/ModalCard';
 import TwoColumnLayout, {
   PrimaryColumn,
   SecondaryColumn,
@@ -22,7 +20,6 @@ import { AddressData, PaymentType, ShopOrderSummaryData } from '@/lib/api/types'
 import useScreen from '@/lib/hooks/useScreen';
 import { readStoredWelcomeCoupon, storeWelcomeCoupon } from '@/lib/shop/welcomeCoupon';
 import { withCsrfHeaders } from '@/lib/utils/csrf';
-import formatPrice from '@/lib/utils/formatPrice';
 import { pushItemToDataLayer, useCheckoutAnalytics } from '@/lib/utils/googleAnalytics';
 import { onMetaPixelReady, trackInitiateCheckout } from '@/lib/analytics/metaPixel';
 import {
@@ -36,12 +33,21 @@ import {
   type ContractData,
 } from '@/lib/legal/contractTemplates';
 import LegalDocumentModal from '@/components/contracts/LegalDocumentModal';
-import { Box, Checkbox, Divider, Snackbar, Stack, Typography, debounce } from '@mui/material';
-import Image from 'next/image';
+import {
+  Box,
+  Checkbox,
+  Divider,
+  IconButton,
+  Snackbar,
+  Stack,
+  TextField,
+  Typography,
+  debounce,
+} from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import useStyles from './styles';
-import { Check, CheckCircle, ChevronDown, CreditCard, ShoppingBag, Truck } from 'lucide-react';
+import { Check, Info } from 'lucide-react';
 
 export interface CheckoutPageViewProps {
   initialAddresses?: AddressData[] | null;
@@ -52,12 +58,12 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   const styles = useStyles();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated, customerData } = useAuth();
+  const { isAuthenticated, customerData, openAuthenticator } = useAuth();
   const { sendBeginCheckout, sendAddShippingInfo, sendAddPaymentInfo } = useCheckoutAnalytics();
   const { selected, numSelected, removeItems } = useContext(ShopContext);
   const [addresses, setAddresses] = useState<AddressData[]>(initialAddresses ?? []);
   const [destination, setDestination] = useState<AddressData | undefined>(initialAddresses?.[0]);
-  const [paymentType, setPaymentType] = useState<PaymentType>('Stripe');
+  const [paymentType] = useState<PaymentType>('PayTR');
   const [orderSummary, setOrderSummary] = useState<ShopOrderSummaryData | undefined>();
   const [discountCode, setDiscountCode] = useState<string | null>(searchParams?.get('dc') ?? null);
   const attribution = useMemo(
@@ -74,19 +80,24 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   const [continueButtonLoading, setContinueButtonLoading] = useState(false);
   const [newAddressModalOpen, setNewAddressModalOpen] = useState(false);
   const [directToPaymentOnAddressAdded, setDirectToPaymentOnAddressAdded] = useState(false);
-  const [summaryModalOpen, setSummaryModalOpen] = useState(false);
   const [showDiscountCodeSnackbar, setShowDiscountCodeSnackbar] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestEmailError, setGuestEmailError] = useState('');
+  const effectiveEmail = (customerData?.email || guestEmail).trim();
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const [billingDifferent, setBillingDifferent] = useState(false);
+  const [billingAddress, setBillingAddress] = useState<AddressData | undefined>();
   const [preInfoAccepted, setPreInfoAccepted] = useState(false);
   const [distanceSaleAccepted, setDistanceSaleAccepted] = useState(false);
   const [preInfoModalOpen, setPreInfoModalOpen] = useState(false);
   const [distanceSaleModalOpen, setDistanceSaleModalOpen] = useState(false);
-  const mobileCheckoutBarOffset = 'calc(56px + env(safe-area-inset-bottom, 0px) - 2px)';
   const handleDestinationChange = (newValue: AddressData) => setDestination(newValue);
   const tikTokUserRef = useRef<{ email?: string; phone?: string }>();
   const handleAddressAdded = (newAddress: AddressData) => {
     setDestination(newAddress);
     setAddresses((prev) => [...(prev ?? []), newAddress]);
+    setOrderSummary(undefined);
   };
 
   const handleCheckoutRef = useRef<() => Promise<void>>(async () => {});
@@ -101,9 +112,19 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
       return;
     }
 
+    // Fatura adresi kontrolü
+    if (billingDifferent && !billingAddress) {
+      setCheckoutError('Fatura adresi seçiniz veya ekleyiniz.');
+      return;
+    }
+
     // Email kontrolü
-    if (!customerData?.email) {
-      setCheckoutError('Devam etmek için lütfen giriş yapın.');
+    if (!effectiveEmail) {
+      setGuestEmailError('E-posta adresinizi girin.');
+      return;
+    }
+    if (!isAuthenticated && !isValidEmail(effectiveEmail)) {
+      setGuestEmailError('Geçerli bir e-posta adresi girin.');
       return;
     }
 
@@ -116,7 +137,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         sendAddPaymentInfo(selected, orderSummary, paymentType);
         trackTikTokWithUser({
           userData: {
-            email: customerData?.email,
+            email: effectiveEmail || undefined,
             phone: destination ? `${destination.phoneCode}${destination.phoneNumber}` : customerData?.phone,
           },
           track: () => trackTikTokAddPaymentInfo({
@@ -159,20 +180,16 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         line2: destination.line2,
         city: destination.city,
         district: destination.district,
-        postalCode: destination.postcode,
+        postalCode: destination.postcode || undefined,
         country: destination.countryCode,
-        phone: `${destination.phoneCode}${destination.phoneNumber}`,
+        phone: `${destination.phoneCode}${(destination.phoneNumber ?? '').replace(/^0+/, '')}`,
       };
 
-      // Sözleşme HTML'lerini oluştur
-      const consents = contractData
-        ? {
-            pre_info_accepted: preInfoAccepted,
-            distance_sale_accepted: distanceSaleAccepted,
-            pre_info_html: generatePreInfoHtml(contractData),
-            distance_sale_html: generateDistanceSaleHtml(contractData),
-          }
-        : undefined;
+      // Sözleşme HTML'i server tarafında güvenilir sipariş özetiyle oluşturulur.
+      const consents = {
+        pre_info_accepted: preInfoAccepted,
+        distance_sale_accepted: distanceSaleAccepted,
+      };
 
         
       const endpoint = paymentType === 'COD' ? '/api/orders/create' : '/api/checkout/session';
@@ -182,12 +199,21 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_email: customerData.email,
+            user_email: effectiveEmail,
+            guest_email: !isAuthenticated ? effectiveEmail : undefined,
             items: orderItems,
             shipping_address: shippingAddress,
+            billing_address: (billingDifferent && billingAddress) ? {
+              contactName: `${billingAddress.contactName} ${billingAddress.contactSurname}`,
+              line1: billingAddress.line1,
+              line2: billingAddress.line2,
+              city: billingAddress.city,
+              district: billingAddress.district,
+              postalCode: billingAddress.postcode || undefined,
+              country: billingAddress.countryCode,
+              phone: `${billingAddress.phoneCode}${(billingAddress.phoneNumber ?? '').replace(/^0+/, '')}`,
+            } : undefined,
             payment_method: paymentType === 'COD' ? 'cod' : 'paytr',
-            shipping_cost: orderSummary?.shipmentCost || 0,
-            discount_amount: orderSummary?.promotionDiscount || 0,
             discount_code: discountCode,
             affiliate_code: orderSummary?.affiliateCode ?? affiliateCode,
             attribution,
@@ -265,12 +291,10 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   }, [searchParams]);
 
   useEffect(() => {
-    if (isAuthenticated === false && !searchParams?.get('allow')) {
-      router.push('/cart');
+    if (selected != null && selected.length === 0) {
+      router.replace('/cart');
+      return;
     }
-  }, [isAuthenticated, router, searchParams]);
-
-  useEffect(() => {
     if (!selected?.length) return setOrderSummary(undefined);
     if (isAuthenticated === undefined) return;
     setSummaryLoading(true);
@@ -279,10 +303,10 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
 
   useEffect(() => {
     tikTokUserRef.current = {
-      email: customerData?.email,
+      email: effectiveEmail || undefined,
       phone: destination ? `${destination.phoneCode}${destination.phoneNumber}` : customerData?.phone,
     };
-  }, [customerData?.email, customerData?.phone, destination]);
+  }, [effectiveEmail, customerData?.phone, destination]);
 
   useEffect(() => {
     if (!selected?.length) return;
@@ -352,7 +376,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         phone: destination
           ? `${destination.phoneCode}${destination.phoneNumber}`
           : (customerData?.phone ?? ''),
-        email: customerData?.email ?? '',
+        email: effectiveEmail,
       },
       products: selected.map((item) => {
         const variantStr = item.variants
@@ -381,13 +405,33 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
       deliveryAddress: buyerAddress,
       date: new Date().toLocaleDateString('tr-TR'),
     };
-  }, [destination, selected, customerData, orderSummary, paymentMethodLabel]);
+  }, [destination, selected, customerData, orderSummary, paymentMethodLabel, effectiveEmail]);
 
   useEffect(() => {
     if (!directToPaymentOnAddressAdded || !orderSummary) return;
     setDirectToPaymentOnAddressAdded(false);
     void handleCheckoutRef.current();
   }, [directToPaymentOnAddressAdded, orderSummary]);
+
+  const cartProductsCard = (
+    <Card
+      border
+      title={`Ürün Bilgileri (${numSelected})`}
+      titleProps={{ sx: { fontSize: 16, fontWeight: 700 } }}
+      sx={{ header: { textTransform: 'none' } }}
+      collapsible
+      defaultCollapsed={false}
+    >
+      <Stack sx={styles.products}>
+        {selected?.map((e, i) => (
+          <Stack gap={2} px={2} key={`${e.id}-${e.variants?.map(v => v.options.find(o => o.selected)?.value ?? '').join('-') ?? ''}`}>
+            <ShopCartProductCard data={e} />
+            {i < selected.length - 1 && <Divider flexItem />}
+          </Stack>
+        ))}
+      </Stack>
+    </Card>
+  );
 
   return (
     <>
@@ -417,28 +461,98 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
       <Stack gap={3}>
         <TwoColumnLayout sx={{ pb: 3, gap: { xs: 2, sm: 3 } }}>
           <PrimaryColumn>
+            {!isAuthenticated && (
+              <Card
+                border
+                sx={{ header: { textTransform: 'none' } }}
+                title={
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" width="100%">
+                    <Typography sx={{ fontSize: 16, fontWeight: 700 }}>
+                    Müşteri Bilgileri
+                    </Typography>
+                    <Stack direction="row" gap={0.5} alignItems="center">
+                      <Typography
+                        variant="body2"
+                        sx={{ fontSize: 14, color: 'primary.main', textDecoration: 'underline', cursor: 'pointer' }}
+                        onClick={(event) => { event.stopPropagation(); openAuthenticator?.(); }}
+                      >
+                        Giriş Yap
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontSize: 14, color: 'text.secondary' }}>|</Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontSize: 14, color: 'primary.main', textDecoration: 'underline', cursor: 'pointer' }}
+                        onClick={(event) => { event.stopPropagation(); openAuthenticator?.(); }}
+                      >
+                        Üye Ol
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                }
+              >
+                <Stack px={{ xs: 1.5, sm: 2 }} py={1.5}>
+                <TextField
+                  type="email"
+                  fullWidth
+                  value={guestEmail}
+                  onChange={(e) => { setGuestEmail(e.target.value); setGuestEmailError(''); }}
+                  onBlur={() => {
+                    if (guestEmail && !isValidEmail(guestEmail))
+                      setGuestEmailError('Geçerli bir e-posta adresi girin.');
+                  }}
+                  error={!!guestEmailError}
+                  helperText={guestEmailError}
+                  placeholder="E-posta"
+                  size="small"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 1,
+                      backgroundColor: '#fff',
+                      height: 'auto',
+                      minHeight: 48,
+                    },
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(0,0,0,0.23)',
+                    },
+                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#C1121F',
+                      borderWidth: 1,
+                    },
+                    '& .MuiInputBase-input': {
+                      padding: '13px 12px',
+                      fontSize: 15,
+                    },
+                    '& input::placeholder': {
+                      color: '#9B9BA1',
+                      opacity: 1,
+                    },
+                  }}
+                />
+              </Stack>
+              </Card>
+            )}
             <Card
               border
-              customIcon={
-                <Box component="span" sx={{ color: 'secondary.main', display: 'inline-flex' }}>
-                  <Truck size={20} />
-                </Box>
-              }
+              titleProps={{ sx: { fontSize: 16, fontWeight: 700 } }}
+              sx={{ header: { textTransform: 'none' } }}
               title={
                 <Typography
-                  variant="cardTitle"
+                  component="div"
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    fontSize: 16,
+                    fontWeight: 700,
                     gap: 0.5,
                   }}
                 >
                   Teslimat Bilgileri
                   {destination && (
-                    <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
-                    <Check size={16} strokeWidth={3} />
+                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                      <Check size={16} strokeWidth={3} />
                       <Typography
+                        component="span"
                         variant="cardTitle"
                         color="text.medium"
                         sx={{
@@ -466,29 +580,100 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                       onAddressAdded={handleAddressAdded}
                       onChange={handleDestinationChange}
                     />
+                    {/*
                     <Banner
                       title="Ücretsiz kargo avantajı"
                       variant="neutral"
                       icon={<CheckCircle size={20} />}
                     />
+                    */}
                   </Card>
                 </Stack>
               </Stack>
             </Card>
             <Card
+                border
+                title="Fatura Bilgileri"
+                titleProps={{ sx: { fontSize: 16, fontWeight: 700 } }}
+                sx={{ header: { textTransform: 'none' } }}
+                collapsible
+                defaultCollapsed={!billingDifferent}
+              >
+                <Stack px={{ xs: 1, sm: 2 }} py={1} gap={1.5}>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    gap={0.5}
+                    sx={{ cursor: 'pointer' }}
+                    onClick={() => { setBillingDifferent(p => !p); setBillingAddress(undefined); }}
+                  >
+                    <Checkbox
+                      size="small"
+                      checked={billingDifferent}
+                      onChange={() => { setBillingDifferent(p => !p); setBillingAddress(undefined); }}
+                      onClick={(e) => e.stopPropagation()}
+                      sx={{ p: 0.5 }}
+                    />
+                    <Typography sx={{ fontSize: 14, lineHeight: 1.4 }}>
+                      Fatura adresi teslimat adresinden farklı
+                    </Typography>
+                  </Stack>
+                  {!billingDifferent && destination && (
+                    <Stack
+                      direction="row"
+                      gap={1}
+                      sx={{
+                        px: 1.5,
+                        py: 1,
+                        borderRadius: 2,
+                        backgroundColor: 'grey.50',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                      }}
+                    >
+                      <Box sx={{ color: 'text.secondary', mt: 0.2 }}>
+                        <Check size={14} />
+                      </Box>
+                      <Stack>
+                        <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600 }}>
+                          {destination.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {[destination.line1, destination.line2, destination.district, destination.city]
+                            .filter(Boolean)
+                            .join(', ')}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.25 }}>
+                          Teslimat adresiyle aynı
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  )}
+                  {billingDifferent && (
+                    <Card sx={{ maxWidth: { xs: '100%', sm: 350 }, gap: 1 }}>
+                      <AddressSelector
+                        value={billingAddress}
+                        options={addresses}
+                        onAddressAdded={(a) => setBillingAddress(a)}
+                        onChange={(a) => setBillingAddress(a)}
+                      />
+                    </Card>
+                  )}
+                </Stack>
+              </Card>
+            {/*
+            <Card
               border
-              customIcon={
-                <Box component="span" sx={{ color: 'secondary.main', display: 'inline-flex' }}>
-                  <CreditCard size={20} />
-                </Box>
-              }
+              titleProps={{ sx: { fontSize: 16, fontWeight: 700 } }}
+              sx={{ header: { textTransform: 'none' } }}
               title={
                 <Typography
-                  variant="cardTitle"
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    fontSize: 16,
+                    fontWeight: 700,
                     gap: 0.5,
                   }}
                 >
@@ -525,35 +710,14 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
               collapsible
             >
               <Stack pb={{ xs: 1, sm: 2 }} pt={{ sm: 1 }} pl={{ sm: 1 }} pr={1} gap={1.5}>
-                {/* <Stack>
-                  <Stack
-                    onClick={() => {
-                      if (codAvailable) setPaymentType('COD');
-                    }}
-                    sx={{
-                      ...styles.checkbox,
-                    }}
-                  >
-                    <Checkbox disabled={!codAvailable} size="small" checked={paymentType === 'COD'} />
-                    <Typography
-                      variant="warningSemibold"
-                      sx={{
-                        opacity:
-                          orderSummary?.cashOnDeliveryAvailability.isAvailable === false ? 0.7 : 1,
-                      }}
-                    >
-                      Kapıda Ödeme
-                    </Typography>
-                  </Stack>
-                </Stack> */}
                 <Stack>
                   <Stack
                     direction="row"
                     alignItems="center"
-                    onClick={() => setPaymentType('Stripe')}
+                    onClick={() => setPaymentType('PayTR')}
                     sx={{ cursor: 'pointer' }}
                   >
-                    <Checkbox size="small" checked={paymentType === 'Stripe'} />
+                    <Checkbox size="small" checked={paymentType === 'PayTR'} />
                     <Typography variant="warningSemibold">Kredi veya Banka Kart</Typography>
                   </Stack>
                   <Card
@@ -581,32 +745,16 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                 </Stack>
               </Stack>
             </Card>
-            {!isMobile && (
-              <Card
-                border
-                customIcon={
-                  <Box component="span" sx={{ color: 'primary.main', display: 'inline-flex' }}>
-                    <ShoppingBag size={20} />
-                  </Box>
-                }
-                title={`Sepetinizdeki Ürünler (${numSelected})`}
-                collapsible
-                defaultCollapsed
-              >
-                <Stack sx={styles.products}>
-                  {selected?.map((e, i) => (
-                    <Stack gap={2} px={2} key={`${e.id}-${e.variants?.map(v => v.options.find(o => o.selected)?.value ?? '').join('-') ?? ''}`}>
-                      <ShopCartProductCard data={e} />
-                      {i < selected.length - 1 && <Divider flexItem />}
-                    </Stack>
-                  ))}
-                </Stack>
-              </Card>
-            )}
+            */}
+            {!isMobile && cartProductsCard}
           </PrimaryColumn>
           <SecondaryColumn>
+            {isMobile && cartProductsCard}
             <CheckoutCard
               title="Sipariş Özeti"
+              hideTitleIcon
+              titleProps={{ sx: { fontSize: 16, fontWeight: 700 } }}
+              sx={{ header: { textTransform: 'none' } }}
               numSelected={numSelected}
               orderSummary={orderSummary}
               loading={summaryLoading}
@@ -614,41 +762,43 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
               onSubmitDiscountCode={setDiscountCode}
               showLines
               action={
-                <Stack gap={1.5}>
-                  <Stack gap={0.5}>
-                    <Stack direction="row" alignItems="flex-start">
+                <Stack gap={1.75}>
+                  <Stack sx={styles.legalConsentGroup}>
+                    <Stack sx={styles.legalConsentRow}>
                       <Checkbox
                         size="small"
                         checked={preInfoAccepted}
                         onChange={(e) => setPreInfoAccepted(e.target.checked)}
-                        sx={{ mt: -0.5 }}
+                        sx={{ p: 0, mr: 1 }}
                       />
-                      <Typography variant="body2" sx={{ fontSize: 13, lineHeight: '20px' }}>
-                        <span
-                          style={{ textDecoration: 'underline', cursor: 'pointer' }}
-                          onClick={() => setPreInfoModalOpen(true)}
-                        >
-                          Ön Bilgilendirme Formu
-                        </span>
-                        {`'nu okudum ve kabul ediyorum.`}
+                      <Typography variant="body2" sx={styles.legalConsentText}>
+                        Ön Bilgilendirme Metnini okudum, kabul ediyorum.
                       </Typography>
+                      <IconButton
+                        aria-label="Ön Bilgilendirme Metni'ni görüntüle"
+                        onClick={() => setPreInfoModalOpen(true)}
+                        sx={styles.legalInfoButton}
+                      >
+                        <Info size={16} />
+                      </IconButton>
                     </Stack>
-                    <Stack direction="row" alignItems="flex-start">
+                    <Stack sx={styles.legalConsentRow}>
                       <Checkbox
                         size="small"
                         checked={distanceSaleAccepted}
                         onChange={(e) => setDistanceSaleAccepted(e.target.checked)}
-                        sx={{ mt: -0.5 }}
+                        sx={{ p: 0, mr: 1 }}
                       />
-                      <Typography variant="body2" sx={{ fontSize: 13, lineHeight: '20px' }}>
-                        <span
-                          style={{ textDecoration: 'underline', cursor: 'pointer' }}
-                          onClick={() => setDistanceSaleModalOpen(true)}
-                        >
-                          Mesafeli Satış Sözleşmesi
-                        </span>
-                        {`'ni okudum ve kabul ediyorum.`}
+                      <Typography variant="body2" sx={styles.legalConsentText}>
+                        Mesafeli Satış Sözleşmesini okudum ve kabul ediyorum.
                       </Typography>
+                      <IconButton
+                        aria-label="Mesafeli Satış Sözleşmesi'ni görüntüle"
+                        onClick={() => setDistanceSaleModalOpen(true)}
+                        sx={styles.legalInfoButton}
+                      >
+                        <Info size={16} />
+                      </IconButton>
                     </Stack>
                   </Stack>
                   <Button
@@ -664,34 +814,14 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                         orderSummary?.cashOnDeliveryAvailability.isAvailable === false)
                     }
                     onClick={handleCheckout}
+                    sx={{ py: 1.5, borderRadius: 0.75, fontSize: 16, fontWeight: 800 }}
                   >
-                    Ödemeye Geç
+                    Siparişi Tamamla
                   </Button>
                 </Stack>
               }
             />
-            {isMobile && (
-              <Card
-                border
-                customIcon={
-                  <Box component="span" sx={{ color: 'primary.main', display: 'inline-flex' }}>
-                    <ShoppingBag size={20} />
-                  </Box>
-                }
-                title={`Sepetinizdeki Ürünler (${numSelected})`}
-                collapsible
-                defaultCollapsed={!isMobile}
-              >
-                <Stack sx={styles.products}>
-                  {selected?.map((e, i) => (
-                    <Stack gap={2} px={2} key={`${e.id}-${e.variants?.map(v => v.options.find(o => o.selected)?.value ?? '').join('-') ?? ''}`}>
-                      <ShopCartProductCard data={e} />
-                      {i < selected.length - 1 && <Divider flexItem />}
-                    </Stack>
-                  ))}
-                </Stack>
-              </Card>
-            )}
+            {/*
             {isMobile && (
               <Stack sx={styles.mobileCheckoutBar}>
                 <Box onClick={() => setSummaryModalOpen((prev) => !prev)}>
@@ -721,7 +851,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                   }
                   onClick={handleCheckout}
                 >
-                  Ödeme
+                  Ödemeye Geç
                 </Button>
                 <ModalCard
                   open={summaryModalOpen}
@@ -742,6 +872,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                 </ModalCard>
               </Stack>
             )}
+            */}
           </SecondaryColumn>
         </TwoColumnLayout>
       </Stack>
@@ -753,6 +884,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         }}
         onAddressAdded={handleAddressAdded}
         defaultName="Adresim"
+        guestMode={!isAuthenticated}
       />
       <LegalDocumentModal
         open={preInfoModalOpen}

@@ -1,4 +1,4 @@
-import CartPageView from './view';
+import CartPageView from '@/features/cart/CartPageView';
 
 const CartPage = async () => {
   return <CartPageView />;

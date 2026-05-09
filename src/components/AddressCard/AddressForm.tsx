@@ -58,6 +58,7 @@ const AddressForm = ({
     if (!values.lines || values.lines.length < 10) errors.lines = 'En az 10 karakter girin';
     if (!values.city) errors.city = 'Zorunlu alan';
     if (!values.district) errors.district = 'Zorunlu alan';
+    if (!values.neighborhood) errors.neighborhood = 'Zorunlu alan';
 
     return errors;
   };
@@ -65,22 +66,52 @@ const AddressForm = ({
   const fieldSx = {
     '& .MuiOutlinedInput-root': {
       borderRadius: 1,
-      backgroundColor: '#F7F7F8',
+      backgroundColor: '#fff',
+      height: 'auto',
+      minHeight: 48,
     },
-    '& .MuiInputBase-input': {
-      fontSize: 15,
+    '& .MuiSelect-select': {
+      padding: '13px 12px !important',
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'rgba(0,0,0,0.23)',
     },
     '& input::placeholder': {
       color: '#9B9BA1',
       opacity: 1,
     },
-    '& .MuiOutlinedInput-notchedOutline': {
-      borderColor: 'rgba(0,0,0,0.12)',
-    },
     '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
       borderColor: '#C1121F',
       borderWidth: 1,
     },
+  } as const;
+
+  const inputProps = { style: { padding: '13px 12px', fontSize: 15 } };
+
+  const dropdownSx = {
+    borderRadius: 1,
+    backgroundColor: '#fff',
+    height: 'auto',
+    minHeight: 48,
+    '& .MuiSelect-select': { padding: '13px 12px !important', minHeight: 'unset !important' },
+    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.23)' },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#C1121F', borderWidth: 1 },
+    '& .MuiInputBase-input': { padding: '13px 12px', fontSize: 15 },
+  } as const;
+
+  const autocompleteSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 1,
+      backgroundColor: '#fff',
+      height: 'auto',
+      minHeight: 48,
+    },
+    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.23)' },
+    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#C1121F',
+      borderWidth: 1,
+    },
+    '& .MuiInputBase-input': { padding: '13px 12px', fontSize: 15 },
   } as const;
 
   const formik = useFormik<AddressFormFields>({
@@ -107,6 +138,7 @@ const AddressForm = ({
       onSubmit({
         ...rest,
         phoneCode: '+90',
+        phoneNumber: values.phoneNumber.replace(/^0+/, ''),
         countryCode: rest.countryCode as DestinationCountry,
         line1,
         line2: values.neighborhood || line2,
@@ -167,7 +199,7 @@ const AddressForm = ({
   }, [submitTrigger]);
 
   return (
-    <Stack gap={2}>
+    <Stack gap={2} sx={{ '& .MuiFormLabel-root, & .MuiTypography-infoLabel': { fontSize: { xs: 14, sm: 13 } } }}>
       <form onSubmit={formik.handleSubmit}>
         <Stack gap={2}>
           <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
@@ -178,7 +210,7 @@ const AddressForm = ({
               required
               disabled={disabledFields.contactName}
               placeholder="Adınızı Giriniz"
-              props={{ sx: fieldSx }}
+              props={{ sx: fieldSx, inputProps }}
             />
             <FormikTextField
               fieldKey="contactSurname"
@@ -187,7 +219,7 @@ const AddressForm = ({
               required
               disabled={disabledFields.contactSurname}
               placeholder="Soyadınızı Giriniz"
-              props={{ sx: fieldSx }}
+              props={{ sx: fieldSx, inputProps }}
             />
           </Stack>
 
@@ -196,7 +228,7 @@ const AddressForm = ({
               <Typography variant="infoLabel">
                 Telefon <Asterisk color="error" size={8} />
               </Typography>
-              <PhoneNumberInput formik={formik} fullWidth />
+              <PhoneNumberInput formik={formik} fullWidth size="small" />
             </Stack>
 
             <FormikDropdown
@@ -205,7 +237,8 @@ const AddressForm = ({
               label="İl"
               options={cities.map((c) => ({ label: c.name, value: c.name }))}
               required
-              selectSx={fieldSx}
+              selectSx={dropdownSx}
+              size="small"
               onChange={() => {
                 formik.setFieldValue('district', '');
                 formik.setFieldValue('neighborhood', '');
@@ -223,7 +256,8 @@ const AddressForm = ({
                 .filter((d) => d.il_id === cities.find((c) => c.name === formik.values.city)?.id)
                 .map((d) => ({ label: d.name, value: d.name }))}
               required
-              selectSx={fieldSx}
+              selectSx={dropdownSx}
+              size="small"
             />
             <FormikAutocomplete
               formik={formik}
@@ -231,7 +265,8 @@ const AddressForm = ({
               label="Mahalle"
               options={neighborhoods.map((n) => ({ label: n.name, value: n.name }))}
               required
-              textFieldSx={fieldSx}
+              textFieldSx={autocompleteSx}
+              size="small"
             />
           </Stack>
 
@@ -260,7 +295,7 @@ const AddressForm = ({
             required
             disabled={disabledFields.name}
             placeholder="Adres Başlığı Giriniz"
-            props={{ sx: fieldSx }}
+            props={{ sx: fieldSx, inputProps }}
           />
 
 

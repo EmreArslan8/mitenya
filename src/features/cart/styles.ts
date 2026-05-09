@@ -28,7 +28,7 @@ const useStyles = withPalette((palette) => ({
   },
   mobileCheckoutBar: {
     position: 'fixed',
-    bottom: 56,
+    bottom: 0,
     left: 0,
     width: '100%',
     background: palette.bg.main,

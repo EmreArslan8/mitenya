@@ -117,6 +117,7 @@ const FormikPhoneNumberInput = ({
       onFocus={handleFocus}
       onClick={handleClick}
       inputRef={inputRef}
+      inputProps={{ style: { paddingTop: 13, paddingBottom: 13 } }}
       InputProps={{
         startAdornment: (
           <InputAdornment
@@ -130,6 +131,8 @@ const FormikPhoneNumberInput = ({
           borderRadius: 1,
           backgroundColor: '#F7F7F8',
           px: 1.5,
+          height: 'auto',
+          minHeight: 48,
         },
       }}
       sx={{

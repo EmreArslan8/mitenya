@@ -11,6 +11,7 @@ import { sendTikTokServerEvent } from '@/lib/analytics/tiktokEventsApi';
 
 type PayTRTokenRequest = {
   checkoutSessionId: string;
+  successToken?: string;
 };
 
 type PayTRResponse = {
@@ -72,12 +73,7 @@ export const POST = async (req: NextRequest) => {
   const supabase = await createSupabaseServer();
   const {
     data: { user },
-    error: authError,
   } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
-  }
 
   let body: PayTRTokenRequest;
   try {
@@ -100,14 +96,30 @@ export const POST = async (req: NextRequest) => {
     return NextResponse.json({ ok: false, error: 'Checkout session not found' }, { status: 404 });
   }
 
-  const isOwner =
-    checkoutSession.user_id === user.id ||
-    (!!checkoutSession.user_email &&
-      !!user.email &&
-      String(checkoutSession.user_email).toLowerCase() === String(user.email).toLowerCase());
-
-  if (!isOwner) {
-    return NextResponse.json({ ok: false, error: 'Forbidden' }, { status: 403 });
+  // Auth user: must be owner
+  if (user) {
+    const isOwner =
+      checkoutSession.user_id === user.id ||
+      (!!checkoutSession.user_email &&
+        !!user.email &&
+        String(checkoutSession.user_email).toLowerCase() === String(user.email).toLowerCase());
+    if (!isOwner) {
+      return NextResponse.json({ ok: false, error: 'Forbidden' }, { status: 403 });
+    }
+  } else {
+    // Guest: validate success_token passed in request body
+    const tokenExpiry = checkoutSession.success_token_expires_at
+      ? new Date(checkoutSession.success_token_expires_at).getTime()
+      : NaN;
+    const tokenValid =
+      body.successToken &&
+      checkoutSession.success_token &&
+      body.successToken === checkoutSession.success_token &&
+      Number.isFinite(tokenExpiry) &&
+      Date.now() < tokenExpiry;
+    if (!tokenValid) {
+      return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+    }
   }
 
   if (checkoutSession.status === 'completed' || checkoutSession.order_id) {
@@ -282,7 +294,7 @@ export const POST = async (req: NextRequest) => {
       phone?: string;
     }>(checkoutSession.shipping_address_snapshot) ?? {};
 
-  const email = normalizeText(checkoutSession.user_email || user.email, 100, user.email || '');
+  const email = normalizeText(checkoutSession.user_email || user?.email, 100, user?.email || '');
   if (!email) {
     return NextResponse.json({ ok: false, error: 'Missing user email' }, { status: 400 });
   }
@@ -306,7 +318,7 @@ export const POST = async (req: NextRequest) => {
   const userName = normalizeText(
     shippingAddress.contactName,
     60,
-    user.user_metadata?.full_name || user.email || 'Musteri'
+    user?.user_metadata?.full_name || user?.email || 'Musteri'
   );
   const userAddress = normalizeText(
     [
@@ -411,7 +423,7 @@ export const POST = async (req: NextRequest) => {
         user: {
           email,
           phone: userPhone,
-          externalId: user.id,
+          externalId: user?.id ?? checkoutSession.customer_id ?? undefined,
           ip: requestIp,
           userAgent: req.headers.get('user-agent'),
           ttclid: attribution?.tikTokClickId ?? cookies.ttclid ?? null,

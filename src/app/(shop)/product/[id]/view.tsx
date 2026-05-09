@@ -400,24 +400,38 @@ const ProductPageView = ({
                   {fullName}
                 </Typography>
               </Stack>
-              {data.rating ? (
-                <Stack sx={styles.metaRow}>
-                  <Stack sx={{ ...styles.rating, cursor: 'pointer' }} onClick={scrollToReviews}>
-                    <Rating
-                      readOnly
-                      precision={0.1}
-                      value={data.rating?.averageRating}
-                      sx={{ fontSize: 18 }}
-                    />
-                    <Typography variant="body" sx={styles.ratingCount}>
-                      ({data.rating.totalCount} Yorum)
+              <Stack sx={styles.metaRow}>
+                <Stack sx={{ ...styles.rating, cursor: 'pointer' }} onClick={scrollToReviews}>
+                  <Rating
+                    readOnly
+                    precision={0.1}
+                    value={data.rating?.averageRating ?? 0}
+                    sx={{ fontSize: { xs: 15, sm: 18 }, display: 'flex', alignItems: 'center' }}
+                  />
+                  <Typography variant="body" sx={styles.ratingCount}>
+                    ({data.rating?.totalCount ?? 0})
+                  </Typography>
+                </Stack>
+                {data.rating ? (
+                  <Stack direction="row" alignItems="center" gap={1}>
+                    <Typography variant="body" sx={styles.zeroRatingText}>
+                      {data.rating.totalCount} Değerlendirme
+                    </Typography>
+                    <Stack sx={styles.ratingSeparator}>
+                      <Typography component="span">|</Typography>
+                    </Stack>
+                  </Stack>
+                ) : (
+                  <Stack direction="row" alignItems="center" gap={0.75} sx={{ flexWrap: 'nowrap' }}>
+                    <Typography variant="body" sx={styles.zeroRatingText}>
+                      0 Değerlendirme
+                    </Typography>
+                    <Typography component="span" sx={styles.firstReviewLink} onClick={scrollToReviews}>
+                      İlk sen değerlendir
                     </Typography>
                   </Stack>
-                  <Stack sx={styles.ratingSeparator}>
-                    <Typography component="span">|</Typography>
-                  </Stack>
-                </Stack>
-              ) : null}
+                )}
+              </Stack>
               <Stack sx={styles.summaryBlock}>
                 <Stack sx={styles.badgePill}>
                   <Typography component="span" sx={styles.badgePillText}>

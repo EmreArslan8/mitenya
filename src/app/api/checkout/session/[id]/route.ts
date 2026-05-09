@@ -14,7 +14,7 @@ const parseJsonIfNeeded = <T>(value: unknown): T | null => {
 };
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -23,12 +23,9 @@ export async function GET(
     const supabase = await createSupabaseServer();
     const {
       data: { user },
-      error: authError,
     } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const successToken = req.nextUrl.searchParams.get('t');
 
     const { data: session, error } = await supabaseAdmin
       .from('checkout_sessions')
@@ -40,14 +37,30 @@ export async function GET(
       return NextResponse.json({ error: 'Checkout session bulunamadı' }, { status: 404 });
     }
 
-    const isOwner =
-      session.user_id === user.id ||
-      (!!session.user_email &&
-        !!user.email &&
-        String(session.user_email).toLowerCase() === String(user.email).toLowerCase());
-
-    if (!isOwner) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // Auth user: must be owner
+    if (user) {
+      const isOwner =
+        session.user_id === user.id ||
+        (!!session.user_email &&
+          !!user.email &&
+          String(session.user_email).toLowerCase() === String(user.email).toLowerCase());
+      if (!isOwner) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    } else {
+      // Guest: validate success_token
+      const tokenExpiry = session.success_token_expires_at
+        ? new Date(session.success_token_expires_at).getTime()
+        : NaN;
+      const tokenValid =
+        successToken &&
+        session.success_token &&
+        successToken === session.success_token &&
+        Number.isFinite(tokenExpiry) &&
+        Date.now() < tokenExpiry;
+      if (!tokenValid) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
     }
 
     const pricing = parseJsonIfNeeded<Record<string, unknown>>(session.pricing_snapshot) ?? {};

@@ -31,6 +31,32 @@ const useStyles = withPalette((palette) => ({
   checkbox: { cursor: 'pointer', flexDirection: 'row', alignItems: 'center', width: 'fit-content' },
   terms: { color: palette.text.medium, fontSize: 13, fontWeight: 500, lineHeight: 'normal' },
   termsLink: { color: palette.primaryDark.main, textDecoration: 'none' },
+  legalConsentGroup: {
+    gap: 2,
+    py: 1,
+  },
+  legalConsentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 0,
+    width: '100%',
+  },
+  legalConsentText: {
+    flex: 1,
+    color: palette.text.main,
+    fontSize: 14,
+    fontWeight: 500,
+    lineHeight: '21px',
+  },
+  legalInfoButton: {
+    color: palette.text.main,
+    p: 0,
+    ml: 1.25,
+
+    width: 20,
+    height: 20,
+    flexShrink: 0,
+  },
 }));
 
 export default useStyles;

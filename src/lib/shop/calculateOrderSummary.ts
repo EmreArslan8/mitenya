@@ -51,7 +51,7 @@ export function calculateOrderSummary(
     shipmentCost,
     currency: products[0]?.price.currency ?? "TRY",
     promotionDiscount: couponDiscount,
-    discountCode: normalizedCode ?? "",
+    discountCode: couponDiscount > 0 ? (normalizedCode ?? "") : "",
 
     productCostPreDiscount,
     productCost,

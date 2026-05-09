@@ -1,7 +1,7 @@
 'use client';
 
-import CartPageView from '@/app/cart/view'
 import Button from '@/components/common/Button';
+import CartPageView from '@/features/cart/CartPageView';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
 import { ShopHeaderData, ShopHeaderLink } from '@/lib/api/types';
@@ -41,7 +41,7 @@ import ShoppingCartButton from '../ShoppingCart/ShoppingCartButton';
 import ModalCard from '../common/ModalCard';
 import CategoriesDrawer from './CategoriesDrawer';
 import useStyles, { ANNOUNCEMENT_HEIGHT } from './styles';
-import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, Home, History, Settings, Menu, Heart, User, ChevronRight } from 'lucide-react';
+import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, History, Settings, Menu, User } from 'lucide-react';
 
 
 const getSupportUrl = 'https://api.whatsapp.com/send?phone=905070617930';
@@ -100,7 +100,6 @@ const Navigation = ({ data }: NavigationProps) => {
   const collapseIn = mounted ? (!logoCollapsed || smUp) : true;
 
   const toggleCartModalOpen = () => {
-    if (pathname === '/checkout') return;
     if (!smDown) return;
     if (cartModalOpen) return setCartModalOpen(false);
     setCategoriesOpen(false);
@@ -544,12 +543,12 @@ const Navigation = ({ data }: NavigationProps) => {
             onClose={() => setCartModalOpen(false)}
             showCloseIcon
             title="Sepet"
+            fullWidth={isCartEmpty}
             CardProps={{
               sx: {
-                height: '100%',
-                pb: 12,
-                width: { sm: isCartEmpty ? '100%' : undefined },
-                maxWidth: { sm: isCartEmpty ? '100%' : undefined },
+                height: isCartEmpty ? 'auto' : '100%',
+                maxHeight: isCartEmpty ? { xs: '40vh', sm: 300 } : undefined,
+                pb: isCartEmpty ? 2 : 12,
               },
             }}
             sx={{ zIndex: 1297 }}

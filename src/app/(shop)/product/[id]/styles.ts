@@ -27,7 +27,7 @@ const useStyles = withPalette((palette) => ({
   },
   details: {
     gap: 1.75,
-    px: { xs: 2, sm: 0 },
+    px: { xs: 1, sm: 0 },
     pt: { xs: 2, sm: 0 },
     background: palette.bg.main,
     minWidth: 0,
@@ -45,9 +45,10 @@ const useStyles = withPalette((palette) => ({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 1,
-    flexWrap: 'wrap',
+    gap: 0.75,
+    flexWrap: 'nowrap',
     mb: '8px',
+    overflow: 'hidden',
   },
   brand: {
     display: 'flex',
@@ -75,7 +76,7 @@ const useStyles = withPalette((palette) => ({
     textDecoration: 'line-through',
     lineHeight: '20px',
   },
-  rating: { flexDirection: 'row', alignItems: 'center', gap: 0.75, pt: '2px' },
+  rating: { flexDirection: 'row', alignItems: 'center', gap: 0.75 },
   ratingSeparator: {
     color: palette.text.medium,
     fontWeight: 600,
@@ -88,6 +89,16 @@ const useStyles = withPalette((palette) => ({
     fontWeight: 500,
   },
   ratingCount: { color: palette.text.medium, fontSize: 14, lineHeight: 1 },
+  zeroRatingText: { color: palette.text.medium, fontSize: 14, lineHeight: 1 },
+  firstReviewLink: {
+    color: palette.primary.main,
+    fontSize: 14,
+    fontWeight: 600,
+    lineHeight: 1,
+    cursor: 'pointer',
+    textDecoration: 'underline',
+    textUnderlineOffset: '2px',
+  },
   summaryBlock: {
     gap: '14px',
   },
