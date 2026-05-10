@@ -311,6 +311,8 @@ export async function POST(req: NextRequest) {
 
     const paymentStatus = payment_method === "bank_transfer" ? "awaiting_transfer" : "awaiting_payment";
 
+    const guestTrackingToken = createGuestTrackingToken();
+
     const baseEdgePayload = {
       order_number,
       user_id: user?.id ?? null,
@@ -334,6 +336,7 @@ export async function POST(req: NextRequest) {
       event_description: eventDescription,
       documents,
       consents: consentsRows,
+      guest_tracking_token: guestTrackingToken,
     };
 
     const edgeAuthToken = accessToken ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
@@ -390,7 +393,6 @@ export async function POST(req: NextRequest) {
 
     const order = edgeData.order;
     const successToken = edgeData.success_token;
-    const guestTrackingToken = createGuestTrackingToken();
 
     const { data: currentOrder } = await supabaseAdmin
       .from("orders")
