@@ -573,7 +573,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
             >
               <Stack px={{ xs: 1, sm: 2 }} py={1}>
                 <Stack>
-                  <Card sx={{ maxWidth: { xs: '100%', sm: 350 }, gap: 1 }}>
+                  <Card sx={{ maxWidth: '100%', gap: 1 }}>
                     <AddressSelector
                       value={destination}
                       options={addresses}
@@ -650,7 +650,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                     </Stack>
                   )}
                   {billingDifferent && (
-                    <Card sx={{ maxWidth: { xs: '100%', sm: 350 }, gap: 1 }}>
+                    <Card sx={{ maxWidth: '100%', gap: 1 }}>
                       <AddressSelector
                         value={billingAddress}
                         options={addresses}
@@ -746,10 +746,9 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
               </Stack>
             </Card>
             */}
-            {!isMobile && cartProductsCard}
           </PrimaryColumn>
           <SecondaryColumn>
-            {isMobile && cartProductsCard}
+            {cartProductsCard}
             <CheckoutCard
               title="Sipariş Özeti"
               hideTitleIcon

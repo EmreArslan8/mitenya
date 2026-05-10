@@ -9,6 +9,7 @@ import { type OrderAttribution } from "@/lib/analytics/attribution";
 import { sendCapiPurchase } from "@/lib/analytics/metaCapi";
 import { parseCookieHeader } from "@/lib/analytics/attribution";
 import { sendTikTokServerEvent } from "@/lib/analytics/tiktokEventsApi";
+import { createGuestTrackingToken } from "@/lib/orders/guestTracking";
 import { z } from "zod";
 
 
@@ -389,6 +390,7 @@ export async function POST(req: NextRequest) {
 
     const order = edgeData.order;
     const successToken = edgeData.success_token;
+    const guestTrackingToken = createGuestTrackingToken();
 
     const { data: currentOrder } = await supabaseAdmin
       .from("orders")
@@ -404,13 +406,17 @@ export async function POST(req: NextRequest) {
     if (successToken) {
       nextMetadata.success_token = successToken;
     }
+    nextMetadata.guest_tracking_token = guestTrackingToken;
 
     if (attribution && Object.values(attribution).some(Boolean)) {
       nextMetadata.attribution = attribution as OrderAttribution;
     }
 
     if (Object.keys(nextMetadata).length > 0) {
-      await supabaseAdmin.from("orders").update({ metadata: nextMetadata }).eq("id", order.id);
+      await supabaseAdmin
+        .from("orders")
+        .update({ metadata: nextMetadata, guest_tracking_token: guestTrackingToken })
+        .eq("id", order.id);
     }
 
     if (normalizedAffiliateCode && order.id) {

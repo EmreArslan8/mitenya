@@ -41,7 +41,7 @@ import ShoppingCartButton from '../ShoppingCart/ShoppingCartButton';
 import ModalCard from '../common/ModalCard';
 import CategoriesDrawer from './CategoriesDrawer';
 import useStyles, { ANNOUNCEMENT_HEIGHT } from './styles';
-import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, History, Settings, Menu, User } from 'lucide-react';
+import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, History, Settings, Menu, User, PackageSearch } from 'lucide-react';
 
 
 const getSupportUrl = 'https://api.whatsapp.com/send?phone=905070617930';
@@ -585,6 +585,18 @@ const Navigation = ({ data }: NavigationProps) => {
               <Grid item xs={12}>
                 <Divider sx={{ my: 1 }} />
               </Grid>
+              <Grid item xs={6}>
+                <MenuItem
+                  onClick={() => {
+                    router.push('/siparis-takip');
+                    setAccountModalOpen(false);
+                  }}
+                  sx={styles.accountMenuItem}
+                >
+                  <PackageSearch size={18} />
+                  Sipariş Takip
+                </MenuItem>
+              </Grid>
               {accountModalRoutes.map((e) => (
                 <Grid item xs={6} key={e.label}>
                   <MenuItem
@@ -629,7 +641,7 @@ const Navigation = ({ data }: NavigationProps) => {
             categories={data?.categories}
             isAuthenticated={isAuthenticated ?? undefined}
             onAccount={() => handleAccountButtonClick('/settings')}
-            onOrders={() => handleAccountButtonClick('/orders')}
+            onOrders={() => isAuthenticated ? handleAccountButtonClick('/orders') : router.push('/siparis-takip')}
             onFavorites={() => handleAccountButtonClick('/settings?section=favorites')}
             onNavigate={(slug) => router.push(`/${slug}`)}
           />

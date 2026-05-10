@@ -3,12 +3,11 @@ import { ChangeEvent, FocusEvent, MouseEvent, useLayoutEffect, useMemo, useRef }
 
 interface FormikPhoneNumberInputProps {
   formik: any;
+  label?: string;
   size?: 'small' | 'medium';
   disabled?: boolean;
   fullWidth?: boolean;
 }
-
-const PREFIX = '';
 
 const formatPhone = (raw: string): string => {
   const d = raw.replace(/\D/g, '').slice(0, 10);
@@ -48,6 +47,7 @@ const caretPosForDigits = (value: string, digitsCount: number): number => {
 
 const FormikPhoneNumberInput = ({
   formik,
+  label,
   size = 'small',
   disabled = false,
 }: FormikPhoneNumberInputProps) => {
@@ -110,6 +110,7 @@ const FormikPhoneNumberInput = ({
       name="phoneNumber"
       type="tel"
       required
+      label={label}
       placeholder="___) ___ __ __"
       disabled={disabled}
       value={formattedValue}

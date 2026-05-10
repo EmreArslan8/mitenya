@@ -223,12 +223,9 @@ const AddressForm = ({
             />
           </Stack>
 
-          <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} gap={1} alignItems={{ sm: 'flex-end' }}>
             <Stack width="100%">
-              <Typography variant="infoLabel">
-                Telefon <Asterisk color="error" size={8} />
-              </Typography>
-              <PhoneNumberInput formik={formik} fullWidth size="small" />
+              <PhoneNumberInput formik={formik} label="Telefon" fullWidth size="small" />
             </Stack>
 
             <FormikDropdown

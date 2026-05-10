@@ -1,5 +1,6 @@
 import { createOrderViaEdge } from '@/lib/orders/createOrderViaEdge';
 import { generateOrderNumber } from '@/lib/orders/generateOrderNumber';
+import { createGuestTrackingToken } from '@/lib/orders/guestTracking';
 import { createAffiliateConversion } from '@/lib/affiliates/commissionService';
 import { parseCheckoutNotes } from '@/lib/analytics/attribution';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -236,6 +237,7 @@ export async function createOrderFromCheckoutSession(params: {
   }
 
   const createdOrder = edgeData.order;
+  const guestTrackingToken = createGuestTrackingToken();
   const { data: currentOrder } = await supabase
     .from('orders')
     .select('metadata')
@@ -253,9 +255,11 @@ export async function createOrderFromCheckoutSession(params: {
         paytr_merchant_oid: merchantOid,
         success_token: checkoutSession.success_token,
         success_token_expires_at: checkoutSession.success_token_expires_at,
+        guest_tracking_token: guestTrackingToken,
         late_success: isLateSuccess,
         attribution: attribution ?? existingMetadata.attribution,
       },
+      guest_tracking_token: guestTrackingToken,
     })
     .eq('id', createdOrder.id);
 

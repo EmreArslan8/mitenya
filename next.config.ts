@@ -26,6 +26,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: '/siparis-takip',
+        destination: '/order-status',
+      },
+    ];
+  },
   async headers() {
     return [
       {

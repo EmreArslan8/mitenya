@@ -9,7 +9,7 @@ import { sendPurchaseEventForOrder } from '@/lib/utils/googleAnalytics';
 import { onMetaPixelReady, trackPurchase } from '@/lib/analytics/metaPixel';
 import { trackTikTokPurchase, trackTikTokWithUser } from '@/lib/analytics/tiktokPixel';
 import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material';
-import { Check } from 'lucide-react';
+import { Check, PackageSearch } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useContext, useEffect, useRef, useState } from 'react';
 
@@ -19,6 +19,7 @@ interface OrderData {
   status: string;
   payment_status: string;
   payment_method?: string;
+  guest_tracking_token?: string | null;
   total_amount: number;
   subtotal?: number;
   shipping_cost?: number;
@@ -42,7 +43,7 @@ interface OrderData {
 const SuccessPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { customerData, openAuthenticator } = useAuth();
+  const { customerData, openAuthenticator, isAuthenticated } = useAuth();
   const { selected, removeItems } = useContext(ShopContext);
   const token = searchParams?.get('t');
   const [order, setOrder] = useState<OrderData | null>(null);
@@ -310,9 +311,20 @@ const SuccessPageContent = () => {
         <Divider sx={{ my: 2 }} />
 
         <Stack gap={1.5}>
-          <Button variant="contained" fullWidth onClick={() => router.push('/orders')}>
-            Siparişlerimi Gör
-          </Button>
+          {order.guest_tracking_token && isAuthenticated === false ? (
+            <Button
+              variant="contained"
+              fullWidth
+              startIcon={<PackageSearch size={18} />}
+              onClick={() => router.push(`/siparis-takip?t=${encodeURIComponent(order.guest_tracking_token || '')}`)}
+            >
+              Siparişi Takip Et
+            </Button>
+          ) : (
+            <Button variant="contained" fullWidth onClick={() => router.push('/orders')}>
+              Siparişlerimi Gör
+            </Button>
+          )}
           <Button variant="outlined" fullWidth onClick={() => router.push('/')}>
             Alışverişe Devam Et
           </Button>
