@@ -79,7 +79,7 @@ const createCheckoutSessionSchema = z.object({
   // shipping_cost and discount_amount are NOT accepted from client — computed server-side
   discount_code: z.string().max(50).nullable().optional(),
   affiliate_code: z.string().max(20).nullable().optional(),
-  attribution: attributionSchema.optional(),
+  attribution: attributionSchema.nullable().optional(),
   notes: z.string().max(500).optional(),
   currency: z.string().length(3).optional(),
   consents: consentsSchema,

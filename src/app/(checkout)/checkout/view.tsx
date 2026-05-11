@@ -53,18 +53,6 @@ export interface CheckoutPageViewProps {
   initialAddresses?: AddressData[] | null;
 }
 
-const toAbsoluteImageUrl = (value: unknown) => {
-  if (typeof value !== 'string') return undefined;
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-
-  try {
-    return new URL(trimmed, window.location.origin).href;
-  } catch {
-    return undefined;
-  }
-};
-
 const getCheckoutErrorMessage = (data: unknown) => {
   if (!data || typeof data !== 'object') return 'Sipariş oluşturulamadı';
   const body = data as {
@@ -199,7 +187,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         product_name: item.name || '',
         quantity: item.quantity,
         price: item.price.currentPrice,
-        image_url: toAbsoluteImageUrl(item.imgSrc || item.images?.[0]),
+        image_url: item.imgSrc || item.images?.[0],
         variant_data: item.variants?.reduce(
           (acc, v) => {
             const selectedOption = v.options.find((o) => o.selected);
