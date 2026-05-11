@@ -53,6 +53,43 @@ export interface CheckoutPageViewProps {
   initialAddresses?: AddressData[] | null;
 }
 
+const toAbsoluteImageUrl = (value: unknown) => {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  try {
+    return new URL(trimmed, window.location.origin).href;
+  } catch {
+    return undefined;
+  }
+};
+
+const getCheckoutErrorMessage = (data: unknown) => {
+  if (!data || typeof data !== 'object') return 'Sipariş oluşturulamadı';
+  const body = data as {
+    error?: unknown;
+    details?: {
+      fieldErrors?: Record<string, string[] | undefined>;
+      formErrors?: string[];
+    };
+  };
+  const fieldErrors = body.details?.fieldErrors;
+  const firstFieldError = fieldErrors
+    ? Object.entries(fieldErrors).find(([, messages]) => messages?.length)
+    : null;
+
+  if (firstFieldError) {
+    const [field, messages] = firstFieldError;
+    return `${field}: ${messages?.[0]}`;
+  }
+
+  const formError = body.details?.formErrors?.[0];
+  if (formError) return formError;
+  if (typeof body.error === 'string') return body.error;
+  return 'Sipariş oluşturulamadı';
+};
+
 const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   const { isMobile } = useScreen();
   const styles = useStyles();
@@ -162,7 +199,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         product_name: item.name || '',
         quantity: item.quantity,
         price: item.price.currentPrice,
-        image_url: item.imgSrc || item.images?.[0],
+        image_url: toAbsoluteImageUrl(item.imgSrc || item.images?.[0]),
         variant_data: item.variants?.reduce(
           (acc, v) => {
             const selectedOption = v.options.find((o) => o.selected);
@@ -223,10 +260,11 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         })
       );
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.error || 'Sipariş oluşturulamadı');
+        console.warn('Checkout request failed', data);
+        throw new Error(getCheckoutErrorMessage(data));
       }
 
       if (paymentType !== 'COD') {
