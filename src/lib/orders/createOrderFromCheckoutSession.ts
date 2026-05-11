@@ -161,6 +161,7 @@ export async function createOrderFromCheckoutSession(params: {
     : null;
 
   const orderNumber = await generateOrderNumber();
+  const guestTrackingToken = createGuestTrackingToken();
   const eventDescription = isLateSuccess
     ? 'PayTR ödemesi başarıyla alındı (late success). Sipariş oluşturuldu.'
     : 'PayTR ödemesi başarıyla alındı. Sipariş oluşturuldu.';
@@ -199,6 +200,7 @@ export async function createOrderFromCheckoutSession(params: {
     documents,
     consents: consentsRows,
     payment_id: merchantOid,
+    guest_tracking_token: guestTrackingToken,
   };
 
   const edgeAuthToken = resolveEdgeAuthToken();
@@ -237,7 +239,6 @@ export async function createOrderFromCheckoutSession(params: {
   }
 
   const createdOrder = edgeData.order;
-  const guestTrackingToken = createGuestTrackingToken();
   const { data: currentOrder } = await supabase
     .from('orders')
     .select('metadata')
