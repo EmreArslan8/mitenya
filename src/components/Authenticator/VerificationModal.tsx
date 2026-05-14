@@ -3,6 +3,7 @@
 import { Stack, TextField, Typography } from '@mui/material';
 import { FormEvent, useEffect, useState } from 'react';
 import Button from '../common/Button';
+import { LoadingButton } from '@mui/lab';
 import ModalCard from '../common/ModalCard';
 
 interface Props {
@@ -64,9 +65,9 @@ const VerificationModal = ({ email, onResend, onBack, onClose, onSubmit }: Props
             <Button variant="outlined" disabled={seconds > 0} onClick={() => { onResend(); setSeconds(60); }}>
               Yeniden Gönder {seconds > 0 && `(${seconds})`}
             </Button>
-            <Button loading={loading} variant="contained" arrow="end" disabled={code.length < 6} type="submit">
+            <LoadingButton loading={loading} variant="contained" disabled={code.length < 6} type="submit">
               Doğrula
-            </Button>
+            </LoadingButton>
           </Stack>
         </Stack>
       </Stack>

@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
-import { pushItemToDataLayer } from './googleAnalytics';
+import { pushItemToDataLayer } from './dataLayer';
  
 export const signOut = async () => {
   const supabase = createClient();

@@ -1,6 +1,6 @@
 'use client';
 
-import { LoadingButton } from '@mui/lab';
+import { Button as MuiButton } from '@mui/material';
 import styles from './styles';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -19,6 +19,7 @@ const Button = ({
   href,
   onClick,
   dataLayerEventId,
+  loading: _loading,
   ...props
 }: any) => {
   const router = useRouter();
@@ -32,7 +33,7 @@ const Button = ({
   };
 
   return (
-    <LoadingButton
+    <MuiButton
       startIcon={arrow === 'start' && <Arrow position="start" size={props.size} />}
       endIcon={arrow === 'end' && <Arrow position="end" size={props.size} />}
       {...props}
@@ -40,7 +41,7 @@ const Button = ({
       sx={[styles.button(theme.direction), props.sx]}
     >
       {children}
-    </LoadingButton>
+    </MuiButton>
   );
 };
 

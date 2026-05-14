@@ -1,6 +1,10 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { CustomerData, ShopOrderSummaryData, ShopProductData } from '../api/types';
 import { buildAttributionFromDocument } from '../analytics/attribution';
+import { pushItemToDataLayer } from './dataLayer';
+
+export type { DataLayerEvent } from './dataLayer';
+export { pushItemToDataLayer };
 
 interface CommonEventParams {
   page_type?: string;
@@ -36,19 +40,6 @@ const getCommonEventParams = (): CommonEventParams => {
     utm_term: attribution?.utmTerm ?? undefined,
     landing_path: attribution?.landingPath ?? undefined,
   };
-};
-
-export type DataLayerEvent = Record<string, unknown>;
-
-export const pushItemToDataLayer = (item: DataLayerEvent) => {
-  try {
-    if (typeof window === "undefined") return;
-
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push(item);
-  } catch (error) {
-    console.error(error);
-  }
 };
 const sendEvent = (params: DataLayerEvent) => {
   pushItemToDataLayer({ ...getCommonEventParams(), ...params });

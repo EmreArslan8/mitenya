@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 const Authenticator = dynamic(() => import('@/components/Authenticator'), { ssr: false });
 import { CustomerData } from '@/lib/api/types';
 import useCustomerData from '@/lib/api/useCustomerData';
-import { pushItemToDataLayer } from '@/lib/utils/googleAnalytics';
+import { pushItemToDataLayer } from '@/lib/utils/dataLayer';
 import { createClient } from '@/lib/supabase/client';
 import type { User, AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { getCookie } from 'cookies-next';

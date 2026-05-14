@@ -5,6 +5,7 @@ import { useFormik } from 'formik';
 import { useState } from 'react';
 import Banner from '../common/Banner';
 import Button from '../common/Button';
+import { LoadingButton } from '@mui/lab';
 import ModalCard from '../common/ModalCard';
 import { TextField } from '@mui/material';
 import PasswordField from './PasswordField';
@@ -87,7 +88,7 @@ const SignInModal = ({ onClose, onSubmit, onForgotPassword, onSwitchToSignup }: 
             Şifremi unuttum
           </Typography>
 
-          <Button loading={loading} variant="contained" arrow="end" type="submit" fullWidth>Giriş Yap</Button>
+          <LoadingButton loading={loading} variant="contained" type="submit" fullWidth>Giriş Yap</LoadingButton>
         </Stack>
 
         <Typography variant="body2" color="text.secondary" textAlign="center">
