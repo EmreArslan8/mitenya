@@ -245,6 +245,7 @@ export type ShopProductData = {
   metaTitle?: string | null;
   metaDescription?: string | null;
   metaKeywords?: string | null;
+  benefits?: { icon?: string; text: string }[];
   faqs?: {
     question: string;
     answer: string;

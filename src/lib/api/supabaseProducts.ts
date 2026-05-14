@@ -82,6 +82,7 @@ export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopPr
       product_images(image_url, is_main, sort_order),
       product_stock(quantity, stock_status),
       attributes_json,
+      benefits_json,
       meta_title,
       meta_description,
       meta_keywords
@@ -179,9 +180,14 @@ export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopPr
 
   const imgSrc = imageUrls[0] ?? "";
 
-  const attributes = data.attributes_json 
-  ? (data.attributes_json as any[]) 
+  const attributes = data.attributes_json
+  ? (data.attributes_json as any[])
   : [];
+
+  const benefitsJson = data.benefits_json as { items?: ({ icon?: string; text: string } | string)[] } | null;
+  const benefits = (benefitsJson?.items ?? [])
+    .map((item) => typeof item === 'string' ? { text: item } : item)
+    .filter((item) => item.text?.trim());
 
   
   const filterAggregations = await getFilterAggregations();
@@ -217,6 +223,7 @@ export async function fetchProductDataSupabase(idOrSlug: string): Promise<ShopPr
     quantity: firstStockQuantity,
     stockStatus: firstStockStatus,
     attributes: attributes,
+    benefits: benefits.length ? benefits : undefined,
     reviews,
     faqs: normalizedFaqs,
     rating:

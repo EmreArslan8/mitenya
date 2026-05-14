@@ -36,6 +36,7 @@ import {
   trackTikTokViewContent,
 } from '@/lib/analytics/tiktokPixel';
 import QATypewriterPill from './components/ProductShopAssistant/QATypewriterPill';
+import ProductBenefits from './components/ProductBenefits';
 
 const ProductFaq = dynamic(() => import('./components/ProductFaq'), {
   loading: () => null,
@@ -445,9 +446,12 @@ const ProductPageView = ({
                         {paragraph}
                       </Typography>
                     ))}
+                    {data.benefits?.length ? <ProductBenefits benefits={data.benefits} /> : null}
                     <QATypewriterPill />
                   </Stack>
-                ) : null}
+                ) : (
+                  data.benefits?.length ? <ProductBenefits benefits={data.benefits} /> : null
+                )}
                 <Divider sx={styles.shortDescriptionDivider} />
               </Stack>
               {stockStatusConfig && (
