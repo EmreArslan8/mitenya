@@ -6,42 +6,6 @@ const useStyles = withPalette((palette) => ({
     alignSelf: 'center',
     position: 'relative',
     overflow: 'visible',
-    '& .slick-list': {
-      overflow: 'hidden',
-    },
-
-    '& .slick-dots': {
-      bottom: -24,
-      display: 'flex !important',
-      justifyContent: 'center',
-      alignItems: 'center',
-
-      '& li': {
-        width: 'auto',
-        height: 'auto',
-        margin: '0 4px',
-      },
-
-      '& li button': {
-        padding: 0,
-      },
-
-      '& li button:before': {
-        content: '""',             
-        display: 'block',
-        width: 6,
-        height: 6,
-        borderRadius: 999,
-        backgroundColor: palette.text.light,
-        opacity: 1,
-        transition: 'all .2s ease',
-      },
-
-      '& li.slick-active button:before': {
-        backgroundColor: palette.text.main,
-        transform: 'scale(1.2)',
-      },
-    },
   },
 
   prevButton: {

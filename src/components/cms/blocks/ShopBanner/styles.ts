@@ -1,3 +1,4 @@
+import { SxProps } from '@mui/material';
 import { withPalette } from '@/theme/ThemeRegistry';
 
 const useStyles = withPalette((palette) => ({
@@ -7,58 +8,43 @@ const useStyles = withPalette((palette) => ({
     position: 'relative',
     overflow: 'hidden',
     pb: 3,
+  },
 
-    '& .slick-slider': { maxWidth: '100vw' },
-    '& .slick-list': { borderRadius: { sm: 1.5 } },
+  dotsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: -28,
+    left: 0,
+    right: 0,
+    zIndex: 2,
+    gap: '8px',
+  } as SxProps,
 
-    // ✅ loader background'ı kapat (ajax-loader.gif request riskini de düşürür)
-    '& .slick-loading .slick-list': {
-      background: 'transparent !important',
-    },
-
-    // ✅ dots: font kullanmadan
-    '& .slick-dots': {
-      bottom: -28,
-      display: 'flex !important',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 2,
-      margin: 0,
-      padding: 0,
-      listStyle: 'none',
-    },
-
-    '& .slick-dots li': {
-      margin: 0,
-      width: 'auto',
-      height: 'auto',
-    },
-
-    '& .slick-dots li button': {
-      padding: 0,
-      width: 20,
-      height: 20,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-
-    '& .slick-dots li button:before': {
-      content: '""', // ❗ '•' yok, font yok
+  dot: (active: boolean): SxProps => ({
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    border: 'none',
+    background: 'none',
+    padding: 0,
+    width: 20,
+    height: 20,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    '&::before': {
+      content: '""',
       display: 'block',
       width: 6,
       height: 6,
       borderRadius: 999,
-      backgroundColor: palette.text.light,
-      opacity: 1,
+      backgroundColor: active ? palette.text.main : palette.text.light,
+      transform: active ? 'scale(1.25)' : 'scale(1)',
       transition: 'all .2s ease',
     },
-
-    '& .slick-dots li.slick-active button:before': {
-      backgroundColor: palette.text.main,
-      transform: 'scale(1.25)',
-    },
-  },
+  }),
 
   prevButton: {
     position: 'absolute',
@@ -71,7 +57,7 @@ const useStyles = withPalette((palette) => ({
     width: 28,
     height: 28,
     opacity: { xs: 0, sm: 1 },
-  },
+  } as SxProps,
 
   nextButton: {
     position: 'absolute',
@@ -84,7 +70,7 @@ const useStyles = withPalette((palette) => ({
     width: 28,
     height: 28,
     opacity: { xs: 0, sm: 1 },
-  },
+  } as SxProps,
 }));
 
 export default useStyles;

@@ -56,9 +56,6 @@ const ProductRecommendations = ({ brandId, productId, categoryId }: { brandId: s
           position: 'relative',
           overflow: 'visible',
           pb: { xs: 1, sm: 2 },
-          '& .slick-slide > div': {
-            boxSizing: 'border-box',
-          },
         }}
       >
         <CustomSlider

@@ -8,16 +8,6 @@ const useStyles = withPalette(() => ({
     position: 'relative',
     overflow: 'visible',
     pb: { xs: 0, sm: 2 },
-
-    '& .slick-slide > div': {
-      boxSizing: 'border-box',
-    },
-    '& .slick-arrow': {
-      display: 'none !important',
-    },
-    '& .slick-dots': {
-      display: 'none !important',
-    },
   },
 
   pillDots: {

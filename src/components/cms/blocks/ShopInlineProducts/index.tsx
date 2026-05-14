@@ -1,6 +1,6 @@
 'use client';
 
-import CustomSlider from '@/components/CustomSlider';
+import CustomSlider, { SliderHandle } from '@/components/CustomSlider';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import Button from '@/components/common/Button';
 import { fetchProducts } from '@/lib/api/shop';
@@ -9,7 +9,6 @@ import useScreen from '@/lib/hooks/useScreen';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
 import { Box, Grid, Stack } from '@mui/material';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import Slider from 'react-slick';
 import { BlockComponentBaseProps } from '..';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import useStyles from './styles';
@@ -25,7 +24,7 @@ type SliderWithDotsProps = {
 
 const SliderWithDots = ({ children, count, slidesToShow, slidesToScroll, styles }: SliderWithDotsProps) => {
   const [current, setCurrent] = useState(0);
-  const sliderRef = useRef<Slider>(null);
+  const sliderRef = useRef<SliderHandle | null>(null);
 
   return (
     <Stack sx={styles.sliderContainer}>
@@ -37,7 +36,6 @@ const SliderWithDots = ({ children, count, slidesToShow, slidesToScroll, styles 
         autoplay
         autoplaySpeed={3200}
         pauseOnHover
-        dots={false}
         afterChange={setCurrent}
       >
         {children}
@@ -47,7 +45,7 @@ const SliderWithDots = ({ children, count, slidesToShow, slidesToScroll, styles 
           <Box
             key={i}
             component="button"
-            onClick={() => sliderRef.current?.slickGoTo(i)}
+            onClick={() => sliderRef.current?.scrollTo(i)}
             aria-label={`Slayt ${i + 1}`}
             sx={styles.pillDot(i === current)}
           />
