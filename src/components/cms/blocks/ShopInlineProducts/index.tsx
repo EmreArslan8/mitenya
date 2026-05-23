@@ -196,12 +196,12 @@ const ShopInlineProducts = ({
           >
             {products.length
               ? products.map((e) => (
-                  <Stack key={e.id} p={0.75} sx={{ boxSizing: 'border-box' }}>
+                  <Stack key={e.id} p={0.75} sx={{ boxSizing: 'border-box', height: '100%' }}>
                     <ProductCard data={e} />
                   </Stack>
                 ))
               : Array.from(Array(RENDER_LIMIT).keys()).map((e) => (
-                  <Stack key={e} p={0.75} sx={{ boxSizing: 'border-box' }}>
+                  <Stack key={e} p={0.75} sx={{ boxSizing: 'border-box', height: '100%' }}>
                     <ProductCardSkeleton />
                   </Stack>
                 ))}
@@ -216,12 +216,12 @@ const ShopInlineProducts = ({
             >
               {products.length
                 ? products.map((e) => (
-                    <Stack key={e.id} p={1} sx={{ boxSizing: 'border-box' }}>
+                    <Stack key={e.id} p={1} sx={{ boxSizing: 'border-box', height: '100%' }}>
                       <ProductCard data={e} />
                     </Stack>
                   ))
                 : Array.from(Array(RENDER_LIMIT).keys()).map((e) => (
-                    <Stack key={e} p={1} sx={{ boxSizing: 'border-box' }}>
+                    <Stack key={e} p={1} sx={{ boxSizing: 'border-box', height: '100%' }}>
                       <ProductCardSkeleton />
                     </Stack>
                   ))}

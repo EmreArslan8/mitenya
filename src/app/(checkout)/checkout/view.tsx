@@ -22,6 +22,7 @@ import { readStoredWelcomeCoupon, storeWelcomeCoupon } from '@/lib/shop/welcomeC
 import { withCsrfHeaders } from '@/lib/utils/csrf';
 import { pushItemToDataLayer, useCheckoutAnalytics } from '@/lib/utils/googleAnalytics';
 import { onMetaPixelReady, trackInitiateCheckout } from '@/lib/analytics/metaPixel';
+import { sendCapiFromClient, generateCapiEventId } from '@/lib/analytics/sendCapiFromClient';
 import {
   trackTikTokAddPaymentInfo,
   trackTikTokInitiateCheckout,
@@ -337,6 +338,10 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   useEffect(() => {
     if (!selected?.length) return;
     sendBeginCheckout(selected);
+    const initiateCheckoutEventId = generateCapiEventId('ic');
+    const totalValue = selected.reduce((acc, p) => acc + p.price.currentPrice * p.quantity, 0);
+    const currency = selected[0]?.price.currency ?? 'TRY';
+    const numItems = selected.reduce((acc, p) => acc + p.quantity, 0);
     const params = {
       content_ids: selected.map((p) => String(p.id)),
       contents: selected.map((p) => ({
@@ -345,14 +350,22 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
         content_name: p.name,
         num_items: p.quantity,
       })),
-      value: selected.reduce((acc, p) => acc + p.price.currentPrice * p.quantity, 0),
-      currency: selected[0]?.price.currency ?? 'TRY',
-      num_items: selected.reduce((acc, p) => acc + p.quantity, 0),
+      value: totalValue,
+      currency,
+      num_items: numItems,
     };
     const cleanupMeta = onMetaPixelReady(() => {
-      trackInitiateCheckout({
-        ...params,
-      });
+      trackInitiateCheckout({ ...params, eventID: initiateCheckoutEventId });
+    });
+    sendCapiFromClient({
+      eventName: 'InitiateCheckout',
+      eventId: initiateCheckoutEventId,
+      contentIds: selected.map((p) => String(p.id)),
+      value: totalValue,
+      currency,
+      numItems,
+      email: tikTokUserRef.current?.email ?? undefined,
+      phone: tikTokUserRef.current?.phone ?? undefined,
     });
     const cleanupTikTok = trackTikTokWithUser({
       userData: tikTokUserRef.current,

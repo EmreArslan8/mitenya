@@ -70,7 +70,7 @@ const ProductRecommendations = ({ brandId, productId, categoryId }: { brandId: s
             <Stack
               key={typeof item === 'number' ? item : item.id}
               p={{ xs: 0.75, sm: 1 }}
-              sx={{ boxSizing: 'border-box' }}
+              sx={{ boxSizing: 'border-box', height: '100%' }}
             >
               {typeof item === 'number' ? <ProductCardSkeleton /> : <ProductCard data={item} />}
             </Stack>

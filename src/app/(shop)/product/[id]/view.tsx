@@ -30,6 +30,7 @@ import {
   trackAddToWishlist,
   trackViewContent,
 } from '@/lib/analytics/metaPixel';
+import { sendCapiFromClient, generateCapiEventId } from '@/lib/analytics/sendCapiFromClient';
 import {
   trackTikTokAddToWishlist,
   trackTikTokWithUser,
@@ -292,6 +293,7 @@ const ProductPageView = ({
   }, [customerData?.email, customerData?.phone]);
 
   useEffect(() => {
+    const viewContentEventId = generateCapiEventId('vc');
     const cleanupMeta = onMetaPixelReady(() => {
       trackViewContent({
         content_ids: [String(data.id)],
@@ -299,7 +301,17 @@ const ProductPageView = ({
         content_category: data.category,
         value: data.price.currentPrice,
         currency: data.price.currency ?? 'TRY',
+        eventID: viewContentEventId,
       });
+    });
+    sendCapiFromClient({
+      eventName: 'ViewContent',
+      eventId: viewContentEventId,
+      contentIds: [String(data.id)],
+      contentName: data.name,
+      contentCategory: data.category,
+      value: data.price.currentPrice,
+      currency: data.price.currency ?? 'TRY',
     });
     const cleanupTikTok = trackTikTokWithUser({
       userData: tikTokUserRef.current,

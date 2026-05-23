@@ -85,7 +85,7 @@ const CustomSlider = ({
           {Children.map(children, (child, i) => (
             <div
               key={i}
-              style={{ flex: `0 0 calc(100% / ${slidesToShow})`, minWidth: 0, boxSizing: 'border-box' }}
+              style={{ flex: `0 0 calc(100% / ${slidesToShow})`, minWidth: 0, boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}
             >
               {child}
             </div>

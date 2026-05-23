@@ -96,7 +96,7 @@ window.dispatchEvent(new Event('tiktok-pixel-ready'));
         />
       )}
 
-      {consent?.marketing && gtmId && (
+      {consent?.analytics && gtmId && (
         <>
           <Script
             id="gtm-init"
