@@ -322,8 +322,13 @@ const Navigation = ({ data }: NavigationProps) => {
                 </>
               ) : (
                 <>
-              {smDown ? (
-                <>
+              {/* Mobile primary bar — xs'te flex, sm+'da CSS ile gizli */}
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+                sx={{ display: { xs: 'flex', sm: 'none' }, width: '100%' }}
+              >
                   {isMobileApp && pathname?.includes('/product/') ? (
                     <IconButton onClick={() => router.back()} aria-label="Geri">
                       <ArrowLeft size={24} />
@@ -364,9 +369,14 @@ const Navigation = ({ data }: NavigationProps) => {
                       </Badge>
                     </IconButton>
                   </Stack>
-                </>
-              ) : (
-                <>
+              </Stack>
+              {/* Desktop primary bar — sm+'da flex, xs'te CSS ile gizli */}
+              <Stack
+                direction="row"
+                alignItems="center"
+                gap={2}
+                sx={{ display: { xs: 'none', sm: 'flex' }, width: '100%' }}
+              >
                   {isMobileApp && pathname?.includes('/product/') ? (
                     <MenuItem onClick={() => router.back()} sx={styles.backButton}>
                       <ArrowLeft size={24} />
@@ -418,15 +428,16 @@ const Navigation = ({ data }: NavigationProps) => {
                       <ShoppingCartButton />
                     </Stack>
                   )}
-                </>
-              )}
+              </Stack>
                 </>
               )}
             </Stack>
-            {!isMinimal && mounted && smDown && (!isMobileSearchRoute || mobileSearchInputOpen) && (
-              <SearchBar autoFocus={isMobileSearchRoute} />
+            {!isMinimal && (!isMobileSearchRoute || mobileSearchInputOpen) && (
+              <Box sx={{ display: { xs: 'flex', sm: 'none' } }}>
+                <SearchBar autoFocus={isMobileSearchRoute} />
+              </Box>
             )}
-            {!isMinimal && mounted && smUp && (
+            {!isMinimal && (
               <Stack sx={styles.secondaryBar}>
                 <Stack sx={styles.shopHeaderLinks}>
                   {data?.categories?.map((cat, index) => (
