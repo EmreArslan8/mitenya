@@ -5,13 +5,16 @@ import { Metadata } from 'next';
 import { preload } from 'react-dom';
 import { Suspense } from 'react';
 import { getProductData } from './data';
+import { resolveInitialGalleryIsDesktop } from './galleryViewport';
 import Loading from './loading';
 import SuspensedView from './suspensedView';
 
-const preloadProductMainImage = (imagePathOrUrl?: string) => {
+const preloadProductMainImage = (imagePathOrUrl: string | undefined, isDesktop: boolean) => {
   if (!imagePathOrUrl) return;
 
-  const profile = R2_IMAGE_PROFILES.productPdpPrimary;
+  const profile = isDesktop
+    ? R2_IMAGE_PROFILES.productPdpPrimary
+    : R2_IMAGE_PROFILES.productPdpMobile;
 
   preload(
     r2ImageUrl(imagePathOrUrl, {
@@ -35,8 +38,11 @@ const ProductPage = async ({ params }: { params: { id: string } }) => {
   if (await isPreviewBot()) return <></>;
 
   const { id } = await params;
-  const data = await getProductData(id);
-  preloadProductMainImage(data?.images?.[0] ?? data?.imgSrc);
+  const [data, isDesktop] = await Promise.all([
+    getProductData(id),
+    resolveInitialGalleryIsDesktop(),
+  ]);
+  preloadProductMainImage(data?.images?.[0] ?? data?.imgSrc, isDesktop);
 
   return (
     <>
