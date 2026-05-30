@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { fetchProductPdpBlocks, fetchShopCouponSet } from '@/lib/api/cms';
 import ProductPageView from './view';
 import { notFound } from 'next/navigation';
@@ -6,8 +7,19 @@ import { buildBreadcrumbJsonLd, buildFaqJsonLd, buildProductJsonLd } from '@/lib
 import { mapProductToPdpViewData } from '@/lib/shop/productGallery';
 import { ShopProductData } from '@/lib/api/types';
 import ProductPdpBlocks from './components/ProductPdpBlocks';
+import WelcomeCouponModal from '@/components/WelcomeCouponModal';
 import { getProductData } from './data';
 import { resolveInitialGalleryIsDesktop } from './galleryViewport';
+
+const PdpBlocksSlot = async ({ slug }: { slug: string }) => {
+  const pdpBlocks = await fetchProductPdpBlocks(slug);
+  return pdpBlocks?.length ? <ProductPdpBlocks blocks={pdpBlocks} /> : null;
+};
+
+const WelcomeCouponSlot = async () => {
+  const couponSet = await fetchShopCouponSet();
+  return <WelcomeCouponModal coupons={couponSet?.coupons ?? []} placement="product" />;
+};
 
 const SuspensedView = async ({
   params,
@@ -25,10 +37,6 @@ const SuspensedView = async ({
     notFound();
   }
   const pdpSlug = data.url.split('/product/')[1] ?? id;
-  const [pdpBlocks, couponSet] = await Promise.all([
-    fetchProductPdpBlocks(pdpSlug),
-    fetchShopCouponSet(),
-  ]);
   const viewData = mapProductToPdpViewData(data);
   const productJsonLd = buildProductJsonLd(data);
   const faqJsonLd = buildFaqJsonLd(data);
@@ -41,9 +49,17 @@ const SuspensedView = async ({
       <JsonLdScript json={breadcrumbJsonLd} />
       <ProductPageView
         data={viewData}
-        coupons={couponSet?.coupons ?? []}
         initialGalleryIsDesktop={initialGalleryIsDesktop}
-        pdpBlocksSlot={pdpBlocks?.length ? <ProductPdpBlocks blocks={pdpBlocks} /> : undefined}
+        couponSlot={
+          <Suspense fallback={null}>
+            <WelcomeCouponSlot />
+          </Suspense>
+        }
+        pdpBlocksSlot={
+          <Suspense fallback={null}>
+            <PdpBlocksSlot slug={pdpSlug} />
+          </Suspense>
+        }
       />
     </>
   );

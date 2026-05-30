@@ -5,11 +5,10 @@ import Button from '@/components/common/Button';
 import Banner from '@/components/common/Banner';
 import { CrossFade } from '@/components/common/CrossFade';
 import Link from '@/components/common/Link';
-import WelcomeCouponModal from '@/components/WelcomeCouponModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { ShopContext } from '@/contexts/ShopContext';
-import { ShopCoupon, ShopProductData } from '@/lib/api/types';
+import { ShopProductData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
@@ -59,12 +58,12 @@ const MAX_CART_QUANTITY = 5;
 
 const ProductPageView = ({
   data,
-  coupons = [],
+  couponSlot,
   initialGalleryIsDesktop = true,
   pdpBlocksSlot,
 }: {
   data: ShopProductData;
-  coupons?: ShopCoupon[];
+  couponSlot?: ReactNode;
   initialGalleryIsDesktop?: boolean;
   pdpBlocksSlot?: ReactNode;
 }) => {
@@ -357,7 +356,7 @@ const ProductPageView = ({
 
   return (
     <>
-      <WelcomeCouponModal coupons={coupons} placement="product" />
+      {couponSlot}
       <Stack gap={5}>
         <Stack gap={2}>
         <Stack direction="row" alignItems="center" gap={0.5} sx={styles.breadcrumbs}>
