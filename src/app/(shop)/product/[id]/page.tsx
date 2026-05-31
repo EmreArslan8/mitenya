@@ -3,10 +3,8 @@ import isPreviewBot from '@/lib/utils/isPreviewBot';
 import isSSR from '@/lib/utils/isSSR';
 import { Metadata } from 'next';
 import { preload } from 'react-dom';
-import { Suspense } from 'react';
 import { getProductData } from './data';
 import { resolveInitialGalleryIsDesktop } from './galleryViewport';
-import Loading from './loading';
 import SuspensedView from './suspensedView';
 
 const preloadProductMainImage = (imagePathOrUrl: string | undefined, isDesktop: boolean) => {
@@ -44,12 +42,13 @@ const ProductPage = async ({ params }: { params: { id: string } }) => {
   ]);
   preloadProductMainImage(data?.images?.[0] ?? data?.imgSrc, isDesktop);
 
+  // Üst Suspense kaldırıldı: veri (data + isDesktop) zaten burada await edildiği
+  // için SuspensedView'ı boş bir Loading skeleton'ının arkasında geç stream
+  // etmeye gerek yok. Böylece hero <img> gizli Suspense replacement div'i yerine
+  // ana HTML flush'ında geliyor. Fold-altı/CMS alanları SuspensedView içindeki
+  // kendi nested Suspense slot'larında stream olmaya devam ediyor.
   return (
-    <>
-      <Suspense fallback={<Loading />} key={id}> 
-        <SuspensedView params={{ id }} initialData={data} />
-      </Suspense>
-    </>
+    <SuspensedView params={{ id }} initialData={data} initialIsDesktop={isDesktop} />
   );
 };
 

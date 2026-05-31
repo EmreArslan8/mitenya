@@ -9,7 +9,6 @@ import { ShopProductData } from '@/lib/api/types';
 import ProductPdpBlocks from './components/ProductPdpBlocks';
 import WelcomeCouponModal from '@/components/WelcomeCouponModal';
 import { getProductData } from './data';
-import { resolveInitialGalleryIsDesktop } from './galleryViewport';
 
 const PdpBlocksSlot = async ({ slug }: { slug: string }) => {
   const pdpBlocks = await fetchProductPdpBlocks(slug);
@@ -24,12 +23,16 @@ const WelcomeCouponSlot = async () => {
 const SuspensedView = async ({
   params,
   initialData,
+  initialIsDesktop = true,
 }: {
   params: { id: string };
   initialData?: ShopProductData | null;
+  initialIsDesktop?: boolean;
 }) => {
   const id = params.id;
-  const initialGalleryIsDesktop = await resolveInitialGalleryIsDesktop();
+  // isDesktop page.tsx'te zaten resolve edildi; prop olarak geliyor (burada
+  // tekrar headers()/cookies() okuyup ekstra async iş yapmamak için).
+  const initialGalleryIsDesktop = initialIsDesktop;
 
   const data = initialData ?? await getProductData(id);
 
