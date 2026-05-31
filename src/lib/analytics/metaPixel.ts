@@ -39,7 +39,11 @@ export const trackViewContent = (params: {
   content_category?: string;
   value?: number;
   currency?: string;
-}) => fbq('track', 'ViewContent', { ...params, content_type: 'product' });
+  eventID?: string;
+}) => {
+  const { eventID, ...pixelParams } = params;
+  fbq('track', 'ViewContent', { ...pixelParams, content_type: 'product' }, ...(eventID ? [{ eventID }] : []));
+};
 
 export const trackAddToCart = (params: {
   content_ids: string[];
@@ -47,14 +51,22 @@ export const trackAddToCart = (params: {
   value?: number;
   currency?: string;
   num_items?: number;
-}) => fbq('track', 'AddToCart', { ...params, content_type: 'product' });
+  eventID?: string;
+}) => {
+  const { eventID, ...pixelParams } = params;
+  fbq('track', 'AddToCart', { ...pixelParams, content_type: 'product' }, ...(eventID ? [{ eventID }] : []));
+};
 
 export const trackInitiateCheckout = (params: {
   content_ids: string[];
   value?: number;
   currency?: string;
   num_items?: number;
-}) => fbq('track', 'InitiateCheckout', params);
+  eventID?: string;
+}) => {
+  const { eventID, ...pixelParams } = params;
+  fbq('track', 'InitiateCheckout', pixelParams, ...(eventID ? [{ eventID }] : []));
+};
 
 export const trackPurchase = (
   params: {

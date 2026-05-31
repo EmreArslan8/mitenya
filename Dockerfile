@@ -15,7 +15,7 @@ RUN yarn install --frozen-lockfile
 COPY . .
 
 # Next.js production build
-RUN NODE_OPTIONS="--max-old-space-size=4096" yarn build
+RUN yarn build
 
 
 # ===============================
@@ -33,7 +33,6 @@ COPY --from=builder /app/yarn.lock ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/cache-handler.js ./cache-handler.js
 
 EXPOSE 3000
 

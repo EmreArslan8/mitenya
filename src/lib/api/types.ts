@@ -245,6 +245,7 @@ export type ShopProductData = {
   metaTitle?: string | null;
   metaDescription?: string | null;
   metaKeywords?: string | null;
+  benefits?: { icon?: string; text: string }[];
   faqs?: {
     question: string;
     answer: string;
@@ -252,7 +253,7 @@ export type ShopProductData = {
   }[];
 };
 
-export type PaymentType = 'Stripe' | 'UniversalBank' | 'COD' ;
+export type PaymentType = 'PayTR' | 'Stripe' | 'UniversalBank' | 'COD';
 
 export type OrderSummaryRequestData = {
   products: ShopProductData[];

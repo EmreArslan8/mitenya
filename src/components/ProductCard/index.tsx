@@ -65,7 +65,7 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
   const { smUp } = useScreen();
   const styles = useStyles();
   const { handleAddItem } = useContext(ShopContext);
-  const { isAuthenticated, isGuest, openAuthenticator } = useAuth();
+  const { isAuthenticated, openAuthenticator } = useAuth();
   const { isFavorite, isFavoriteLoading, toggleFavorite } = useFavorites();
   const [isNavigatingToDetails, setIsNavigatingToDetails] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -191,7 +191,7 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (isAuthenticated !== true || isGuest) {
+    if (isAuthenticated !== true) {
       openAuthenticator({
         onSuccess: () => {
           void runToggleFavorite();

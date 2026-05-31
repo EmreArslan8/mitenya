@@ -1,61 +1,117 @@
-import { Button, Stack } from '@mui/material';
-import { RefObject, useRef } from 'react';
-import Slider, { Settings as ReactSlickSliderSettings } from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import useStyles from './styles';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+'use client';
 
-interface CustomSliderProps extends ReactSlickSliderSettings {
+import { Button, Stack } from '@mui/material';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
+import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
+import { Children, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import useStyles from './styles';
+
+export interface SliderHandle {
+  scrollPrev: () => void;
+  scrollNext: () => void;
+  scrollTo: (index: number) => void;
+}
+
+interface CustomSliderProps {
+  children?: React.ReactNode;
+  slidesToShow?: number;
+  slidesToScroll?: number;
+  infinite?: boolean;
+  autoplay?: boolean;
+  autoplaySpeed?: number;
+  pauseOnHover?: boolean;
   showControls?: boolean;
-  sliderRef?: RefObject<Slider>;
+  sliderRef?: React.MutableRefObject<SliderHandle | null>;
+  afterChange?: (index: number) => void;
+  arrows?: boolean;
 }
 
 const CustomSlider = ({
   children,
-  slidesToShow = 5,
-  infinite = true,
-  speed = 500,
+  slidesToShow = 1,
   slidesToScroll = 1,
-  swipe = true,
-  touchMove = true,
+  infinite = true,
+  autoplay: autoplayEnabled = false,
+  autoplaySpeed = 3000,
+  pauseOnHover = true,
   showControls = true,
   sliderRef: externalRef,
-  ...rest
+  afterChange,
+  arrows,
 }: CustomSliderProps) => {
-  const internalRef = useRef<Slider>(null);
-  const sliderRef = externalRef ?? internalRef;
+  const plugins = [
+    ...(autoplayEnabled
+      ? [Autoplay({ delay: autoplaySpeed, stopOnMouseEnter: pauseOnHover, stopOnInteraction: false })]
+      : []),
+    WheelGesturesPlugin(),
+  ];
+
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: infinite, slidesToScroll, align: 'start' },
+    plugins,
+  );
+
   const styles = useStyles();
+
+  useEffect(() => {
+    if (!externalRef || !emblaApi) return;
+    externalRef.current = {
+      scrollPrev: () => emblaApi.scrollPrev(),
+      scrollNext: () => emblaApi.scrollNext(),
+      scrollTo: (index) => emblaApi.scrollTo(index),
+    };
+    return () => {
+      externalRef.current = null;
+    };
+  }, [emblaApi, externalRef]);
+
+  useEffect(() => {
+    if (!emblaApi || !afterChange) return;
+    const onSelect = () => afterChange(emblaApi.selectedScrollSnap());
+    emblaApi.on('select', onSelect);
+    return () => {
+      emblaApi.off('select', onSelect);
+    };
+  }, [emblaApi, afterChange]);
+
+  if (Children.count(children) === 0) return null;
 
   return (
     <Stack sx={styles.sliderContainer}>
-      <Slider
-        ref={sliderRef}
-        {...{ slidesToShow, infinite, speed, slidesToScroll, swipe, touchMove }}
-        {...rest}
-      >
-        {children}
-      </Slider>
+      <div ref={emblaRef} style={{ overflow: 'hidden' }}>
+        <div style={{ display: 'flex' }}>
+          {Children.map(children, (child, i) => (
+            <div
+              key={i}
+              style={{ flex: `0 0 calc(100% / ${slidesToShow})`, minWidth: 0, boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}
+            >
+              {child}
+            </div>
+          ))}
+        </div>
+      </div>
 
-      {showControls && (
+      {showControls && arrows !== false && (
         <>
           <Button
             color="neutral"
             size="small"
             variant="outlined"
-            onClick={() => sliderRef.current?.slickPrev()}
+            onClick={() => emblaApi?.scrollPrev()}
             sx={styles.prevButton}
-            aria-label="Previous"
+            aria-label="Önceki"
           >
             <ChevronLeft size={18} />
           </Button>
-
           <Button
             color="neutral"
             size="small"
             variant="outlined"
-            onClick={() => sliderRef.current?.slickNext()}
+            onClick={() => emblaApi?.scrollNext()}
             sx={styles.nextButton}
-            aria-label="Next"
+            aria-label="Sonraki"
           >
             <ChevronRight size={18} />
           </Button>

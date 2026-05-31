@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { createClient } from '@/lib/supabase/client';
 import axios, { AxiosRequestConfig } from 'axios';
 import { defaultAxiosSetup, defaultResponseInterceptor, type ApiResponse } from '@/lib/axios/common';
 
@@ -18,7 +18,6 @@ const useAxios = (): ApiClient => {
   axiosInstance.interceptors.response.use(onSuccess as any, onError);
   axiosInstance.interceptors.request.use(
     async function (config) {
-      const { createClient } = await import('@/lib/supabase/client');
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
 

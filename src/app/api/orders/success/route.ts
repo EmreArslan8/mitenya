@@ -62,6 +62,10 @@ export async function GET(req: NextRequest) {
           status: order.status,
           payment_status: order.payment_status,
           payment_method: order.payment_method,
+          guest_tracking_token:
+            order.guest_tracking_token ??
+            parseJsonIfNeeded<Record<string, unknown>>(order.metadata)?.guest_tracking_token ??
+            null,
           total_amount: parseFloat(order.total_amount),
           subtotal: parseFloat(order.subtotal || order.product_cost || 0),
           shipping_cost: parseFloat(order.shipping_cost || 0),
@@ -109,6 +113,7 @@ export async function GET(req: NextRequest) {
         status: legacyOrder.status,
         payment_status: legacyOrder.payment_status,
         payment_method: legacyOrder.payment_method,
+        guest_tracking_token: legacyMeta.guest_tracking_token ?? legacyOrder.guest_tracking_token ?? null,
         total_amount: parseFloat(legacyOrder.total_amount),
         subtotal: parseFloat(legacyOrder.subtotal || legacyOrder.product_cost || 0),
         shipping_cost: parseFloat(legacyOrder.shipping_cost || 0),

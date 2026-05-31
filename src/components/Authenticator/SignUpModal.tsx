@@ -5,6 +5,7 @@ import { useFormik } from 'formik';
 import { useState } from 'react';
 import Banner from '../common/Banner';
 import Button from '../common/Button';
+import { LoadingButton } from '@mui/lab';
 import Link from '../common/Link';
 import ModalCard from '../common/ModalCard';
 import PasswordField from './PasswordField';
@@ -85,7 +86,7 @@ const SignUpModal = ({ onClose, onSubmit, onSwitchToSignin }: Props) => {
             {consentError && <Typography variant="caption" color="error.main">Devam etmek için sözleşmeleri kabul etmelisiniz.</Typography>}
           </Box>
 
-          <Button loading={loading} variant="contained" arrow="end" type="submit" fullWidth>Hesap Oluştur</Button>
+          <LoadingButton loading={loading} variant="contained" type="submit" fullWidth>Hesap Oluştur</LoadingButton>
         </Stack>
 
         <Typography variant="body2" color="text.secondary" textAlign="center">

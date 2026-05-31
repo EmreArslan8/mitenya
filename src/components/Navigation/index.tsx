@@ -1,7 +1,7 @@
 'use client';
 
-import CartPageView from '@/app/cart/view'
 import Button from '@/components/common/Button';
+import CartPageView from '@/features/cart/CartPageView';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
 import { ShopHeaderData, ShopHeaderLink } from '@/lib/api/types';
@@ -41,7 +41,7 @@ import ShoppingCartButton from '../ShoppingCart/ShoppingCartButton';
 import ModalCard from '../common/ModalCard';
 import CategoriesDrawer from './CategoriesDrawer';
 import useStyles, { ANNOUNCEMENT_HEIGHT } from './styles';
-import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, History, Settings, Menu, User } from 'lucide-react';
+import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, History, Settings, Menu, User, PackageSearch } from 'lucide-react';
 
 
 const getSupportUrl = 'https://api.whatsapp.com/send?phone=905070617930';
@@ -65,7 +65,7 @@ const Navigation = ({ data }: NavigationProps) => {
   const isSearchRoute = pathname === '/search';
   const isMobileSearchRoute = smDown && isSearchRoute;
   const isMinimal = MINIMAL_ROUTES.some((r) => pathname?.startsWith(r));
-  const { isAuthenticated, isGuest, openAuthenticator } = useAuth();
+  const { isAuthenticated, openAuthenticator } = useAuth();
   const { numItems, newProductAdded } = useContext(ShopContext);
   const isCartEmpty = !numItems;
   const prevScrollPosition = useRef(0);
@@ -100,7 +100,6 @@ const Navigation = ({ data }: NavigationProps) => {
   const collapseIn = mounted ? (!logoCollapsed || smUp) : true;
 
   const toggleCartModalOpen = () => {
-    if (pathname === '/checkout') return;
     if (!smDown) return;
     if (cartModalOpen) return setCartModalOpen(false);
     setCategoriesOpen(false);
@@ -122,7 +121,7 @@ const Navigation = ({ data }: NavigationProps) => {
   };
 
   const handleAccountButtonClick = (destination: string = '/orders') => {
-    if (isAuthenticated && !isGuest) return router.push(destination);
+    if (isAuthenticated) return router.push(destination);
     const options = {
       onSuccess: () => router.push(destination),
     };
@@ -323,8 +322,13 @@ const Navigation = ({ data }: NavigationProps) => {
                 </>
               ) : (
                 <>
-              {smDown ? (
-                <>
+              {/* Mobile primary bar — xs'te flex, sm+'da CSS ile gizli */}
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+                sx={{ display: { xs: 'flex', sm: 'none' }, width: '100%' }}
+              >
                   {isMobileApp && pathname?.includes('/product/') ? (
                     <IconButton onClick={() => router.back()} aria-label="Geri">
                       <ArrowLeft size={24} />
@@ -365,9 +369,14 @@ const Navigation = ({ data }: NavigationProps) => {
                       </Badge>
                     </IconButton>
                   </Stack>
-                </>
-              ) : (
-                <>
+              </Stack>
+              {/* Desktop primary bar — sm+'da flex, xs'te CSS ile gizli */}
+              <Stack
+                direction="row"
+                alignItems="center"
+                gap={2}
+                sx={{ display: { xs: 'none', sm: 'flex' }, width: '100%' }}
+              >
                   {isMobileApp && pathname?.includes('/product/') ? (
                     <MenuItem onClick={() => router.back()} sx={styles.backButton}>
                       <ArrowLeft size={24} />
@@ -414,20 +423,21 @@ const Navigation = ({ data }: NavigationProps) => {
                     <Stack sx={styles.actions}>
                       <MenuItem sx={styles.action} onClick={() => handleAccountButtonClick()}>
                         <User />
-                        {isAuthenticated && !isGuest ? 'Hesabım' : 'Giriş Yap'}
+                        {isAuthenticated ? 'Hesabım' : 'Giriş Yap'}
                       </MenuItem>
                       <ShoppingCartButton />
                     </Stack>
                   )}
-                </>
-              )}
+              </Stack>
                 </>
               )}
             </Stack>
-            {!isMinimal && mounted && smDown && (!isMobileSearchRoute || mobileSearchInputOpen) && (
-              <SearchBar autoFocus={isMobileSearchRoute} />
+            {!isMinimal && (!isMobileSearchRoute || mobileSearchInputOpen) && (
+              <Box sx={{ display: { xs: 'flex', sm: 'none' } }}>
+                <SearchBar autoFocus={isMobileSearchRoute} />
+              </Box>
             )}
-            {!isMinimal && mounted && smUp && (
+            {!isMinimal && (
               <Stack sx={styles.secondaryBar}>
                 <Stack sx={styles.shopHeaderLinks}>
                   {data?.categories?.map((cat, index) => (
@@ -544,12 +554,12 @@ const Navigation = ({ data }: NavigationProps) => {
             onClose={() => setCartModalOpen(false)}
             showCloseIcon
             title="Sepet"
+            fullWidth={isCartEmpty}
             CardProps={{
               sx: {
-                height: '100%',
-                pb: 12,
-                width: { sm: isCartEmpty ? '100%' : undefined },
-                maxWidth: { sm: isCartEmpty ? '100%' : undefined },
+                height: isCartEmpty ? 'auto' : '100%',
+                maxHeight: isCartEmpty ? { xs: '40vh', sm: 300 } : undefined,
+                pb: isCartEmpty ? 2 : 12,
               },
             }}
             sx={{ zIndex: 1297 }}
@@ -572,7 +582,7 @@ const Navigation = ({ data }: NavigationProps) => {
             <Grid container spacing={1} pb={9}>
               <Grid item xs={12}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  {isAuthenticated && !isGuest ? (
+                  {isAuthenticated ? (
                     <MenuItem onClick={signOut} sx={styles.logoutButton}>
                       <LogOut /> Çıkış
                     </MenuItem>
@@ -585,6 +595,18 @@ const Navigation = ({ data }: NavigationProps) => {
               </Grid>
               <Grid item xs={12}>
                 <Divider sx={{ my: 1 }} />
+              </Grid>
+              <Grid item xs={6}>
+                <MenuItem
+                  onClick={() => {
+                    router.push('/siparis-takip');
+                    setAccountModalOpen(false);
+                  }}
+                  sx={styles.accountMenuItem}
+                >
+                  <PackageSearch size={18} />
+                  Sipariş Takip
+                </MenuItem>
               </Grid>
               {accountModalRoutes.map((e) => (
                 <Grid item xs={6} key={e.label}>
@@ -629,9 +651,8 @@ const Navigation = ({ data }: NavigationProps) => {
             onClose={() => setCategoriesOpen(false)}
             categories={data?.categories}
             isAuthenticated={isAuthenticated ?? undefined}
-            isGuest={isGuest}
             onAccount={() => handleAccountButtonClick('/settings')}
-            onOrders={() => handleAccountButtonClick('/orders')}
+            onOrders={() => isAuthenticated ? handleAccountButtonClick('/orders') : router.push('/siparis-takip')}
             onFavorites={() => handleAccountButtonClick('/settings?section=favorites')}
             onNavigate={(slug) => router.push(`/${slug}`)}
           />

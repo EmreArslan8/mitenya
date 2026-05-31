@@ -14,6 +14,7 @@ interface NewAddressModalProps {
   onAddressAdded?: (address: AddressData) => void;
   defaultName?: string;
   closeOnSuccess?: boolean;
+  guestMode?: boolean;
 }
 
 const NewAddressModal = ({
@@ -22,6 +23,7 @@ const NewAddressModal = ({
   onAddressAdded,
   defaultName,
   closeOnSuccess = false,
+  guestMode = false,
 }: NewAddressModalProps) => {
   const { addAddress } = useAddress();
   const [loading, setLoading] = useState(false);
@@ -30,6 +32,12 @@ const NewAddressModal = ({
   const [submitTrigger, setSubmitTrigger] = useState(0);
 
   const handleSubmit = (address: AddressData) => {
+    if (guestMode) {
+      const tempId = `guest-${Date.now()}`;
+      onAddressAdded?.({ ...address, id: tempId });
+      handleClose();
+      return;
+    }
     setLoading(true);
     addAddress(address).then((id) => {
       setLoading(false);

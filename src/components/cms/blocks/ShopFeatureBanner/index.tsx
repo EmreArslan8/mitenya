@@ -1,15 +1,15 @@
 'use client';
 
 import { Box, Stack, Typography } from '@mui/material';
-import { ReactNode } from 'react';
-import Slider from 'react-slick';
+import { ReactNode, useState, useEffect } from 'react';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import { SharedImageType } from '../../shared/cmsTypes';
 import useStyles from './styles';
 import Link from '@/components/common/Link';
 import CMSImage from '../../shared/CMSImage';
 import { BlockComponentBaseProps } from '..';
-import 'slick-carousel/slick/slick.css';
 import Button from '@/components/common/Button';
 import { splitTitle } from '@/lib/utils/splitTitle';
 import useScreen from '@/lib/hooks/useScreen';
@@ -125,6 +125,21 @@ const ShopFeatureBanner = ({
 }: ShopFeatureBannerProps) => {
   const styles = useStyles();
   const { isMobile } = useScreen();
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, align: 'start' },
+    [Autoplay({ delay: 5000, stopOnMouseEnter: true, stopOnInteraction: false })],
+  );
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap());
+    emblaApi.on('select', onSelect);
+    return () => {
+      emblaApi.off('select', onSelect);
+    };
+  }, [emblaApi]);
 
   const validBanners = mainBanners.filter((b) =>
     isMobile ? b.mobileImage?.data || b.image?.data : b.image?.data,
@@ -132,39 +147,42 @@ const ShopFeatureBanner = ({
 
   if (!validBanners.length) return null;
 
-  const sliderSettings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 5000,
-    pauseOnHover: true,
-    arrows: false,
-  };
-
-  const descriptionVisibilitySx = {
-    display: { xs: 'none', sm: 'block' },
-  };
-
   return (
     <SectionBase {...section}>
       <Stack direction={{ xs: 'column', md: 'row' }} sx={styles.container}>
+        {/* Main slider */}
         <Box sx={styles.mainSliderWrapper}>
-          <Slider {...sliderSettings}>
-            {validBanners.map((banner, index) => (
-              <Box key={index} sx={styles.mainSlide}>
-                <FeatureBannerCard banner={banner} index={index}>
-                  <Typography sx={{ ...styles.description, ...descriptionVisibilitySx }}>
-                    {banner.description}
-                  </Typography>
-                </FeatureBannerCard>
-              </Box>
-            ))}
-          </Slider>
+          <Box ref={emblaRef as React.Ref<HTMLDivElement>} sx={{ overflow: 'hidden', height: '100%' }}>
+            <Box sx={{ display: 'flex', height: '100%' }}>
+              {validBanners.map((banner, index) => (
+                <Box key={index} sx={styles.mainSlide}>
+                  <FeatureBannerCard banner={banner} index={index}>
+                    <Typography sx={{ ...styles.description, display: { xs: 'none', sm: 'block' } }}>
+                      {banner.description}
+                    </Typography>
+                  </FeatureBannerCard>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+
+          {/* Pill dots — absolute inside mainSliderWrapper */}
+          {validBanners.length > 1 && (
+            <Stack sx={styles.dotsContainer}>
+              {validBanners.map((_, i) => (
+                <Box
+                  key={i}
+                  component="button"
+                  onClick={() => emblaApi?.scrollTo(i)}
+                  aria-label={`Slayt ${i + 1}`}
+                  sx={styles.pillDot(i === selectedIndex)}
+                />
+              ))}
+            </Stack>
+          )}
         </Box>
 
+        {/* Side banners — desktop only */}
         {sideBanners.length > 0 && (
           <Stack sx={{ ...styles.sideBannersContainer, display: { xs: 'none', md: 'flex' } }}>
             {sideBanners.slice(0, 2).map((banner, index) => (
@@ -179,7 +197,7 @@ const ShopFeatureBanner = ({
                         'Mitenya Banner'
                       }
                       fill
-                      loading="lazy"
+                      loading="eager"
                       fetchPriority="low"
                       sizes={CMS_IMAGE_SIZES.bannerDesktopSide}
                     />

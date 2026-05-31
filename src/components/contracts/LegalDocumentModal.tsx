@@ -16,10 +16,23 @@ const LegalDocumentModal = ({ open, title, updatedAt, html, onClose }: LegalDocu
       open={open}
       onClose={onClose}
       showCloseIcon
+      fullWidth
       border
       title={title}
-      CardProps={{ sx: { maxWidth: 900 } }}
-      BodyProps={{ sx: { maxHeight: '70vh', overflowY: 'auto', gap: 2 } }}
+      CardProps={{
+        sx: {
+          width: { xs: '100%', sm: 'min(900px, calc(100vw - 32px))' },
+          maxWidth: { xs: '100%', sm: 900 },
+        },
+      }}
+      BodyProps={{
+        sx: {
+          maxHeight: { xs: 'min(72dvh, calc(100dvh - 112px))', sm: '70vh' },
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          gap: 2,
+        },
+      }}
     >
       {updatedAt && (
         <Typography variant="body" sx={{ color: 'text.secondary', fontSize: 13 }}>

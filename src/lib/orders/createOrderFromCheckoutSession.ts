@@ -1,5 +1,6 @@
 import { createOrderViaEdge } from '@/lib/orders/createOrderViaEdge';
 import { generateOrderNumber } from '@/lib/orders/generateOrderNumber';
+import { createGuestTrackingToken } from '@/lib/orders/guestTracking';
 import { createAffiliateConversion } from '@/lib/affiliates/commissionService';
 import { parseCheckoutNotes } from '@/lib/analytics/attribution';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -59,7 +60,8 @@ export async function createOrderFromCheckoutSession(params: {
   supabase: SupabaseClient;
   checkoutSession: {
     id: string;
-    user_id: string;
+    user_id: string | null;
+    customer_id?: string | null;
     user_email: string;
     payment_method: string;
     notes?: string | null;
@@ -142,6 +144,7 @@ export async function createOrderFromCheckoutSession(params: {
           ip: callerIp,
           user_agent: userAgent,
           user_id: checkoutSession.user_id,
+          customer_id: checkoutSession.customer_id ?? null,
           user_email: checkoutSession.user_email,
         },
         {
@@ -151,12 +154,14 @@ export async function createOrderFromCheckoutSession(params: {
           ip: callerIp,
           user_agent: userAgent,
           user_id: checkoutSession.user_id,
+          customer_id: checkoutSession.customer_id ?? null,
           user_email: checkoutSession.user_email,
         },
       ]
     : null;
 
   const orderNumber = await generateOrderNumber();
+  const guestTrackingToken = createGuestTrackingToken();
   const eventDescription = isLateSuccess
     ? 'PayTR ödemesi başarıyla alındı (late success). Sipariş oluşturuldu.'
     : 'PayTR ödemesi başarıyla alındı. Sipariş oluşturuldu.';
@@ -164,6 +169,7 @@ export async function createOrderFromCheckoutSession(params: {
   const payload = {
     order_number: orderNumber,
     user_id: checkoutSession.user_id,
+    customer_id: checkoutSession.customer_id ?? null,
     user_email: checkoutSession.user_email,
     payment_status: 'paid',
     payment_method: checkoutSession.payment_method,
@@ -194,6 +200,7 @@ export async function createOrderFromCheckoutSession(params: {
     documents,
     consents: consentsRows,
     payment_id: merchantOid,
+    guest_tracking_token: guestTrackingToken,
   };
 
   const edgeAuthToken = resolveEdgeAuthToken();
@@ -249,9 +256,11 @@ export async function createOrderFromCheckoutSession(params: {
         paytr_merchant_oid: merchantOid,
         success_token: checkoutSession.success_token,
         success_token_expires_at: checkoutSession.success_token_expires_at,
+        guest_tracking_token: guestTrackingToken,
         late_success: isLateSuccess,
         attribution: attribution ?? existingMetadata.attribution,
       },
+      guest_tracking_token: guestTrackingToken,
     })
     .eq('id', createdOrder.id);
 

@@ -12,6 +12,7 @@ const FormikDropdown = ({
   options,
   selectSx,
   onChange,
+  size = 'small',
 }: {
   formik: any;
   width?: string | number;
@@ -22,6 +23,7 @@ const FormikDropdown = ({
   options: { label: string; value: string | number | undefined }[];
   selectSx?: SxProps;
   onChange?: () => void;
+  size?: 'small' | 'medium';
 }) => {
   return (
     <Stack gap={0.5} width={width} display="inline-flex">
@@ -35,7 +37,7 @@ const FormikDropdown = ({
         fullWidth
         required={required}
         disabled={disabled}
-        size="small"
+        size={size}
         id={fieldKey}
         name={fieldKey}
         value={formik.values[fieldKey]}

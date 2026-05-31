@@ -107,6 +107,7 @@ const useStyles = withPalette((palette) => {
       },
     },
     secondaryBar: {
+      display: { xs: 'none', sm: 'flex' },
       flexDirection: 'row',
       alignItems: 'center',
       color: palette.text.medium,

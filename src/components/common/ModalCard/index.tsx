@@ -73,7 +73,7 @@ const ModalCard = ({
       }}
     >
   <Slide appear={isMobile} in={open} direction="up" unmountOnExit={!keepMounted}>
-  <div tabIndex={-1} style={{ outline: 'none', width: isWideLayout ? '100%' : undefined, maxWidth: '100vw' }}>
+  <div tabIndex={-1} style={{ outline: 'none', width: isWideLayout ? '100%' : undefined }}>
     <Card
       {...cardProps}
       iconName={iconName === 'tune' ? undefined : iconName}

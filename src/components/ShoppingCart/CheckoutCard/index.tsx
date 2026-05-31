@@ -1,74 +1,68 @@
 import Banner from '@/components/common/Banner';
 import Button from '@/components/common/Button';
-import Card from '@/components/common/Card';
+import Card, { CardProps } from '@/components/common/Card';
 import { ShopOrderSummaryData } from '@/lib/api/types';
 import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
 import { CircularProgress, Divider, Stack, TextField, Typography } from '@mui/material';
-import { FormEvent, ReactNode, useState } from 'react';
+import { FormEvent, ReactNode, useEffect, useState } from 'react';
 import useStyles from './styles';
-import Markdown from '@/components/common/Markdown';
-import { Delete, TrendingDown } from 'lucide-react';
 
 const CheckoutCard = ({
   title,
-  numSelected,
   orderSummary,
   discountCode: initialDiscountCode,
   onSubmitDiscountCode,
   loading,
   action,
   showLines,
+  hideTitleIcon = false,
+  titleProps,
+  sx,
 }: {
   title?: ReactNode;
-  numSelected: number;
+  numSelected?: number;
   orderSummary?: Partial<ShopOrderSummaryData>;
   discountCode: string | null;
   onSubmitDiscountCode: (value: string | null) => void;
   loading: boolean;
   action?: ReactNode;
   showLines?: boolean;
+  hideTitleIcon?: boolean;
+  titleProps?: CardProps['titleProps'];
+  sx?: CardProps['sx'];
 }) => {
   const styles = useStyles();
-  const [code, setCode] = useState(initialDiscountCode);
+  const [code, setCode] = useState(initialDiscountCode ?? '');
   const currencyLabel = getDisplayCurrencyCode(orderSummary?.currency ?? 'TRY');
+  const appliedDiscountCode = orderSummary?.discountCode;
+
+  useEffect(() => {
+    setCode(initialDiscountCode ?? '');
+  }, [initialDiscountCode]);
 
   const handleSubmitDiscountCode = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmitDiscountCode(code);
+    const nextCode = code.trim();
+    onSubmitDiscountCode(nextCode || null);
   };
 
   const handleClearDiscountCode = () => {
-    setCode(null);
+    setCode('');
     onSubmitDiscountCode(null);
   };
 
   return (
     <Card
-      iconName={title ? 'receipt_long' : undefined}
+      iconName={title && !hideTitleIcon ? 'receipt_long' : undefined}
       iconProps={{ color: 'secondary' }}
       border={!!title}
       title={title}
+      titleProps={titleProps}
+      sx={sx}
     >
       <Stack sx={styles.cardBody}>
-        <Stack>
-          <Typography fontSize={22} fontWeight={700}>
-            {orderSummary?.totalDue} {currencyLabel}
-          </Typography>
-          {!!orderSummary?.totalDiscount && (
-            <Stack direction="row" gap={0.5} alignItems="center">
-              <TrendingDown color="green" style={{ marginTop: -1, marginBottom: -1 }} />
-              <Markdown
-                component="span"
-                text={`Kazancınız ${orderSummary.totalDiscount} ${currencyLabel}`}
-                options={styles.discountMdOptions}
-                sx={styles.discount}
-              />
-            </Stack>
-          )}
-        </Stack>
-        {action}
         {showLines && orderSummary && (
-          <PriceLines numSelected={numSelected} orderSummary={orderSummary} />
+          <PriceLines orderSummary={orderSummary} />
         )}
         <Stack>
           {/* <Banner
@@ -86,48 +80,51 @@ const CheckoutCard = ({
           {/* <Divider sx={{ mx: -2 }} /> */}
           <Banner
             variant="neutral"
-            IconProps={{ name: 'redeem', fontSize: 26 }}
-            title="İndirim Kodu"
+            title="İndirim Kuponu Uygula"
             collapsible
             defaultCollapsed
-            sx={{ mx: -2, borderRadius: 0, p: 2 }}
+
+            sx={{ borderRadius: 0, p: 2 }}
           >
-            <Stack component="form" gap={1} onSubmit={handleSubmitDiscountCode}>
+            <Stack component="form" gap={1.5} onSubmit={handleSubmitDiscountCode}>
               <TextField
                 fullWidth
                 size="small"
-                defaultValue={initialDiscountCode}
-                placeholder="İndirim kodunu girin"
+                value={code}
+                placeholder="Kupon kodu giriniz"
                 onChange={(e) => setCode(e.target.value)}
+                disabled={!!appliedDiscountCode}
                 sx={styles.discountInput}
-                InputProps={{
-                  endAdornment: (
-                    <Delete
-                      name="clear"
-                      fontSize={18}
-                      color="tertiary"
-                      onClick={handleClearDiscountCode}
-                    />
-                  ),
-                }}
               />
-              {!loading && initialDiscountCode && !orderSummary?.discountCode && (
-                <Typography variant="caption">Geçersiz İndirim Kodu</Typography>
+              {!loading && initialDiscountCode && !appliedDiscountCode && (
+                <Typography variant="caption" color="error">Geçersiz İndirim Kodu</Typography>
               )}
-              {orderSummary?.promotionDiscount && (
-                <Typography variant="caption" mx={1}>
-                   İndirim Uygulandı: {orderSummary.promotionDiscount} {currencyLabel}
-                </Typography>
+              {appliedDiscountCode ? (
+                <Stack sx={styles.appliedDiscountRow}>
+                  <Typography sx={styles.appliedDiscountText}>
+                    {appliedDiscountCode} uygulandı
+                    {!!orderSummary?.promotionDiscount && `: -${orderSummary.promotionDiscount} ${currencyLabel}`}
+                  </Typography>
+                  <Button
+                    variant="text"
+                    size="small"
+                    type="button"
+                    onClick={handleClearDiscountCode}
+                    sx={styles.removeDiscountButton}
+                  >
+                    Kaldır
+                  </Button>
+                </Stack>
+              ) : (
+                <Button
+                  variant="contained"
+                  type="submit"
+                  disabled={!code.trim()}
+                  sx={{ borderRadius: 1, width: '50%' }}
+                >
+                  Kuponu Uygula
+                </Button>
               )}
-              <Button
-                variant="outlined"
-                color="secondary"
-                size="small"
-                type="submit"
-                sx={{ minWidth: 0, px: 2 }}
-              >
-                 Uygula
-              </Button>
             </Stack>
           </Banner>
           {/* {!!orderSummary?.totalDiscount && (
@@ -162,6 +159,7 @@ const CheckoutCard = ({
               </Banner>
             )} */}
         </Stack>
+        {action && <Stack sx={styles.checkoutAction}>{action}</Stack>}
 
         {loading && (
           <Stack sx={styles.loadingOverlay}>
@@ -174,10 +172,8 @@ const CheckoutCard = ({
 };
 
 export const PriceLines = ({
-  numSelected,
   orderSummary,
 }: {
-  numSelected: number;
   orderSummary?: Partial<ShopOrderSummaryData>;
 }) => {
 
@@ -185,42 +181,48 @@ export const PriceLines = ({
   const currencyLabel = getDisplayCurrencyCode(orderSummary?.currency ?? 'TRY');
 
   return (
-    <Stack>
+    <Stack sx={styles.summaryBlock}>
       <Stack sx={styles.priceLine}>
-        <Typography variant="warning">Ürünler Toplamı</Typography>
-        <Typography variant="warningSemibold">
+        <Typography sx={styles.priceLabel}>Ara Toplam</Typography>
+        <Typography sx={styles.priceValue}>
           {orderSummary?.productCost} {currencyLabel}
         </Typography>
       </Stack>
-      {!!orderSummary?.shipmentCost && (
-        <Stack sx={styles.priceLine}>
-          <Typography variant="warning">Kargo</Typography>
-          <Typography variant="warningSemibold">
-            {orderSummary?.shipmentCost} {currencyLabel}
-          </Typography>
-        </Stack>
-      )}
+      <Stack sx={styles.priceLine}>
+        <Typography sx={styles.priceLabel}>Kargo</Typography>
+        <Typography sx={orderSummary?.shipmentCost ? styles.priceValue : styles.freeShippingValue}>
+          {orderSummary?.shipmentCost ? `${orderSummary.shipmentCost} ${currencyLabel}` : 'Ücretsiz'}
+        </Typography>
+      </Stack>
       {orderSummary?.codServiceFee && (
         <Stack sx={styles.priceLine}>
-          <Typography variant="warning">COD Service Fee</Typography>
-          <Typography variant="warningSemibold">
+          <Typography sx={styles.priceLabel}>Kapıda Ödeme Hizmet Bedeli</Typography>
+          <Typography sx={styles.priceValue}>
             {orderSummary?.codServiceFee} {currencyLabel}
           </Typography>
         </Stack>
       )}
       {!!orderSummary?.promotionDiscount && (
-        <Stack sx={{ ...styles.priceLine, ...styles.discount }}>
-          <Typography variant="warning">İndirim</Typography>
-          <Typography variant="warningSemibold">
+        <Stack sx={styles.priceLine}>
+          <Typography sx={styles.discountLabel}>İndirim</Typography>
+          <Typography sx={styles.discountValue}>
             -{orderSummary?.promotionDiscount} {currencyLabel}
           </Typography>
         </Stack>
       )}
-      <Divider sx={{ my: 1 }} />
-      {!!orderSummary?.totalDue && (
+      {!!orderSummary?.totalDiscount && !orderSummary?.promotionDiscount && (
         <Stack sx={styles.priceLine}>
-          <Typography variant="warning">Ödeme Tutarı</Typography>
-          <Typography variant="warningSemibold">
+          <Typography sx={styles.discountLabel}>İndirim</Typography>
+          <Typography sx={styles.discountValue}>
+            -{orderSummary.totalDiscount} {currencyLabel}
+          </Typography>
+        </Stack>
+      )}
+      <Divider sx={{ my: 1.25 }} />
+      {!!orderSummary?.totalDue && (
+        <Stack sx={styles.totalDuePriceLine}>
+          <Typography sx={styles.totalLabel}>Toplam Tutar</Typography>
+          <Typography sx={styles.totalValue}>
             {orderSummary?.totalDue} {currencyLabel}
           </Typography>
         </Stack>

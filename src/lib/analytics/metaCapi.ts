@@ -42,6 +42,28 @@ export type CapiInitiateCheckoutData = {
   eventSourceUrl?: string;
 };
 
+export type CapiAddToCartData = {
+  eventId: string;
+  value: number;
+  currency: string;
+  contentIds: string[];
+  contentName?: string;
+  numItems?: number;
+  userData: CapiUserData;
+  eventSourceUrl?: string;
+};
+
+export type CapiViewContentData = {
+  eventId: string;
+  value?: number;
+  currency?: string;
+  contentIds: string[];
+  contentName?: string;
+  contentCategory?: string;
+  userData: CapiUserData;
+  eventSourceUrl?: string;
+};
+
 function buildUserData(userData: CapiUserData): Record<string, string> {
   const out: Record<string, string> = {};
   if (userData.email) out.em = hash(userData.email);
@@ -68,11 +90,15 @@ async function sendCapiEvent(events: object[]): Promise<void> {
 
   const url = `https://graph.facebook.com/${CAPI_VERSION}/${pixelId}/events?access_token=${accessToken}`;
 
+  const payload: Record<string, unknown> = { data: events };
+  const testCode = process.env.META_CAPI_TEST_EVENT_CODE;
+  if (testCode) payload.test_event_code = testCode;
+
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: events }),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
@@ -100,6 +126,48 @@ export async function sendCapiPurchase(data: CapiPurchaseData): Promise<void> {
         content_type: 'product',
         num_items: data.numItems ?? data.contentIds.length,
         order_id: data.orderId,
+      },
+    },
+  ]);
+}
+
+export async function sendCapiAddToCart(data: CapiAddToCartData): Promise<void> {
+  await sendCapiEvent([
+    {
+      event_name: 'AddToCart',
+      event_time: Math.floor(Date.now() / 1000),
+      event_id: data.eventId,
+      event_source_url: data.eventSourceUrl ?? 'https://mitenya.com',
+      action_source: 'website',
+      user_data: buildUserData(data.userData),
+      custom_data: {
+        value: data.value,
+        currency: data.currency,
+        content_ids: data.contentIds,
+        content_name: data.contentName,
+        content_type: 'product',
+        num_items: data.numItems ?? data.contentIds.length,
+      },
+    },
+  ]);
+}
+
+export async function sendCapiViewContent(data: CapiViewContentData): Promise<void> {
+  await sendCapiEvent([
+    {
+      event_name: 'ViewContent',
+      event_time: Math.floor(Date.now() / 1000),
+      event_id: data.eventId,
+      event_source_url: data.eventSourceUrl ?? 'https://mitenya.com',
+      action_source: 'website',
+      user_data: buildUserData(data.userData),
+      custom_data: {
+        value: data.value,
+        currency: data.currency,
+        content_ids: data.contentIds,
+        content_name: data.contentName,
+        content_category: data.contentCategory,
+        content_type: 'product',
       },
     },
   ]);

@@ -1,7 +1,8 @@
 import { withPalette } from '@/theme/ThemeRegistry';
 
 const useStyles = withPalette((palette) => ({
-  cardBody: { position: 'relative', px: 2, pt: 1.5, gap: 2.5, borderRadius: 1, overflow: 'hidden' },
+  cardBody: { position: 'relative', px: 0, pt: 0, gap: 0, borderRadius: 1, overflow: 'hidden' },
+  summaryBlock: { px: 2, py: 2, gap: 1 },
   priceLine: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -13,13 +14,55 @@ const useStyles = withPalette((palette) => ({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    color: palette.text.medium,
+    color: palette.text.main,
     gap: 1,
   },
-  discountInput: { mb: 0.5, background: palette.bg.main, borderRadius: 1 },
+  priceLabel: { fontSize: 14, fontWeight: 500, color: palette.text.medium },
+  priceValue: { fontSize: 14, fontWeight: 600, color: palette.text.main },
+  discountLabel: { fontSize: 14, fontWeight: 500, color: palette.text.medium },
+  discountValue: { fontSize: 14, fontWeight: 700, color: palette.success.main },
+  freeShippingValue: { fontSize: 14, fontWeight: 700, color: palette.success.main },
+  totalLabel: { fontSize: 18, fontWeight: 800, color: palette.text.main, textTransform: 'uppercase' },
+  totalValue: { fontSize: 20, fontWeight: 800, color: palette.text.main },
+  checkoutAction: { px: 2, pb: 2, gap: 2 },
+  discountInput: {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 1,
+      backgroundColor: palette.bg.main,
+      height: 'auto',
+      minHeight: 48,
+    },
+    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.23)' },
+    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#C1121F',
+      borderWidth: 1,
+    },
+    '& .MuiInputBase-input': { padding: '13px 12px', fontSize: 15 },
+    '& input::placeholder': { color: '#9B9BA1', opacity: 1 },
+  },
+  appliedDiscountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 1.5,
+  },
+  appliedDiscountText: {
+    color: palette.success.main,
+    fontSize: 13,
+    fontWeight: 600,
+    lineHeight: '18px',
+  },
+  removeDiscountButton: {
+    minWidth: 'auto',
+    p: 0,
+    color: palette.text.medium,
+    fontSize: 13,
+    fontWeight: 700,
+    textDecoration: 'underline',
+    '&:hover': { background: 'transparent', color: palette.text.main, textDecoration: 'underline' },
+  },
   discount: { color: palette.green.main },
   shipping: { color: palette.tertiary.main },
-  discountMdOptions: { p: { component: 'span', sx: { fontSize: 13 } } },
   loadingOverlay: {
     position: 'absolute',
     top: 0,

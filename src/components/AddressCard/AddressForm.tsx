@@ -10,7 +10,7 @@ import tokenize from '@/lib/utils/tokenize';
 import { Stack, Typography } from '@mui/material';
 import { useFormik } from 'formik';
 import { Asterisk } from 'lucide-react';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 type AddressFormFields = {
   name: string;
@@ -31,21 +31,13 @@ interface AddressFormProps {
   initialValues?: Partial<AddressData>;
   disabledFields?: Partial<Record<keyof AddressData, boolean>>;
   submitTrigger?: unknown;
-  showEmail?: boolean;
-  autoName?: string;
-  onDraftChange?: (address: Partial<AddressData>) => void;
 }
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const AddressForm = ({
   onSubmit,
   initialValues,
   disabledFields = {},
   submitTrigger,
-  showEmail = false,
-  autoName,
-  onDraftChange,
 }: AddressFormProps) => {
   const isMounted = useRef(false);
   const [cities, setCities] = useState<Array<{ id: number; name: string; plaka: number }>>([]);
@@ -59,17 +51,14 @@ const AddressForm = ({
   const validate = (values: AddressFormFields) => {
     const errors: Partial<Record<keyof AddressFormFields, string>> = {};
 
-    if (!autoName && !values.name) errors.name = 'Zorunlu alan';
+    if (!values.name) errors.name = 'Zorunlu alan';
     if (!values.contactName) errors.contactName = 'Zorunlu alan';
     if (!values.contactSurname) errors.contactSurname = 'Zorunlu alan';
     if (!values.phoneNumber) errors.phoneNumber = 'Zorunlu alan';
     if (!values.lines || values.lines.length < 10) errors.lines = 'En az 10 karakter girin';
     if (!values.city) errors.city = 'Zorunlu alan';
     if (!values.district) errors.district = 'Zorunlu alan';
-    if (showEmail) {
-      if (!values.email) errors.email = 'Zorunlu alan';
-      else if (!emailRegex.test(values.email)) errors.email = 'Geçerli bir e-posta girin';
-    }
+    if (!values.neighborhood) errors.neighborhood = 'Zorunlu alan';
 
     return errors;
   };
@@ -77,17 +66,19 @@ const AddressForm = ({
   const fieldSx = {
     '& .MuiOutlinedInput-root': {
       borderRadius: 1,
-      backgroundColor: '#F7F7F8',
+      backgroundColor: '#fff',
+      height: 'auto',
+      minHeight: 48,
     },
-    '& .MuiInputBase-input': {
-      fontSize: 15,
+    '& .MuiSelect-select': {
+      padding: '13px 12px !important',
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'rgba(0,0,0,0.23)',
     },
     '& input::placeholder': {
       color: '#9B9BA1',
       opacity: 1,
-    },
-    '& .MuiOutlinedInput-notchedOutline': {
-      borderColor: 'rgba(0,0,0,0.12)',
     },
     '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
       borderColor: '#C1121F',
@@ -95,9 +86,36 @@ const AddressForm = ({
     },
   } as const;
 
-  const normalizedInitialValues = useMemo(() => {
-    const formValues = initialValues as Partial<AddressFormFields> | undefined;
-    return {
+  const inputProps = { style: { padding: '13px 12px', fontSize: 15 } };
+
+  const dropdownSx = {
+    borderRadius: 1,
+    backgroundColor: '#fff',
+    height: 'auto',
+    minHeight: 48,
+    '& .MuiSelect-select': { padding: '13px 12px !important', minHeight: 'unset !important' },
+    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.23)' },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#C1121F', borderWidth: 1 },
+    '& .MuiInputBase-input': { padding: '13px 12px', fontSize: 15 },
+  } as const;
+
+  const autocompleteSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 1,
+      backgroundColor: '#fff',
+      height: 'auto',
+      minHeight: 48,
+    },
+    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.23)' },
+    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#C1121F',
+      borderWidth: 1,
+    },
+    '& .MuiInputBase-input': { padding: '13px 12px', fontSize: 15 },
+  } as const;
+
+  const formik = useFormik<AddressFormFields>({
+    initialValues: {
       name: '',
       contactName: '',
       contactSurname: '',
@@ -110,36 +128,24 @@ const AddressForm = ({
       countryCode: 'TR',
       email: '',
       ...initialValues,
-      lines:
-        formValues?.lines ??
-        [initialValues?.line1, initialValues?.line3].filter(Boolean).join(' '),
-      neighborhood: formValues?.neighborhood ?? initialValues?.line2 ?? '',
-    };
-  }, [initialValues]);
-
-  const valuesToAddress = (values: AddressFormFields): Partial<AddressData> => {
-    const { lines, ...rest } = values;
-    const [line1, line2] = tokenize(lines, 30);
-
-    return {
-      ...rest,
-      name: autoName ?? rest.name,
-      phoneCode: '+90',
-      countryCode: rest.countryCode as DestinationCountry,
-      line1,
-      line2: values.neighborhood || line2,
-      line3: '',
-      postcode: '',
-      state: '',
-    };
-  };
-
-  const formik = useFormik<AddressFormFields>({
-    initialValues: normalizedInitialValues,
+    },
     enableReinitialize: true,
     validate,
     onSubmit: (values) => {
-      onSubmit(valuesToAddress(values) as AddressData);
+      const { lines, ...rest } = values;
+      const [line1, line2] = tokenize(lines, 30);
+
+      onSubmit({
+        ...rest,
+        phoneCode: '+90',
+        phoneNumber: values.phoneNumber.replace(/^0+/, ''),
+        countryCode: rest.countryCode as DestinationCountry,
+        line1,
+        line2: values.neighborhood || line2,
+        line3: '',
+        postcode: '',
+        state: '',
+      });
     },
   });
 
@@ -192,12 +198,8 @@ const AddressForm = ({
     else isMounted.current = true;
   }, [submitTrigger]);
 
-  useEffect(() => {
-    onDraftChange?.(valuesToAddress(formik.values));
-  }, [formik.values, onDraftChange]);
-
   return (
-    <Stack gap={2}>
+    <Stack gap={2} sx={{ '& .MuiFormLabel-root, & .MuiTypography-infoLabel': { fontSize: { xs: 14, sm: 13 } } }}>
       <form onSubmit={formik.handleSubmit}>
         <Stack gap={2}>
           <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
@@ -208,7 +210,7 @@ const AddressForm = ({
               required
               disabled={disabledFields.contactName}
               placeholder="Adınızı Giriniz"
-              props={{ sx: fieldSx }}
+              props={{ sx: fieldSx, inputProps }}
             />
             <FormikTextField
               fieldKey="contactSurname"
@@ -217,27 +219,13 @@ const AddressForm = ({
               required
               disabled={disabledFields.contactSurname}
               placeholder="Soyadınızı Giriniz"
-              props={{ sx: fieldSx }}
+              props={{ sx: fieldSx, inputProps }}
             />
           </Stack>
 
-          {showEmail && (
-            <FormikTextField
-              fieldKey="email"
-              label="E-posta"
-              formik={formik}
-              required
-              placeholder="ornek@email.com"
-              props={{ sx: fieldSx, type: 'email' }}
-            />
-          )}
-
-          <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} gap={1} alignItems={{ sm: 'flex-end' }}>
             <Stack width="100%">
-              <Typography variant="infoLabel">
-                Telefon <Asterisk color="error" size={8} />
-              </Typography>
-              <PhoneNumberInput formik={formik} fullWidth />
+              <PhoneNumberInput formik={formik} label="Telefon" fullWidth size="small" />
             </Stack>
 
             <FormikDropdown
@@ -246,7 +234,8 @@ const AddressForm = ({
               label="İl"
               options={cities.map((c) => ({ label: c.name, value: c.name }))}
               required
-              selectSx={fieldSx}
+              selectSx={dropdownSx}
+              size="small"
               onChange={() => {
                 formik.setFieldValue('district', '');
                 formik.setFieldValue('neighborhood', '');
@@ -264,7 +253,8 @@ const AddressForm = ({
                 .filter((d) => d.il_id === cities.find((c) => c.name === formik.values.city)?.id)
                 .map((d) => ({ label: d.name, value: d.name }))}
               required
-              selectSx={fieldSx}
+              selectSx={dropdownSx}
+              size="small"
             />
             <FormikAutocomplete
               formik={formik}
@@ -272,7 +262,8 @@ const AddressForm = ({
               label="Mahalle"
               options={neighborhoods.map((n) => ({ label: n.name, value: n.name }))}
               required
-              textFieldSx={fieldSx}
+              textFieldSx={autocompleteSx}
+              size="small"
             />
           </Stack>
 
@@ -294,17 +285,15 @@ const AddressForm = ({
             />
           </Stack>
 
-          {!autoName && (
-            <FormikTextField
-              fieldKey="name"
-              label="Adres Başlığı"
-              formik={formik}
-              required
-              disabled={disabledFields.name}
-              placeholder="Adres Başlığı Giriniz"
-              props={{ sx: fieldSx }}
-            />
-          )}
+          <FormikTextField
+            fieldKey="name"
+            label="Adres Başlığı"
+            formik={formik}
+            required
+            disabled={disabledFields.name}
+            placeholder="Adres Başlığı Giriniz"
+            props={{ sx: fieldSx, inputProps }}
+          />
 
 
           {/*

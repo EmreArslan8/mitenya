@@ -9,6 +9,7 @@ const DEFAULT_WINDOW_MS = 60_000; // 1 dakika
 const DEFAULT_MAX_REQUESTS = 60;  // dakika başına 60 istek
 
 const buckets = new Map<string, { count: number; expiresAt: number }>();
+let hasLoggedUpstashFallback = false;
 
 // Expired entry'leri periyodik olarak temizle (her 5 dakikada bir)
 const CLEANUP_INTERVAL_MS = 5 * 60_000;
@@ -43,7 +44,11 @@ export const rateLimit = async (
       }
       // Eğer yanıt beklenmedikse mem fallback'e düş
     } catch (err) {
-      console.error('RateLimit Upstash fallback:', err);
+      if (process.env.NODE_ENV === 'development' && !hasLoggedUpstashFallback) {
+        hasLoggedUpstashFallback = true;
+        const message = err instanceof Error ? err.message : String(err);
+        console.warn(`RateLimit Upstash unavailable, using memory fallback: ${message}`);
+      }
       // aşağıda mem fallback
     }
   }
@@ -62,5 +67,4 @@ export const rateLimit = async (
   entry.count += 1;
   return true;
 };
-
 

@@ -9,6 +9,7 @@ import { type OrderAttribution } from "@/lib/analytics/attribution";
 import { sendCapiPurchase } from "@/lib/analytics/metaCapi";
 import { parseCookieHeader } from "@/lib/analytics/attribution";
 import { sendTikTokServerEvent } from "@/lib/analytics/tiktokEventsApi";
+import { createGuestTrackingToken } from "@/lib/orders/guestTracking";
 import { z } from "zod";
 
 
@@ -60,6 +61,7 @@ const attributionSchema = z.object({
 
 const createOrderSchema = z.object({
   user_email: z.string().email().optional(),
+  guest_email: z.string().email().optional(),
   items: z.array(orderItemSchema).min(1).max(50),
   shipping_address: shippingAddressSchema,
   billing_address: shippingAddressSchema.optional(),
@@ -68,10 +70,10 @@ const createOrderSchema = z.object({
   discount_amount: z.number().nonnegative().max(100000).optional(),
   discount_code: z.string().max(50).nullable().optional(),
   affiliate_code: z.string().max(20).nullable().optional(),
-  attribution: attributionSchema.optional(),
+  attribution: attributionSchema.nullable().optional(),
   notes: z.string().max(500).optional(),
   currency: z.string().length(3).optional(),
-  consents: consentsSchema.optional(),
+  consents: consentsSchema,
 });
 
 const parseJsonIfNeeded = <T>(value: unknown): T | null => {
@@ -156,17 +158,10 @@ export async function POST(req: NextRequest) {
     const supabase = await createSupabaseServer();
     const {
       data: { user },
-      error: authError,
     } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
     const { data: sessionData } = await supabase.auth.getSession();
     const accessToken = sessionData?.session?.access_token;
-    if (!accessToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     // Input validation with Zod
     let body;
@@ -186,6 +181,7 @@ export async function POST(req: NextRequest) {
 
     const {
       user_email: _user_email,
+      guest_email,
       items,
       shipping_address,
       billing_address,
@@ -208,8 +204,31 @@ export async function POST(req: NextRequest) {
     }
 
     // Email kontrolü
-    if (!user.email && !_user_email) {
+    const effectiveEmail = user?.email ?? guest_email ?? _user_email;
+    if (!effectiveEmail) {
       return NextResponse.json({ error: "Email gerekli" }, { status: 400 });
+    }
+
+    // Misafir profili oluştur
+    let guestCustomerId: string | null = null;
+    if (!user && guest_email) {
+      const nameParts = (shipping_address?.contactName ?? '').trim().split(' ');
+      const { data: guestCustomer } = await supabaseAdmin
+        .from('customers')
+        .upsert(
+          {
+            email: guest_email,
+            phone: shipping_address?.phone ?? null,
+            name: nameParts[0] ?? null,
+            surname: nameParts.length > 1 ? nameParts.slice(1).join(' ') : null,
+            type: 'guest',
+            provider_id: null,
+          },
+          { onConflict: 'email' }
+        )
+        .select('id')
+        .single();
+      guestCustomerId = guestCustomer?.id ?? null;
     }
 
     const normalizedAffiliateCode = affiliate_code ?? attribution?.affiliateCode ?? null;
@@ -274,35 +293,31 @@ export async function POST(req: NextRequest) {
         ]
       : null;
 
+    const consentBase = {
+      doc_version: "1.0",
+      accepted_at: new Date().toISOString(),
+      ip: userIp,
+      user_agent: req.headers.get("user-agent") || "",
+      user_id: user?.id ?? null,
+      user_email: effectiveEmail,
+      customer_id: guestCustomerId,
+    };
     const consentsRows = consents
       ? [
-          {
-            doc_type: "pre_info",
-            doc_version: "1.0",
-            accepted_at: new Date().toISOString(),
-            ip: userIp,
-            user_agent: req.headers.get("user-agent") || "",
-            user_id: user.id,
-            user_email: user.email ?? _user_email,
-          },
-          {
-            doc_type: "distance_sale",
-            doc_version: "1.0",
-            accepted_at: new Date().toISOString(),
-            ip: userIp,
-            user_agent: req.headers.get("user-agent") || "",
-            user_id: user.id,
-            user_email: user.email ?? _user_email,
-          },
+          { ...consentBase, doc_type: "pre_info" },
+          { ...consentBase, doc_type: "distance_sale" },
         ]
       : null;
 
     const paymentStatus = payment_method === "bank_transfer" ? "awaiting_transfer" : "awaiting_payment";
 
+    const guestTrackingToken = createGuestTrackingToken();
+
     const baseEdgePayload = {
       order_number,
-      user_id: user.id,
-      user_email: user.email ?? _user_email,
+      user_id: user?.id ?? null,
+      customer_id: guestCustomerId,
+      user_email: effectiveEmail,
       payment_status: paymentStatus,
       payment_method,
       currency: orderCurrency,
@@ -321,11 +336,13 @@ export async function POST(req: NextRequest) {
       event_description: eventDescription,
       documents,
       consents: consentsRows,
+      guest_tracking_token: guestTrackingToken,
     };
 
+    const edgeAuthToken = accessToken ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
     const edgeHeaders = {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
+      Authorization: `Bearer ${edgeAuthToken}`,
       apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
     };
 
@@ -391,13 +408,17 @@ export async function POST(req: NextRequest) {
     if (successToken) {
       nextMetadata.success_token = successToken;
     }
+    nextMetadata.guest_tracking_token = guestTrackingToken;
 
     if (attribution && Object.values(attribution).some(Boolean)) {
       nextMetadata.attribution = attribution as OrderAttribution;
     }
 
     if (Object.keys(nextMetadata).length > 0) {
-      await supabaseAdmin.from("orders").update({ metadata: nextMetadata }).eq("id", order.id);
+      await supabaseAdmin
+        .from("orders")
+        .update({ metadata: nextMetadata, guest_tracking_token: guestTrackingToken })
+        .eq("id", order.id);
     }
 
     if (normalizedAffiliateCode && order.id) {
@@ -419,7 +440,7 @@ export async function POST(req: NextRequest) {
       numItems: sanitizedItems.reduce((acc, i) => acc + i.quantity, 0),
       orderId: order.order_number,
       userData: {
-        email: user.email ?? _user_email ?? undefined,
+        email: effectiveEmail ?? undefined,
         phone: shipping_address.phone ?? null,
         firstName: nameParts[0] ?? null,
         lastName: nameParts.length > 1 ? nameParts.slice(1).join(' ') : null,
@@ -448,9 +469,9 @@ export async function POST(req: NextRequest) {
         pageUrl: `${process.env.NEXT_PUBLIC_HOST_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mitenya.com'}/success`,
         referrer: attribution?.referrer ?? null,
         user: {
-          email: user.email ?? _user_email ?? undefined,
+          email: effectiveEmail ?? undefined,
           phone: shipping_address.phone ?? null,
-          externalId: user.id,
+          externalId: user?.id ?? guestCustomerId ?? undefined,
           ip: userIp !== 'unknown' ? userIp : null,
           userAgent: req.headers.get('user-agent'),
           ttclid: attribution?.tikTokClickId ?? cookies.ttclid ?? null,

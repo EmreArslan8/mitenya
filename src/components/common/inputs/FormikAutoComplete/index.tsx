@@ -10,6 +10,7 @@ const FormikAutocomplete = ({
   label,
   options,
   textFieldSx,
+  size = 'small',
 }: {
   formik: any;
   width?: string | number;
@@ -19,6 +20,7 @@ const FormikAutocomplete = ({
   label?: string;
   options: { label: string; value: string | number | undefined }[];
   textFieldSx?: SxProps;
+  size?: 'small' | 'medium';
 }) => {
 
   return (
@@ -51,7 +53,7 @@ const FormikAutocomplete = ({
             {...params}
             fullWidth
             required={required}
-            size="small"
+            size={size}
             error={formik.touched[fieldKey] && Boolean(formik.errors[fieldKey])}
             helperText={formik.touched[fieldKey] && formik.errors[fieldKey]}
             sx={{

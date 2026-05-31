@@ -140,6 +140,7 @@ const useStyles = withPalette((palette) => ({
     fontSize: 14,
     fontWeight: 600,
     lineHeight: 1.35,
+    minHeight: '38px',
     whiteSpace: 'normal',
     wordBreak: 'break-word',
     overflow: 'hidden',
@@ -173,7 +174,7 @@ const useStyles = withPalette((palette) => ({
     lineHeight: 1.2,
   },
   convertedPrice: { color: palette.text.mediumLight },
-  link: { textDecoration: 'none', color: 'inherit', height: '100%', width: '100%' },
+  link: { textDecoration: 'none', color: 'inherit', height: '100%', width: '100%', display: 'block' },
   rating: { flexDirection: 'row', alignItems: 'center', gap: 0.5, pt: 0.7 },
   ratingValue: { color: palette.text.main, fontSize: 12, fontWeight: 700, lineHeight: 1 },
   ratingStars: {

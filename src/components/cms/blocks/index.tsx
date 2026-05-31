@@ -1,6 +1,5 @@
-
 import { Direction } from '@mui/material';
-import { ComponentType } from 'react';
+import { ComponentType, Fragment } from 'react';
 import FAQ from './FAQ';
 import FreeText from './FreeText';
 import ShopBanner from './ShopBanner';
@@ -79,17 +78,22 @@ export interface BlockComponentBaseProps {
   direction: Direction;
 }
 
+const getBlockKey = (block: CMSBlock, index: number) =>
+  `${block.__component}-${block.id ?? index}-${index}`;
+
 const getBlockComponent = (block: CMSBlock, index: number) => {
   const { __component, ...rest } = block;
   const props = rest as unknown as typeof Block extends ComponentType<infer P>
     ? P & BlockComponentBaseProps
     : never; // Some ChatGPT blackmagic here
   const Block = componentMap[__component];
-  return Block ? <Block key={`index-${index}`} {...props} blockIndex={index} /> : null;
+  return Block ? <Block {...props} blockIndex={index} /> : null;
 };
 
-const BlockManager = ({ blocks }: { blocks: CMSBlock[] }) => {
-  return blocks.map((block, index) => getBlockComponent(block, index));
+const  BlockManager = ({ blocks }: { blocks: CMSBlock[] }) => {
+  return blocks.map((block, index) => (
+    <Fragment key={getBlockKey(block, index)}>{getBlockComponent(block, index)}</Fragment>
+  ));
 };
 
 

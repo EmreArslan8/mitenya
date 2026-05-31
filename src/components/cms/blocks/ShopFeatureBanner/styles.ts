@@ -1,3 +1,4 @@
+import { SxProps } from '@mui/material';
 import { withPalette } from '@/theme/ThemeRegistry';
 
 const useStyles = withPalette((palette) => ({
@@ -5,67 +6,17 @@ const useStyles = withPalette((palette) => ({
     gap: 2,
     width: '100%',
     alignItems: 'stretch',
-    
   },
 
   mainSliderWrapper: {
     flex: { xs: '1 1 100%', md: '0 0 65%' },
     maxWidth: { xs: '100%', md: '65%' },
-    '& .slick-slider': { maxWidth: '100vw' },
-    '& .slick-list': { overflow: 'hidden' },
-    '& .slick-track': { display: 'flex' },
-    '& .slick-slide': { lineHeight: 0 },
-    '& .slick-slide > div': { display: 'block' },
-    '& .slick-dots': {
-      position: 'absolute',
-      bottom: { xs: 16, md: 30 },
-      left: 0,
-      right: 0,
-      display: 'flex !important',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: { xs: '8px', md: '10px' },
-      margin: 0,
-      padding: 0,
-      listStyle: 'none',
-      zIndex: 2,
-
-      '& li': {
-        margin: 0,
-        padding: 0,
-        width: { xs: 7, md: 8 },
-        height: { xs: 7, md: 8 },
-        transition: 'width 0.25s ease',
-      },
-
-      '& li button': {
-        width: '100%',
-        height: '100%',
-        padding: 0,
-        border: 'none',
-        borderRadius: 999,
-        backgroundColor: 'rgba(255, 255, 255, 0.45)',
-        cursor: 'pointer',
-        transition: 'all 0.25s ease',
-        fontSize: 0,
-        lineHeight: 0,
-        color: 'transparent',
-        '&:before': {
-          display: 'none',
-        },
-      },
-
-      '& li.slick-active': {
-        width: { xs: 22, md: 24 },
-      },
-      '& li.slick-active button': {
-        backgroundColor: palette.white.main,
-        transform: 'none',
-      },
-    },
+    position: 'relative', // for absolute dots
   },
 
   mainSlide: {
+    flex: '0 0 100%',
+    minWidth: 0,
     position: 'relative',
     aspectRatio: { xs: '4/5', sm: '16/9' },
     width: '100%',
@@ -73,7 +24,38 @@ const useStyles = withPalette((palette) => ({
     overflow: 'hidden',
     display: 'block',
     '& img': { objectFit: 'cover' },
-  },
+  } as SxProps,
+
+  // Pill dots — absolute inside mainSliderWrapper
+  dotsContainer: {
+    position: 'absolute',
+    bottom: { xs: 8, md: 14 },
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: { xs: '8px', md: '10px' },
+    zIndex: 2,
+    pointerEvents: 'none',
+  } as SxProps,
+
+  pillDot: (active: boolean): SxProps => ({
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    border: 'none',
+    padding: 0,
+    cursor: 'pointer',
+    pointerEvents: 'auto',
+    borderRadius: 999,
+    height: { xs: 7, md: 8 },
+    width: active ? { xs: 22, md: 24 } : { xs: 7, md: 8 },
+    backgroundColor: active ? palette.white.main : 'rgba(255, 255, 255, 0.45)',
+    transition: 'width 0.25s ease, background-color 0.25s ease',
+    '&:hover': {
+      backgroundColor: active ? palette.white.main : 'rgba(255, 255, 255, 0.65)',
+    },
+  }),
 
   sideBannersContainer: {
     flex: '0 0 calc(35% - 16px)',
@@ -87,71 +69,6 @@ const useStyles = withPalette((palette) => ({
     position: 'relative',
     flex: 1,
     borderRadius: 2,
-    overflow: 'hidden',
-    '& img': { objectFit: 'cover' },
-  },
-
-  mobileSliderContainer: {
-    width: '100%',
-    position: 'relative',
-    overflow: 'hidden',
-    borderRadius: 1.5,
-    '& .slick-slide': { lineHeight: 0 },
-    '& .slick-slide > div': { display: 'block' },
-    '& .slick-dots': {
-      position: 'absolute',
-      bottom: 16,
-      left: 0,
-      right: 0,
-      display: 'flex !important',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: '8px',
-      margin: 0,
-      padding: 0,
-      listStyle: 'none',
-      zIndex: 2,
-
-      '& li': {
-        margin: 0,
-        padding: 0,
-        width: 7,
-        height: 7,
-        transition: 'width 0.25s ease',
-      },
-
-      '& li button': {
-        width: '100%',
-        height: '100%',
-        padding: 0,
-        border: 'none',
-        borderRadius: 999,
-        backgroundColor: 'rgba(255, 255, 255, 0.45)',
-        cursor: 'pointer',
-        transition: 'all 0.25s ease',
-        fontSize: 0,
-        lineHeight: 0,
-        color: 'transparent',
-        '&:before': {
-          display: 'none',
-        },
-      },
-
-      '& li.slick-active': {
-        width: 22,
-      },
-      '& li.slick-active button': {
-        backgroundColor: palette.white.main,
-        transform: 'none',
-      },
-    },
-  },
-
-  mobileSlide: {
-    position: 'relative',
-    aspectRatio: { xs: '4/5', sm: '16/9' },
-    width: '100%',
-    borderRadius: 1.5,
     overflow: 'hidden',
     '& img': { objectFit: 'cover' },
   },

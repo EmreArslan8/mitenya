@@ -13,6 +13,7 @@ import { Currency } from '@/lib/utils/currencies';
 import { sendAddToCardEvent } from '@/lib/utils/googleAnalytics';
 import { trackAddToCart } from '@/lib/analytics/metaPixel';
 import { trackTikTokAddToCart, trackTikTokWithUser } from '@/lib/analytics/tiktokPixel';
+import { sendCapiFromClient, generateCapiEventId } from '@/lib/analytics/sendCapiFromClient';
 import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -229,12 +230,25 @@ export const ShopContextProvider = ({ children }: ShopContextProviderProps) => {
     setNewProductAdded({ ...product, quantity: 1 });
 
     // Analytics
+    const addToCartEventId = generateCapiEventId('atc');
     sendAddToCardEvent(customerData, product);
     trackAddToCart({
       content_ids: [String(product.id)],
       content_name: product.name,
       value: product.price.currentPrice,
       currency: product.price.currency ?? 'TRY',
+      eventID: addToCartEventId,
+    });
+    sendCapiFromClient({
+      eventName: 'AddToCart',
+      eventId: addToCartEventId,
+      contentIds: [String(product.id)],
+      contentName: product.name,
+      value: product.price.currentPrice,
+      currency: product.price.currency ?? 'TRY',
+      numItems: 1,
+      email: customerData?.email ?? undefined,
+      phone: customerData?.phone ?? undefined,
     });
     trackTikTokWithUser({
       userData: {

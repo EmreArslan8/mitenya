@@ -1,18 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { withSentryConfig } = require('@sentry/nextjs');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const path = require('path');
-const withBundleAnalyzer =
-  process.env.ANALYZE === 'true'
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    ? require('@next/bundle-analyzer')({ enabled: true })
-    : (config: unknown) => config;
+import type { NextConfig } from 'next';
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  turbopack: {
-    root: path.resolve(__dirname),
-  },
+const nextConfig: NextConfig = {
+  productionBrowserSourceMaps: process.env.MITENYA_SOURCE_MAPS === 'true',
   /**
    * GÜVENLİK UYARISI: Bu ayarlar geçici olarak aktif.
    * Production öncesi tüm TypeScript ve ESLint hatalarının düzeltilmesi önerilir.
@@ -34,6 +23,14 @@ const nextConfig = {
         source: '/public/:path*',
         destination: '/:path*',
         permanent: true,
+      },
+    ];
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/siparis-takip',
+        destination: '/order-status',
       },
     ];
   },
@@ -88,7 +85,7 @@ const nextConfig = {
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
                 imgSrc + " https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com https://analytics.tiktok.com https://ads.tiktok.com",
                 "font-src 'self' data: https://fonts.gstatic.com",
-                "connect-src 'self' https://*.supabase.co https://www.paytr.com https://www.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://challenges.cloudflare.com https://connect.facebook.net https://www.facebook.com https://analytics.tiktok.com https://ads.tiktok.com https://*.ingest.de.sentry.io https://*.ingest.sentry.io https://*.ecs.us-east-2.on.aws https://*.us-central1.run.app",
+                "connect-src 'self' https://*.supabase.co https://www.paytr.com https://www.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://challenges.cloudflare.com https://connect.facebook.net https://www.facebook.com https://analytics.tiktok.com https://ads.tiktok.com https://*.ecs.us-east-2.on.aws https://*.run.app",
                 "frame-src https://www.paytr.com https://challenges.cloudflare.com https://www.googletagmanager.com https://www.facebook.com https://analytics.tiktok.com https://ads.tiktok.com",
                 "frame-ancestors 'self'",
                 "form-action 'self' https://www.facebook.com",
@@ -109,7 +106,39 @@ const nextConfig = {
         hostname: 'localhost',
         port: '1337',
         pathname: '/uploads/**',
-      },      
+      },
+      {
+        protocol: "https",
+        hostname: "funny-animal-09dc5ed329.media.strapiapp.com", 
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "funny-animal-09dc5ed329.strapiapp.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "funny-animal-09dc5ed329.media.strapiapp.com", 
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "genuine-blessing-adf56ff856.strapiapp.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "genuine-blessing-adf56ff856.media.strapiapp.com",
+        pathname: "/**",
+      },
+            
+      {
+        protocol: "https",
+        hostname: "kozmedo-cms.onrender.com",
+        port: "",
+        pathname: "/uploads/**",
+      },
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
@@ -124,13 +153,12 @@ const nextConfig = {
   },
 };
 
-const sentryNextConfig = withSentryConfig(nextConfig, {
-  org: 'mitenya',
-  project: 'javascript-nextjs',
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  disableLogger: true,
-  automaticVercelMonitors: false,
-});
+module.exports = async () => {
+  if (process.env.ANALYZE !== 'true') return nextConfig;
 
-module.exports = withBundleAnalyzer(sentryNextConfig);
+  const withBundleAnalyzer = (await import('@next/bundle-analyzer')).default({
+    enabled: true,
+  });
+
+  return withBundleAnalyzer(nextConfig);
+};

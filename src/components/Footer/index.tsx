@@ -18,7 +18,7 @@ interface FooterProps {
 }
 
 const ETBIS_PORTAL_URL =
-  'https://etbis.ticaret.gov.tr/tr/Anasayfa/SiteAraSonuc?siteId=06415656-3bee-4e41-88a7-e349d350bb8e';
+  'https://etbis.ticaret.gov.tr/tr/SiteSorgulamaSonuc?siteId=06415656-3bee-4e41-88a7-e349d350bb8e';
 
 const Footer = ({ data }: FooterProps) => {
   const isMobileApp = useIsMobileApp();

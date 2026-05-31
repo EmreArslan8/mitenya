@@ -1,7 +1,7 @@
-import { pushItemToDataLayer } from './googleAnalytics';
+import { createClient } from '@/lib/supabase/client';
+import { pushItemToDataLayer } from './dataLayer';
  
 export const signOut = async () => {
-  const { createClient } = await import('@/lib/supabase/client');
   const supabase = createClient();
  
   // Get current user before signing out
