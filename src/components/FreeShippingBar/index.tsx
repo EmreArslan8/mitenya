@@ -25,16 +25,17 @@ const FreeShippingBar = ({
     <Box sx={styles.container(isFreeShipping)}>
       <Stack sx={styles.header}>
         <Stack direction="row" alignItems="center" gap={1}>
-          <Icon
-            name={isFreeShipping ? 'local_shipping' : 'local_shipping'}
-            sx={styles.icon(isFreeShipping)}
-          />
+          {isFreeShipping ? (
+            <Box component="span" sx={styles.celebrate}>🎉</Box>
+          ) : (
+            <Icon name="local_shipping" sx={styles.icon(isFreeShipping)} />
+          )}
           <Typography sx={styles.text(isFreeShipping)}>
             {isFreeShipping ? (
-              'Ücretsiz kargo kazandınız!'
+              'Tebrikler, kargo ücretsiz'
             ) : (
               <>
-                <strong>{remaining.toFixed(2)} {currency}</strong> daha ekleyin, <strong>kargo bedava!</strong>
+                <strong>{remaining.toFixed(2)} {currency}</strong> daha ekleyin, kargo <strong>ücretsiz</strong>
               </>
             )}
           </Typography>

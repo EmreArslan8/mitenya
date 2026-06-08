@@ -22,6 +22,7 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 import useStyles from './styles';
 import { usePathname, useRouter } from 'next/navigation';
 import InfoItem from '@/components/InfoItem';
+import FreeShippingBar from '@/components/FreeShippingBar';
 import { ChevronDown, ChevronUp, Trash, User } from 'lucide-react';
 
 
@@ -48,6 +49,7 @@ const CartPageView = ({
     toggleSelected,
     numSelected,
     isSelected,
+    totalSelectedDue,
     unavailableItems,
     handleDismissUnavailableItem,
   } = useContext(ShopContext);
@@ -120,6 +122,11 @@ const CartPageView = ({
       {!hideTitle && <Typography variant="h1">Sepet</Typography>}
       <TwoColumnLayout sx={{ pb: 3, gap: 3 }}>
         <PrimaryColumn sx={{ gap: 0.5 }}>
+          {!!cart?.length && (
+            <Box sx={{ mb: 1.5 }}>
+              <FreeShippingBar currentTotal={totalSelectedDue} currency={currencyLabel} />
+            </Box>
+          )}
           {isAuthenticated === false && !!cart?.length && (
             <Stack
               direction="row"

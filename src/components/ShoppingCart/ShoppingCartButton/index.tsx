@@ -9,6 +9,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import useStyles from './styles';
 import { useRouter } from 'next/navigation';
 import formatPrice from '@/lib/utils/formatPrice';
+import useScreen from '@/lib/hooks/useScreen';
 
 const ShoppingCartButton = ({ compact = false }: { compact?: boolean }) => {
   const router = useRouter();
@@ -23,6 +24,7 @@ const ShoppingCartButton = ({ compact = false }: { compact?: boolean }) => {
   } = useContext(ShopContext);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const { smDown } = useScreen();
   const styles = useStyles();
 
   const toggleMenuOpen = () => setMenuOpen((prev) => !prev);
@@ -32,8 +34,10 @@ const ShoppingCartButton = ({ compact = false }: { compact?: boolean }) => {
   }, []);
 
   useEffect(() => {
-    if (newProductAdded) setMenuOpen(true);
-  }, [newProductAdded]);
+    // Mobilde sepete ekleme sonrası üstteki mini-sepet popover'ı açılmasın;
+    // mobilde alttaki sepet sheet'i (Navigation cartModal) zaten açılıyor.
+    if (newProductAdded && !smDown) setMenuOpen(true);
+  }, [newProductAdded, smDown]);
 
   return (
     <Stack>
