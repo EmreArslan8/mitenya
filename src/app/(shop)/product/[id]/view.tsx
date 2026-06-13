@@ -17,7 +17,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import ProductDescription from './components/ProductDescription';
 import ProductImageGalleryClient from './components/ProductImageGallery/ProductImageGalleryClient';
-import ProductSizeGuide from './components/ProductSizeGuide';
+import DeferUntilVisible from './components/DeferUntilVisible';
 import ProductStickyBar from './components/ProductStickyBar';
 import ProductVariants from './components/ProductVariants';
 import useStyles from './styles';
@@ -38,6 +38,10 @@ import {
 import QATypewriterPill from './components/ProductShopAssistant/QATypewriterPill';
 import ProductBenefits from './components/ProductBenefits';
 
+const ProductSizeGuide = dynamic(() => import('./components/ProductSizeGuide'), {
+  ssr: false,
+  loading: () => null,
+});
 const ProductFaq = dynamic(() => import('./components/ProductFaq'), {
   loading: () => null,
 });
@@ -599,14 +603,22 @@ const ProductPageView = ({
       {pdpBlocksSlot}
       <ProductFaq faqs={data.faqs} productName={fullName} />
       <Box ref={reviewsSectionRef} id="product-reviews">
-        <ProductReviews
-          productId={data.id}
-          initialReviews={data.reviews ?? []}
-          initialRating={data.rating}
-        />
+        <DeferUntilVisible minHeight={240}>
+          <ProductReviews
+            productId={data.id}
+            initialReviews={data.reviews ?? []}
+            initialRating={data.rating}
+          />
+        </DeferUntilVisible>
       </Box>
-      {data.brandId && <ProductRecommendations brandId={data.brandId} productId={data.id} />}
-      <ProductShopAssistant data={data} />
+      {data.brandId && (
+        <DeferUntilVisible minHeight={320}>
+          <ProductRecommendations brandId={data.brandId} productId={data.id} />
+        </DeferUntilVisible>
+      )}
+      <DeferUntilVisible>
+        <ProductShopAssistant data={data} />
+      </DeferUntilVisible>
       <ProductStickyBar
         imgSrc={data.imgSrc ?? data.images?.[0]}
         name={data.name}
