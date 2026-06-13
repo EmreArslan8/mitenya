@@ -13,7 +13,7 @@ const preloadProductMainImage = (imagePathOrUrl: string | undefined) => {
 
   preload(
     r2ImageUrl(imagePathOrUrl, {
-      width: 960,
+      width: 1280,
       quality: profile.quality,
       format: profile.format,
     }),

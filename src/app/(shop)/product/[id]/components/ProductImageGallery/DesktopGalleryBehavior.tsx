@@ -28,7 +28,7 @@ const DesktopGalleryBehavior = ({
 
   const activeImage = imageList.includes(currentImg ?? '') ? currentImg : imageList[0];
   const activeDisplaySrc = r2ImageUrl(activeImage, {
-    width: 960,
+    width: 1280,
     quality: primaryProfile.quality,
     format: primaryProfile.format,
   });

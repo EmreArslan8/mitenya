@@ -50,7 +50,7 @@ export const R2_IMAGE_PROFILES = {
     format: 'auto',
   },
   productPdpPrimary: {
-    widths: [720, 960, 1280],
+    widths: [720, 1280],
     sizes: '(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 640px',
     quality: 82,
     format: 'auto',

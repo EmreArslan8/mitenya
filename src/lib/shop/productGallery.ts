@@ -8,7 +8,7 @@ export function buildMobileProductGalleryImages(images?: string[]): ShopResponsi
 
   return images.map((image) => ({
     src: r2ImageUrl(image, {
-      width: 960,
+      width: 1280,
       quality: profile.quality,
       format: profile.format,
     }),
