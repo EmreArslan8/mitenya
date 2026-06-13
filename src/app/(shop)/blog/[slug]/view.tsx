@@ -260,8 +260,10 @@ const BlogDetailPageView = async ({ slug }: { slug: string }) => {
             my: 3,
             color: '#6E6E73',
             fontStyle: 'italic',
+            fontFamily: 'var(--font-albert-sans-italic)',
             fontSize: { xs: 16, md: 18 },
           },
+
           '& ul, & ol': {
             pl: 3,
             mb: 2,

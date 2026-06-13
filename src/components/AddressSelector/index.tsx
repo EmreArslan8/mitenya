@@ -90,7 +90,7 @@ const AddressSelector = ({ value, onChange, options, onAddressAdded }: AddressSe
           .map((option) => [
             <MenuItem value={option.id!.toString()} sx={styles.option} key={option.id}>
               <Typography variant="body">{option.name}</Typography>
-              <Typography variant="body" fontSize={14} fontStyle="italic">
+              <Typography variant="body" fontSize={14} fontStyle="italic" fontFamily="var(--font-albert-sans-italic)">
                 {option.line1}
               </Typography>
             </MenuItem>,

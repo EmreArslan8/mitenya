@@ -5,7 +5,7 @@ import { AuthContextProvider } from "@/contexts/AuthContext";
 import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
 import { FavoritesContextProvider } from "@/contexts/FavoritesContext";
 import { ShopContextProvider } from "@/contexts/ShopContext";
-import { albertSans } from "@/lib/fonts";
+import { albertSans, albertSansItalic } from "@/lib/fonts";
 import ThemeRegistry from "@/theme/ThemeRegistry";
 import { Suspense } from "react";
 
@@ -18,9 +18,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-  <html lang="tr" className={albertSans.variable}>
+  <html lang="tr" className={`${albertSans.variable} ${albertSansItalic.variable}`}>
       <head>
         <meta charSet="utf-8" />
+        {/* perf: LCP görseli cross-origin cdn.mitenya.com'dan geliyor. Bağlantıyı
+            erken kurarak (DNS+TCP+TLS) görselin isteğinin connection maliyetini
+            ödememesini sağlıyoruz — Catchpoint'te görsel isteği 2.17s'ye kadar
+            cold connection + bant rekabetiyle gecikiyordu. */}
+        <link rel="preconnect" href="https://cdn.mitenya.com" />
+        <link rel="dns-prefetch" href="https://cdn.mitenya.com" />
         {isProduction && (
           <meta
             name="google-site-verification"
