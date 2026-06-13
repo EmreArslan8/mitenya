@@ -1,12 +1,13 @@
 import Footer from '@/components/Footer';
 import MainLayout from '@/components/layouts/MainLayout';
 import Navigation from '@/components/Navigation';
-import { fetchShopFooter, fetchShopHeader } from '@/lib/api/cms';
+// ADR-0001: header/footer artık doğrudan Strapi'den (self-fetch yok) → ISR'ı açar.
+import { getShopFooterDirect, getShopHeaderDirect } from '@/lib/api/cmsDirect';
 import { Suspense } from 'react';
 
 const ShopLayout = async ({ children }: { children: React.ReactNode }) => {
-  const headerData = await fetchShopHeader();
-  const footerData = await fetchShopFooter();
+  const headerData = await getShopHeaderDirect();
+  const footerData = await getShopFooterDirect();
 
   return (
     <>
