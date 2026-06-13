@@ -25,7 +25,10 @@ export default function RootLayout({
             erken kurarak (DNS+TCP+TLS) görselin isteğinin connection maliyetini
             ödememesini sağlıyoruz — Catchpoint'te görsel isteği 2.17s'ye kadar
             cold connection + bant rekabetiyle gecikiyordu. */}
-        <link rel="preconnect" href="https://cdn.mitenya.com" crossOrigin="" />
+        {/* crossOrigin YOK: LCP görseli plain <img> (no-cors) → preconnect de
+            crossorigin'siz olmalı, yoksa ısıtılan bağlantı görsel tarafından
+            kullanılmaz (ayrı bağlantı havuzu). */}
+        <link rel="preconnect" href="https://cdn.mitenya.com" />
         <link rel="dns-prefetch" href="//cdn.mitenya.com" />
         {isProduction && (
           <meta
