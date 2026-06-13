@@ -4,7 +4,7 @@ import { R2_IMAGE_PROFILES, r2ImageSrcSet, r2ImageUrl, r2Url } from '@/lib/utils
 export function buildMobileProductGalleryImages(images?: string[]): ShopResponsiveImage[] {
   if (!images?.length) return [];
 
-  const profile = R2_IMAGE_PROFILES.productPdpMobile;
+  const profile = R2_IMAGE_PROFILES.productPdpPrimary;
 
   return images.map((image) => ({
     src: r2ImageUrl(image, {

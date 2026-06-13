@@ -59,12 +59,10 @@ const MAX_CART_QUANTITY = 5;
 const ProductPageView = ({
   data,
   couponSlot,
-  initialGalleryIsDesktop = true,
   pdpBlocksSlot,
 }: {
   data: ShopProductData;
   couponSlot?: ReactNode;
-  initialGalleryIsDesktop?: boolean;
   pdpBlocksSlot?: ReactNode;
 }) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
@@ -387,7 +385,6 @@ const ProductPageView = ({
               imageList={data.images?.length ? data.images : data.imgSrc ? [data.imgSrc] : []}
               mobileGallery={data.galleryImages ?? []}
               baseAlt={data.name?.trim() || 'Urun'}
-              initialIsDesktop={initialGalleryIsDesktop}
               name={data.name}
               isFavorited={isFavorited}
               favoriteLoading={favoriteLoading}

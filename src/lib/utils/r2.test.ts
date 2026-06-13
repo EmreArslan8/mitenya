@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { r2Url } from './r2';
+import { productMainImagePath, r2Url } from './r2';
 
 describe('r2Url', () => {
   const originalEnv = process.env.NEXT_PUBLIC_R2_BASE_URL;
@@ -69,5 +69,17 @@ describe('r2Url', () => {
     it('should still return empty string for empty input', () => {
       expect(r2Url('')).toBe('');
     });
+  });
+});
+
+describe('productMainImagePath', () => {
+  it('builds the PDP main image path from the product slug', () => {
+    expect(productMainImagePath('celimax-retinol-shot-tightening-serum-30ml')).toBe(
+      'products/celimax-retinol-shot-tightening-serum-30ml/main.webp'
+    );
+  });
+
+  it('normalizes accidental leading and trailing slashes', () => {
+    expect(productMainImagePath('/sample-product/')).toBe('products/sample-product/main.webp');
   });
 });

@@ -1,20 +1,17 @@
-import { R2_IMAGE_PROFILES, r2ImageSrcSet, r2ImageUrl } from '@/lib/utils/r2';
+import { R2_IMAGE_PROFILES, productMainImagePath, r2ImageSrcSet, r2ImageUrl } from '@/lib/utils/r2';
 import isPreviewBot from '@/lib/utils/isPreviewBot';
 import isSSR from '@/lib/utils/isSSR';
 import { Metadata } from 'next';
 import { preload } from 'react-dom';
 import { Suspense } from 'react';
 import { getProductData } from './data';
-import { resolveInitialGalleryIsDesktop } from './galleryViewport';
 import Loading from './loading';
 import SuspensedView from './suspensedView';
 
-const preloadProductMainImage = (imagePathOrUrl: string | undefined, isDesktop: boolean) => {
+const preloadProductMainImage = (imagePathOrUrl: string | undefined) => {
   if (!imagePathOrUrl) return;
 
-  const profile = isDesktop
-    ? R2_IMAGE_PROFILES.productPdpPrimary
-    : R2_IMAGE_PROFILES.productPdpMobile;
+  const profile = R2_IMAGE_PROFILES.productPdpPrimary;
 
   preload(
     r2ImageUrl(imagePathOrUrl, {
@@ -38,11 +35,8 @@ const ProductPage = async ({ params }: { params: { id: string } }) => {
   if (await isPreviewBot()) return <></>;
 
   const { id } = await params;
-  const [data, isDesktop] = await Promise.all([
-    getProductData(id),
-    resolveInitialGalleryIsDesktop(),
-  ]);
-  preloadProductMainImage(data?.images?.[0] ?? data?.imgSrc, isDesktop);
+  preloadProductMainImage(productMainImagePath(id));
+  const data = await getProductData(id);
 
   return (
     <>

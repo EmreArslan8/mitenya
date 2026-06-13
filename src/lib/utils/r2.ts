@@ -55,13 +55,12 @@ export const R2_IMAGE_PROFILES = {
     quality: 82,
     format: 'auto',
   },
-  productPdpMobile: {
-    widths: [720, 960, 1200],
-    sizes: '100vw',
-    quality: 82,
-    format: 'auto',
-  },
 } satisfies Record<string, R2ImageProfile>;
+
+export function productMainImagePath(slug: string) {
+  // PDP upload convention: every product's LCP image is stored at this path.
+  return `products/${slug.replace(/^\/+|\/+$/g, '')}/main.webp`;
+}
 
 export function r2ImageUrl(
   pathOrUrl: string,

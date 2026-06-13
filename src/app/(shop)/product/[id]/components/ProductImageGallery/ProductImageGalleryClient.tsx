@@ -8,14 +8,12 @@ type ProductImageGalleryClientProps = ProductImageGalleryBaseProps & {
   imageList: string[];
   mobileGallery: ShopResponsiveImage[];
   baseAlt: string;
-  initialIsDesktop?: boolean;
 };
 
 const ProductImageGalleryClient = ({
   imageList,
   mobileGallery,
   baseAlt,
-  initialIsDesktop,
   name,
   isFavorited,
   favoriteLoading,
@@ -27,7 +25,6 @@ const ProductImageGalleryClient = ({
       imageList={imageList}
       mobileGallery={mobileGallery}
       baseAlt={baseAlt}
-      initialIsDesktop={initialIsDesktop}
       name={name}
       isFavorited={isFavorited}
       favoriteLoading={favoriteLoading}

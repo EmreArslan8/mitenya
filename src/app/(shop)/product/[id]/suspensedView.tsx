@@ -9,7 +9,6 @@ import { ShopProductData } from '@/lib/api/types';
 import ProductPdpBlocks from './components/ProductPdpBlocks';
 import WelcomeCouponModal from '@/components/WelcomeCouponModal';
 import { getProductData } from './data';
-import { resolveInitialGalleryIsDesktop } from './galleryViewport';
 
 const PdpBlocksSlot = async ({ slug }: { slug: string }) => {
   const pdpBlocks = await fetchProductPdpBlocks(slug);
@@ -29,8 +28,6 @@ const SuspensedView = async ({
   initialData?: ShopProductData | null;
 }) => {
   const id = params.id;
-  const initialGalleryIsDesktop = await resolveInitialGalleryIsDesktop();
-
   const data = initialData ?? await getProductData(id);
 
   if (!data) {
@@ -49,7 +46,6 @@ const SuspensedView = async ({
       <JsonLdScript json={breadcrumbJsonLd} />
       <ProductPageView
         data={viewData}
-        initialGalleryIsDesktop={initialGalleryIsDesktop}
         couponSlot={
           <Suspense fallback={null}>
             <WelcomeCouponSlot />
