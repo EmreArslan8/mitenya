@@ -3,6 +3,7 @@
 import Button from '@/components/common/Button';
 import { CrossFade } from '@/components/common/CrossFade';
 import useScreen from '@/lib/hooks/useScreen';
+import { R2_IMAGE_PROFILES, r2ImageUrl } from '@/lib/utils/r2';
 import formatPrice from '@/lib/utils/formatPrice';
 import { Check } from 'lucide-react';
 import { Box, Stack, Typography } from '@mui/material';
@@ -54,6 +55,14 @@ const ProductStickyBar = ({
 }: ProductStickyBarProps) => {
   const styles = useStyles();
   const { mdUp } = useScreen();
+  const thumbnailProfile = R2_IMAGE_PROFILES.productPdpThumbnail;
+  const stickyImgSrc = imgSrc
+    ? r2ImageUrl(imgSrc, {
+      width: thumbnailProfile.widths[1],
+      quality: thumbnailProfile.quality,
+      format: thumbnailProfile.format,
+    })
+    : '';
 
   if (!visible) return null;
 
@@ -62,7 +71,7 @@ const ProductStickyBar = ({
       <Stack sx={styles.stickyBarInner}>
         {mdUp && (
           <Stack sx={styles.stickyMeta}>
-            <img src={imgSrc ?? ''} alt={name ?? 'Urun'} style={styles.stickyThumb} />
+            <img src={stickyImgSrc} alt={name ?? 'Urun'} style={styles.stickyThumb} />
             <Stack sx={styles.stickyMetaText}>
               <Typography sx={styles.stickyName}>{name}</Typography>
               <Typography sx={styles.stickyPrice}>{formatPrice(price.currentPrice, price.currency)}</Typography>
