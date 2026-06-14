@@ -1,7 +1,8 @@
-import { createClient } from '@/lib/supabase/client';
 import { pushItemToDataLayer } from './dataLayer';
  
 export const signOut = async () => {
+  // perf: signOut anında dynamic import
+  const { createClient } = await import('@/lib/supabase/client');
   const supabase = createClient();
  
   // Get current user before signing out

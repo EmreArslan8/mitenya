@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/client';
 import axios, { AxiosRequestConfig } from 'axios';
 import { defaultAxiosSetup, defaultResponseInterceptor, type ApiResponse } from '@/lib/axios/common';
 
@@ -18,6 +17,9 @@ const useAxios = (): ApiClient => {
   axiosInstance.interceptors.response.use(onSuccess as any, onError);
   axiosInstance.interceptors.request.use(
     async function (config) {
+      // perf: supabase client'ı sadece request anında dynamic import ile yüklüyoruz.
+      // Bu sayede supabase ve bağımlılıkları ana bundle'dan (shared by all) çıkar.
+      const { createClient } = await import('@/lib/supabase/client');
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
 

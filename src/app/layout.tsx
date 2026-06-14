@@ -1,6 +1,3 @@
-import AttributionTracker from "@/components/analytics/AttributionTracker";
-import MetaPixelPageView from "@/components/analytics/MetaPixelPageView";
-import TikTokPixelPageView from "@/components/analytics/TikTokPixelPageView";
 import { AuthContextProvider } from "@/contexts/AuthContext";
 import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
 import { FavoritesContextProvider } from "@/contexts/FavoritesContext";
@@ -8,6 +5,7 @@ import { ShopContextProvider } from "@/contexts/ShopContext";
 import { albertSans, albertSansItalic } from "@/lib/fonts";
 import ThemeRegistry from "@/theme/ThemeRegistry";
 import { Suspense } from "react";
+import AnalyticsDefer from "@/components/analytics/AnalyticsDefer";
 
 const isProduction = process.env.NEXT_PUBLIC_HOST_ENV === "production";
 const baseUrl = process.env.NEXT_PUBLIC_HOST_URL ?? "https://mitenya.com";
@@ -89,10 +87,8 @@ export default function RootLayout({
       <body style={{ overflowX: "hidden" }}>
         <ThemeRegistry>
           <CookieConsentProvider>
-            <AttributionTracker />
             <Suspense fallback={null}>
-              <MetaPixelPageView />
-              <TikTokPixelPageView />
+              <AnalyticsDefer />
             </Suspense>
             <AuthContextProvider>
               <FavoritesContextProvider>
