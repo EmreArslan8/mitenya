@@ -5,7 +5,8 @@ const Authenticator = dynamic(() => import('@/components/Authenticator'), { ssr:
 import { CustomerData } from '@/lib/api/types';
 import useCustomerData from '@/lib/api/useCustomerData';
 import { pushItemToDataLayer } from '@/lib/utils/dataLayer';
-import { createClient } from '@/lib/supabase/client';
+// perf: createClient (supabase ~268KB) statik DEĞİL — auth effect'inde dynamic
+// import edilir, böylece LCP görseliyle bant yarışan eager bundle'dan çıkar.
 import type { User, AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { getCookie } from 'cookies-next';
 import React, {
@@ -51,7 +52,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const [onAuthenticatorSuccess, setOnAuthenticatorSuccess] = useState<(() => void) | undefined>();
 
   // Refs to prevent loops
-  const supabaseRef = useRef(createClient());
+  const supabaseRef = useRef<any>(null);
   const initializedRef = useRef(false);
   const initializingRef = useRef(false);
   // customerData'nın güncel değerine closure'dan erişmek için ref
@@ -133,14 +134,23 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   // Supabase Auth State Listener - runs only once
   useEffect(() => {
     if (initializedRef.current) return;
-    initializedRef.current = true;
 
-    const supabase = supabaseRef.current;
+    const initAuth = async () => {
+      // LCP (Largest Contentful Paint) görseliyle bant yarışını önlemek için
+      // supabase client'ı (ve beraberindeki ~260KB chunk'ı) idle zamanına erteliyoruz.
+      if ('requestIdleCallback' in window) {
+        await new Promise((resolve) => window.requestIdleCallback(resolve, { timeout: 2000 }));
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
 
-    // Initial session check - use getUser() for more reliable check
-    const checkSession = async () => {
       try {
-        // First try to get session from cookies
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        supabaseRef.current = supabase;
+        initializedRef.current = true;
+
+        // Initial session check - use getUser() for more reliable check
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {
@@ -150,48 +160,49 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
           if (error || !user) {
             setIsAuthenticated(false);
             setCustomerData(undefined);
-            return;
+          } else {
+            initCustomerData(user);
           }
-
-          // setIsAuthenticated(true) burada çağrılmıyor —
-          // initCustomerData içinde customerData hazır olduktan sonra set ediliyor
-          initCustomerData(user);
         } else {
           setIsAuthenticated(false);
           setCustomerData(undefined);
         }
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event: AuthChangeEvent, session: Session | null) => {
+            // Skip INITIAL_SESSION as we handle it in checkSession
+            if (event === 'INITIAL_SESSION') return;
+
+            if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+              if (customerDataRef.current) {
+                // customerData zaten var (örn. token yenileme) — hemen set et
+                setIsAuthenticated(true);
+              } else {
+                // customerData hazır olmadan önce authenticated göstermemek için
+                // initCustomerData içinde set ediliyor
+                initCustomerData(session.user);
+              }
+            } else if (event === 'SIGNED_OUT') {
+              setIsAuthenticated(false);
+              setCustomerData(undefined);
+            }
+          }
+        );
+
+        return subscription;
       } catch (err) {
         setIsAuthenticated(false);
-        setCustomerData(undefined);
+        return null;
       }
     };
 
-    checkSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: AuthChangeEvent, session: Session | null) => {
-        // Skip INITIAL_SESSION as we handle it in checkSession
-        if (event === 'INITIAL_SESSION') return;
-
-        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
-          if (customerDataRef.current) {
-            // customerData zaten var (örn. token yenileme) — hemen set et
-            setIsAuthenticated(true);
-          } else {
-            // customerData hazır olmadan önce authenticated göstermemek için
-            // initCustomerData içinde set ediliyor
-            initCustomerData(session.user);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          setIsAuthenticated(false);
-          setCustomerData(undefined);
-        }
-      }
-    );
+    const authPromise = initAuth();
 
     return () => {
-      subscription.unsubscribe();
+      authPromise.then((subscription) => {
+        if (subscription) subscription.unsubscribe();
+      });
     };
   }, []); // Empty dependency array - runs only once
 

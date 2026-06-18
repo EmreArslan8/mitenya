@@ -61,7 +61,37 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
   }
- 
+
+  // Attribution (UTM / ttclid / landing path / referrer) — eskiden client
+  // AttributionTracker yapıyordu; server-side'a taşındı ki JS/chunk yüklenmeden,
+  // anında bounce eden ziyaretçide bile ilk-iniş verisi kaybolmasın.
+  // (affiliate_ref yukarıda zaten yazılıyor.) Değerler ham geçilir — Next encode eder,
+  // okuyan taraf (attribution.ts) decodeURIComponent ile çözer.
+  {
+    const sp = request.nextUrl.searchParams;
+    const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+    const ttclid = sp.get('ttclid')?.trim();
+    const hasUtm = UTM_KEYS.some((k) => sp.get(k));
+    const hasRef = !!refCode && /^[A-Z0-9_-]{3,20}$/i.test(refCode);
+    if (hasRef || hasUtm || ttclid) {
+      const DAY = 60 * 60 * 24;
+      const setAttr = (name: string, value: string, days: number) =>
+        supabaseResponse.cookies.set(name, value, {
+          maxAge: DAY * days,
+          path: '/',
+          sameSite: 'lax',
+        });
+      setAttr('mitenya_landing_path', request.nextUrl.pathname || '/', 30);
+      const referer = request.headers.get('referer');
+      if (referer) setAttr('mitenya_referrer', referer, 7);
+      for (const key of UTM_KEYS) {
+        const value = sp.get(key)?.trim();
+        if (value) setAttr(key, value, 30);
+      }
+      if (ttclid) setAttr('ttclid', ttclid, 7);
+    }
+  }
+
   return supabaseResponse;
 }
  

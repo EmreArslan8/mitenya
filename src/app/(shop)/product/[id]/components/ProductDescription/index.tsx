@@ -1,6 +1,7 @@
 'use client';
 
 import { Accordion, AccordionSummary, AccordionDetails, Typography, Stack } from '@mui/material';
+import DOMPurify from 'isomorphic-dompurify';
 import { Minus, Plus } from 'lucide-react';
 import { useState } from 'react';
 import Markdown, { MarkdownOptions } from '@/components/common/Markdown';
@@ -11,35 +12,27 @@ interface Section {
   content: string;
 }
 
-const parseMarkdownSections = (text: string): Section[] => {
+const stripHtml = (html: string) =>
+  DOMPurify.sanitize(html, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const parseHtmlSections = (html: string): Section[] => {
   const sections: Section[] = [];
-  const lines = text.split('\n');
+  const headingPattern = /<h2\b[^>]*>([\s\S]*?)<\/h2>/gi;
+  const headings = [...html.matchAll(headingPattern)];
 
-  let currentTitle = '';
-  let currentContent: string[] = [];
+  for (let index = 0; index < headings.length; index += 1) {
+    const heading = headings[index];
+    const nextHeading = headings[index + 1];
+    const title = stripHtml(heading[1] ?? '');
+    const contentStart = (heading.index ?? 0) + heading[0].length;
+    const contentEnd = nextHeading?.index ?? html.length;
+    const content = html.slice(contentStart, contentEnd).trim();
 
-  for (const line of lines) {
-    if (line.startsWith('## ')) {
-      // Save previous section if exists
-      if (currentTitle) {
-        sections.push({
-          title: currentTitle,
-          content: currentContent.join('\n').trim(),
-        });
-      }
-      currentTitle = line.replace('## ', '').trim();
-      currentContent = [];
-    } else if (currentTitle) {
-      currentContent.push(line);
+    if (title && content) {
+      sections.push({ title, content });
     }
-  }
-
-  // Save last section
-  if (currentTitle) {
-    sections.push({
-      title: currentTitle,
-      content: currentContent.join('\n').trim(),
-    });
   }
 
   return sections;
@@ -84,7 +77,7 @@ const MARKDOWN_OPTIONS: MarkdownOptions = {
 
 const ProductDescription = ({ description, defaultExpanded = 0 }: ProductDescriptionProps) => {
   const styles = useStyles();
-  const sections = parseMarkdownSections(description);
+  const sections = parseHtmlSections(description);
   const [expanded, setExpanded] = useState<number | false>(defaultExpanded);
 
   const handleChange = (index: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {

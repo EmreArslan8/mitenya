@@ -95,6 +95,7 @@ const useStyles = withPalette((palette) => ({
     fontSize: 13,
     color: palette.text.light,
     fontStyle: 'italic',
+    fontFamily: 'var(--font-albert-sans-italic)',
   },
 
   /* ── Hours ── */

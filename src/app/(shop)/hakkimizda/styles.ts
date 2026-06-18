@@ -64,6 +64,7 @@ const useStyles = withPalette((palette) => ({
     fontWeight: 600,
     color: palette.text.medium,
     fontStyle: 'italic',
+    fontFamily: 'var(--font-albert-sans-italic)',
   },
 }));
 

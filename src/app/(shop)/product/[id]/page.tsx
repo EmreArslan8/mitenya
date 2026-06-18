@@ -1,6 +1,4 @@
 import { R2_IMAGE_PROFILES, productMainImagePath, r2ImageSrcSet, r2ImageUrl } from '@/lib/utils/r2';
-import isPreviewBot from '@/lib/utils/isPreviewBot';
-import isSSR from '@/lib/utils/isSSR';
 import { Metadata } from 'next';
 import { preload } from 'react-dom';
 import { Suspense } from 'react';
@@ -15,7 +13,7 @@ const preloadProductMainImage = (imagePathOrUrl: string | undefined) => {
 
   preload(
     r2ImageUrl(imagePathOrUrl, {
-      width: 960,
+      width: 1280,
       quality: profile.quality,
       format: profile.format,
     }),
@@ -32,8 +30,8 @@ const preloadProductMainImage = (imagePathOrUrl: string | undefined) => {
 };
 
 const ProductPage = async ({ params }: { params: { id: string } }) => {
-  if (await isPreviewBot()) return <></>;
-
+  // ADR-0001: isPreviewBot() kaldırıldı — headers() çağırıyordu ve ISR'ı engelliyordu.
+  // Sayfa artık cache'lendiği için crawler'lara render maliyeti yok; gate gereksiz.
   const { id } = await params;
   preloadProductMainImage(productMainImagePath(id));
   const data = await getProductData(id);
@@ -56,8 +54,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params; // ✔ zorunlu çözüm
 
-  if (!isSSR() && !isPreviewBot()) return {};
-
+  // ADR-0001: isSSR()/isPreviewBot() gate kaldırıldı (headers() → ISR engeli).
+  // Metadata artık her zaman üretilir ve cache'lenir.
   const data = await getProductData(id);
 
   const fullName = `${data?.brand ?? ''} ${data?.name ?? ''}`.trim();
@@ -90,6 +88,12 @@ export async function generateMetadata({
   };
 }
 
-export const dynamic = 'force-dynamic';
+// ADR-0001: ISR. force-static → sayfa kabuğu cache'lenir (TTFB ~1s → ~0.1s).
+// revalidate=300 güvenlik ağı; asıl tazelik webhook → revalidateTag('product:<slug>').
+// DİKKAT: force-static altında cookies()/headers() sessizce boş döner (throw etmez).
+// Render ağacına kişiselleştirilmiş/istek-zamanlı veri EKLEME — eklemen gerekirse
+// o parçayı client island yap (bkz. ADR-0001 "neden client island değil" istisnaları).
+export const dynamic = 'force-static';
+export const revalidate = 300;
 
 export default ProductPage;

@@ -1,24 +1,16 @@
-import { Suspense } from 'react';
-import { fetchProductPdpBlocks, fetchShopCouponSet } from '@/lib/api/cms';
 import ProductPageView from './view';
 import { notFound } from 'next/navigation';
 import JsonLdScript from '@/components/SEO/JsonLdScript';
 import { buildBreadcrumbJsonLd, buildFaqJsonLd, buildProductJsonLd } from '@/lib/seo/productJsonLd';
 import { mapProductToPdpViewData } from '@/lib/shop/productGallery';
 import { ShopProductData } from '@/lib/api/types';
-import ProductPdpBlocks from './components/ProductPdpBlocks';
-import WelcomeCouponModal from '@/components/WelcomeCouponModal';
+import ProductPdpBlocksClient from './components/ProductPdpBlocksClient';
+import WelcomeCouponClient from './components/WelcomeCouponClient';
 import { getProductData } from './data';
 
-const PdpBlocksSlot = async ({ slug }: { slug: string }) => {
-  const pdpBlocks = await fetchProductPdpBlocks(slug);
-  return pdpBlocks?.length ? <ProductPdpBlocks blocks={pdpBlocks} /> : null;
-};
-
-const WelcomeCouponSlot = async () => {
-  const couponSet = await fetchShopCouponSet();
-  return <WelcomeCouponModal coupons={couponSet?.coupons ?? []} placement="product" />;
-};
+// ADR-0001: CMS blokları ve kupon artık client'tan yükleniyor (sunucu self-fetch
+// yok), böylece sayfa kabuğu ISR olabiliyor. JSON-LD (fiyat/availability dahil) ve
+// ürün gövdesi SSR'lı kalır — SEO ve CLS korunur.
 
 const SuspensedView = async ({
   params,
@@ -46,16 +38,8 @@ const SuspensedView = async ({
       <JsonLdScript json={breadcrumbJsonLd} />
       <ProductPageView
         data={viewData}
-        couponSlot={
-          <Suspense fallback={null}>
-            <WelcomeCouponSlot />
-          </Suspense>
-        }
-        pdpBlocksSlot={
-          <Suspense fallback={null}>
-            <PdpBlocksSlot slug={pdpSlug} />
-          </Suspense>
-        }
+        couponSlot={<WelcomeCouponClient placement="product" />}
+        pdpBlocksSlot={<ProductPdpBlocksClient slug={pdpSlug} />}
       />
     </>
   );

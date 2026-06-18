@@ -1,13 +1,11 @@
-import AttributionTracker from "@/components/analytics/AttributionTracker";
-import MetaPixelPageView from "@/components/analytics/MetaPixelPageView";
-import TikTokPixelPageView from "@/components/analytics/TikTokPixelPageView";
 import { AuthContextProvider } from "@/contexts/AuthContext";
 import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
 import { FavoritesContextProvider } from "@/contexts/FavoritesContext";
 import { ShopContextProvider } from "@/contexts/ShopContext";
-import { albertSans } from "@/lib/fonts";
+import { albertSans, albertSansItalic } from "@/lib/fonts";
 import ThemeRegistry from "@/theme/ThemeRegistry";
 import { Suspense } from "react";
+import AnalyticsDefer from "@/components/analytics/AnalyticsDefer";
 
 const isProduction = process.env.NEXT_PUBLIC_HOST_ENV === "production";
 const baseUrl = process.env.NEXT_PUBLIC_HOST_URL ?? "https://mitenya.com";
@@ -18,9 +16,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-  <html lang="tr" className={albertSans.variable}>
+  <html lang="tr" className={`${albertSans.variable} ${albertSansItalic.variable}`}>
       <head>
         <meta charSet="utf-8" />
+        {/* perf: LCP görseli cross-origin cdn.mitenya.com'dan geliyor. Bağlantıyı
+            erken kurarak (DNS+TCP+TLS) görselin isteğinin connection maliyetini
+            ödememesini sağlıyoruz — Catchpoint'te görsel isteği 2.17s'ye kadar
+            cold connection + bant rekabetiyle gecikiyordu. */}
+        {/* crossOrigin YOK: LCP görseli plain <img> (no-cors) → preconnect de
+            crossorigin'siz olmalı, yoksa ısıtılan bağlantı görsel tarafından
+            kullanılmaz (ayrı bağlantı havuzu). */}
+        <link rel="preconnect" href="https://cdn.mitenya.com" />
+        <link rel="dns-prefetch" href="//cdn.mitenya.com" />
         {isProduction && (
           <meta
             name="google-site-verification"
@@ -80,10 +87,8 @@ export default function RootLayout({
       <body style={{ overflowX: "hidden" }}>
         <ThemeRegistry>
           <CookieConsentProvider>
-            <AttributionTracker />
             <Suspense fallback={null}>
-              <MetaPixelPageView />
-              <TikTokPixelPageView />
+              <AnalyticsDefer />
             </Suspense>
             <AuthContextProvider>
               <FavoritesContextProvider>
