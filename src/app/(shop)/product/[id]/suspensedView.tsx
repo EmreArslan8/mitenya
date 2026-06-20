@@ -6,6 +6,7 @@ import { mapProductToPdpViewData } from '@/lib/shop/productGallery';
 import { ShopProductData } from '@/lib/api/types';
 import ProductPdpBlocksClient from './components/ProductPdpBlocksClient';
 import WelcomeCouponClient from './components/WelcomeCouponClient';
+import ProductInfoSlot from './components/ProductInfoSlot';
 import { getProductData } from './data';
 
 // ADR-0001: CMS blokları ve kupon artık client'tan yükleniyor (sunucu self-fetch
@@ -30,6 +31,22 @@ const SuspensedView = async ({
   const productJsonLd = buildProductJsonLd(data);
   const faqJsonLd = buildFaqJsonLd(data);
   const breadcrumbJsonLd = buildBreadcrumbJsonLd(data);
+  const expirationDate =
+    viewData.attributes?.find((attribute) => {
+      const normalizedName = attribute.name
+        ?.toLocaleLowerCase('tr-TR')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+
+      return [
+        'son kullanma tarihi',
+        'son kullanma tarihi skt',
+        'skt',
+        'expiration date',
+        'expiry date',
+      ].includes(normalizedName ?? '');
+    })?.value?.trim() ?? '';
 
   return (
     <>
@@ -40,6 +57,7 @@ const SuspensedView = async ({
         data={viewData}
         couponSlot={<WelcomeCouponClient placement="product" />}
         pdpBlocksSlot={<ProductPdpBlocksClient slug={pdpSlug} />}
+        infoSlot={<ProductInfoSlot expirationDate={expirationDate} />}
       />
     </>
   );

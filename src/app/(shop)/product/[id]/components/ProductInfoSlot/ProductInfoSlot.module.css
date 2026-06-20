@@ -1,0 +1,119 @@
+/* De-MUI + RSC: trust kartı + SKT kutusu. styles.ts (Emotion sx) birebir karşılığı.
+   spacing 8px, theme.shape.borderRadius 8px, sm breakpoint 600px,
+   palette.text.main #1C1C1E, palette.text.medium #3A3A3C */
+
+.trustCard {
+  display: flex;
+  flex-direction: column;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  border: none;
+}
+
+.trustSignal {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.trustSignalIcon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #1c1c1e;
+}
+
+.trustSignalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2.8px;
+}
+
+.trustSignalTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #1c1c1e;
+}
+
+.trustSignalText {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: #3a3a3c;
+}
+
+.expirationBox {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  gap: 10px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(180deg, rgba(247, 247, 248, 0.98) 0%, rgba(242, 242, 244, 0.94) 100%);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.05);
+}
+
+.expirationEyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #3a3a3c;
+}
+
+.expirationRows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.expirationRow {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.expirationDot {
+  width: 8px;
+  height: 8px;
+  margin-top: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-color: #1c1c1e;
+}
+
+.expirationItem {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.45;
+  color: #1c1c1e;
+  flex: 1;
+}
+
+.expirationLabel {
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: 700;
+  color: inherit;
+}
+
+@media (min-width: 600px) {
+  .trustCard {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+  .expirationBox {
+    padding: 16px 20px;
+  }
+}
