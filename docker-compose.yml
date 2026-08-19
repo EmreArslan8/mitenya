@@ -1,0 +1,29 @@
+# mitenya — bağımsız deploy (paylaşımlı 'web' ağına katılır, Caddy otomatik yönlendirir)
+# Kurulum: sunucuda /srv/mitenya içine klonla, .env doldur, `docker compose up -d --build`
+services:
+  mitenya:
+    build:
+      context: .
+      args:
+        # NEXT_PUBLIC_* build anında koda gömülür (aşağıdaki .env'den okunur)
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_STRAPI_URL: ${NEXT_PUBLIC_STRAPI_URL}
+    image: mitenya:latest
+    container_name: mitenya
+    env_file: .env          # runtime sırlar (SUPABASE_SERVICE_ROLE_KEY, STRAPI_BEARER…)
+    # Sunucu-tarafi self-fetch'ler (https://mitenya.com/api/...) DNS'e bagli kalmadan
+    # yerel NPM'e gitsin — hairpin ile ayni sunucuya doner
+    extra_hosts:
+      - "mitenya.com:159.195.207.59"
+      - "www.mitenya.com:159.195.207.59"
+    networks: [web]
+    labels:
+      caddy: ${MITENYA_DOMAIN}
+      caddy.reverse_proxy: "{{upstreams 3000}}"
+    restart: always
+
+networks:
+  web:
+    external: true

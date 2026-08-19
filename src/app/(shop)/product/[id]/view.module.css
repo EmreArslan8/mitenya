@@ -1,0 +1,306 @@
+/* PDP above-the-fold statik içerik — styles.ts (Emotion sx) birebir karşılığı.
+   Referans: MUI spacing 8px, theme.shape.borderRadius 8px, sm breakpoint 600px.
+   Token'lar theme/palette.ts'ten (.root scope → tüm alt öğelere cascade). */
+
+.root {
+  --text-main: #1c1c1e;
+  --text-medium: #3a3a3c;
+  --primary-main: #111111;
+  --bg-main: #ffffff;
+  --gray-200: #d1d1d6;
+  --success: #226b3a;
+  --warning: #ffc003;
+  --error: #c1121f;
+
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.topSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Breadcrumb */
+.breadcrumbs {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font-size: 18px;
+  color: var(--text-main);
+}
+.breadcrumbLink {
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+.breadcrumbCategory {
+  font-weight: 600;
+}
+
+/* 2-kolon grid (xs: tek kolon, sm: galeri | detay) */
+.grid {
+  align-self: stretch;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: 16px;
+  align-items: flex-start;
+}
+.imageCol {
+  position: relative;
+  z-index: 0;
+  min-width: 0;
+}
+.detailsCol {
+  min-width: 0;
+}
+@media (min-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 40px;
+    row-gap: 0;
+  }
+  .imageCol {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+  }
+}
+
+/* Detay kolonu */
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 8px 0;
+  background: var(--bg-main);
+  min-width: 0;
+}
+@media (min-width: 600px) {
+  .details {
+    padding: 0;
+  }
+}
+
+/* Başlık */
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  gap: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: normal;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+.productName {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: normal;
+}
+
+/* Rating satırı */
+.metaRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.rating {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+.ratingCount {
+  color: var(--text-medium);
+  font-size: 14px;
+  line-height: 1;
+}
+.ratingMeta {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.ratingMetaNowrap {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+.zeroRatingText {
+  color: var(--text-medium);
+  font-size: 14px;
+  line-height: 1;
+}
+.ratingSeparator {
+  color: var(--text-medium);
+  font-weight: 600;
+  line-height: 1;
+}
+.firstReviewLink {
+  color: var(--primary-main);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Özet bloğu */
+.summaryBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.badgePill {
+  align-self: flex-start;
+  padding: 7.2px 14px;
+  border-radius: 999px;
+  background-color: #f1dfe4;
+}
+.badgePillText {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-main);
+}
+.shortDescriptionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.shortDescription {
+  margin: 0;
+  max-width: 760px;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--text-main);
+}
+.divider {
+  margin: 6px 0 0;
+  border: none;
+  border-top: 1px solid var(--gray-200);
+}
+
+/* Stok durumu */
+.stockRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6.4px;
+  padding-top: 4px;
+  margin-top: 4px;
+  margin-bottom: 16px;
+}
+.stockSuccess {
+  --stock-color: var(--success);
+}
+.stockWarning {
+  --stock-color: var(--warning);
+}
+.stockError {
+  --stock-color: var(--error);
+}
+.stockDot {
+  position: relative;
+  z-index: 0;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: var(--stock-color);
+  background-color: var(--stock-color);
+}
+.stockDot::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  background-color: currentColor;
+  opacity: 0.18;
+  z-index: -1;
+  animation: stockWave 1.8s ease-out infinite;
+}
+.stockText {
+  color: var(--stock-color);
+  font-weight: 600;
+  font-size: 15px;
+}
+@media (min-width: 600px) {
+  .stockText {
+    font-size: 16px;
+  }
+}
+@keyframes stockWave {
+  0% {
+    opacity: 0.18;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+/* Fiyat */
+.priceContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.originalPrice {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 20px;
+  text-decoration: line-through;
+}
+.currentPrice {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--primary-main);
+}
+.discountBadge {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 2px;
+  padding: 3.6px 10px;
+  background: var(--error);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: normal;
+  border-radius: 4px;
+  white-space: nowrap;
+}
