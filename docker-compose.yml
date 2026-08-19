@@ -13,6 +13,11 @@ services:
     image: mitenya:latest
     container_name: mitenya
     env_file: .env          # runtime sırlar (SUPABASE_SERVICE_ROLE_KEY, STRAPI_BEARER…)
+    # Sunucu-tarafi self-fetch'ler (https://mitenya.com/api/...) DNS'e bagli kalmadan
+    # yerel NPM'e gitsin — hairpin ile ayni sunucuya doner
+    extra_hosts:
+      - "mitenya.com:159.195.207.59"
+      - "www.mitenya.com:159.195.207.59"
     networks: [web]
     labels:
       caddy: ${MITENYA_DOMAIN}

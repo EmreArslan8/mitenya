@@ -1,8 +1,10 @@
 node_modules
 .next
 .git
-.env
-.env.*
+# .env sunucu tarafinda build context'e girsin — Next build server secret'lari (SUPABASE_SERVICE_ROLE_KEY vb.) okuyor
+.env.local
+.env.prod
+.env.example
 *.log
 Dockerfile
 .dockerignore
