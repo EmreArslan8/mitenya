@@ -1,24 +1,16 @@
 const styles = {
   root: {
     width: '100%',
-    borderRadius: 0,
-    px: { xs: 0.5, md: 0.75 },
-    py: { xs: 0.5, md: 0.75 },
-    textAlign: 'center',
-    justifyContent: 'center',
-    gap: '10px',
-    transition: 'transform 220ms ease, opacity 220ms ease',
-    '@media (hover: hover)': {
-      '&:hover': {
-        transform: 'translateY(-2px)',
-        opacity: 0.92,
-      },
-    },
+    flexDirection: { xs: 'row', md: 'column' },
+    alignItems: { xs: 'flex-start', md: 'center' },
+    textAlign: { xs: 'left', md: 'center' },
+    gap: { xs: 2, md: 1.5 },
+    py: 0,
   },
 
   iconFrame: {
-    width: { xs: 32, md: 36 },
-    height: { xs: 32, md: 36 },
+    width: { xs: 44, md: 60 },
+    height: { xs: 44, md: 60 },
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -31,23 +23,21 @@ const styles = {
   },
 
   label: {
-    fontSize: { xs: 18, md: 20 },
+    fontSize: { xs: 15, md: 17 },
     fontWeight: 600,
-    lineHeight: 1.15,
     color: 'text.primary',
-    letterSpacing: '-0.01em',
+    letterSpacing: '-0.005em',
   },
 
   textBlock: {
-    alignItems: 'center',
-    gap: '6px',
+    gap: 0.5,
+    maxWidth: { md: 300 },
   },
 
   description: {
-    color: 'rgba(15, 23, 42, 0.74)',
-    fontSize: { xs: 14, md: 15 },
-    lineHeight: 1.45,
-    maxWidth: 360,
+    color: 'text.secondary',
+    fontSize: { xs: 13, md: 14 },
+    lineHeight: 1.5,
   },
 };
 

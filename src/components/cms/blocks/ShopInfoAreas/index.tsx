@@ -20,8 +20,9 @@ const ShopInfoAreas = ({ section, infoAreas }: InfoAreasProps) => {
     <SectionBase
       {...section}
       sx={{
-        mb: { xs: -3.5, md: -6 },
-        mt: { xs: -4, sm: -4, md: -3 },
+        pt: 0,
+        pb: 0,
+        mt: { xs: -3, md: -7 },
       }}
     >
       <Box sx={styles.wrapper}>
@@ -34,17 +35,14 @@ const ShopInfoAreas = ({ section, infoAreas }: InfoAreasProps) => {
             ))}
           </Box>
         ) : (
-          <Grid container spacing={0} alignItems="stretch">
+          <Grid container spacing={0} alignItems="stretch" sx={{ py: 0 }}>
             {infoAreas.map((infoArea, index) => (
               <Grid
                 item
                 key={`${infoArea.label ?? 'info'}-${index}`}
                 xs={12}
                 sm={Math.max(3, 12 / infoAreas.length)}
-                sx={{
-                  ...styles.desktopItem,
-                  ...(index !== infoAreas.length - 1 ? styles.desktopItemDivider : {}),
-                }}
+                sx={styles.desktopItem}
               >
                 <InfoArea {...infoArea} index={index} />
               </Grid>

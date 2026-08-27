@@ -7,8 +7,9 @@ const useStyles = withPalette((palette) => ({
     color: palette.bg.contrastText,
     width: '100%',
     minHeight: 'calc(100vh - 146px)',
-    py: 2,
-    px: { xs: 1, sm: 3 },
+    pt: 0,
+    pb: 2,
+    px: { xs: 1, sm: 1 },
     gap: { xs: 1, sm: 3 },
   },
   content: {

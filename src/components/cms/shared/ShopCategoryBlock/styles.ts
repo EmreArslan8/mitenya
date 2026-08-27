@@ -1,71 +1,117 @@
-import { CSSProperties } from "react";
+import { withPalette } from '@/theme/ThemeRegistry';
+import { CSSProperties } from 'react';
 
-const useStyles = ({ variant }: { variant: 'default' | 'featured' }) => ({
+const useStyles = withPalette((palette) => ({
+  link: {
+    display: 'block',
+    height: '100%',
+    color: 'inherit',
+    textDecoration: 'none',
+  } as CSSProperties,
   card: {
     position: 'relative',
-    borderRadius: 2,
-    overflow: 'hidden',
     height: '100%',
+    minHeight: { xs: 430, sm: 460, lg: 420 },
+    overflow: 'hidden',
+    borderRadius: 0,
+    backgroundColor: palette.text.main,
+    boxShadow: '0 1px 0 rgba(28,24,21,0.08)',
+    isolation: 'isolate',
     cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    boxShadow: 'none',
+    transition: 'transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s ease',
     '&:hover': {
-      boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.1)',
-      transform: 'translateY(-2px)',
+      transform: 'translateY(-5px)',
+      boxShadow: '0 22px 48px rgba(28,24,21,0.16)',
+    },
+    '&:hover img': { transform: 'scale(1.055)' },
+    '&:hover .category-arrow': { transform: 'translate(2px, -2px)' },
+    '@media (prefers-reduced-motion: reduce)': {
+      transition: 'none',
+      '&:hover': { transform: 'none' },
+      '& img': { transition: 'none' },
+      '&:hover img': { transform: 'none' },
     },
   },
-
   cardBody: {
     position: 'relative',
     height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
+    minHeight: 'inherit',
   },
-
   imageContainer: {
-    position: 'relative',
-    width: '100%',
-    height: 220,
-    backgroundColor: 'white',
+    position: 'absolute',
+    inset: 0,
+    zIndex: -2,
+    overflow: 'hidden',
+    backgroundColor: palette.gray[100] ?? palette.bg.light,
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      inset: 0,
+      background: 'linear-gradient(180deg, rgba(17,17,17,0.02) 28%, rgba(17,17,17,0.18) 54%, rgba(17,17,17,0.88) 100%)',
+    },
   },
-
   image: {
-    padding: '10px',
-  }as CSSProperties,
-
-  textContainer: {
-    padding: '10px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-    backgroundColor: 'blue',
-  },
-
-  label: {
-    alignSelf: 'flex-start',
-    padding: '2px 8px',
-    borderRadius: 12,
-    backgroundColor: 'yellow',
-    color: 'black',
-    fontSize: 10,
+    objectFit: 'cover',
+    transition: 'transform .65s cubic-bezier(.2,.7,.2,1)',
+  } as CSSProperties,
+  index: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    px: 1.25,
+    py: 0.6,
+    border: '1px solid rgba(255,255,255,0.45)',
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    backdropFilter: 'blur(10px)',
+    color: '#fff',
+    fontSize: 11,
     fontWeight: 700,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    lineHeight: 1,
+    letterSpacing: '0.12em',
   },
-
+  content: {
+    flex: 1,
+    minHeight: 0,
+    justifyContent: 'flex-end',
+    gap: 0.75,
+    p: { xs: 2.5, md: 2.25 },
+    color: '#fff',
+  },
   title: {
-    fontSize: 16,
-    fontWeight: 600,
-    lineHeight: 1.3,
-    color: 'black',
-  },
-
-  buttonLabel: {
-    marginTop: '10px',
-    fontSize: 13,
+    fontSize: { xs: 25, md: 27 },
     fontWeight: 500,
-    color: 'black',
+    lineHeight: 1.05,
+    letterSpacing: '-0.025em',
   },
-});
+  description: {
+    maxWidth: 250,
+    fontSize: { xs: 14, lg: 13 },
+    lineHeight: 1.45,
+    color: 'rgba(255,255,255,0.78)',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 1,
+    mt: 1.25,
+    pt: 1.5,
+    borderTop: '1px solid rgba(255,255,255,0.28)',
+  },
+  action: {
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase',
+    color: '#fff',
+  },
+  arrow: {
+    fontSize: 18,
+    lineHeight: 1,
+    color: '#fff',
+    transition: 'transform .25s ease',
+  },
+}));
 
 export default useStyles;

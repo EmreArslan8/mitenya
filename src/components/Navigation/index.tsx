@@ -4,10 +4,10 @@ import Button from '@/components/common/Button';
 import CartPageView from '@/features/cart/CartPageView';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
+import { useFavorites } from '@/contexts/FavoritesContext';
 import { ShopHeaderData, ShopHeaderLink } from '@/lib/api/types';
 import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
 import useScreen from '@/lib/hooks/useScreen';
-import useTypewriter from '@/lib/hooks/useTypewriter';
 import { trackTikTokSearch, trackTikTokWithUser } from '@/lib/analytics/tiktokPixel';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
 import { signOut } from '@/lib/utils/signOut';
@@ -15,7 +15,6 @@ import { headerHeight } from '@/theme/theme';
 import {
   Badge,
   Box,
-  Collapse,
   Divider,
   Grid,
   IconButton,
@@ -27,7 +26,6 @@ import {
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
-  CSSProperties,
   FormEvent,
   useCallback,
   useContext,
@@ -41,7 +39,7 @@ import ShoppingCartButton from '../ShoppingCart/ShoppingCartButton';
 import ModalCard from '../common/ModalCard';
 import CategoriesDrawer from './CategoriesDrawer';
 import useStyles, { ANNOUNCEMENT_HEIGHT } from './styles';
-import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, History, Settings, Menu, User, PackageSearch } from 'lucide-react';
+import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, History, Settings, Menu, User, PackageSearch, Heart } from 'lucide-react';
 
 
 const getSupportUrl = 'https://api.whatsapp.com/send?phone=905070617930';
@@ -57,47 +55,41 @@ interface NavigationProps {
 
 const MINIMAL_ROUTES = ['/payment'];
 
+const BANNER_ROTATE_INTERVAL = 4000;
+
 const Navigation = ({ data }: NavigationProps) => {
   const isMobileApp = useIsMobileApp();
   const router = useRouter();
   const pathname = usePathname();
-  const { smDown, smUp } = useScreen();
+  const { smDown } = useScreen();
   const isSearchRoute = pathname === '/search';
   const isMobileSearchRoute = smDown && isSearchRoute;
   const isMinimal = MINIMAL_ROUTES.some((r) => pathname?.startsWith(r));
   const { isAuthenticated, openAuthenticator } = useAuth();
   const { numItems, newProductAdded } = useContext(ShopContext);
+  const { favoriteIds } = useFavorites();
   const isCartEmpty = !numItems;
   const prevScrollPosition = useRef(0);
   const navbarRef = useRef<HTMLDivElement>(null);
-  const marqueeMeasureRef = useRef<HTMLDivElement>(null);
   const isMobileRef = useRef(true);
   const navVarsSyncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
-  const [logoCollapsed, setLogoCollapsed] = useState(false);
   const [mobileSearchInputOpen, setMobileSearchInputOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
+  const [desktopSearchOpen, setDesktopSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [marqueeRepeatCount, setMarqueeRepeatCount] = useState(2);
-  const [marqueeCycleWidth, setMarqueeCycleWidth] = useState(0);
+  const [bannerIndex, setBannerIndex] = useState(0);
   const styles = useStyles();
   const bannerLinks = useMemo(() => data?.bannerLinks ?? [], [data?.bannerLinks]);
-  const marqueeLinks = useMemo(() => {
-    if (!bannerLinks.length) return [];
-    return Array.from({ length: marqueeRepeatCount }, () => bannerLinks).flat();
-  }, [bannerLinks, marqueeRepeatCount]);
-  const marqueeDuration = useMemo(() => {
-    if (!marqueeCycleWidth) return 28;
-    return Math.max(16, Math.min(60, marqueeCycleWidth / 70));
-  }, [marqueeCycleWidth]);
+  const activeBannerLink = bannerLinks[bannerIndex % (bannerLinks.length || 1)];
+  const secondaryLinks = useMemo(() => data?.links ?? [], [data?.links]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const collapseIn = mounted ? (!logoCollapsed || smUp) : true;
 
   const toggleCartModalOpen = () => {
     if (!smDown) return;
@@ -129,11 +121,13 @@ const Navigation = ({ data }: NavigationProps) => {
   };
 
   const handleLinkClick = (link: ShopHeaderLink) => {
-    if (link.slug?.startsWith('http')) {
+    // Slug girilmemis linkler ana sayfaya atmasin — tiklama sessizce yutulur.
+    if (!link.slug) return;
+    if (link.slug.startsWith('http')) {
       router.push(link.slug);
       return;
     }
-    router.push(`/${link.slug ?? ''}`);
+    router.push(`/${link.slug}`);
   };
 
   const updateMobileNavVars = useCallback(() => {
@@ -229,32 +223,36 @@ const Navigation = ({ data }: NavigationProps) => {
   }, [newProductAdded]);
 
   useEffect(() => {
-    if (!bannerLinks.length || typeof window === 'undefined') return;
+    setDesktopSearchOpen(false);
+  }, [pathname]);
 
-    const calculateMarqueeMetrics = () => {
-      const cycleWidth = marqueeMeasureRef.current?.scrollWidth ?? 0;
-      if (!cycleWidth) return;
-
-      const viewportWidth = window.innerWidth;
-      const targetWidth = viewportWidth * 2;
-      const nextRepeatCount = Math.max(2, Math.ceil(targetWidth / cycleWidth) + 1);
-
-      setMarqueeCycleWidth((prev) => (prev === cycleWidth ? prev : cycleWidth));
-      setMarqueeRepeatCount((prev) => (prev === nextRepeatCount ? prev : nextRepeatCount));
+  useEffect(() => {
+    if (!desktopSearchOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setDesktopSearchOpen(false);
     };
-
-    calculateMarqueeMetrics();
-    const rafId = window.requestAnimationFrame(calculateMarqueeMetrics);
-    const resizeObserver =
-      typeof ResizeObserver !== 'undefined' ? new ResizeObserver(calculateMarqueeMetrics) : null;
-    if (marqueeMeasureRef.current) resizeObserver?.observe(marqueeMeasureRef.current);
-    window.addEventListener('resize', calculateMarqueeMetrics);
-
+    const onPointerDown = (event: MouseEvent) => {
+      if (!navbarRef.current?.contains(event.target as Node)) setDesktopSearchOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('mousedown', onPointerDown);
     return () => {
-      window.cancelAnimationFrame(rafId);
-      window.removeEventListener('resize', calculateMarqueeMetrics);
-      resizeObserver?.disconnect();
+      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('mousedown', onPointerDown);
     };
+  }, [desktopSearchOpen]);
+
+  useEffect(() => {
+    if (bannerLinks.length < 2 || typeof window === 'undefined') return;
+
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
+    const intervalId = window.setInterval(() => {
+      setBannerIndex((prev) => (prev + 1) % bannerLinks.length);
+    }, BANNER_ROTATE_INTERVAL);
+
+    return () => window.clearInterval(intervalId);
   }, [bannerLinks]);
 
   return (
@@ -269,40 +267,33 @@ const Navigation = ({ data }: NavigationProps) => {
           {!isMinimal && (
           <Stack sx={styles.banner}>
             <Stack sx={styles.bannerInnerContainer}>
-              {marqueeLinks.length ? (
-                <>
-                  <Stack
-                    sx={styles.bannerMarquee}
-                    style={
-                      {
-                        ['--banner-marquee-shift' as string]: `${marqueeCycleWidth}px`,
-                        ['--banner-marquee-duration' as string]: `${marqueeDuration}s`,
-                      } as CSSProperties
-                    }
-                  >
-                    {marqueeLinks.map((e, index) => (
-                      <MenuItem
-                        sx={styles.bannerLink}
-                        onClick={() => handleLinkClick(e)}
-                        key={`${e.label}-${index}`}
-                      >
-                        {e.label}
-                      </MenuItem>
-                    ))}
-                  </Stack>
-                  <Stack sx={styles.bannerMeasure} ref={marqueeMeasureRef}>
-                    {bannerLinks.map((e, index) => (
-                      <MenuItem sx={styles.bannerLink} key={`${e.label}-measure-${index}`}>
-                        {e.label}
-                      </MenuItem>
-                    ))}
-                  </Stack>
-                </>
+              {activeBannerLink ? (
+                <MenuItem
+                  key={`${activeBannerLink.label}-${bannerIndex}`}
+                  sx={styles.bannerLink}
+                  onClick={() => handleLinkClick(activeBannerLink)}
+                >
+                  {activeBannerLink.label}
+                </MenuItem>
               ) : null}
             </Stack>
           </Stack>
           )}
-          <Stack sx={styles.content}>
+          <Stack sx={styles.content} onMouseLeave={() => setActiveCategory(null)}>
+            {!isMinimal && !!secondaryLinks.length && (
+              <Stack sx={styles.utilityLinks}>
+                {secondaryLinks.map((link) => (
+                  <MenuItem
+                    key={`${link.label}-${link.slug}`}
+                    sx={{ ...styles.utilityLink, ...(link.slug ? {} : styles.utilityLinkInert) }}
+                    onMouseEnter={() => setActiveCategory(null)}
+                    onClick={() => handleLinkClick(link)}
+                  >
+                    {link.label}
+                  </MenuItem>
+                ))}
+              </Stack>
+            )}
             <Stack sx={styles.primaryBar}>
               {isMinimal ? (
                 <>
@@ -340,11 +331,11 @@ const Navigation = ({ data }: NavigationProps) => {
                   )}
                   <Stack flex={1} alignItems="center" onClick={() => router.push('/')} sx={{ cursor: 'pointer' }}>
                     <Image
-                      src={styles.logo.src}
+                      src={styles.logoMobile.src}
                       alt="mitenya"
-                      width={styles.logo.width}
-                      height={styles.logo.height}
-                      style={styles.logo}
+                      width={styles.logoMobile.width}
+                      height={styles.logoMobile.height}
+                      style={styles.logoMobile}
                     />
                   </Stack>
                   <Stack direction="row" alignItems="center" gap={0.5}>
@@ -377,57 +368,79 @@ const Navigation = ({ data }: NavigationProps) => {
                 gap={2}
                 sx={{ display: { xs: 'none', sm: 'flex' }, width: '100%' }}
               >
+                  <Stack sx={styles.barSide}>
+                  <IconButton
+                    onClick={toggleCategoriesModalOpen}
+                    aria-label="Kategoriler"
+                    sx={styles.categoriesToggle}
+                  >
+                    <Menu size={24} />
+                  </IconButton>
                   {isMobileApp && pathname?.includes('/product/') ? (
                     <MenuItem onClick={() => router.back()} sx={styles.backButton}>
                       <ArrowLeft size={24} />
                     </MenuItem>
                   ) : (
-                    <Stack direction="row" alignItems="center" gap={1}>
-                      <Collapse
-                        in={collapseIn}
-                        orientation="horizontal"
-                        unmountOnExit
-                        onClick={() => router.push('/')}
-                        sx={{
-                          pr: !logoCollapsed || smUp ? 4 : 0,
-                          mr: { sm: 2 },
-
-                          '& .MuiCollapse-wrapperInner': {
-                            height: 40,
-                            display: 'flex',
-                            alignItems: 'center',
-                          },
-
-                          '& .MuiCollapse-wrapper': {
-                            height: 40,
-                          },
-                        }}
-                      >
-                        <Image
-                          src={styles.logo.src}
-                          alt="mitenya"
-                          width={styles.logo.width}
-                          height={styles.logo.height}
-                          style={styles.logo}
-                        />
-                      </Collapse>
+                    <Stack sx={styles.inlineLogo} onClick={() => router.push('/')}>
+                      <Image
+                        src={styles.logo.src}
+                        alt="mitenya"
+                        width={styles.logo.width}
+                        height={styles.logo.height}
+                        style={styles.logo}
+                      />
                     </Stack>
                   )}
-                  <Stack direction="row" gap={1} width="100%" justifyContent="center">
-                    <SearchBar
-                      onFocus={() => setLogoCollapsed(true)}
-                      onBlur={() => setLogoCollapsed(false)}
-                    />
                   </Stack>
-                  {mounted && (
-                    <Stack sx={styles.actions}>
-                      <MenuItem sx={styles.action} onClick={() => handleAccountButtonClick()}>
-                        <User />
-                        {isAuthenticated ? 'Hesabım' : 'Giriş Yap'}
+                  <Stack sx={styles.categoryBar}>
+                    {data?.categories?.map((cat, index) => (
+                      <MenuItem
+                        key={cat.id}
+                        sx={styles.shopHeaderLink}
+                        onMouseEnter={() => setActiveCategory(index)}
+                        onClick={() => cat.slug && router.push(`/${cat.slug}`)}
+                      >
+                        {cat.label}
                       </MenuItem>
-                      <ShoppingCartButton />
+                    ))}
+                  </Stack>
+                  <Stack sx={{ ...styles.barSide, justifyContent: 'flex-end' }}>
+                    <Stack sx={styles.actions}>
+                      <MenuItem
+                        sx={{ ...styles.action, ...styles.actionIcon }}
+                        onClick={() => setDesktopSearchOpen((prev) => !prev)}
+                        aria-label="Ara"
+                        aria-expanded={desktopSearchOpen}
+                      >
+                        {desktopSearchOpen ? <X /> : <Search />}
+                      </MenuItem>
+                      {mounted && (
+                        <>
+                          <MenuItem
+                            sx={{ ...styles.action, ...styles.actionIcon }}
+                            onClick={() => handleAccountButtonClick()}
+                            aria-label={isAuthenticated ? 'Hesabım' : 'Giriş Yap'}
+                          >
+                            <User />
+                          </MenuItem>
+                          <MenuItem
+                            sx={{ ...styles.action, ...styles.actionIcon }}
+                            onClick={() => handleAccountButtonClick('/settings?section=favorites')}
+                            aria-label="Favorilerim"
+                          >
+                            <Badge
+                              badgeContent={favoriteIds.size}
+                              color="error"
+                              sx={{ '& .MuiBadge-badge': { minWidth: 19, height: 19, fontSize: 11, px: 0.5 } }}
+                            >
+                              <Heart />
+                            </Badge>
+                          </MenuItem>
+                          <ShoppingCartButton compact />
+                        </>
+                      )}
                     </Stack>
-                  )}
+                  </Stack>
               </Stack>
                 </>
               )}
@@ -437,44 +450,34 @@ const Navigation = ({ data }: NavigationProps) => {
                 <SearchBar autoFocus={isMobileSearchRoute} />
               </Box>
             )}
-            {!isMinimal && (
-              <Stack sx={styles.secondaryBar}>
-                <Stack sx={styles.shopHeaderLinks}>
-                  {data?.categories?.map((cat, index) => (
-                    <MenuItem
-                      key={cat.id}
-                      sx={styles.shopHeaderLink}
-                      onMouseEnter={() => setActiveCategory(index)}
-                      onClick={() => cat.slug && router.push(`/${cat.slug}`)}
-                    >
-                      {cat.label}
-                    </MenuItem>
-                  ))}
-                </Stack>
-
-                {activeCategory !== null && data?.categories?.[activeCategory] && (
-                  <Box onMouseLeave={() => setActiveCategory(null)} sx={styles.megaMenu}>
-                    <Box sx={styles.megaMenuGrid}>
-                      {data.categories[activeCategory].subs?.map((sub) => (
-                        <Stack key={sub.id} sx={styles.megaMenuGroup}>
-                          <Typography sx={styles.megaMenuTitle}>{sub.label}</Typography>
-                          {sub.items?.map((item) => (
-                            <Typography
-                              key={item.id}
-                              sx={styles.megaMenuItem}
-                              onClick={() => item.slug && router.push(`/${item.slug}`)}
-                            >
-                              {item.label}
-                            </Typography>
-                          ))}
-                        </Stack>
+            {!isMinimal && activeCategory !== null && data?.categories?.[activeCategory] && (
+              <Box sx={styles.megaMenu}>
+                <Box sx={styles.megaMenuGrid}>
+                  {data.categories[activeCategory].subs?.map((sub) => (
+                    <Stack key={sub.id} sx={styles.megaMenuGroup}>
+                      <Typography sx={styles.megaMenuTitle}>{sub.label}</Typography>
+                      {sub.items?.map((item) => (
+                        <Typography
+                          key={item.id}
+                          sx={styles.megaMenuItem}
+                          onClick={() => item.slug && router.push(`/${item.slug}`)}
+                        >
+                          {item.label}
+                        </Typography>
                       ))}
-                    </Box>
-                  </Box>
-                )}
-              </Stack>
+                    </Stack>
+                  ))}
+                </Box>
+              </Box>
             )}
           </Stack>
+          {!isMinimal && desktopSearchOpen && (
+            <Stack sx={styles.searchPanel}>
+              <Stack sx={styles.searchPanelInner}>
+                <SearchBar wide autoFocus onBlur={() => undefined} />
+              </Stack>
+            </Stack>
+          )}
         </Stack>
       </Stack>
       {/* {!isMinimal && smDown && (
@@ -666,35 +669,21 @@ interface SearchBarProps {
   onFocus?: () => void;
   onBlur?: () => void;
   autoFocus?: boolean;
+  wide?: boolean;
 }
 
-const SearchBar = ({ onFocus, onBlur, autoFocus }: SearchBarProps) => {
+const SearchBar = ({ onFocus, onBlur, autoFocus, wide }: SearchBarProps) => {
   const styles = useStyles();
   const router = useRouter();
   const { customerData } = useAuth();
-  const { smUp } = useScreen();
   const searchParams = useSearchParams()!;
   const pathname = usePathname();
   const [query, setQuery] = useState((!searchParams.get('nt') && searchParams.get('query')) || '');
   const [loading, setLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
   const { searchHistory, addSearchQuery, removeSearchQuery, clearAllHistory } =
     useContext(ShopContext);
   const searchHistoryRef = useRef<HTMLDivElement>(null);
-  const placeholderPhrases = [
-    'Bugün kendini şımartmaya ne dersin?',
-    'Cilt bakım rutinini keşfet...',
-    'Tükenmeden yakala, sepetine ekle.',
-  ];
-  const animatedPlaceholder = useTypewriter({
-    texts: placeholderPhrases,
-    enabled: smUp && !isFocused && !query,
-    typeSpeed: 80,
-    deleteSpeed: 40,
-    pauseAfterType: 1200,
-    pauseAfterDelete: 400,
-  });
 
   useEffect(() => {
     setQuery('');
@@ -747,28 +736,27 @@ const SearchBar = ({ onFocus, onBlur, autoFocus }: SearchBarProps) => {
   }, [searchHistoryRef]);
 
   return (
-    <Stack component="form" onSubmit={handleSubmit} sx={styles.searchBar} autoComplete="off">
+    <Stack
+      component="form"
+      onSubmit={handleSubmit}
+      sx={wide ? { ...styles.searchBar, ...styles.searchBarWide } : styles.searchBar}
+      autoComplete="off"
+    >
       <TextField
         fullWidth
         size="small"
         autoComplete="off"
         autoFocus={autoFocus}
         value={query}
-        onFocus={() => {
-          setIsFocused(true);
-          onFocus?.();
-        }}
-        onBlur={() => {
-          setIsFocused(false);
-          onBlur?.();
-        }}
+        onFocus={() => onFocus?.()}
+        onBlur={() => onBlur?.()}
         onClick={() => setShowHistory(true)}
         onChange={(e) => {
           setQuery(e.target.value);
           setShowHistory(true);
         }}
-        placeholder={smUp && !query && !isFocused ? animatedPlaceholder : ''}
-        sx={styles.searchBarInput}
+        placeholder="Ara"
+        sx={[styles.searchBarInput, ...(wide ? [styles.searchBarInputWide] : [])]}
         InputProps={{
           endAdornment: (
             <IconButton type="submit" size="small" aria-label="Ara">

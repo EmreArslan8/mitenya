@@ -174,7 +174,7 @@ const ShopInlineProducts = ({
     <SectionBase {...section} sectionWidth="100%" sx={{ gap: 2 }}>
       <Stack alignItems="stretch" width="100%">
         {displayType === 'grid' ? (
-          <Grid container spacing={2} pb={{ xs: 1, sm: 2 }}>
+          <Grid container spacing={{ xs: 2, md: 4 }} pb={{ xs: 1, sm: 2 }}>
             {products.length
                 ? products.slice(0, RENDER_LIMIT).map((e) => (
                   <Grid item xs={6} md={3} key={e.id}>

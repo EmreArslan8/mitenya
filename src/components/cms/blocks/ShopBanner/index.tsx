@@ -9,13 +9,21 @@ import Autoplay from 'embla-carousel-autoplay';
 import { BlockComponentBaseProps } from '..';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import ShopBannerItem from '../../shared/ShopBannerItem';
-import { SharedImageType } from '../../shared/cmsTypes';
+import { SharedButtonType, SharedImageType } from '../../shared/cmsTypes';
 import useStyles from './styles';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface ShopBannersProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
-  banners: { image: SharedImageType; mobileImage: SharedImageType; url: string }[];
+  banners: {
+    image: SharedImageType;
+    mobileImage: SharedImageType;
+    url: string;
+    mobileUrl?: string | null;
+    title?: string | null;
+    description?: string | null;
+    button?: SharedButtonType | null;
+  }[];
 }
 
 const ShopBanner = ({ section, banners }: ShopBannersProps) => {
@@ -43,11 +51,15 @@ const ShopBanner = ({ section, banners }: ShopBannersProps) => {
     return (
       <SectionBase {...section}>
         <ShopBannerItem
-          url={banners[0]?.url}
+          url={(isMobile && banners[0]?.mobileUrl?.trim()) || banners[0]?.url}
           image={
             isMobile && banners[0]?.mobileImage?.data ? banners[0].mobileImage : banners[0]?.image
           }
-          sx={{ borderRadius: { xs: 1, sm: 2 }, overflow: 'clip' }}
+          title={banners[0]?.title}
+          description={banners[0]?.description}
+          button={banners[0]?.button}
+          index={0}
+          sx={{ overflow: 'clip' }}
         />
       </SectionBase>
     );
@@ -59,7 +71,7 @@ const ShopBanner = ({ section, banners }: ShopBannersProps) => {
         {/* Viewport */}
         <Box ref={emblaRef as React.Ref<HTMLDivElement>} sx={{ overflow: 'hidden' }}>
           <Box sx={{ display: 'flex' }}>
-            {banners.map((banner) => (
+            {banners.map((banner, index) => (
               <Box
                 key={banner.url}
                 sx={{
@@ -70,8 +82,12 @@ const ShopBanner = ({ section, banners }: ShopBannersProps) => {
                 }}
               >
                 <ShopBannerItem
-                  url={banner.url}
+                  url={(isMobile && banner.mobileUrl?.trim()) || banner.url}
                   image={isMobile && banner.mobileImage?.data ? banner.mobileImage : banner.image}
+                  title={banner.title}
+                  description={banner.description}
+                  button={banner.button}
+                  index={index}
                 />
               </Box>
             ))}

@@ -6,27 +6,30 @@ const useStyles = withPalette((palette) => ({
     cursor: 'pointer',
     height: '100%',
     gap: 1,
-    borderRadius: 1,
+    borderRadius: 0,
     color: palette.text.main,
     background: palette.white.main,
     pb: 1.25,
-    p: 1,
-    border: '1px solid',
-    borderColor: palette.gray[100],
-    transition: 'box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease',
+    p: 0,
+    border: 'none',
+    transition: 'transform 180ms ease',
     '&:hover': {
       transform: 'translateY(-1px)',
-      borderColor: palette.gray[200],
-      boxShadow: '0 10px 24px rgba(17,17,17,0.08)',
+    },
+    '@media (prefers-reduced-motion: reduce)': {
+      transition: 'none',
+      '&:hover': { transform: 'none' },
     },
   },
   imageContainer: {
     position: 'relative',
     width: '100%',
     aspectRatio: { xs: '0.8', sm: '1 / 1' },
-    borderRadius: 1,
+    borderRadius: 0,
     overflow: 'hidden',
-    background: palette.white.main,
+    // Cizgi yerine zemin: beyaz kesimli urun fotograflarini cerceve cizmeden
+    // ayirir, izgarada her kart esit agirlikta bir blok olarak okunur.
+    background: palette.gray[50] ?? palette.bg.light,
     marginBottom: 0.25,
   },
   image: {
@@ -35,7 +38,7 @@ const useStyles = withPalette((palette) => ({
     width: '100%',
     height: '100%',
     objectFit: 'contain',
-    borderRadius: 7,
+    borderRadius: 0,
     transition: 'opacity 220ms ease',
   } as CSSProperties,
   imageSecondary: {
@@ -80,6 +83,10 @@ const useStyles = withPalette((palette) => ({
   badgeBest: {
     color: palette.primary.contrastText,
     background: palette.primary.main,
+  },
+  badgeOutOfStock: {
+    color: palette.text.mediumLight,
+    background: palette.gray[100] ?? palette.gray[200],
   },
   badgeDiscount: {
     color: palette.accentRed.main,
@@ -185,9 +192,21 @@ const useStyles = withPalette((palette) => ({
     },
   },
   ratingCount: { color: palette.text.mediumLight, fontSize: 11, lineHeight: 1 },
+  notifyButton: {
+    // Tukenen urunde kart olu gorunmesin: pasif gri blok degil, aktif cerceve.
+    backgroundColor: 'transparent',
+    borderColor: palette.text.main,
+    color: palette.text.main,
+    '&:hover': {
+      backgroundColor: palette.text.main,
+      borderColor: palette.text.main,
+      color: palette.white.main,
+    },
+  },
   addToCartButton: {
     width: '100%',
     mt: 0.25,
+    borderRadius: 0,
     textTransform: 'none',
     fontWeight: 700,
     borderColor: palette.text.main,

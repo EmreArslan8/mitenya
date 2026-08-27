@@ -1,64 +1,68 @@
-import { ShopSearchOptions } from '@/lib/api/types';
-import { Box, Grid } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import { BlockComponentBaseProps } from '..';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
-import { GridOptions, SharedImageType } from '../../shared/cmsTypes';
 import ShopCategoryBlock from '../../shared/ShopCategoryBlock';
+import { SharedImageType } from '../../shared/cmsTypes';
+import useStyles from './styles';
 
-const defaultGridOptions: GridOptions = { xs: 6, sm: 6, md: 4, lg: 3 };
+interface CategoryCard {
+  image: SharedImageType;
+  title: string;
+  label?: string;
+  href: string;
+  buttonLabel?: string;
+  target?: '_self' | '_blank';
+  variant?: 'default' | 'featured';
+}
 
 export interface ShopCategoryBlocksProps extends BlockComponentBaseProps {
-  section: SectionBaseProps;
-  variant: 'default' | 'compact';
-  cards: { image: SharedImageType; title: string; searchOptions: ShopSearchOptions; variant: 'default' | 'featured' }[];
-  gridOptions: GridOptions;
-  button: any;
+  section?: SectionBaseProps | null;
+  cards?: CategoryCard[] | null;
 }
 
 const ShopCategoryBlocks = ({ section, cards }: ShopCategoryBlocksProps) => {
-  return (
-    <SectionBase {...section}>
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            sm: '1fr 1fr',
-            md: '1fr 1fr 1fr', // 👈 3 kolon
-          },
-          gridTemplateRows: {
-            md: 'repeat(2, 220px)', // 👈 2 satır
-          },
-          gap: 2,
-        }}
-      >
-        {cards.map((item, index) => {
-          const isFeatured = item.variant === 'featured';
+  const styles = useStyles();
+  const cardItems = cards ?? [];
+  const sectionData: SectionBaseProps = section ?? { children: null };
+  const sectionHeader = sectionData.sectionHeader || 'İhtiyacına göre';
+  const sectionLabel = sectionData.sectionLabel || 'Cilt rehberi';
+  const sectionDescription = sectionData.sectionDescription
+    || 'Cildinin sana söylediğinden başla; bakımını ihtiyacına göre şekillendir.';
 
-          return (
-            <Box
-              key={item.title}
-              sx={{
-                // 📍 ORTA FEATURED KART
-                ...(isFeatured && {
-                  gridColumn: { md: '2 / 3' }, // orta kolon
-                  gridRow: { md: '1 / 3' },    // 2 satır kapla
-                }),
-              }}
-            >
-              <ShopCategoryBlock
-                {...item}
-                href=""
-                variant={item.variant ?? 'default'}
-              />
-            </Box>
-          );
-        })}
+  if (!cardItems.length) return null;
+
+  return (
+    <SectionBase
+      {...sectionData}
+      sectionHeader={undefined}
+      sectionDescription={undefined}
+      sectionLabel={undefined}
+      sectionHref={undefined}
+      sx={{ ...styles.section, ...(sectionData.sx as object) }}
+    >
+      <Stack sx={styles.sectionHead}>
+        <Stack sx={styles.headingGroup}>
+          <Typography sx={styles.eyebrow}>{sectionLabel}</Typography>
+          <Typography component="h2" sx={styles.title}>
+            {sectionHeader}
+          </Typography>
+        </Stack>
+        <Typography sx={styles.description}>{sectionDescription}</Typography>
+      </Stack>
+
+      <Box sx={styles.grid}>
+        {cardItems.map((item, index) => (
+          <Box key={`${item.title}-${index}`} sx={styles.gridItem}>
+            <ShopCategoryBlock
+              {...item}
+              index={index}
+              variant={item.variant ?? 'default'}
+            />
+          </Box>
+        ))}
       </Box>
     </SectionBase>
   );
 };
 
 export default ShopCategoryBlocks;
-
-  

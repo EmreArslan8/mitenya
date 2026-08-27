@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/.playwright-cli/
+/output/
 
 # next.js
 /.next/
@@ -42,3 +44,14 @@ next-env.d.ts
 
 # notes
 GOOGLE_ADS_SETUP.md
+
+# local design previews and generated draft assets
+/src/app/(shop)/preview/
+/public/static/images/info-areas/
+/public/static/images/skin-concern-*.webp
+/public/static/images/mitenya-numbuzin-no9-banner-1600x600.webp
+/public/static/images/mitenya-numbuzin-no9-banner-1600x800.webp
+/public/static/images/mitenya-numbuzin-no9-banner-mobile-800x1000.webp
+/public/static/images/mitenya-retinol-shot-banner-1600x600.webp
+/public/static/images/mitenya-retinol-shot-banner-1600x800.webp
+/public/static/images/mitenya-retinol-shot-banner-mobile-800x1000.webp

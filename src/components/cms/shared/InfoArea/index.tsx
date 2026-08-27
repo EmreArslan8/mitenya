@@ -19,9 +19,6 @@ const InfoArea = ({ label, description, url, icon }: InfoAreaProps) => {
 
   return (
     <Stack
-      direction="column"
-      spacing={1}
-      alignItems="center"
       onClick={() => url && router.push(url)}
       sx={{
         ...styles.root,

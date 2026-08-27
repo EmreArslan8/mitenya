@@ -24,6 +24,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Check, Heart } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useContext } from 'react';
 import useStyles from './styles';
 import Button from '../common/Button';
@@ -60,6 +61,7 @@ const normalizeBrandName = (brand?: string) => {
 };
 
 const ProductCard = ({ data }: ShopProductCardProps) => {
+  const router = useRouter();
   const imageData = data as ProductCardImageData;
   const isMobileApp = useIsMobileApp();
   const { smUp } = useScreen();
@@ -226,6 +228,7 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
             )}
             <Stack sx={styles.topBar}>
               <Stack sx={styles.badgeList}>
+                {isOutOfStock && <Stack sx={{ ...styles.badge, ...styles.badgeOutOfStock }}>TÜKENDİ</Stack>}
                 {isTopRated && <Stack sx={{ ...styles.badge, ...styles.badgeBest }}>EN İYİ</Stack>}
                 {hasDiscount && <Stack sx={{ ...styles.badge, ...styles.badgeDiscount }}>{`%${discountPercent} İNDİRİM`}</Stack>}
               </Stack>
@@ -313,23 +316,28 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
             <Button
               onClick={
                 isOutOfStock
-                  ? undefined
+                  ? (e: React.MouseEvent) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      router.push(data.url);
+                    }
                   : (e: React.MouseEvent) => {
                       e.preventDefault();
                       e.stopPropagation();
                       handleQuickAdd(e);
                     }
               }
-              disabled={isOutOfStock || quickAddLoading || showAdded}
+              disabled={!isOutOfStock && (quickAddLoading || showAdded)}
               size={smUp ? 'medium' : 'small'}
-              variant="contained"
+              variant={isOutOfStock ? 'outlined' : 'contained'}
               sx={{
                 ...styles.addToCartButton,
+                ...(isOutOfStock ? styles.notifyButton : {}),
                 ...(showAdded ? styles.addToCartButtonAdded : {}),
               }}
             >
               {isOutOfStock ? (
-                'Stokta yok'
+                'Gelince Haber Ver'
               ) : quickAddLoading ? (
                 <CircularProgress size={16} sx={{ color: 'inherit' }} />
               ) : smUp ? (

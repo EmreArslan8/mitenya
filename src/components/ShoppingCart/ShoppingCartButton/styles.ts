@@ -7,8 +7,18 @@ const styles = withPalette((palette) => ({
     color: palette.bg.contrastText,
   },
   buttonCompact: {
-    px: 1,
-    minWidth: 0,
+    width: 48,
+    height: 48,
+    minWidth: 48,
+    p: 0,
+    gap: 0,
+    justifyContent: 'center',
+    borderRadius: 0,
+    '& svg': {
+      width: 24,
+      height: 24,
+      strokeWidth: 1.5,
+    },
   },
   container: (direction: Direction) => ({
     position: 'fixed',
