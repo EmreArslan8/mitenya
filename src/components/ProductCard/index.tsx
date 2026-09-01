@@ -230,7 +230,11 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
               <Stack sx={styles.badgeList}>
                 {isOutOfStock && <Stack sx={{ ...styles.badge, ...styles.badgeOutOfStock }}>TÜKENDİ</Stack>}
                 {isTopRated && <Stack sx={{ ...styles.badge, ...styles.badgeBest }}>EN İYİ</Stack>}
-                {hasDiscount && <Stack sx={{ ...styles.badge, ...styles.badgeDiscount }}>{`%${discountPercent} İNDİRİM`}</Stack>}
+                {hasDiscount && (
+                  <Stack sx={{ ...styles.badge, ...styles.badgeDiscount }}>
+                    {smUp ? `%${discountPercent} İNDİRİM` : `-%${discountPercent}`}
+                  </Stack>
+                )}
               </Stack>
               <IconButton
                 onClick={handleFavoriteClick}

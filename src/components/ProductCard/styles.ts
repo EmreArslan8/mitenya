@@ -29,7 +29,10 @@ const useStyles = withPalette((palette) => ({
     overflow: 'hidden',
     // Cizgi yerine zemin: beyaz kesimli urun fotograflarini cerceve cizmeden
     // ayirir, izgarada her kart esit agirlikta bir blok olarak okunur.
-    background: palette.gray[50] ?? palette.bg.light,
+    background: {
+      xs: palette.white.main,
+      sm: palette.gray[50] ?? palette.bg.light,
+    },
     marginBottom: 0.25,
   },
   image: {
@@ -85,12 +88,22 @@ const useStyles = withPalette((palette) => ({
     background: palette.primary.main,
   },
   badgeOutOfStock: {
+    display: { xs: 'none', sm: 'flex' },
     color: palette.text.mediumLight,
     background: palette.gray[100] ?? palette.gray[200],
   },
   badgeDiscount: {
-    color: palette.accentRed.main,
-    background: palette.accentRed.light,
+    px: { xs: 1.25, sm: 1.5 },
+    py: { xs: '4px', sm: '4px' },
+    fontSize: { xs: 12, sm: 11 },
+    fontWeight: 800,
+    color: palette.accentRed.dark,
+    background: 'rgba(255, 255, 255, 0.88)',
+    border: `1px solid ${palette.accentRed.light}`,
+    boxShadow: '0 4px 14px rgba(90, 8, 13, 0.10)',
+    backdropFilter: 'blur(8px) saturate(135%)',
+    WebkitBackdropFilter: 'blur(8px) saturate(135%)',
+    letterSpacing: '0.01em',
   },
   favoriteButton: {
     width: 36,

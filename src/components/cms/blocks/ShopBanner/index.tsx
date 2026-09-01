@@ -91,10 +91,8 @@ const ShopBanner = ({ section, banners }: ShopBannersProps) => {
               <Box
                 key={banner.url}
                 sx={{
-                  // mobile: 100% - 32px (16px padding each side) = centerMode effect
-                  flex: { xs: '0 0 calc(100% - 32px)', sm: '0 0 100%' },
+                  flex: '0 0 100%',
                   minWidth: 0,
-                  px: { xs: 0.5, sm: 0 },
                 }}
               >
                 <ShopBannerItem
