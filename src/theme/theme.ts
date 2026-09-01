@@ -4,7 +4,8 @@ import { Interpolation, PaletteColorOptions, Theme, createTheme } from '@mui/mat
 import { Palette, defaultPalette } from './palette';
 
 export const defaultMaxWidth = 1340;
-export const headerHeight = { xs: 94, sm: 100 };
+// xs: tek satirlik mobil header (ikon satiri 40px + 8px dikey padding x2).
+export const headerHeight = { xs: 56, sm: 100 };
 export const bannerHeight = 26;
 export const defaultMarginBottom = { xs: 8, sm: 18 };
 declare module '@mui/material/styles' {

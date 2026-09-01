@@ -17,7 +17,7 @@ export const GET = async () => {
     {
       params: {
         publicationState: 'live',
-        populate: 'deep,4',
+        populate: 'deep,5',
         'pagination[pageSize]': 1,
       },
       headers: { Authorization: `Bearer ${cmsBearer}` },
@@ -31,9 +31,12 @@ export const GET = async () => {
 
   const attributes = getFirstAttributes(res);
   if (!attributes) {
-    return Response.json({ links: [], bannerLinks: [], categories: [] }, { status: 200 });
+    return Response.json(
+      { links: [], bannerLinks: [], categories: [], navLinks: [] },
+      { status: 200 }
+    );
   }
-  const { links, bannerLinks, categories } = attributes;
+  const { links, bannerLinks, categories, navLinks } = attributes;
 
-  return Response.json({ links, bannerLinks, categories });
+  return Response.json({ links, bannerLinks, categories, navLinks });
 };

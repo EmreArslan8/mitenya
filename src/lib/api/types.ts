@@ -404,7 +404,42 @@ export type SharedSocialButton = {
   platform: 'facebook' | 'x' | 'linkedin' | 'instagram' | 'telegram';
   url: string;
 };
-export type ShopHeaderData = { links?: ShopHeaderLink[]; bannerLinks?: ShopHeaderLink[];  categories?: CategoryParent[]; };
+export type MegaMenuCMSLink = {
+  id: number;
+  label: string;
+  /** Kart varyantinda baslik; bossa label kullanilir. */
+  title?: string | null;
+  url: string;
+  description?: string | null;
+  image?: { data?: { attributes?: { url?: string; alternativeText?: string } } | null } | null;
+};
+
+export type MegaMenuCMSGroup = {
+  id: number;
+  title?: string | null;
+  url?: string | null;
+  allLabel?: string | null;
+  links?: MegaMenuCMSLink[];
+};
+
+export type MegaNavCMSLink = {
+  id: number;
+  label: string;
+  url: string;
+  groups?: MegaMenuCMSGroup[];
+  feature?: {
+    caption?: string | null;
+    url?: string | null;
+    image?: { data?: { attributes?: { url?: string } } | null } | null;
+  } | null;
+};
+
+export type ShopHeaderData = {
+  links?: ShopHeaderLink[];
+  bannerLinks?: ShopHeaderLink[];
+  categories?: CategoryParent[];
+  navLinks?: MegaNavCMSLink[];
+};
 
 export type ShopFooterData = {
   links?: ShopFooterLink[];

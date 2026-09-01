@@ -5,8 +5,8 @@ const styles = {
 
   mobileContainer: {
     display: 'grid',
-    gridTemplateColumns: '1fr',
-    rowGap: 3,
+    columnGap: 0.5,
+    rowGap: 2.5,
     py: 0,
   },
 

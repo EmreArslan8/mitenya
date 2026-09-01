@@ -4,8 +4,10 @@ import Button from '@/components/common/Button';
 import CartPageView from '@/features/cart/CartPageView';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
+import MobileSearchOverlay from './MobileSearchOverlay';
+import MegaMenu, { MegaMenuContent, MegaMenuGroup } from './MegaMenu';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import { ShopHeaderData, ShopHeaderLink } from '@/lib/api/types';
+import { MegaNavCMSLink, ShopHeaderData, ShopHeaderLink } from '@/lib/api/types';
 import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
 import useScreen from '@/lib/hooks/useScreen';
 import { trackTikTokSearch, trackTikTokWithUser } from '@/lib/analytics/tiktokPixel';
@@ -39,7 +41,7 @@ import ShoppingCartButton from '../ShoppingCart/ShoppingCartButton';
 import ModalCard from '../common/ModalCard';
 import CategoriesDrawer from './CategoriesDrawer';
 import useStyles, { ANNOUNCEMENT_HEIGHT } from './styles';
-import { Headset, ArrowLeft, CircleUser, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, History, Settings, Menu, User, PackageSearch, Heart } from 'lucide-react';
+import { Headset, ArrowLeft, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, History, Settings, Menu, User, PackageSearch, Heart } from 'lucide-react';
 
 
 const getSupportUrl = 'https://api.whatsapp.com/send?phone=905070617930';
@@ -52,6 +54,215 @@ const accountModalRoutes = [
 interface NavigationProps {
   data: ShopHeaderData | undefined;
 }
+
+
+/**
+ * TASLAK — header ana linkleri kodda sabit. CMS'teki link listesine
+ * dokunmuyoruz; kalip onaylaninca Strapi'ye tasinacak.
+ * Panel acmayan linkler dogrudan hedefe gider.
+ */
+const HEADER_LINKS: HeaderNavItem[] = [
+  { id: 'new', label: 'Yeni Gelenler', href: '/search?sort=rct' },
+  {
+    id: 'skincare',
+    label: 'Cilt Bakımı',
+    href: '/search',
+    panel: {
+      variant: 'columns',
+      groups: [
+        {
+          id: 'categories',
+          title: 'Kategoriler',
+          href: '/search',
+          links: [
+            { id: 'serum', label: 'Serumlar', href: '/search?category=yuz-bakim-serumlari' },
+            { id: 'krem', label: 'Kremler', href: '/search?category=yuz-bakim-kremleri' },
+            { id: 'goz', label: 'Göz Bakımı', href: '/search?category=goz-bakim' },
+            { id: 'temizleyici', label: 'Temizleyiciler', href: '/search?category=yuz-temizleme-urunleri' },
+            { id: 'gunes', label: 'Güneş Koruyucular', href: '/search?category=yuz-gunes-kremleri' },
+          ],
+        },
+        {
+          id: 'concern-short',
+          title: 'İhtiyacına Göre',
+          href: '/search',
+          links: [
+            { id: 'c-leke', label: 'Leke', href: '/search?concern=leke' },
+            { id: 'c-akne', label: 'Akne', href: '/search?concern=akne' },
+            { id: 'c-kuruluk', label: 'Kuruluk', href: '/search?concern=kuruluk' },
+            { id: 'c-yaslanma', label: 'Yaşlanma', href: '/search?concern=yaslanma' },
+            { id: 'c-hassasiyet', label: 'Hassasiyet', href: '/search?concern=hassasiyet' },
+          ],
+        },
+        {
+          id: 'highlights',
+          title: 'Öne Çıkanlar',
+          href: '/search',
+          allLabel: 'Tüm ürünler',
+          links: [
+            { id: 'h-new', label: 'Yeni Gelenler', href: '/search?sort=rct' },
+            { id: 'h-best', label: 'Çok Satanlar', href: '/search?sort=bst' },
+            { id: 'h-day', label: 'Gündüz Rutini', href: '/collection/day-care' },
+            { id: 'h-night', label: 'Gece Rutini', href: '/collection/night-care' },
+            { id: 'h-brands', label: 'Markalar', href: '/search' },
+          ],
+        },
+      ],
+      feature: {
+        image: '/static/images/mitenya-retinol-shot-banner-1600x600.webp',
+        caption: 'Yeni: Retinol Shot',
+        href: '/search?sort=rct',
+      },
+    },
+  },
+  {
+    id: 'concern',
+    label: 'İhtiyacına Göre',
+    href: '/search',
+    panel: {
+      variant: 'tiles',
+      tiles: [
+        { id: 'leke', label: 'Leke', href: '/search?concern=leke', image: '/static/images/skin-concern-leke.webp' },
+        { id: 'akne', label: 'Akne', href: '/search?concern=akne', image: '/static/images/skin-concern-akne.webp' },
+        { id: 'kuruluk', label: 'Kuruluk', href: '/search?concern=kuruluk', image: '/static/images/skin-concern-kuruluk.webp' },
+        { id: 'yaslanma', label: 'Yaşlanma', href: '/search?concern=yaslanma', image: '/static/images/skin-concern-yaslanma.webp' },
+        { id: 'hassasiyet', label: 'Hassasiyet', href: '/search?concern=hassasiyet', image: '/static/images/skin-concern-hassasiyet.webp' },
+      ],
+    },
+  },
+  {
+    id: 'routines',
+    label: 'Rutinler',
+    href: '/collection/day-care',
+    panel: {
+      variant: 'cards',
+      cards: [
+        {
+          id: 'day',
+          label: 'Gündüz',
+          title: 'Koruyan rutin',
+          description: 'Nemlendirme, antioksidan ve güneş koruması.',
+          href: '/collection/day-care',
+          image: '/static/images/mitenya-retinol-shot-banner-1600x600.webp',
+        },
+        {
+          id: 'night',
+          label: 'Gece',
+          title: 'Onaran rutin',
+          description: 'Retinol, peptit ve yoğun bakım.',
+          href: '/collection/night-care',
+          image: '/static/images/mitenya-numbuzin-no9-banner-1600x600.webp',
+        },
+      ],
+    },
+  },
+  {
+    id: 'brands',
+    label: 'Markalar',
+    href: '/search',
+    panel: {
+      variant: 'columns',
+      groups: [
+        {
+          id: 'brand-list',
+          title: 'Markalar',
+          href: '/search',
+          allLabel: 'Tüm markalar',
+          links: [
+            { id: 'boj', label: 'Beauty of Joseon', href: '/search?brand=beauty-of-joseon' },
+            { id: 'celimax', label: 'Celimax', href: '/search?brand=celimax' },
+            { id: 'numbuzin', label: 'Numbuzin', href: '/search?brand=numbuzin' },
+            { id: 'mary-may', label: 'Mary & May', href: '/search?brand=mary-may' },
+            { id: 'a313', label: 'A313', href: '/search?brand=a313' },
+          ],
+        },
+      ],
+      feature: {
+        image: '/static/images/mitenya-numbuzin-no9-banner-1600x600.webp',
+        caption: 'Numbuzin No.9',
+        href: '/search?brand=numbuzin',
+      },
+    },
+  },
+  { id: 'blog', label: 'Blog', href: '/blogs' },
+];
+
+type HeaderNavItem = { id: string; label: string; href: string; panel?: MegaMenuContent };
+
+const imageHost = process.env.NEXT_PUBLIC_IMAGE_HOST ?? '';
+
+/** Strapi medya yolu goreli gelebiliyor; mutlak hale getiriliyor. */
+const resolveMediaUrl = (url?: string | null) => {
+  if (!url) return undefined;
+  return url.startsWith('http') ? url : `${imageHost}${url}`;
+};
+
+/**
+ * Panel tipi ayri bir alandan degil icerikten cikiyor:
+ * gorsel + aciklama varsa kart, yalnizca gorsel varsa kadraj, yoksa metin sutunu.
+ * Bir gruptaki linklerin HEPSINDE gorsel yoksa metne dusuluyor — eksik gorsel duzeni bozmasin.
+ */
+const toMegaMenuContent = (nav: MegaNavCMSLink): MegaMenuContent | undefined => {
+  const groups = nav.groups ?? [];
+  if (!groups.length) return undefined;
+
+  const feature = nav.feature?.image?.data?.attributes?.url
+    ? {
+        image: resolveMediaUrl(nav.feature.image.data.attributes.url)!,
+        caption: nav.feature.caption ?? '',
+        href: nav.feature.url ?? '/search',
+      }
+    : undefined;
+
+  const allLinks = groups.flatMap((group) => group.links ?? []);
+  if (!allLinks.length) return undefined;
+
+  const everyHasImage = allLinks.every((link) => Boolean(link.image?.data?.attributes?.url));
+  const everyHasDescription = allLinks.every((link) => Boolean(link.description));
+
+  if (everyHasImage && everyHasDescription) {
+    return {
+      variant: 'cards',
+      cards: allLinks.map((link) => ({
+        id: String(link.id),
+        label: link.label,
+        title: link.title || link.label,
+        description: link.description ?? '',
+        href: link.url,
+        image: resolveMediaUrl(link.image?.data?.attributes?.url)!,
+      })),
+    };
+  }
+
+  if (everyHasImage) {
+    return {
+      variant: 'tiles',
+      tiles: allLinks.map((link) => ({
+        id: String(link.id),
+        label: link.label,
+        href: link.url,
+        image: resolveMediaUrl(link.image?.data?.attributes?.url)!,
+      })),
+    };
+  }
+
+  const mappedGroups: MegaMenuGroup[] = groups.map((group) => ({
+    id: String(group.id),
+    title: group.title ?? undefined,
+    href: group.url ?? undefined,
+    allLabel: group.allLabel ?? undefined,
+    links: (group.links ?? []).map((link) => ({
+      id: String(link.id),
+      label: link.label,
+      href: link.url,
+    })),
+  }));
+
+  return { variant: 'columns', groups: mappedGroups, feature };
+};
+
+const MEGA_MENU_OPEN_DELAY = 120;
+const MEGA_MENU_CLOSE_DELAY = 250;
 
 const MINIMAL_ROUTES = ['/payment'];
 
@@ -78,6 +289,8 @@ const Navigation = ({ data }: NavigationProps) => {
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [mobileSearchInputOpen, setMobileSearchInputOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
+  const megaMenuOpenTimer = useRef<number | null>(null);
+  const megaMenuCloseTimer = useRef<number | null>(null);
   const [desktopSearchOpen, setDesktopSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [bannerIndex, setBannerIndex] = useState(0);
@@ -99,12 +312,6 @@ const Navigation = ({ data }: NavigationProps) => {
     setCartModalOpen(true);
   };
 
-  const toggleAccountModalOpen = () => {
-    if (accountModalOpen) return setAccountModalOpen(false);
-    setCategoriesOpen(false);
-    setAccountModalOpen(true);
-    setCartModalOpen(false);
-  };
   const toggleCategoriesModalOpen = () => {
     if (categoriesOpen) return setCategoriesOpen(false);
     setAccountModalOpen(false);
@@ -118,6 +325,41 @@ const Navigation = ({ data }: NavigationProps) => {
       onSuccess: () => router.push(destination),
     };
     openAuthenticator(options);
+  };
+
+  // CMS'te navLinks doluysa oradan, degilse taslak sabit listeden.
+  const cmsNavLinks: HeaderNavItem[] = (data?.navLinks ?? []).map((nav) => ({
+    id: String(nav.id),
+    label: nav.label,
+    href: nav.url,
+    panel: toMegaMenuContent(nav),
+  }));
+  const headerLinks = cmsNavLinks.length ? cmsNavLinks : HEADER_LINKS;
+
+  const activePanel = activeCategory === null ? undefined : headerLinks[activeCategory]?.panel;
+
+  // Hover davranisi: acilis gecikmeli (jitter'i onler), kapanis toleransli
+  // (link ile panel arasindaki capraz harekette menu kacmasin).
+  const openMegaMenu = (index: number) => {
+    if (megaMenuCloseTimer.current) window.clearTimeout(megaMenuCloseTimer.current);
+    if (megaMenuOpenTimer.current) window.clearTimeout(megaMenuOpenTimer.current);
+    megaMenuOpenTimer.current = window.setTimeout(
+      () => setActiveCategory(index),
+      MEGA_MENU_OPEN_DELAY,
+    );
+  };
+
+  const closeMegaMenu = () => {
+    if (megaMenuOpenTimer.current) window.clearTimeout(megaMenuOpenTimer.current);
+    if (megaMenuCloseTimer.current) window.clearTimeout(megaMenuCloseTimer.current);
+    megaMenuCloseTimer.current = window.setTimeout(
+      () => setActiveCategory(null),
+      MEGA_MENU_CLOSE_DELAY,
+    );
+  };
+
+  const cancelMegaMenuClose = () => {
+    if (megaMenuCloseTimer.current) window.clearTimeout(megaMenuCloseTimer.current);
   };
 
   const handleLinkClick = (link: ShopHeaderLink) => {
@@ -148,16 +390,9 @@ const Navigation = ({ data }: NavigationProps) => {
 
     if (isMobileRef.current) {
       const shouldKeepCompactHeaderVisible = isSearchRoute;
+      // Mobilde duyuru seridi yok: kaydirirken kaydirilacak ek bant da yok.
       navbarRef.current.style.top = `${
-        shouldKeepCompactHeaderVisible
-            ? scrolled
-            ? -ANNOUNCEMENT_HEIGHT
-            : 0
-          : hidden
-            ? -headerHeight.xs - ANNOUNCEMENT_HEIGHT
-            : scrolled
-              ? -ANNOUNCEMENT_HEIGHT
-              : 0
+        shouldKeepCompactHeaderVisible ? 0 : hidden ? -headerHeight.xs : 0
       }px`;
       if (shouldKeepCompactHeaderVisible && scrollingDown && mobileSearchInputOpen)
         setMobileSearchInputOpen(false);
@@ -188,8 +423,8 @@ const Navigation = ({ data }: NavigationProps) => {
   }, [smDown, pathname, cartModalOpen]);
 
   useEffect(() => {
-    if (!isMobileSearchRoute) setMobileSearchInputOpen(false);
-  }, [isMobileSearchRoute]);
+    setMobileSearchInputOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!navbarRef.current) return;
@@ -217,6 +452,23 @@ const Navigation = ({ data }: NavigationProps) => {
       if (navVarsSyncTimeoutRef.current) clearTimeout(navVarsSyncTimeoutRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (activeCategory === null) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setActiveCategory(null);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [activeCategory]);
+
+  useEffect(
+    () => () => {
+      if (megaMenuOpenTimer.current) window.clearTimeout(megaMenuOpenTimer.current);
+      if (megaMenuCloseTimer.current) window.clearTimeout(megaMenuCloseTimer.current);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (newProductAdded) setCartModalOpen(true);
@@ -279,7 +531,7 @@ const Navigation = ({ data }: NavigationProps) => {
             </Stack>
           </Stack>
           )}
-          <Stack sx={styles.content} onMouseLeave={() => setActiveCategory(null)}>
+          <Stack sx={styles.content} onMouseLeave={closeMegaMenu}>
             {!isMinimal && !!secondaryLinks.length && (
               <Stack sx={styles.utilityLinks}>
                 {secondaryLinks.map((link) => (
@@ -326,10 +578,10 @@ const Navigation = ({ data }: NavigationProps) => {
                     </IconButton>
                   ) : (
                     <IconButton onClick={toggleCategoriesModalOpen} aria-label="Kategoriler">
-                      <Menu size={26} />
+                      <Menu size={24} strokeWidth={1.5} />
                     </IconButton>
                   )}
-                  <Stack flex={1} alignItems="center" onClick={() => router.push('/')} sx={{ cursor: 'pointer' }}>
+                  <Stack sx={styles.logoMobileTapArea} onClick={() => router.push('/')}>
                     <Image
                       src={styles.logoMobile.src}
                       alt="mitenya"
@@ -338,25 +590,29 @@ const Navigation = ({ data }: NavigationProps) => {
                       style={styles.logoMobile}
                     />
                   </Stack>
-                  <Stack direction="row" alignItems="center" gap={0.5}>
-                    {isSearchRoute && (
-                      <IconButton
-                        onClick={() => setMobileSearchInputOpen((prev) => !prev)}
-                        aria-label="Arama"
-                      >
-                        <Search size={24} />
-                      </IconButton>
-                    )}
-                    <IconButton onClick={toggleAccountModalOpen} aria-label="Hesap">
-                      <CircleUser size={24} />
+                  <Stack direction="row" alignItems="center" gap={1}>
+                    <IconButton
+                      onClick={() => setMobileSearchInputOpen((prev) => !prev)}
+                      aria-label={mobileSearchInputOpen ? 'Aramayı kapat' : 'Arama'}
+                      aria-expanded={mobileSearchInputOpen}
+                    >
+                      {mobileSearchInputOpen ? (
+                        <X size={24} strokeWidth={1.5} />
+                      ) : (
+                        <Search size={24} strokeWidth={1.5} />
+                      )}
                     </IconButton>
-                    <IconButton onClick={toggleCartModalOpen} aria-label="Sepet">
+                    <IconButton
+                      onClick={toggleCartModalOpen}
+                      aria-label={numItems ? `Sepet (${numItems} ürün)` : 'Sepet'}
+                    >
                       <Badge
-                        badgeContent={numItems}
+                        variant="dot"
                         color="error"
-                        sx={{ '& .MuiBadge-badge': { minWidth: 18, height: 18, fontSize: 11, px: 0.5 } }}
+                        invisible={!numItems}
+                        sx={{ '& .MuiBadge-badge': { minWidth: 7, height: 7, borderRadius: '50%' } }}
                       >
-                        <ShoppingBag size={24} />
+                        <ShoppingBag size={24} strokeWidth={1.5} />
                       </Badge>
                     </IconButton>
                   </Stack>
@@ -393,14 +649,18 @@ const Navigation = ({ data }: NavigationProps) => {
                   )}
                   </Stack>
                   <Stack sx={styles.categoryBar}>
-                    {data?.categories?.map((cat, index) => (
+                    {headerLinks.map((link, index) => (
                       <MenuItem
-                        key={cat.id}
+                        key={link.id}
                         sx={styles.shopHeaderLink}
-                        onMouseEnter={() => setActiveCategory(index)}
-                        onClick={() => cat.slug && router.push(`/${cat.slug}`)}
+                        aria-expanded={link.panel ? activeCategory === index : undefined}
+                        onMouseEnter={() => (link.panel ? openMegaMenu(index) : closeMegaMenu())}
+                        onClick={() => {
+                          setActiveCategory(null);
+                          router.push(link.href);
+                        }}
                       >
-                        {cat.label}
+                        {link.label}
                       </MenuItem>
                     ))}
                   </Stack>
@@ -445,30 +705,17 @@ const Navigation = ({ data }: NavigationProps) => {
                 </>
               )}
             </Stack>
-            {!isMinimal && (!isMobileSearchRoute || mobileSearchInputOpen) && (
-              <Box sx={{ display: { xs: 'flex', sm: 'none' } }}>
-                <SearchBar autoFocus={isMobileSearchRoute} />
-              </Box>
-            )}
-            {!isMinimal && activeCategory !== null && data?.categories?.[activeCategory] && (
-              <Box sx={styles.megaMenu}>
-                <Box sx={styles.megaMenuGrid}>
-                  {data.categories[activeCategory].subs?.map((sub) => (
-                    <Stack key={sub.id} sx={styles.megaMenuGroup}>
-                      <Typography sx={styles.megaMenuTitle}>{sub.label}</Typography>
-                      {sub.items?.map((item) => (
-                        <Typography
-                          key={item.id}
-                          sx={styles.megaMenuItem}
-                          onClick={() => item.slug && router.push(`/${item.slug}`)}
-                        >
-                          {item.label}
-                        </Typography>
-                      ))}
-                    </Stack>
-                  ))}
-                </Box>
-              </Box>
+
+            {!isMinimal && activePanel && (
+              <MegaMenu
+                {...activePanel}
+                onSelect={(href) => {
+                  setActiveCategory(null);
+                  router.push(href);
+                }}
+                onMouseEnter={cancelMegaMenuClose}
+                onMouseLeave={closeMegaMenu}
+              />
             )}
           </Stack>
           {!isMinimal && desktopSearchOpen && (
@@ -491,7 +738,11 @@ const Navigation = ({ data }: NavigationProps) => {
                   ? '/account'
                   : pathname
             }
-            sx={{ '& .MuiBottomNavigationAction-root': { px: 0, minWidth: 0 } }}
+            sx={{
+              '& .MuiBottomNavigationAction-root': { px: 0, minWidth: 0 },
+              // Mobilde ince çizgi: header ile aynı ağırlık.
+              '& svg': { strokeWidth: 1.5 },
+            }}
           >
             <BottomNavigationAction
               value="/"
@@ -526,7 +777,7 @@ const Navigation = ({ data }: NavigationProps) => {
             <BottomNavigationAction
               value="/account"
               label="Hesap"
-              icon={<CircleUser />}
+              icon={<User />}
               onClick={toggleAccountModalOpen}
             />
             <BottomNavigationAction
@@ -549,6 +800,12 @@ const Navigation = ({ data }: NavigationProps) => {
           </BottomNavigation>
         </Stack>
       )} */}
+      {!isMinimal && (
+        <MobileSearchOverlay
+          open={mobileSearchInputOpen}
+          onClose={() => setMobileSearchInputOpen(false)}
+        />
+      )}
       {!isMinimal && (
         <>
           <ModalCard

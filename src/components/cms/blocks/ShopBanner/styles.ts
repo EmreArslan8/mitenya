@@ -1,6 +1,8 @@
 import { SxProps } from '@mui/material';
 import { withPalette } from '@/theme/ThemeRegistry';
 
+export const AUTOPLAY_DELAY = 10000;
+
 const useStyles = withPalette((palette) => ({
   sliderContainer: {
     width: { xs: '100vw', sm: '100%' },
@@ -10,67 +12,96 @@ const useStyles = withPalette((palette) => ({
     pb: 3,
   },
 
-  dotsContainer: {
+  // Noktalar yerine segment cubuklari: hangisindeyiz + ne zaman degisecek.
+  progressContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    bottom: -28,
+    // Dokunma kutusu 24px oldugu icin cizgi kutunun ortasinda duruyor;
+    // cizginin gorsele uzakligi eskisiyle ayni kalsin diye kutu asagi cekildi.
+    // Tasan kisim yalnizca bos padding, kirpilmasi sorun degil.
+    bottom: -2,
     left: 0,
     right: 0,
     zIndex: 2,
-    gap: '8px',
+    gap: '10px',
   } as SxProps,
 
-  dot: (active: boolean): SxProps => ({
+  progressTrack: (active: boolean): SxProps => ({
     appearance: 'none',
     WebkitAppearance: 'none',
     border: 'none',
+    // Dokunma hedefi 24px, cizgi 2px: gorsel incelik erisilebilirligi bozmasin.
+    padding: '11px 0',
     background: 'none',
-    padding: 0,
-    width: 20,
-    height: 20,
+    cursor: 'pointer',
+    position: 'relative',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
+    width: active ? 44 : 18,
+    transition: 'width .45s cubic-bezier(.22,.61,.36,1)',
     '&::before': {
       content: '""',
       display: 'block',
-      width: 6,
-      height: 6,
+      width: '100%',
+      height: 2,
       borderRadius: 999,
-      backgroundColor: active ? palette.text.main : palette.text.light,
-      transform: active ? 'scale(1.25)' : 'scale(1)',
-      transition: 'all .2s ease',
+      backgroundColor: palette.gray[300],
+      transition: 'background-color .3s ease',
+    },
+    '&:hover::before': { backgroundColor: palette.gray[500] },
+  }),
+
+  progressFill: (active: boolean, paused: boolean): SxProps => ({
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: '50%',
+    marginTop: '-1px',
+    height: 2,
+    borderRadius: 999,
+    transformOrigin: 'left center',
+    backgroundColor: palette.text.main,
+    // Aktif cubuk otoplay suresince soldan saga doluyor.
+    animation: active ? `bannerProgress ${AUTOPLAY_DELAY}ms linear forwards` : 'none',
+    animationPlayState: paused ? 'paused' : 'running',
+    transform: active ? undefined : 'scaleX(0)',
+    '@keyframes bannerProgress': {
+      from: { transform: 'scaleX(0)' },
+      to: { transform: 'scaleX(1)' },
+    },
+    '@media (prefers-reduced-motion: reduce)': {
+      animation: 'none',
+      transform: active ? 'scaleX(1)' : 'scaleX(0)',
     },
   }),
 
-  prevButton: {
+  arrowBase: {
     position: 'absolute',
     top: '50%',
-    left: 10,
     transform: 'translateY(-50%)',
     zIndex: 1,
     p: 0,
     minWidth: 0,
-    width: 28,
-    height: 28,
-    opacity: { xs: 0, sm: 1 },
+    width: 30,
+    height: 52,
+    // Kutu yok: ciplak chevron. Masaustunde her zaman gorunur.
+    background: 'none',
+    borderRadius: 0,
+    color: '#FFFFFF',
+    // Beyaz ok acik tonlu banner'larda kaybolmasin diye hafif golge.
+    filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.35))',
+    display: { xs: 'none', sm: 'flex' },
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.75,
+    transition: 'opacity .15s ease',
+    '&:hover, &:focus-visible': { opacity: 1, background: 'none' },
   } as SxProps,
 
-  nextButton: {
-    position: 'absolute',
-    top: '50%',
-    right: 10,
-    transform: 'translateY(-50%)',
-    zIndex: 1,
-    p: 0,
-    minWidth: 0,
-    width: 28,
-    height: 28,
-    opacity: { xs: 0, sm: 1 },
-  } as SxProps,
+  prevButton: { left: 14 } as SxProps,
+  nextButton: { right: 14 } as SxProps,
 }));
 
 export default useStyles;

@@ -33,7 +33,8 @@ export const getShopHeaderDirect = async (): Promise<ShopHeaderData | undefined>
     const [res, error] = await bring<StrapiCollectionResult<ShopHeaderData>>(
       `${cmsApiUrl}/shop-headers`,
       {
-        params: COLLECTION_PARAMS,
+        // navLinks -> groups -> links -> image zinciri 4 seviye, deep,5 gerekiyor.
+        params: { ...COLLECTION_PARAMS, populate: 'deep,5' },
         headers: { Authorization: `Bearer ${cmsBearer}` },
         static: true,
         next: { revalidate: 300 },
@@ -42,8 +43,8 @@ export const getShopHeaderDirect = async (): Promise<ShopHeaderData | undefined>
     if (error) return undefined;
     const a = firstAttributes(res);
     if (!a) return undefined;
-    const { links, bannerLinks, categories } = a;
-    return { links, bannerLinks, categories } as ShopHeaderData;
+    const { links, bannerLinks, categories, navLinks } = a;
+    return { links, bannerLinks, categories, navLinks } as ShopHeaderData;
   } catch {
     return undefined;
   }

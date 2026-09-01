@@ -6,7 +6,11 @@ const styles = {
     position: 'relative',
     width: '100%',
     height: '100%',
-    aspectRatio: { xs: '1.4', md: '1.25' },
+    // Iki kart yan yana ~650px genislige oturuyor; oran hero'dan (2.67) daha
+    // dik olursa kartlar hero'dan uzun cikip hiyerarsiyi ters ceviriyordu.
+    // 1.6 ile yukseklik ~406px: hero'nun belirgin sekilde altinda kaliyor.
+    aspectRatio: { xs: '1.45', sm: '1.7', md: '1.6' },
+    maxHeight: { md: 440 },
     overflow: 'hidden',
     '& img': { transition: 'transform .5s ease' },
     '&:hover img': { transform: 'scale(1.03)' },

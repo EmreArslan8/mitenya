@@ -1,8 +1,9 @@
 import { withPalette } from '@/theme/ThemeRegistry';
-import { bannerHeight, headerHeight } from '@/theme/theme';
+import { headerHeight } from '@/theme/theme';
 
 const FILTER_BAR_HEIGHT = 52;
-const MOBILE_NAV_FALLBACK_TOP = headerHeight.xs + bannerHeight;
+// Duyuru seridi mobilde gizli; yedek konum yalnizca header yuksekligi.
+const MOBILE_NAV_FALLBACK_TOP = headerHeight.xs;
 
 const useStyles = withPalette((palette) => ({
   mobileFiltersWrapper: {

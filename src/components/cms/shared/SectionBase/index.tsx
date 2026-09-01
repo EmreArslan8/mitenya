@@ -134,7 +134,7 @@ const DynamicTitle = ({
   const styles = useStyles();
 
   return (
-    <Box component="h2" m={0} sx={{ width: '100%' }}>
+    <Box component="h2" sx={styles.heading}>
       <Stack
         sx={styles.title}
         columnGap={0.5}

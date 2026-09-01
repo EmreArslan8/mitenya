@@ -20,14 +20,20 @@ const ShopInfoAreas = ({ section, infoAreas }: InfoAreasProps) => {
     <SectionBase
       {...section}
       sx={{
-        pt: 0,
-        pb: 0,
+        // SectionBase'in varsayilan 8px padding'i bu blokta tamamen kapali.
+        p: 0,
         mt: { xs: -3, md: -7 },
       }}
     >
       <Box sx={styles.wrapper}>
         {mdDown ? (
-          <Box sx={styles.mobileContainer}>
+          <Box
+            sx={{
+              ...styles.mobileContainer,
+              // Mobilde de yan yana: dortten fazlasi satira boluniyor.
+              gridTemplateColumns: `repeat(${Math.min(infoAreas.length || 1, 4)}, minmax(0, 1fr))`,
+            }}
+          >
             {infoAreas.map((infoArea, index) => (
               <Box key={index} sx={styles.mobileItem}>
                 <InfoArea {...infoArea} index={index} />

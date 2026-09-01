@@ -27,6 +27,18 @@ const fadeInOut = keyframes`
 `;
 
 const useStyles = withPalette((palette) => ({
+  // Baslik olcegi sarmalayici h2'de duruyor: metin duz de gelse, <p> icinde
+  // de gelse miras aliniyor. Onceden yalnizca "& p" hedeflendigi icin CMS'ten
+  // gelen duz metin tarayici varsayilaniyla (24px) ciziliyordu.
+  heading: {
+    m: 0,
+    width: '100%',
+    fontSize: { xs: 24, sm: 30, md: 34 },
+    fontWeight: { xs: 600, md: 500 },
+    letterSpacing: { xs: '-0.01em', sm: '-0.02em', md: '-0.025em' },
+    lineHeight: 1.15,
+    color: palette.gray[900],
+  },
   title: {
     color: palette.gray[900],
     width: 'fit-content',
@@ -64,7 +76,16 @@ const useStyles = withPalette((palette) => ({
     animation: `${fadeInOut} 2s ease-in-out`,
   },
   dynamicTitleMarkdownOptions: {
-    p: { variant: 'h1', sx: { fontWeight: '600 !important' } },
+    // Olcek h2'den miras aliniyor; burada yalnizca metin akisi duzeltiliyor.
+    p: {
+      sx: {
+        m: 0,
+        fontSize: 'inherit',
+        fontWeight: 'inherit',
+        letterSpacing: 'inherit',
+        lineHeight: 'inherit',
+      },
+    },
     strong: {
       variant: 'h2',
       color: palette.primary.main,

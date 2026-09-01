@@ -12,9 +12,11 @@ const useStyles = withPalette((palette) => {
     container: {
       // xs'te header fixed, bu kutu onun yer tutucusu; sm+'da akista oldugu icin
       // icerige gore buyusun — sabit yukseklik altta bos bant birakiyordu.
-      height: { xs: headerHeight.xs + ANNOUNCEMENT_HEIGHT, sm: 'auto' },
+      // Duyuru seridi mobilde gizli; yer tutucu da o 34px'i saymiyor.
+      height: { xs: headerHeight.xs, sm: 'auto' },
     },
     banner: {
+      display: { xs: 'none', sm: 'flex' },
       justifyContent: 'center',
       height: ANNOUNCEMENT_HEIGHT,
       background: isMobileApp ? palette.bg.main : palette.error.main,
@@ -75,8 +77,18 @@ const useStyles = withPalette((palette) => {
     },
     logoMobile: {
       ...palette.logo,
-      width: 112,
-      height: 36,
+      // logo.svg orani 620.8 x 169.2 = 3.67:1 — onceki 112x36 (3.11:1)
+      // logoyu yatayda eziyordu. Oran korunarak buyutuldu.
+      width: 110,
+      height: 30,
+      cursor: 'pointer',
+    },
+    logoMobileTapArea: {
+      // Gorsel 26px olsa da dokunma hedefi 44px'e tamamlaniyor.
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 44,
       cursor: 'pointer',
     },
     content: {

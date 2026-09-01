@@ -1,5 +1,5 @@
 import { Stack, Typography } from '@mui/material';
-import { bannerHeight, headerHeight } from '@/theme/theme';
+import { headerHeight } from '@/theme/theme';
 import type { LegalDocument } from './types';
 import LegalDocumentContent from './LegalDocumentContent';
 
@@ -8,7 +8,7 @@ const LegalDocumentView = ({ document }: { document: LegalDocument }) => {
     <Stack
       gap={3}
       sx={{
-        mt: { xs: `${headerHeight.xs + bannerHeight - 24}px`, sm: 0 },
+        mt: { xs: `${headerHeight.xs + 2}px`, sm: 0 },
         mb: 3,
         width: '100%',
         maxWidth: 900,
