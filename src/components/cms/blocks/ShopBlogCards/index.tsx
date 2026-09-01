@@ -1,11 +1,10 @@
 'use client';
 
-import { Box, Grid, Stack, Typography } from '@mui/material';
+import { Grid } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { BlockComponentBaseProps } from '..';
 import BlogCard from '../../shared/BlogCard';
-import { ArrowRight } from 'lucide-react';
-import styles from './styles';
+import SectionBase from '../../shared/SectionBase';
 
 interface BlogEntity {
   id: number;
@@ -51,31 +50,14 @@ const ShopBlogCards = ({
   if (!blogs.length) return null;
 
   return (
-    <Stack gap={4}>
-      {/* Header */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Stack gap={0.5}>
-          <Typography
-            sx={styles.headerTitle}
-          >
-            {title}
-          </Typography>
-          <Box sx={styles.headerAccent} />
-        </Stack>
-
-        {viewAllUrl && (
-          <Typography
-            component="a"
-            href={viewAllUrl}
-            sx={styles.viewAllLink}
-          >
-            {viewAllLabel || 'Tümünü Gör'}
-            <ArrowRight size={16} />
-          </Typography>
-        )}
-      </Stack>
-
-      {/* Cards */}
+    // Baslik ve "tumunu gor" butonu SectionBase'e devredildi: blok kendi
+    // basligini basarken sayfadaki diger bolumlerden farkli olcek ve
+    // hizalama kullaniyordu.
+    <SectionBase
+      sectionHeader={title}
+      sectionLabel={viewAllUrl ? viewAllLabel || 'Tümünü Gör' : undefined}
+      sectionHref={viewAllUrl}
+    >
       <Grid container spacing={3}>
         {blogs.map((blog) => (
           <Grid item xs={12} md={4} key={blog.id}>
@@ -92,7 +74,7 @@ const ShopBlogCards = ({
           </Grid>
         ))}
       </Grid>
-    </Stack>
+    </SectionBase>
   );
 };
 

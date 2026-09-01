@@ -57,7 +57,10 @@ const ForgotPasswordModal = ({ onClose, onBack, onSubmit }: Props) => {
     >
       <Stack gap={3}>
         <Stack gap={0.5}>
-          <Typography variant="h2" fontSize={22} fontWeight={700}>Şifreni sıfırla</Typography>
+          {/* fontSize kirilimli: duz deger tema h2'nin sm blogunda 20px'e dusuyor. */}
+          <Typography variant="h2" sx={{ fontSize: { xs: 22, sm: 22 }, lineHeight: { xs: 1.3, sm: 1.3 } }} fontWeight={700}>
+            Şifreni sıfırla
+          </Typography>
           <Typography variant="body2" color="text.secondary">
             {sent
               ? 'Şifre sıfırlama bağlantısı e-posta adresine gönderildi. Lütfen gelen kutunu kontrol et.'

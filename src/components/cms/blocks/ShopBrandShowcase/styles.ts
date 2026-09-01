@@ -37,7 +37,7 @@ const useStyles = withPalette((palette) => ({
     position: 'relative',
     width: '100%',
     aspectRatio: { xs: '3 / 2', md: '16 / 9' },
-    borderRadius: 2,
+    borderRadius: 0,
     overflow: 'hidden',
   },
 
@@ -63,11 +63,18 @@ const useStyles = withPalette((palette) => ({
   },
   
 
+  // Olcek SectionBase basligiyla ayni: blok basligi ile bolum basligi
+  // yan yana geldiginde ikisi ayni hiyerarside okunuyor.
   title: {
-    fontSize: { xs: '18px', md: '28px' },
-    fontWeight: 700,
+    fontSize: { xs: 24, sm: 30, md: 34 },
+    fontWeight: { xs: 600, md: 500 },
+    letterSpacing: { xs: '-0.01em', sm: '-0.02em', md: '-0.025em' },
     color: palette.text.main,
-    lineHeight: 1.3,
+    // Duz `lineHeight: 1.15` ise etkisiz kaliyor: temanin h2 varyanti satir
+    // yuksekligini `breakpoints.up('sm')` medya blogunda 24px'e sabitliyor ve
+    // o blok birlesik sinifta duz bildirimden sonra geliyor. Kirilimli
+    // yazilinca bizim deger de medya blogu icine dusup kazaniyor.
+    lineHeight: { xs: 1.15, sm: 1.15 },
   },
 
   description: {

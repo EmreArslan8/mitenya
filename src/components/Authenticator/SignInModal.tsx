@@ -54,7 +54,10 @@ const SignInModal = ({ onClose, onSubmit, onForgotPassword, onSwitchToSignup }: 
     >
       <Stack gap={3}>
         <Stack gap={0.5}>
-          <Typography variant="h2" fontSize={22} fontWeight={700}>Hesabına giriş yap</Typography>
+          {/* fontSize kirilimli: duz deger tema h2'nin sm blogunda 20px'e dusuyor. */}
+          <Typography variant="h2" sx={{ fontSize: { xs: 22, sm: 22 }, lineHeight: { xs: 1.3, sm: 1.3 } }} fontWeight={700}>
+            Hesabına giriş yap
+          </Typography>
           <Typography variant="body2" color="text.secondary">
             E-posta ve şifrenle giriş yapabilir veya Google ile devam edebilirsin.
           </Typography>

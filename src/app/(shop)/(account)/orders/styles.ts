@@ -15,6 +15,9 @@ const useStyles = withPalette((palette) => ({
   },
   pageTitle: {
     fontSize: { xs: 22, sm: 26 },
+    // Kirilimli: aksi halde tema h2'nin sm blogundaki 24px satir yuksekligi
+    // 26px yaziyla birlikte kaliyor ve baslik iki satira dusunce cakisiyor.
+    lineHeight: { xs: 1.25, sm: 1.25 },
     fontWeight: 800,
     letterSpacing: -0.3,
   },

@@ -44,7 +44,10 @@ const VerificationModal = ({ email, onResend, onBack, onClose, onSubmit }: Props
     >
       <Stack gap={2}>
         <Stack gap={0.5}>
-          <Typography variant="h2" fontSize={22} fontWeight={700}>E-postanı doğrula</Typography>
+          {/* fontSize kirilimli: duz deger tema h2'nin sm blogunda 20px'e dusuyor. */}
+          <Typography variant="h2" sx={{ fontSize: { xs: 22, sm: 22 }, lineHeight: { xs: 1.3, sm: 1.3 } }} fontWeight={700}>
+            E-postanı doğrula
+          </Typography>
           <Typography variant="body2" color="text.secondary">
             <strong>{email}</strong> adresine gönderilen 6 haneli kodu gir.
           </Typography>

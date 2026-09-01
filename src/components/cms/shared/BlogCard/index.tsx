@@ -40,7 +40,11 @@ const BlogCard = ({
     : null;
 
   return (
-    <Link href={`/blog/${slug}`} style={{ textDecoration: 'none' }}>
+    <Link
+      href={`/blog/${slug}`}
+      aria-label={`${title} yazısını oku`}
+      style={{ display: 'block', height: '100%', textDecoration: 'none' }}
+    >
       <Stack
         direction={featured ? { xs: 'column', md: 'row' } : { xs: 'row', md: 'column' }}
         sx={styles.card(featured)}
@@ -85,7 +89,7 @@ const BlogCard = ({
               </Typography>
             </Stack>
           )}
-          <Typography sx={styles.title(featured)}> {title}</Typography>
+          <Typography sx={styles.title(featured)}>{title}</Typography>
           {excerpt && (
             <Typography sx={styles.excerpt(featured)}>
               {excerpt}

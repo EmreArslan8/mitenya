@@ -14,7 +14,9 @@ const styles = {
   },
   title: {
     fontSize: { xs: 30, sm: 36, md: 40 },
-    lineHeight: 1.08,
+    // Kirilimli yazilmak zorunda: tema h1'in satir yuksekligini
+    // breakpoints.up('sm') blogunda 34px'e sabitliyor ve duz bildirimi eziyor.
+    lineHeight: { xs: 1.08, sm: 1.08 },
     fontWeight: 850,
     letterSpacing: 0,
     color: '#101820',

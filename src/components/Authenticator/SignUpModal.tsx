@@ -4,7 +4,6 @@ import { Box, Checkbox, Stack, TextField, Typography } from '@mui/material';
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import Banner from '../common/Banner';
-import Button from '../common/Button';
 import { LoadingButton } from '@mui/lab';
 import Link from '../common/Link';
 import ModalCard from '../common/ModalCard';
@@ -55,7 +54,10 @@ const SignUpModal = ({ onClose, onSubmit, onSwitchToSignin }: Props) => {
     >
       <Stack gap={3}>
         <Stack gap={0.5}>
-          <Typography variant="h2" fontSize={22} fontWeight={700}>Yeni hesabını oluştur</Typography>
+          {/* fontSize kirilimli: duz deger tema h2'nin sm blogunda 20px'e dusuyor. */}
+          <Typography variant="h2" sx={{ fontSize: { xs: 22, sm: 22 }, lineHeight: { xs: 1.3, sm: 1.3 } }} fontWeight={700}>
+            Yeni hesabını oluştur
+          </Typography>
           <Typography variant="body2" color="text.secondary">Mitenya hesabınla alışverişini daha hızlı tamamla.</Typography>
         </Stack>
 
