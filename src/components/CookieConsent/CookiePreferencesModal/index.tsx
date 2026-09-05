@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Chip, Stack, Switch, Typography } from '@mui/material';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp } from '@/components/icons';
 import { useState } from 'react';
 import Button from '@/components/common/Button';
 import Link from '@/components/common/Link';

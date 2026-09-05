@@ -1,4 +1,6 @@
-import { R2_IMAGE_PROFILES, productMainImagePath, r2ImageSrcSet, r2ImageUrl } from '@/lib/utils/r2';
+import { R2_IMAGE_PROFILES, productMainImagePath, r2ImageUrl, r2Url } from '@/lib/utils/r2';
+import { getNextImageWidths } from '@/lib/imageSizesConfig';
+import imageLoader from '@/lib/imageLoader';
 import { Metadata } from 'next';
 import { preload } from 'react-dom';
 import { Suspense } from 'react';
@@ -6,10 +8,20 @@ import { getProductData } from './data';
 import Loading from './loading';
 import SuspensedView from './suspensedView';
 
+/**
+ * PDP ana gorseli LCP elementi; HTML head'inden erkenden preload ediliyor.
+ *
+ * KRITIK: preload'un srcset'i galerinin bastigi srcset ile BIREBIR ayni
+ * olmali. Galeri artik next/image kullaniyor, bu yuzden adaylar da ayni
+ * loader ve ayni genislik listesinden uretiliyor; aksi halde tarayici
+ * preload'dan bir adayi, galeriden baskasini indirir (cift indirme).
+ */
 const preloadProductMainImage = (imagePathOrUrl: string | undefined) => {
   if (!imagePathOrUrl) return;
 
   const profile = R2_IMAGE_PROFILES.productPdpPrimary;
+  const rawSrc = r2Url(imagePathOrUrl);
+  const widths = getNextImageWidths(profile.sizes);
 
   preload(
     r2ImageUrl(imagePathOrUrl, {
@@ -20,20 +32,27 @@ const preloadProductMainImage = (imagePathOrUrl: string | undefined) => {
     {
       as: 'image',
       fetchPriority: 'high',
-      imageSrcSet: r2ImageSrcSet(imagePathOrUrl, profile.widths, {
-        quality: profile.quality,
-        format: profile.format,
-      }),
+      imageSrcSet: widths
+        .map((width) => `${imageLoader({ src: rawSrc, width, quality: profile.quality })} ${width}w`)
+        .join(', '),
       imageSizes: profile.sizes,
     }
   );
 };
 
+/** Rota parametresi slug de olabilir, UUID de. */
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const ProductPage = async ({ params }: { params: { id: string } }) => {
   // ADR-0001: isPreviewBot() kaldırıldı — headers() çağırıyordu ve ISR'ı engelliyordu.
   // Sayfa artık cache'lendiği için crawler'lara render maliyeti yok; gate gereksiz.
   const { id } = await params;
-  preloadProductMainImage(productMainImagePath(id));
+  // Gorsel yolu slug uzerine kurulu (`products/<slug>/main.webp`). Parametre
+  // UUID ise bu yol var olmayan bir dosyayi gosterir ve preload bosa giden bir
+  // istek uretir (Lighthouse'ta statusCode -1 olarak gorunuyordu).
+  if (!UUID_PATTERN.test(id)) {
+    preloadProductMainImage(productMainImagePath(id));
+  }
   const data = await getProductData(id);
 
   return (

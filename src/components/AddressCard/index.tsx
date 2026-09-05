@@ -19,7 +19,8 @@ import { ReactNode, useEffect, useState } from 'react';
 import Card from '../common/Card';
 import EditAddressModal from './modals/EditAddressModal';
 import styles from './styles';
-import { ChevronDown, MapPin, Pencil, Trash } from 'lucide-react';
+import { ChevronDown } from '@/components/icons';
+import { MapPin, Pencil, Trash } from 'lucide-react';
 
 const gridColumns = {
   contactName: { xs: 6 },

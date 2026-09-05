@@ -1,7 +1,9 @@
 'use client';
 
 import Button from '@/components/common/Button';
+import { ArrowLeft, CloseIcon, Heart, History, Menu, Search, User } from '@/components/icons';
 import CartPageView from '@/features/cart/CartPageView';
+import AccountMenu from './AccountMenu';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
 import MobileSearchOverlay from './MobileSearchOverlay';
@@ -41,7 +43,15 @@ import ShoppingCartButton from '../ShoppingCart/ShoppingCartButton';
 import ModalCard from '../common/ModalCard';
 import CategoriesDrawer from './CategoriesDrawer';
 import useStyles, { ANNOUNCEMENT_HEIGHT } from './styles';
-import { Headset, ArrowLeft, ShoppingBag, LogOut, LogIn, HelpCircle, Search, X, History, Settings, Menu, User, PackageSearch, Heart } from 'lucide-react';
+import {
+  Headset,
+  ShoppingBag,
+  LogOut,
+  LogIn,
+  HelpCircle,
+  Settings,
+  PackageSearch,
+} from 'lucide-react';
 
 
 const getSupportUrl = 'https://api.whatsapp.com/send?phone=905070617930';
@@ -321,10 +331,7 @@ const Navigation = ({ data }: NavigationProps) => {
 
   const handleAccountButtonClick = (destination: string = '/orders') => {
     if (isAuthenticated) return router.push(destination);
-    const options = {
-      onSuccess: () => router.push(destination),
-    };
-    openAuthenticator(options);
+    openAuthenticator({ returnUrl: destination });
   };
 
   // CMS'te navLinks doluysa oradan, degilse taslak sabit listeden.
@@ -597,7 +604,7 @@ const Navigation = ({ data }: NavigationProps) => {
                       aria-expanded={mobileSearchInputOpen}
                     >
                       {mobileSearchInputOpen ? (
-                        <X size={24} strokeWidth={1.5} />
+                        <CloseIcon size={24} />
                       ) : (
                         <Search size={24} strokeWidth={1.5} />
                       )}
@@ -672,17 +679,11 @@ const Navigation = ({ data }: NavigationProps) => {
                         aria-label="Ara"
                         aria-expanded={desktopSearchOpen}
                       >
-                        {desktopSearchOpen ? <X /> : <Search />}
+                        {desktopSearchOpen ? <CloseIcon /> : <Search />}
                       </MenuItem>
                       {mounted && (
                         <>
-                          <MenuItem
-                            sx={{ ...styles.action, ...styles.actionIcon }}
-                            onClick={() => handleAccountButtonClick()}
-                            aria-label={isAuthenticated ? 'Hesabım' : 'Giriş Yap'}
-                          >
-                            <User />
-                          </MenuItem>
+                          <AccountMenu triggerSx={{ ...styles.action, ...styles.actionIcon }} />
                           <MenuItem
                             sx={{ ...styles.action, ...styles.actionIcon }}
                             onClick={() => handleAccountButtonClick('/settings?section=favorites')}
@@ -818,7 +819,8 @@ const Navigation = ({ data }: NavigationProps) => {
             CardProps={{
               sx: {
                 height: isCartEmpty ? 'auto' : '100%',
-                maxHeight: isCartEmpty ? { xs: '40vh', sm: 300 } : undefined,
+                // Boş sepet artık illüstrasyonlu bir blok; eski 300px'lik kutuya sığmıyor.
+                maxHeight: isCartEmpty ? { xs: '70vh', sm: 520 } : undefined,
                 pb: isCartEmpty ? 2 : 12,
               },
             }}
@@ -1052,7 +1054,7 @@ const SearchBar = ({ onFocus, onBlur, autoFocus, wide }: SearchBarProps) => {
                     {item}
                   </Typography>
                   <IconButton onClick={() => removeSearchQuery(item)} size="small">
-                    <X color="neutral" />
+                    <CloseIcon />
                   </IconButton>
                 </Stack>
               ))}

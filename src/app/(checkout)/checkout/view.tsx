@@ -48,7 +48,7 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import useStyles from './styles';
-import { Check, Info } from 'lucide-react';
+import { Check, Info } from '@/components/icons';
 
 export interface CheckoutPageViewProps {
   initialAddresses?: AddressData[] | null;
@@ -521,7 +521,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                       <Typography
                         variant="body2"
                         sx={{ fontSize: 14, color: 'primary.main', textDecoration: 'underline', cursor: 'pointer' }}
-                        onClick={(event) => { event.stopPropagation(); openAuthenticator?.(); }}
+                        onClick={(event) => { event.stopPropagation(); openAuthenticator?.({ type: 'uye-ol' }); }}
                       >
                         Üye Ol
                       </Typography>

@@ -1,9 +1,10 @@
 import SearchSort from '@/components/SearchSort';
+import { ArrowLeft, ChevronRight, CloseIcon } from '@/components/icons';
 import { ShopFilter, ShopFilterType, ShopSearchResponseFilters, ShopSearchSort } from '@/lib/api/types';
 import { FILTER_TYPE_LABEL_TR } from '@/lib/utils/filters';
 import { Chip } from '@mui/material';
 import { Drawer, IconButton, Stack, Typography } from '@mui/material';
-import { ArrowLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import FilterCard from '../FilterCard';
 import useStyles from './styles';
@@ -111,7 +112,7 @@ const MobileFilters = ({
           )}
           <Typography sx={styles.drawerTitle}>{currentFilterLabel}</Typography>
           <IconButton onClick={resetDrawerState} aria-label="Filtre panelini kapat" sx={styles.headerAction}>
-            <X size={20} />
+            <CloseIcon size={20} />
           </IconButton>
         </Stack>
 

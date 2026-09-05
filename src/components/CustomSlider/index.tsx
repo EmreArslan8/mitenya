@@ -1,11 +1,12 @@
 'use client';
 
-import { Button, Stack } from '@mui/material';
+import { Box, Button, Stack } from '@mui/material';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
+import Image from 'next/image';
 import { Children, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { DoubleChevronLeft, DoubleChevronRight } from '@/components/icons';
 import useStyles from './styles';
 
 export interface SliderHandle {
@@ -26,6 +27,7 @@ interface CustomSliderProps {
   sliderRef?: React.MutableRefObject<SliderHandle | null>;
   afterChange?: (index: number) => void;
   arrows?: boolean;
+  arrowVariant?: 'default' | 'editorial';
 }
 
 const CustomSlider = ({
@@ -40,6 +42,7 @@ const CustomSlider = ({
   sliderRef: externalRef,
   afterChange,
   arrows,
+  arrowVariant = 'default',
 }: CustomSliderProps) => {
   const plugins = [
     ...(autoplayEnabled
@@ -100,20 +103,46 @@ const CustomSlider = ({
             size="small"
             variant="outlined"
             onClick={() => emblaApi?.scrollPrev()}
-            sx={styles.prevButton}
+            sx={styles.prevButton(arrowVariant)}
             aria-label="Önceki"
           >
-            <ChevronLeft size={18} />
+            {arrowVariant === 'editorial' ? (
+              <Box component="span" sx={styles.editorialArrowIcon}>
+                <DoubleChevronLeft size="100%" />
+              </Box>
+            ) : (
+              <Box component="span" sx={styles.arrowIcon}>
+                <Image
+                  src="/static/images/icons/chevron-left.svg"
+                  alt=""
+                  fill
+                  sizes="(max-width: 599px) 16px, 18px"
+                />
+              </Box>
+            )}
           </Button>
           <Button
             color="neutral"
             size="small"
             variant="outlined"
             onClick={() => emblaApi?.scrollNext()}
-            sx={styles.nextButton}
+            sx={styles.nextButton(arrowVariant)}
             aria-label="Sonraki"
           >
-            <ChevronRight size={18} />
+            {arrowVariant === 'editorial' ? (
+              <Box component="span" sx={styles.editorialArrowIcon}>
+                <DoubleChevronRight size="100%" />
+              </Box>
+            ) : (
+              <Box component="span" sx={styles.arrowIcon}>
+                <Image
+                  src="/static/images/icons/chevron-right.svg"
+                  alt=""
+                  fill
+                  sizes="(max-width: 599px) 16px, 18px"
+                />
+              </Box>
+            )}
           </Button>
         </>
       )}

@@ -65,12 +65,11 @@ const ShopBanner = ({ section, banners }: ShopBannersProps) => {
 
   if (banners.length === 1) {
     return (
-      <SectionBase {...section} sx={{ p: 0 }}>
+      <SectionBase {...section} fullBleed>
         <ShopBannerItem
           url={(isMobile && banners[0]?.mobileUrl?.trim()) || banners[0]?.url}
-          image={
-            isMobile && banners[0]?.mobileImage?.data ? banners[0].mobileImage : banners[0]?.image
-          }
+          image={banners[0]?.image}
+          mobileImage={banners[0]?.mobileImage}
           title={banners[0]?.title}
           description={banners[0]?.description}
           button={banners[0]?.button}
@@ -82,7 +81,7 @@ const ShopBanner = ({ section, banners }: ShopBannersProps) => {
   }
 
   return (
-    <SectionBase {...section} sx={{ p: 0 }}>
+    <SectionBase {...section} fullBleed>
       <Stack sx={styles.sliderContainer}>
         {/* Viewport */}
         <Box ref={emblaRef as React.Ref<HTMLDivElement>} sx={{ overflow: 'hidden' }}>
@@ -97,7 +96,8 @@ const ShopBanner = ({ section, banners }: ShopBannersProps) => {
               >
                 <ShopBannerItem
                   url={(isMobile && banner.mobileUrl?.trim()) || banner.url}
-                  image={isMobile && banner.mobileImage?.data ? banner.mobileImage : banner.image}
+                  image={banner.image}
+                  mobileImage={banner.mobileImage}
                   title={banner.title}
                   description={banner.description}
                   button={banner.button}

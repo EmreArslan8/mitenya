@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import { DEVICE_SIZES, IMAGE_SIZES, QUALITIES } from './src/lib/imageSizesConfig';
 
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: process.env.MITENYA_SOURCE_MAPS === 'true',
@@ -99,7 +100,16 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    unoptimized: true,
+    // `unoptimized: true` KAPALI (deneme). Bunun yerine src/lib/imageLoader.ts
+    // Cloudflare / Cloudinary donusumlerini kuruyor; Next hicbir goruntuyu
+    // kendisi islemiyor, yalnizca srcset/sizes markup'ini yaziyor.
+    loader: 'custom',
+    loaderFile: './src/lib/imageLoader.ts',
+    // Aday havuzu src/lib/imageSizesConfig.ts'ten geliyor; PDP preload'u da
+    // ayni kaynagi kullaniyor ki preload ile galeri farkli aday indirmesin.
+    deviceSizes: DEVICE_SIZES,
+    imageSizes: IMAGE_SIZES,
+    qualities: QUALITIES,
     remotePatterns: [
       {
         protocol: 'http',

@@ -1,7 +1,8 @@
 'use client';
 
 import { Box, Stack, Typography } from '@mui/material';
-import { Cookie, X } from 'lucide-react';
+import { CloseIcon } from '@/components/icons';
+import { Cookie } from 'lucide-react';
 import Button from '@/components/common/Button';
 import Link from '@/components/common/Link';
 import useStyles from './styles';
@@ -51,7 +52,7 @@ const CookieConsentBanner = ({
               </Typography>
             </Box>
             <Box sx={styles.dismissButton} onClick={onDismiss} aria-label="Çerez bannerını kapat">
-              <X size={16} strokeWidth={2.2} />
+              <CloseIcon size={16} />
             </Box>
           </Box>
 

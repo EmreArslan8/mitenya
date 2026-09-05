@@ -4,7 +4,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { Snackbar, Stack } from '@mui/material';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { Check } from 'lucide-react';
+import { Check } from '@/components/icons';
 import Button from '@/components/common/Button';
 import Banner from '@/components/common/Banner';
 import { CrossFade } from '@/components/common/CrossFade';
@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
 import { ShopProductData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
+import AddedToCartModal from '@/components/ShoppingCart/AddedToCartModal';
 import ProductStickyBar from '../ProductStickyBar';
 import ProductVariants from '../ProductVariants';
 import useStyles from '../../styles';
@@ -40,6 +41,8 @@ const ProductPurchaseIsland = ({ data }: { data: ShopProductData }) => {
   const [variants, setVariants] = useState(data.variants);
   const [isMainCtaVisible, setIsMainCtaVisible] = useState(true);
   const [showCheck, setShowCheck] = useState(false);
+  /** Sepete eklendi onayı — seçili varyantlarıyla birlikte gösterilir. */
+  const [addedToCart, setAddedToCart] = useState<ShopProductData | null>(null);
   const [stockAlertLoading, setStockAlertLoading] = useState(false);
   const [stockAlertRequested, setStockAlertRequested] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState>(null);
@@ -74,8 +77,11 @@ const ProductPurchaseIsland = ({ data }: { data: ShopProductData }) => {
   };
 
   const handleAddToCart = () => {
-    const success = handleAddItem({ ...data, variants: variants });
+    const addedProduct = { ...data, variants: variants };
+    // notify:false → global sepet çekmecesi açılmasın, onay modalını biz gösteriyoruz.
+    const success = handleAddItem(addedProduct, { notify: false });
     if (!success) return;
+    setAddedToCart(addedProduct);
     setShowCheck(true);
     if (checkTimeoutRef.current) clearTimeout(checkTimeoutRef.current);
     checkTimeoutRef.current = setTimeout(() => setShowCheck(false), 1000);
@@ -143,7 +149,7 @@ const ProductPurchaseIsland = ({ data }: { data: ShopProductData }) => {
       cb();
       return;
     }
-    openAuthenticator?.({ onSuccess: cb });
+    openAuthenticator?.();
   };
 
   const handleOutOfStockClick = () => {
@@ -243,6 +249,11 @@ const ProductPurchaseIsland = ({ data }: { data: ShopProductData }) => {
         loading={addToCartLoading}
         showCheck={showCheck}
         onAddToCart={handleAddToCart}
+      />
+      <AddedToCartModal
+        open={!!addedToCart}
+        onClose={() => setAddedToCart(null)}
+        product={addedToCart ?? undefined}
       />
       <Snackbar
         open={!!feedback}

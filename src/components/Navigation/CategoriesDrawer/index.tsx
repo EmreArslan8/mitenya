@@ -1,6 +1,7 @@
 'use client';
 
 import { CategoryParent } from '@/lib/api/types';
+import { ArrowLeft, ChevronRight, CloseIcon, Heart, User } from '@/components/icons';
 import {
   Box,
   Drawer,
@@ -9,7 +10,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { ArrowLeft, ChevronRight, Heart, Package, User, X } from 'lucide-react';
+import { Package } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import useStyles from './styles';
@@ -95,7 +96,7 @@ const CategoriesDrawer = ({
             />
           </Box>
           <IconButton onClick={onClose} aria-label="Kapat" sx={styles.closeButton}>
-            <X strokeWidth={1.5} size={28} />
+            <CloseIcon size={28} />
           </IconButton>
         </Stack>
 

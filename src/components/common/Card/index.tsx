@@ -3,19 +3,17 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
-  Divider,
   Stack,
   SxProps,
   Typography,
   TypographyProps,
 } from '@mui/material';
 import { ReactNode, forwardRef, useEffect, useState } from 'react';
-import Icon, { IconProps } from '../../Icon';
+import { ChevronDown } from '@/components/icons';
 import useStyles from './styles';
 
 export interface CardProps {
-  iconName?: string;
-  iconProps?: Partial<IconProps>;
+  /** Başlık ikonu; doğrudan bileşen olarak verilir. */
   customIcon?: ReactNode;
   title?: ReactNode;
   titleProps?: Partial<TypographyProps>;
@@ -24,6 +22,7 @@ export interface CardProps {
   collapsible?: boolean;
   defaultCollapsed?: boolean;
   stickyHeader?: boolean;
+  /** Yalnızca açılır kartın gövde üstü çizgisini kapatır. */
   noDivider?: boolean;
   border?: boolean;
   action?: ReactNode;
@@ -33,8 +32,6 @@ export interface CardProps {
 const Card = forwardRef<HTMLDivElement, CardProps>(
   (
     {
-      iconName,
-      iconProps: IconProps,
       customIcon,
       title,
       titleProps,
@@ -52,9 +49,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
   ) => {
     const [expanded, setExpanded] = useState(!(collapsible && defaultCollapsed));
     const styles = useStyles()(border, stickyHeader, expanded);
-    const icon =
-      customIcon ||
-      (iconName && <Icon name={iconName} fontSize={24} {...IconProps} color={IconProps?.color} />);
+    const icon = customIcon;
 
     useEffect(() => {
       if (!collapsible) setExpanded(true);
@@ -82,12 +77,13 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
               </Stack>
               <Stack sx={styles.actionArea}>
                 {action}
-                {collapsible && <Icon name="expand_more" sx={styles.expandIcon} />}
+                {collapsible && (
+                  <Stack component="span" sx={styles.expandIcon}>
+                    <ChevronDown size={24} />
+                  </Stack>
+                )}
               </Stack>
             </Stack>
-            {!noDivider && (icon || title || action) && children && !collapsible && (
-              <Divider flexItem />
-            )}
           </Stack>
         )}
         {collapsible ? (

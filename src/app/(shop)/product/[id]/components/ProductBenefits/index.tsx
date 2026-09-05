@@ -1,7 +1,8 @@
 'use client';
 
 import { Box, Stack, Typography, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
-import { ChevronDown, Sparkles } from 'lucide-react';
+import { ChevronDown } from '@/components/icons';
+import { Sparkles } from 'lucide-react';
 import { withPalette } from '@/theme/ThemeRegistry';
 
 type BenefitItem = { icon?: string; text: string };

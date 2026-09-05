@@ -1,6 +1,7 @@
 'use client';
 
 import LoadingOverlay from '@/components/LoadingOverlay';
+import CartTrustBar from '@/components/ShoppingCart/CartTrustBar';
 import CheckoutCard, { PriceLines } from '@/components/ShoppingCart/CheckoutCard';
 import ShopCartProductCard from '@/components/ShoppingCart/ShopCartProductCard';
 import Button from '@/components/common/Button';
@@ -20,10 +21,12 @@ import { pushItemToDataLayer } from '@/lib/utils/googleAnalytics';
 import { Box, Checkbox, Divider, Portal, Stack, Typography, debounce } from '@mui/material';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import useStyles from './styles';
+import EmptyCart from './EmptyCart';
 import { usePathname, useRouter } from 'next/navigation';
 import InfoItem from '@/components/InfoItem';
-import FreeShippingBar from '@/components/FreeShippingBar';
-import { ChevronDown, ChevronUp, Trash, User } from 'lucide-react';
+import { ChevronRight, ChevronUp } from '@/components/icons';
+import formatPrice from '@/lib/utils/formatPrice';
+import { Trash } from 'lucide-react';
 
 
 export interface CartPageViewProps {
@@ -32,6 +35,9 @@ export interface CartPageViewProps {
   onItemClick?: () => void;
   visible?: boolean;
 }
+
+/** Kargo bedava eşiği (TL) — FreeShippingBar'da da aynı değer kullanılıyordu. */
+const FREE_SHIPPING_THRESHOLD = 750;
 
 const CartPageView = ({
   hideTitle = false,
@@ -58,9 +64,19 @@ const CartPageView = ({
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(false);
-  const { isAuthenticated, openAuthenticator } = useAuth();
+  const { isAuthenticated } = useAuth();
   const isCartPage = pathname?.includes('/cart') ?? false;
   const currencyLabel = getDisplayCurrencyCode(orderSummary?.currency ?? 'TRY');
+  /** Kargo bedava eşiğine kalan tutar; ilk ürün kartının marka şeridinde gösterilir. */
+  const freeShippingRemaining = Math.max(0, FREE_SHIPPING_THRESHOLD - totalSelectedDue);
+  /** Başlıktaki sayaç: satır sayısı değil, sepetteki toplam adet. */
+  const itemCount = cart?.reduce((total, item) => total + (item.quantity ?? 0), 0) ?? 0;
+  /**
+   * Tam boş sepet: `cart` henüz undefined iken (ilk yükleme) boş state basmıyoruz,
+   * yoksa sepeti dolu olan kullanıcı bir an "sepetin boş" yazısını görüyor.
+   * Stokta kalmayan ürünler duruyorsa da sayfa tümden boş sayılmaz.
+   */
+  const isEmpty = !!cart && cart.length === 0 && unavailableItems.length === 0;
 
   const handleUpdateOrderSummary = useCallback(
     debounce(async (selected, discountCode) => {
@@ -103,15 +119,25 @@ const CartPageView = ({
   }, []);
 
   useEffect(() => {
-    if (!selected?.length) return setOrderSummary(undefined);
+    if (!selected?.length) {
+      setOrderSummary(undefined);
+      setSummaryLoading(false);
+      return;
+    }
 
-    setSummaryLoading(true);
-
+    // Oturum durumu daha çözülmediyse istek atamayız; spinner'ı da açmıyoruz.
+    // (Önce açılıp burada return edilince, auth hiç çözülmezse spinner sonsuza
+    // kadar dönüyordu.) isAuthenticated değişince bu effect yeniden çalışır.
     if (isAuthenticated === undefined) return;
 
+    setSummaryLoading(true);
     handleUpdateOrderSummary(selected, discountCode);
   }, [selected, discountCode, isAuthenticated]);
 
+
+  if (isEmpty) {
+    return <EmptyCart compact={hideTitle} onAction={onItemClick} />;
+  }
 
   return (
     <Stack
@@ -119,76 +145,63 @@ const CartPageView = ({
       
     >
       {visible && <LoadingOverlay loading={summaryLoading} />}
-      {!hideTitle && <Typography variant="h1">Sepet</Typography>}
+      {!hideTitle && <CartTrustBar />}
+      {!hideTitle && (
+        <Stack sx={styles.pageTitle}>
+          <Typography component="h1" sx={styles.pageTitleText}>
+            Sepet
+          </Typography>
+          {!!itemCount && (
+            <Typography component="span" sx={styles.pageTitleCount}>
+              {itemCount} ürün
+            </Typography>
+          )}
+        </Stack>
+      )}
       <TwoColumnLayout sx={{ pb: 3, gap: 3 }}>
         <PrimaryColumn sx={{ gap: 0.5 }}>
-          {!!cart?.length && (
-            <Box sx={{ mb: 1.5 }}>
-              <FreeShippingBar currentTotal={totalSelectedDue} currency={currencyLabel} />
-            </Box>
-          )}
-          {isAuthenticated === false && !!cart?.length && (
-            <Stack
-              direction="row"
-              alignItems="center"
-              gap={1.5}
-              sx={{
-                px: 2,
-                py: 1.25,
-                mb: 1.5,
-                borderRadius: 2,
-                backgroundColor: '#FFFEF2', 
-                border: '1px solid #F0E4C0', 
-              }}
-            >
-              <User size={22} />
-
-              <Typography variant="body" sx={{ fontSize: 14, color: 'text.primary' }}>
-                Alışverişini daha hızlı tamamlamak için{' '}
-                <Typography
-                  component="span"
-                  sx={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: 'warning.main',
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() =>
-                    openAuthenticator?.({
-                      onSuccess: () => {
-                        // Sadece login olsun diye bırakıyoruz;
-                        // istersen burada otomatik /checkout yönlendirmesi de ekleyebilirsin.
-                      },
-                    })
-                  }
-                >
-                  Giriş Yap
-                </Typography>
-              </Typography>
-            </Stack>
-          )}
           <Stack sx={styles.products}>
             {cart &&
               (cart.length ? (
                 cart.map((e, i) => (
                   <Stack gap={2} key={`${e.id}-${e.variants?.map(v => v.options.find(o => o.selected)?.value ?? '').join('-') ?? ''}`}>
-                    <Stack direction="row" pr={2} alignItems="center">
-                      <Checkbox
-                        size="small"
-                        checked={isSelected(e)}
-                        onChange={() => toggleSelected(e)}
+                    <Stack direction="row" alignItems="center">
+                      <ShopCartProductCard
+                        data={e}
+                        selection={
+                          <Checkbox
+                            size="small"
+                            checked={isSelected(e)}
+                            onChange={() => toggleSelected(e)}
+                            sx={{ mr: 1 }}
+                          />
+                        }
+                        editable
+                        onClick={onItemClick}
+                        headerAction={
+                          i === 0 ? (
+                            // Eşik aşıldıysa kazanılmış bir hak — yeşille söylüyoruz.
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              gap="4px"
+                              sx={{ color: freeShippingRemaining > 0 ? 'inherit' : 'success.main' }}
+                            >
+                              <Typography sx={{ fontSize: 12, lineHeight: '16px' }}>
+                                {freeShippingRemaining > 0
+                                  ? `${formatPrice(freeShippingRemaining, orderSummary?.currency ?? 'TRY')}'lik daha ekle kargo bedava`
+                                  : 'Kargo bedava'}
+                              </Typography>
+                              <ChevronRight size={16} />
+                            </Stack>
+                          ) : undefined
+                        }
                       />
-                      <ShopCartProductCard data={e} editable onClick={onItemClick} />
                     </Stack>
                     {i < cart.length - 1 && <Divider flexItem />}
                   </Stack>
                 ))
-              ) : (
-                <Typography variant="body" px={1}>
-                  Sepet Boş
-                </Typography>
-              ))}
+              ) : null)}
           </Stack>
           
           {unavailableItems.length > 0 && (
@@ -219,7 +232,10 @@ const CartPageView = ({
         <SecondaryColumn>
           {!isMobile && !!cart?.length && (
             <CheckoutCard
-              title="Siparişiniz"
+              title="Sipariş Özeti"
+              titleProps={{
+                sx: { fontSize: 24, fontWeight: 600, lineHeight: '34px', textTransform: 'none' },
+              }}
               orderSummary={orderSummary}
               numSelected={numSelected}
               discountCode={discountCode}
@@ -235,7 +251,7 @@ const CartPageView = ({
                     disabled={!selected?.length}
                     onClick={handleContinue}
                   >
-                    Sipariş Ver
+                    Sepeti Onayla
                   </Button>
                 )
               }

@@ -1,4 +1,3 @@
-import Icon, { IconProps } from '@/components/Icon';
 import {
   Accordion,
   AccordionDetails,
@@ -10,7 +9,8 @@ import {
 import { ReactNode, forwardRef, useEffect, useState } from 'react';
 import Button from '../Button';
 import useStyles from './styles';
-import { ChevronDown } from 'lucide-react';
+import { AlertCircle, CheckCircle2, ChevronDown, Info } from '@/components/icons';
+import { AlertTriangle, Sparkles } from 'lucide-react';
 
 export type BannerVariant =
   | 'primary'
@@ -19,24 +19,20 @@ export type BannerVariant =
   | 'error'
   | 'success'
   | 'neutral';
-type BannerVariantProps = {
-  [K in BannerVariant]: { IconProps: IconProps };
-};
-
-const BannerVariants: BannerVariantProps = {
-  primary: { IconProps: { name: 'sparkles', fontSize: 20 } },    
-  info: { IconProps: { name: 'info', fontSize: 20 } },            
-  warning: { IconProps: { name: 'alert-triangle', fontSize: 20 } },
-  error: { IconProps: { name: 'alert-circle', fontSize: 20 } },    
-  success: { IconProps: { name: 'check-circle-2', fontSize: 20 } },
-  neutral: { IconProps: { name: 'check-circle-2', fontSize: 20 } },
+/** Varyantın kendi ikonu; çağıran `icon` verirse bu kullanılmaz. */
+const BannerVariantIcons: Record<BannerVariant, ReactNode> = {
+  primary: <Sparkles size={20} />,
+  info: <Info size={20} />,
+  warning: <AlertTriangle size={20} />,
+  error: <AlertCircle size={20} />,
+  success: <CheckCircle2 size={20} />,
+  neutral: <CheckCircle2 size={20} />,
 };
 
 export interface BannerProps {
   variant?: BannerVariant;
   title?: ReactNode;
   icon?: ReactNode;
-  IconProps?: IconProps;
   noIcon?: boolean;
   border?: boolean;
   buttonLabel?: ReactNode;
@@ -56,7 +52,6 @@ const Banner = forwardRef<HTMLDivElement, BannerProps>(
       variant = 'primary',
       title,
       icon: customIcon,
-      IconProps,
       noIcon = false,
       border = false,
       buttonLabel,
@@ -71,7 +66,6 @@ const Banner = forwardRef<HTMLDivElement, BannerProps>(
   },
   ref
 ) => {
-  const props = BannerVariants[variant];
   const styles = useStyles()(variant, horizontal, withWhiteBg, border);
   const [expanded, setExpanded] = useState(!defaultCollapsed);
 
@@ -82,7 +76,7 @@ const Banner = forwardRef<HTMLDivElement, BannerProps>(
 
     const icon =
       !noIcon &&
-      (customIcon || <Icon sx={styles.icon} {...props.IconProps} {...IconProps} />);
+      (customIcon || <Stack sx={styles.icon}>{BannerVariantIcons[variant]}</Stack>);
     const button = buttonLabel && (
       <Button
         size="small"

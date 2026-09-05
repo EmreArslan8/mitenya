@@ -3,7 +3,9 @@ import Button from '@/components/common/Button';
 import Card, { CardProps } from '@/components/common/Card';
 import { ShopOrderSummaryData } from '@/lib/api/types';
 import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
-import { CircularProgress, Divider, Stack, TextField, Typography } from '@mui/material';
+import { ChevronDown } from '@/components/icons';
+import formatPrice from '@/lib/utils/formatPrice';
+import { CircularProgress, Collapse, Divider, Stack, TextField, Typography } from '@mui/material';
 import { FormEvent, ReactNode, useEffect, useState } from 'react';
 import useStyles from './styles';
 
@@ -53,8 +55,6 @@ const CheckoutCard = ({
 
   return (
     <Card
-      iconName={title && !hideTitleIcon ? 'receipt_long' : undefined}
-      iconProps={{ color: 'secondary' }}
       border={!!title}
       title={title}
       titleProps={titleProps}
@@ -176,56 +176,92 @@ export const PriceLines = ({
 }: {
   orderSummary?: Partial<ShopOrderSummaryData>;
 }) => {
-
   const styles = useStyles();
-  const currencyLabel = getDisplayCurrencyCode(orderSummary?.currency ?? 'TRY');
+  const [earningsOpen, setEarningsOpen] = useState(false);
+  const currency = orderSummary?.currency ?? 'TRY';
+  const price = (value?: number) => formatPrice(value ?? 0, currency);
+
+  /*
+   * "Kazancın" ürün indirimini de kapsadığı için sepet tutarı indirim
+   * öncesi olmalı; yoksa satırlar toplamı tutmaz:
+   *   sepet tutarı - kazancın = toplam
+   */
+  const subtotal = orderSummary?.productCostPreDiscount ?? orderSummary?.productCost;
+  const productDiscount =
+    (orderSummary?.productCostPreDiscount ?? 0) - (orderSummary?.productCost ?? 0);
+  const promotionDiscount = orderSummary?.promotionDiscount ?? 0;
+  const earnings = orderSummary?.totalDiscount ?? productDiscount + promotionDiscount;
+  /** Kırılım ancak iki kalem de varsa anlamlı — yoksa açılır ok göstermiyoruz. */
+  const hasBreakdown = productDiscount > 0 && promotionDiscount > 0;
+  const freeShipping = !orderSummary?.shipmentCost;
 
   return (
     <Stack sx={styles.summaryBlock}>
       <Stack sx={styles.priceLine}>
-        <Typography sx={styles.priceLabel}>Ara Toplam</Typography>
-        <Typography sx={styles.priceValue}>
-          {orderSummary?.productCost} {currencyLabel}
-        </Typography>
+        <Typography sx={styles.priceLabel}>Sepet Tutarı</Typography>
+        <Typography sx={styles.priceValue}>{price(subtotal)}</Typography>
       </Stack>
+
       <Stack sx={styles.priceLine}>
-        <Typography sx={styles.priceLabel}>Kargo</Typography>
-        <Typography sx={orderSummary?.shipmentCost ? styles.priceValue : styles.freeShippingValue}>
-          {orderSummary?.shipmentCost ? `${orderSummary.shipmentCost} ${currencyLabel}` : 'Ücretsiz'}
+        <Typography sx={styles.priceLabel}>Kargo Ücreti</Typography>
+        <Typography sx={freeShipping ? styles.freeShippingValue : styles.priceValue}>
+          {freeShipping ? 'Ücretsiz' : price(orderSummary?.shipmentCost)}
         </Typography>
       </Stack>
-      {orderSummary?.codServiceFee && (
+
+      {!!orderSummary?.codServiceFee && (
         <Stack sx={styles.priceLine}>
           <Typography sx={styles.priceLabel}>Kapıda Ödeme Hizmet Bedeli</Typography>
-          <Typography sx={styles.priceValue}>
-            {orderSummary?.codServiceFee} {currencyLabel}
-          </Typography>
+          <Typography sx={styles.priceValue}>{price(orderSummary.codServiceFee)}</Typography>
         </Stack>
       )}
-      {!!orderSummary?.promotionDiscount && (
-        <Stack sx={styles.priceLine}>
-          <Typography sx={styles.discountLabel}>İndirim</Typography>
-          <Typography sx={styles.discountValue}>
-            -{orderSummary?.promotionDiscount} {currencyLabel}
-          </Typography>
-        </Stack>
+
+      {earnings > 0 && (
+        <>
+          <Divider sx={styles.divider} />
+          <Stack
+            sx={styles.priceLine}
+            onClick={hasBreakdown ? () => setEarningsOpen((prev) => !prev) : undefined}
+            style={hasBreakdown ? { cursor: 'pointer' } : undefined}
+          >
+            <Stack sx={styles.earningsLabel}>
+              <Typography sx={styles.priceLabel}>Kazancın</Typography>
+              {hasBreakdown && (
+                <Stack sx={styles.earningsChevron(earningsOpen)}>
+                  <ChevronDown size={18} />
+                </Stack>
+              )}
+            </Stack>
+            <Typography sx={styles.discountValue}>-{price(earnings)}</Typography>
+          </Stack>
+
+          {hasBreakdown && (
+            <Collapse in={earningsOpen} unmountOnExit>
+              <Stack sx={styles.breakdown}>
+                <Stack sx={styles.priceLine}>
+                  <Typography sx={styles.breakdownLabel}>Ürün indirimi</Typography>
+                  <Typography sx={styles.breakdownValue}>-{price(productDiscount)}</Typography>
+                </Stack>
+                <Stack sx={styles.priceLine}>
+                  <Typography sx={styles.breakdownLabel}>
+                    Kupon indirimi{orderSummary?.discountCode ? ` (${orderSummary.discountCode})` : ''}
+                  </Typography>
+                  <Typography sx={styles.breakdownValue}>-{price(promotionDiscount)}</Typography>
+                </Stack>
+              </Stack>
+            </Collapse>
+          )}
+        </>
       )}
-      {!!orderSummary?.totalDiscount && !orderSummary?.promotionDiscount && (
-        <Stack sx={styles.priceLine}>
-          <Typography sx={styles.discountLabel}>İndirim</Typography>
-          <Typography sx={styles.discountValue}>
-            -{orderSummary.totalDiscount} {currencyLabel}
-          </Typography>
-        </Stack>
-      )}
-      <Divider sx={{ my: 1.25 }} />
+
       {!!orderSummary?.totalDue && (
-        <Stack sx={styles.totalDuePriceLine}>
-          <Typography sx={styles.totalLabel}>Toplam Tutar</Typography>
-          <Typography sx={styles.totalValue}>
-            {orderSummary?.totalDue} {currencyLabel}
-          </Typography>
-        </Stack>
+        <>
+          <Divider sx={styles.divider} />
+          <Stack sx={styles.totalDuePriceLine}>
+            <Typography sx={styles.totalLabel}>Toplam</Typography>
+            <Typography sx={styles.totalValue}>{price(orderSummary.totalDue)}</Typography>
+          </Stack>
+        </>
       )}
     </Stack>
   );

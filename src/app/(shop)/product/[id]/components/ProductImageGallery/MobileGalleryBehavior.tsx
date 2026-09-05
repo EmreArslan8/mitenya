@@ -1,7 +1,9 @@
 'use client';
 
 import { CircularProgress, IconButton, Stack } from '@mui/material';
-import { Heart, Share } from 'lucide-react';
+import NextImage from 'next/image';
+import { Heart } from '@/components/icons';
+import { Share } from 'lucide-react';
 import ProgressIndicator from '../ProgressIndicator';
 import useStyles from './styles';
 import { MobileGalleryBehaviorProps } from './types';
@@ -47,14 +49,20 @@ const MobileGalleryBehavior = ({
         <Stack sx={styles.mobileImages} ref={scrollerRef}>
           {mobileGallery.map((image, index) => (
             <Stack sx={styles.mobileImage} key={image.originalSrc ?? image.src}>
-              <img
-                src={image.src}
-                srcSet={image.srcSet}
-                sizes={image.sizes ?? '100vw'}
+              {/*
+                Loader'a HAM kaynak veriliyor; srcset adaylarini next/image
+                uretiyor. Onceki elle kurulan profil yalnizca [720, 1280]
+                iceriyordu ve 390px'lik telefonda 748px gerekirken 1280w
+                iniyordu (LCP gorseli!).
+              */}
+              <NextImage
+                src={image.originalSrc ?? image.src}
                 alt={index === 0 ? baseAlt : `${baseAlt} - gorsel ${index + 1}`}
+                fill
+                sizes={image.sizes ?? '100vw'}
+                quality={82}
                 fetchPriority={index === 0 ? 'high' : 'auto'}
                 loading={index === 0 ? 'eager' : 'lazy'}
-                decoding="async"
                 style={styles.image}
               />
             </Stack>

@@ -2,6 +2,7 @@ import { ApiErrors } from '@/lib/api/errors';
 import { fetchProductsSupabase } from '@/lib/api/supabaseShop';
 import { ProductsQuerySchema } from '@/lib/validations/products';
 import { NextRequest, NextResponse } from 'next/server';
+import { compressedJson } from '@/lib/api/compressedJson';
 import { rateLimit } from '@/lib/api/rateLimit';
 import { getClientIp } from '@/lib/api/getClientIp';
 
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     const result = await fetchProductsSupabase(validation.data);
-    return NextResponse.json(result);
+    return compressedJson(request, result);
   } catch (error) {
     console.error('API /products error:', error);
     return ApiErrors.internalError('Failed to fetch products');

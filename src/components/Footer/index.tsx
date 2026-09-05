@@ -5,7 +5,7 @@ import { ShopFooterData } from '@/lib/api/types';
 import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
 import { Grid, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
 import Image from 'next/image';
-import { ArrowUpRight, BadgeCheck } from 'lucide-react';
+import { ArrowUpRight, BadgeCheck } from '@/components/icons';
 import CMSImage from '../cms/shared/CMSImage';
 import Card from '../common/Card';
 import Link from '../common/Link';

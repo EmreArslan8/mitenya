@@ -8,13 +8,13 @@ import Button from '@/components/common/Button';
 import { AddressData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
 import { Box, Divider, MenuItem, Select, Stack, Typography } from '@mui/material';
-import type { LucideIcon } from 'lucide-react';
-import { Bell, Heart, LockKeyhole, MapPinned, PackageSearch, UserRound } from 'lucide-react';
+import { Heart, LockKeyhole, UserRound } from '@/components/icons';
+import { Bell, MapPinned, PackageSearch } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useMemo, type ComponentType, type SVGProps } from 'react';
 
 type SettingsTab = 'profile' | 'addresses' | 'security' | 'notifications' | 'favorites';
-type SectionIcon = LucideIcon;
+type SectionIcon = ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }>;
 
 const TAB_LABELS: Record<SettingsTab, string> = {
   profile: 'Profil Bilgilerim',

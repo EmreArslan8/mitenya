@@ -1,6 +1,6 @@
 
 import { Stack, Typography, Select, MenuItem, SxProps } from '@mui/material';
-import { Asterisk } from 'lucide-react';
+import { Asterisk } from '@/components/icons';
 
 const FormikDropdown = ({
   formik,

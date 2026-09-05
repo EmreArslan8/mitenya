@@ -18,7 +18,8 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { CheckCircle2, Pencil } from 'lucide-react';
+import { CheckCircle2 } from '@/components/icons';
+import { Pencil } from 'lucide-react';
 import useStyles from './styles';
 
 type SortOption = 'newest' | 'oldest' | 'highest' | 'lowest';
@@ -186,11 +187,7 @@ const ProductReviews = ({
 
   const openReviewForm = async () => {
     if (!canWrite) {
-      openAuthenticator({
-        onSuccess: () => {
-          refresh();
-        },
-      });
+      openAuthenticator();
       return;
     }
 

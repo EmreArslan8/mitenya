@@ -7,7 +7,7 @@ import { Box, MenuItem, Select } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import LoadingOverlay from '../LoadingOverlay';
-import { ArrowUpDown, ChevronDown } from 'lucide-react';
+import { ArrowUpDown, ChevronDown } from '@/components/icons';
 
 interface SearchSortProps {
   sortOptions: ShopSearchSort[];

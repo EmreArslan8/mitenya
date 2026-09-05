@@ -1,9 +1,10 @@
 'use client';
 
 import Button from '@/components/common/Button';
+import { CloseIcon } from '@/components/icons';
 import ModalCard from '@/components/common/ModalCard';
 import { Box, IconButton, Snackbar, Stack, Typography } from '@mui/material';
-import { Copy, X } from 'lucide-react';
+import { Copy } from 'lucide-react';
 import { modalStyles } from './styles';
 
 type Props = {
@@ -42,7 +43,7 @@ const CouponModal = ({
       >
         <Stack direction={{ xs: 'column', md: 'row' }} sx={s.modalContent}>
           <IconButton aria-label="Popup'ı kapat" onClick={onClose} sx={s.closeButton}>
-            <X size={24} />
+            <CloseIcon size={24} />
           </IconButton>
 
           <Box sx={s.visualPanel}>

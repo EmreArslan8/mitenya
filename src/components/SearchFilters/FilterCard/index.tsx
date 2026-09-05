@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from 'react';
 import useStyles from './styles';
 import Button from '@/components/common/Button';
 import { FILTER_TYPE_LABEL_TR } from '@/lib/utils/filters';
-import { Search, SearchX } from 'lucide-react';
+import { Search, SearchX } from '@/components/icons';
 import { useSearchParams } from 'next/navigation';
 
 const showScrollThreshold = 8;

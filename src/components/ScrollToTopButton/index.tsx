@@ -1,7 +1,7 @@
 import useScrollPosition from '@/lib/hooks/useScrollPosition';
 import { Stack } from '@mui/material';
 import useStyles from './styles';
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp } from '@/components/icons';
 
 interface ScrollToTopButtonProps {
   threshold?: number;

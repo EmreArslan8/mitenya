@@ -1,36 +1,33 @@
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
-import QuantitySelector from '@/components/common/QuantitySelector';
 import { ShopContext } from '@/contexts/ShopContext';
 import { ShopProductData } from '@/lib/api/types';
-import { Badge, CircularProgress, MenuItem, Popover, Stack, Typography } from '@mui/material';
-import { ShoppingBag, X } from 'lucide-react';
+import { CartBagIcon } from '@/components/icons';
+import { MenuItem, Popover, Stack, Typography } from '@mui/material';
 import { useContext, useEffect, useRef, useState } from 'react';
 import useStyles from './styles';
 import { useRouter } from 'next/navigation';
 import formatPrice from '@/lib/utils/formatPrice';
 import useScreen from '@/lib/hooks/useScreen';
 
+/** Butondan panele geçerken panelin kapanmaması için kısa gecikme. */
+const HOVER_CLOSE_DELAY = 160;
+
 const ShoppingCartButton = ({ compact = false }: { compact?: boolean }) => {
   const router = useRouter();
   const buttonRef = useRef<HTMLLIElement>(null);
-  const {
-    isCartReady,
-    cart,
-    numItems,
-    handleIncreaseItemQuantity,
-    handleDecreaseItemQuantity,
-    newProductAdded,
-  } = useContext(ShopContext);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { cart, numItems, newProductAdded } = useContext(ShopContext);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const { smDown } = useScreen();
   const styles = useStyles();
 
-  const toggleMenuOpen = () => setMenuOpen((prev) => !prev);
-
   useEffect(() => {
     setIsMounted(true);
+    return () => {
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -39,71 +36,111 @@ const ShoppingCartButton = ({ compact = false }: { compact?: boolean }) => {
     if (newProductAdded && !smDown) setMenuOpen(true);
   }, [newProductAdded, smDown]);
 
+  const cancelClose = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+  };
+
+  /** Masaüstünde hover ile açılır; dokunmatikte tıklama tek yol olarak kalır. */
+  const handleOpenOnHover = () => {
+    if (smDown) return;
+    cancelClose();
+    setMenuOpen(true);
+  };
+
+  const handleCloseOnHover = () => {
+    if (smDown) return;
+    cancelClose();
+    closeTimeoutRef.current = setTimeout(() => setMenuOpen(false), HOVER_CLOSE_DELAY);
+  };
+
+  const goToCart = () => {
+    cancelClose();
+    setMenuOpen(false);
+    router.push('/cart');
+  };
+
+  /** Boş sepette kullanıcıyı ürün listesine gönderir. */
+  const goToShopping = () => {
+    cancelClose();
+    setMenuOpen(false);
+    router.push('/search');
+  };
+
+  const hasItems = !!cart?.length;
+
   return (
     <Stack>
       <MenuItem
-        onClick={toggleMenuOpen}
         ref={buttonRef}
+        onClick={goToCart}
+        onMouseEnter={handleOpenOnHover}
+        onMouseLeave={handleCloseOnHover}
         sx={[styles.button, compact && styles.buttonCompact]}
         aria-label={compact ? 'Sepet' : undefined}
       >
-        <Badge
-          badgeContent={isMounted ? numItems : 0}
-          color="error"
-          sx={{ '& .MuiBadge-badge': { minWidth: 19, height: 19, fontSize: 11, px: 0.5 } }}
-        >
-          <ShoppingBag size={23} strokeWidth={2} />
-        </Badge>
+        {/*
+          28px bilerek: komsu header ikonlari (Search/User/Heart) 24px.
+          Dolu bir govde, ayni kutudaki kontur ikonlarin yaninda optik olarak
+          kucuk kaliyor; Boyner'in header setinde de sepet 28px, arama 24px.
+        */}
+        <CartBagIcon size={28} count={isMounted ? numItems : 0} />
         {!compact && 'Sepet'}
-        {isMounted && !isCartReady && (
-          <CircularProgress color="secondary" size={13} sx={{ mt: '2px' }} />
-        )}
       </MenuItem>
+
       <Popover
         elevation={0}
         anchorEl={buttonRef.current}
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-        sx={styles.popover}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        disableRestoreFocus
+        /* Panel hover ile açıldığı için altındaki içeriğin tıklanabilirliğini kapatmıyoruz. */
+        sx={{ ...styles.popover, pointerEvents: 'none' }}
+        slotProps={{
+          paper: {
+            onMouseEnter: cancelClose,
+            onMouseLeave: handleCloseOnHover,
+            sx: { pointerEvents: 'auto' },
+          },
+        }}
       >
         <Card sx={styles.menu}>
           <Stack sx={styles.menuBody}>
-            {cart && cart.length > 0 ? (
+            {hasItems ? (
               <>
                 <Stack sx={styles.menuHeader}>
-                  <Typography variant="body"> Sepet </Typography>
-                  <X size={18} strokeWidth={2} onClick={() => setMenuOpen(false)} />
+                  <Typography sx={styles.menuTitle}>Sepetim</Typography>
+                  <Typography sx={styles.menuCount}>{numItems} Ürün</Typography>
                 </Stack>
+
                 <Stack sx={styles.products}>
                   {cart?.map((p) => (
-                    <Product
-                      data={p}
-                      onQtyDecrease={() => handleDecreaseItemQuantity(p)}
-                      onQtyIncrease={() => handleIncreaseItemQuantity(p)}
-                      key={p.id}
-                    />
+                    <Product data={p} key={p.id} />
                   ))}
                 </Stack>
-                <Button
-                  size="small"
-                  variant="tonal"
-                  arrow="end"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    router.push('/cart');
-                  }}
-                >
-             Sepete Git
+
+                <Button variant="contained" onClick={goToCart} sx={styles.cta}>
+                  Sepete Git
                 </Button>
               </>
             ) : (
-              <Stack sx={styles.menuHeader}>
-                <Typography variant="body" sx={{ px: 1, pb: 0.5 }}>
-                Sepet Boş
-                </Typography>
-                <X size={18} strokeWidth={2} onClick={() => setMenuOpen(false)} />
+              <Stack sx={styles.empty}>
+                <Stack sx={styles.emptyIconRing}>
+                  <CartBagIcon size={34} />
+                </Stack>
+                <Stack gap={0.5}>
+                  <Typography sx={styles.emptyTitle}>Sepetin boş görünüyor</Typography>
+                  <Typography sx={styles.emptyText}>
+                    Kore cilt bakımının en sevilen ürünlerine göz atmaya ne dersin?
+                  </Typography>
+                </Stack>
+                <Button variant="contained" onClick={goToShopping} sx={styles.cta}>
+                  Alışverişe Başla
+                </Button>
               </Stack>
             )}
           </Stack>
@@ -113,43 +150,42 @@ const ShoppingCartButton = ({ compact = false }: { compact?: boolean }) => {
   );
 };
 
-const Product = ({
-  data,
-  onQtyDecrease,
-  onQtyIncrease,
-}: {
-  data: ShopProductData;
-  onQtyDecrease: () => void;
-  onQtyIncrease: () => void;
-}) => {
+const Product = ({ data }: { data: ShopProductData }) => {
   const styles = useStyles();
 
-  const selectedVariantOptions = data.variants
-    ?.map((variant) => `(${variant.options.find((option) => option.selected)?.value})`)
-    .filter((option) => option !== undefined)
-    .join(' ');
+  /** "Kırmızı / M / 5 Adet" — seçili varyantlar ve adet tek rozette. */
+  const chipParts = [
+    ...(data.variants
+      ?.map((variant) => variant.options.find((option) => option.selected)?.value)
+      .filter((value): value is string => !!value) ?? []),
+    `${data.quantity} Adet`,
+  ];
+
+  const brand = data.brand;
+  const name =
+    brand && data.name?.toLocaleLowerCase('tr').startsWith(brand.toLocaleLowerCase('tr'))
+      ? data.name.slice(brand.length).trim()
+      : data.name;
 
   return (
     <Stack sx={styles.product}>
-      <img src={data.imgSrc} alt={data.name} style={styles.productImage} />
+      <Stack sx={styles.productImageWrapper}>
+        <img src={data.imgSrc} alt={data.name} style={styles.productImage} />
+      </Stack>
       <Stack sx={styles.info}>
         <Typography sx={styles.productName}>
-          {data.brand} {data.name}
+          {brand && <b>{brand} </b>}
+          {name}
         </Typography>
-        <Typography sx={styles.productName}>{selectedVariantOptions}</Typography>
+        <Stack sx={styles.variantChip}>
+          <Typography component="span" sx={styles.variantChipText}>
+            {chipParts.join(' / ')}
+          </Typography>
+        </Stack>
+        <Typography sx={styles.productPrice}>
+          {formatPrice(data.price.currentPrice * data.quantity, data.price.currency)}
+        </Typography>
       </Stack>
-      {Boolean(data.quantity) && (
-        <QuantitySelector
-          value={data.quantity}
-          onIncrease={onQtyIncrease}
-          onDecrease={onQtyDecrease}
-          max={5}
-          sx={styles.productQuantitySelector}
-        />
-      )}
-      <Typography sx={styles.productPrice}>
-        {formatPrice(data.price.currentPrice, data.price.currency)}
-      </Typography>
     </Stack>
   );
 };

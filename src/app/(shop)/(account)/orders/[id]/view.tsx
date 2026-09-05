@@ -12,7 +12,8 @@ import OrderStatusCard from '@/components/orders/OrderStatusCard';
 import OrderSummaryCard from '@/components/orders/OrderSummaryCard';
 import { ShopOrderData } from '@/lib/api/types';
 import { Stack, TextField, Typography } from '@mui/material';
-import { ArrowLeft, Ban, ReceiptText } from 'lucide-react';
+import { ArrowLeft, Ban } from '@/components/icons';
+import { ReceiptText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 

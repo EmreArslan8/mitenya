@@ -31,7 +31,7 @@ const ProductGalleryIsland = ({ data }: { data: ShopProductData }) => {
       cb();
       return;
     }
-    openAuthenticator?.({ onSuccess: cb });
+    openAuthenticator?.();
   };
 
   const handleShareClick = async () => {

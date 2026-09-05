@@ -3,8 +3,8 @@ import { Box, Stack, SxProps, Typography } from '@mui/material';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import Markdown, { MarkdownOptions } from '../../../common/Markdown';
 import useStyles, { primaryStyle } from './styles';
-import { defaultMaxWidth } from '@/theme/theme';
 import useScreen from '@/lib/hooks/useScreen';
+import { defaultMaxWidth } from '@/theme/theme';
 import Button from '@/components/common/Button';
 
 export interface SectionBaseProps {
@@ -12,6 +12,8 @@ export interface SectionBaseProps {
   sectionDescription?: string;
   sectionDescriptionMarkdownOptions?: MarkdownOptions;
   sectionWidth?: string | number;
+  /** ShopBanner deseni: bolumu MainLayout kalibindan cikarip ekran kenarina yayar. */
+  fullBleed?: boolean;
   sectionBackground?: 'default' | 'primary';
   sectionLabel?: string;
   sectionHref?: string;
@@ -24,7 +26,8 @@ const SectionBase = ({
   sectionDescription,
   sectionDescriptionMarkdownOptions,
   sectionBackground = 'default',
-  sectionWidth = defaultMaxWidth,
+  sectionWidth = '100%',
+  fullBleed = false,
   sectionLabel,
   sectionHref,
   sx = {},
@@ -33,20 +36,26 @@ const SectionBase = ({
   const selectedStyle = sectionBackground === 'primary' ? primaryStyle() : {};
   const { smUp } = useScreen();
 
-  return (
-    <Stack
-      id={sectionHeader}
-      sx={{
-        gap: 3,
-        maxWidth: sectionWidth,
-        width: smUp && selectedStyle.sectionBackground?.bg ? '100vw' : '100%',
-        height: '100%',
-        flexGrow: 1,
-        backgroundColor: selectedStyle.sectionBackground?.bg,
-        padding: 1,
-        ...sx,
-      }}
-    >
+  // Zeminli bolumler de tasar: renkli bant kabin degil ekranin genisligi kadar olmali.
+  const hasBackground = Boolean(smUp && selectedStyle.sectionBackground?.bg);
+  const bleeding = fullBleed || hasBackground;
+
+  // Tam tasma: kabin ortasindan viewport kenarina negatif margin ile cikilir.
+  // maxWidth birakilirsa 100vw etkisiz kalir; ikisi birlikte verilmeli.
+  const bleed = bleeding
+    ? {
+        width: '100vw',
+        maxWidth: 'none',
+        ml: 'calc(50% - 50vw)',
+        overflow: 'clip',
+        // Gorsel bantlar kenara dayanir. Icerikli bolumlerde yan bosluk slider
+        // oklarinin yeri: icerik 1340'ta kalir, oklar bu olukta durur.
+        ...(fullBleed ? { p: 0 } : { px: { xs: 1, sm: '56px', md: '72px' } }),
+      }
+    : {};
+
+  const content = (
+    <>
       {(sectionHeader || sectionDescription || sectionLabel) && (
         <Stack gap={1}>
           {(sectionHeader || sectionLabel) && (
@@ -98,6 +107,31 @@ const SectionBase = ({
         </Stack>
       )}
       {children}
+    </>
+  );
+
+  return (
+    <Stack
+      id={sectionHeader}
+      sx={{
+        gap: 3,
+        maxWidth: sectionWidth,
+        width: '100%',
+        height: '100%',
+        flexGrow: 1,
+        backgroundColor: selectedStyle.sectionBackground?.bg,
+        padding: 1,
+        ...bleed,
+        ...sx,
+      }}
+    >
+      {bleeding && !fullBleed ? (
+        <Stack sx={{ width: '100%', maxWidth: defaultMaxWidth, mx: 'auto', gap: 3 }}>
+          {content}
+        </Stack>
+      ) : (
+        content
+      )}
     </Stack>
   );
 };

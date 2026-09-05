@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Box, Chip, Snackbar, Stack, Typography } from '@mui/material';
 import Image from 'next/image';
-import { Copy, ExternalLink, MoreVertical, Package } from 'lucide-react';
+import { MoreVertical } from '@/components/icons';
+import { Copy, ExternalLink, Package } from 'lucide-react';
 import Button from '@/components/common/Button';
 import { fetchProductData } from '@/lib/api/shop';
 import type { ShopProductData } from '@/lib/api/types';

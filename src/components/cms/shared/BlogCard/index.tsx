@@ -3,7 +3,7 @@
 import Link from '@/components/common/Link';
 import CMSImage from '@/components/cms/shared/CMSImage';
 import { Box, Stack, Typography } from '@mui/material';
-import { ArrowRight, Calendar } from 'lucide-react';
+import { ArrowRight, Calendar } from '@/components/icons';
 import styles from './styles';
 
 export interface BlogCardProps {

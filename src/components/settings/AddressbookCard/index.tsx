@@ -8,7 +8,7 @@ import { useState } from 'react';
 import AddressLine from './AddressLine';
 import styles from './styles';
 import LoadingOverlay from '@/components/LoadingOverlay';
-import { Plus } from 'lucide-react';
+import { Plus } from '@/components/icons';
 
 const AddressbookCard = ({ addresses }: { addresses: AddressData[] }) => {
   const [newAddressModalOpen, setNewAddressModalOpen] = useState(false);

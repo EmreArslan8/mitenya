@@ -128,7 +128,7 @@ const styles = {
     letterSpacing: '0.01em',
   }),
   title: (featured: boolean) => ({
-    fontWeight: 750,
+    fontWeight: 700,
     fontSize: featured
       ? { xs: 18, md: 24 }
       : { xs: 14, md: 16 },

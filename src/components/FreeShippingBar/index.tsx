@@ -2,7 +2,7 @@
 
 import { Box, LinearProgress, Stack, Typography } from '@mui/material';
 import useStyles from './styles';
-import Icon from '../Icon';
+import { Truck } from 'lucide-react';
 
 interface FreeShippingBarProps {
   currentTotal: number;
@@ -28,7 +28,9 @@ const FreeShippingBar = ({
           {isFreeShipping ? (
             <Box component="span" sx={styles.celebrate}>🎉</Box>
           ) : (
-            <Icon name="local_shipping" sx={styles.icon(isFreeShipping)} />
+            <Box component="span" sx={styles.icon(isFreeShipping)}>
+              <Truck size={24} />
+            </Box>
           )}
           <Typography sx={styles.text(isFreeShipping)}>
             {isFreeShipping ? (

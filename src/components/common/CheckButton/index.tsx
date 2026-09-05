@@ -1,5 +1,5 @@
 import { ToggleButton, ToggleButtonProps } from '@mui/material';
-import { Check } from 'lucide-react';
+import { Check } from '@/components/icons';
 
 interface CheckButtonProps extends ToggleButtonProps {
   noIcon?: boolean;

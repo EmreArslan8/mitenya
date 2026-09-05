@@ -3,7 +3,7 @@ import { withPalette } from '@/theme/ThemeRegistry';
 const useStyles = withPalette(
   (palette) => (border: boolean, stickyHeader: boolean, expanded: boolean) => ({
     card: {
-      borderRadius: '12px',
+      borderRadius: 0,
       ...(border ? { border: '1px solid', borderColor: palette.gray[100] } : {}),
     },
     cardHeaderContainer: {
@@ -20,7 +20,7 @@ const useStyles = withPalette(
       textTransform: 'uppercase',
       px: 2,
       py: 1.5,
-      borderRadius: '12px 12px 0 0',
+      borderRadius: 0,
     },
     iconAndTitle: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 1 },
     actionArea: { flexDirection: 'row', alignItems: 'center', gap: 1 },

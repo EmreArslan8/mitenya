@@ -1,7 +1,5 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-const Authenticator = dynamic(() => import('@/components/Authenticator'), { ssr: false });
 import { CustomerData } from '@/lib/api/types';
 import useCustomerData from '@/lib/api/useCustomerData';
 import { pushItemToDataLayer } from '@/lib/utils/dataLayer';
@@ -9,6 +7,7 @@ import { pushItemToDataLayer } from '@/lib/utils/dataLayer';
 // import edilir, böylece LCP görseliyle bant yarışan eager bundle'dan çıkar.
 import type { User, AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { getCookie } from 'cookies-next';
+import { useRouter } from 'next/navigation';
 import React, {
   Dispatch,
   ReactNode,
@@ -27,8 +26,11 @@ interface AuthContextState {
   customerData: CustomerData | undefined;
   setCustomerData: Dispatch<SetStateAction<CustomerData | undefined>>;
   setCustomerCulture: (newCulture: string) => void;
-  openAuthenticator: (options?: { onClose?: () => void; onSuccess?: () => void }) => void;
-  closeAuthenticator: () => void;
+  /**
+   * Kullaniciyi /uyelik sayfasina yonlendirir. (Eskiden modal aciyordu.)
+   * `returnUrl` verilmezse mevcut sayfaya geri donulur.
+   */
+  openAuthenticator: (options?: { returnUrl?: string; type?: 'uye-girisi' | 'uye-ol' }) => void;
 }
 
 export const AuthContext = React.createContext<AuthContextState | null>(null);
@@ -47,9 +49,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const [customerData, setCustomerData] = useState<CustomerData>();
   const { getCustomerData, createCustomer } = useCustomerData();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>();
-  const [authenticatorOpen, setAuthenticatorOpen] = useState<boolean>(false);
-  const [onAuthenticatorClose, setOnAuthenticatorClose] = useState<(() => void) | undefined>();
-  const [onAuthenticatorSuccess, setOnAuthenticatorSuccess] = useState<(() => void) | undefined>();
+  const router = useRouter();
 
   // Refs to prevent loops
   const supabaseRef = useRef<any>(null);
@@ -210,13 +210,20 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     setCustomerData((prev) => (prev ? { ...prev, culture: newCulture } : prev));
   }, []);
 
-  const openAuthenticator = useCallback((options?: { onClose?: () => void; onSuccess?: () => void }) => {
-    setAuthenticatorOpen(true);
-    setOnAuthenticatorClose(() => options?.onClose);
-    setOnAuthenticatorSuccess(() => options?.onSuccess);
-  }, []);
-
-  const closeAuthenticator = useCallback(() => setAuthenticatorOpen(false), []);
+  const openAuthenticator = useCallback(
+    (options?: { returnUrl?: string; type?: 'uye-girisi' | 'uye-ol' }) => {
+      // useSearchParams yerine window: provider tum agaci sardigi icin
+      // hook kullanmak statik render'i Suspense'e zorlardi.
+      const current =
+        typeof window !== 'undefined'
+          ? `${window.location.pathname}${window.location.search}`
+          : '/';
+      const returnUrl = options?.returnUrl ?? current;
+      const type = options?.type ?? 'uye-girisi';
+      router.push(`/uyelik?returnUrl=${encodeURIComponent(returnUrl)}&type=${type}`);
+    },
+    [router]
+  );
 
   const value = useMemo(
     () => ({
@@ -226,29 +233,12 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       setIsAuthenticated,
       setCustomerCulture,
       openAuthenticator,
-      closeAuthenticator,
     }),
-    [customerData, isAuthenticated, setCustomerCulture, openAuthenticator, closeAuthenticator]
+    [customerData, isAuthenticated, setCustomerCulture, openAuthenticator]
   );
 
   return (
     <AuthContext.Provider value={value}>
-      {authenticatorOpen && (
-        <Authenticator
-          open={authenticatorOpen}
-          onClose={() => {
-            onAuthenticatorClose?.();
-            setOnAuthenticatorClose(undefined);
-            closeAuthenticator();
-          }}
-          onSuccess={() => {
-            onAuthenticatorSuccess?.();
-            setOnAuthenticatorSuccess(undefined);
-            closeAuthenticator();
-          }}
-        />
-      )}
-
       {children}
     </AuthContext.Provider>
   );

@@ -11,6 +11,7 @@ import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
 import useScreen from '@/lib/hooks/useScreen';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import formatPrice from '@/lib/utils/formatPrice';
+import NextImage from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { ShopContext } from '@/contexts/ShopContext';
@@ -23,7 +24,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { Check, Heart } from 'lucide-react';
+import { Check, Heart } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useContext } from 'react';
 import useStyles from './styles';
@@ -32,7 +33,17 @@ import type { BannerVariant } from '../common/Banner';
 
 interface ShopProductCardProps {
   data: ShopProductListItemData;
+  /**
+   * Kartin gercek slot genisligi. Kart her sayfada ayni genislikte DEGIL
+   * (ornegin /search'te filtre sidebar'i kabi daraltiyor), bu yuzden dogru
+   * deger cagiran tarafindan gelmeli. Yanlis `sizes` tarayiciya yanlis srcset
+   * adayini sectirir; aday listesini budamaktan cok daha onemlidir.
+   */
+  sizes?: string;
 }
+
+/** Sidebar'siz, tam genislikli izgaralar icin makul varsayilan. */
+const DEFAULT_CARD_SIZES = '(max-width: 599px) 50vw, (max-width: 900px) 33vw, 300px';
 
 type ProductCardImageData = ShopProductListItemData & {
   imgSrcSet?: string;
@@ -60,7 +71,7 @@ const normalizeBrandName = (brand?: string) => {
   return CANONICAL_BRAND_MAP[lower] ?? raw.toLocaleUpperCase('tr-TR');
 };
 
-const ProductCard = ({ data }: ShopProductCardProps) => {
+const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
   const router = useRouter();
   const imageData = data as ProductCardImageData;
   const isMobileApp = useIsMobileApp();
@@ -92,6 +103,16 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
   const isOutOfStock = typeof data.quantity === 'number' && data.quantity <= 0;
   const secondaryImage = imageData.images?.[1]?.url;
   const hasSecondaryImage = Boolean(secondaryImage && secondaryImage !== data.imgSrc);
+
+  // next/image loader'i CDN donusumunu kendisi kuruyor, bu yuzden ham yol
+  // tercih ediliyor. `originalUrl` yoksa hazir URL de calisir: loader mevcut
+  // `/cdn-cgi/image/...` sarmalini soyup yenisini kuruyor (bkz. imageLoader).
+  const primarySrc = imageData.images?.[0]?.originalUrl || data.imgSrc;
+  const secondarySrc = imageData.images?.[1]?.originalUrl || secondaryImage;
+
+  // Izgara kolonlariyla ayni kirilma noktalari; yanlis olursa tarayici yanlis
+  // adayi secer (aday listesini budamaktan cok daha onemli).
+  const cardSizes = sizes ?? DEFAULT_CARD_SIZES;
   const isTopRated = (data.rating?.averageRating ?? 0) >= 4.5 && (data.rating?.totalCount ?? 0) >= 50;
   const productTag = normalizeBrandName(data.brand);
   const favorited = isFavorite(data.id);
@@ -178,11 +199,7 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
     }
 
     if (result.unauthorized) {
-      openAuthenticator({
-        onSuccess: () => {
-          void runToggleFavorite();
-        },
-      });
+      openAuthenticator();
       return;
     }
 
@@ -194,11 +211,7 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
     e.stopPropagation();
 
     if (isAuthenticated !== true) {
-      openAuthenticator({
-        onSuccess: () => {
-          void runToggleFavorite();
-        },
-      });
+      openAuthenticator();
       return;
     }
 
@@ -252,36 +265,32 @@ const ProductCard = ({ data }: ShopProductCardProps) => {
                 )}
               </IconButton>
             </Stack>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={data.imgSrc}
-              srcSet={imageData.imgSrcSet}
-              sizes={imageData.imgSizes}
-              alt={data.name}
-              loading="lazy"
-              decoding="async"
-              style={{
-                ...styles.image,
-                opacity: hasSecondaryImage && showSecondaryImage ? 0 : 1,
-              }}
-            />
-            {hasSecondaryImage && shouldLoadSecondaryImage && (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={secondaryImage}
-                  srcSet={imageData.images?.[1]?.srcSet}
-                  sizes={imageData.images?.[1]?.sizes ?? imageData.imgSizes}
-                  alt={data.name}
-                  loading="lazy"
-                  decoding="async"
-                  style={{
-                    ...styles.image,
-                    ...styles.imageSecondary,
-                    opacity: showSecondaryImage ? 1 : 0,
-                  }}
-                />
-              </>
+            {primarySrc && (
+              <NextImage
+                src={primarySrc}
+                alt={data.name}
+                fill
+                sizes={cardSizes}
+                loading="lazy"
+                style={{
+                  ...styles.image,
+                  opacity: hasSecondaryImage && showSecondaryImage ? 0 : 1,
+                }}
+              />
+            )}
+            {hasSecondaryImage && shouldLoadSecondaryImage && secondarySrc && (
+              <NextImage
+                src={secondarySrc}
+                alt={data.name}
+                fill
+                sizes={cardSizes}
+                loading="lazy"
+                style={{
+                  ...styles.image,
+                  ...styles.imageSecondary,
+                  opacity: showSecondaryImage ? 1 : 0,
+                }}
+              />
             )}
           </Stack>
           <Stack sx={styles.infoContainer}>

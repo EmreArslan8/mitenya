@@ -8,7 +8,7 @@ import CMSImage from '../CMSImage';
 import { SharedImageType } from '../cmsTypes';
 import useStyles from './styles';
 import { usePathname } from 'next/navigation';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight } from '@/components/icons';
 
 export interface ShopFeatureCardProps {
   image: SharedImageType;

@@ -3,7 +3,7 @@
 import { Button as MuiButton } from '@mui/material';
 import styles from './styles';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from '@/components/icons';
 import { sendButtonClickEvent } from '@/lib/utils/googleAnalytics';
 import { useTheme } from '@mui/material/styles';
 

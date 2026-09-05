@@ -3,7 +3,7 @@ import { withPalette } from '@/theme/ThemeRegistry';
 const useStyles = withPalette((palette) => ({
   container: (isFreeShipping: boolean) => ({
     backgroundColor: isFreeShipping ? palette.success.light : palette.bg.dark,
-    borderRadius: 2.5,
+    borderRadius: 0,
     padding: 1.75,
     border: '1px solid',
     borderColor: isFreeShipping ? 'rgba(34, 107, 58, 0.22)' : palette.gray[100],

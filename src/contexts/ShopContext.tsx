@@ -22,10 +22,17 @@ interface ShopContextState {
   cart?: ShopProductData[];
   numItems: number;
   totalPrice: { amount?: number; currency?: Currency };
-  handleAddItem: (product: ShopProductData) => boolean;
+  /**
+   * Ürünü sepete ekler.
+   * `notify: false` verilirse global sepet çekmecesi açılmaz — çağıran taraf
+   * kendi onay modalını gösterecekse kullanılır.
+   */
+  handleAddItem: (product: ShopProductData, options?: { notify?: boolean }) => boolean;
   handleDeleteProduct: (product: ShopProductData) => void;
   handleDecreaseItemQuantity: (product: ShopProductData) => void;
   handleIncreaseItemQuantity: (product: ShopProductData) => boolean;
+  /** Adedi doğrudan set eder (elle yazma); sınır dışı değerler kırpılır. */
+  handleSetItemQuantity: (product: ShopProductData, quantity: number) => void;
   getItemQuantity: (product: ShopProductData) => number;
   clearCart: () => void;
   removeItems: (items: ShopProductData[]) => void;
@@ -61,6 +68,7 @@ export const ShopContext = createContext<ShopContextState>({
   handleDeleteProduct: () => {},
   handleDecreaseItemQuantity: () => {},
   handleIncreaseItemQuantity: () => false,
+  handleSetItemQuantity: () => {},
   clearCart: () => {},
   removeItems: () => {},
   newProductAdded: undefined,
@@ -219,7 +227,17 @@ export const ShopContextProvider = ({ children }: ShopContextProviderProps) => {
     return true;
   };
 
-  const handleAddItem = (product: ShopProductData) => {
+  const handleSetItemQuantity = (product: ShopProductData, quantity: number) => {
+    if (!cart) return;
+    if (!Number.isFinite(quantity)) return;
+
+    const next = clamp(CART_MIN_QUANTITY, Math.trunc(quantity), CART_MAX_QUANTITY_PER_ITEM);
+    if (next === getItemQuantity(product)) return;
+
+    setCart((prev) => prev!.map((p) => (isEqProduct(p, product) ? { ...p, quantity: next } : p)));
+  };
+
+  const handleAddItem = (product: ShopProductData, options?: { notify?: boolean }) => {
     if (!cart) return false;
 
     if (cart.some((p) => isEqProduct(p, product))) {
@@ -227,7 +245,7 @@ export const ShopContextProvider = ({ children }: ShopContextProviderProps) => {
     }
 
     setCart((prev) => [...prev!, { ...product, quantity: 1 }]);
-    setNewProductAdded({ ...product, quantity: 1 });
+    if (options?.notify !== false) setNewProductAdded({ ...product, quantity: 1 });
 
     // Analytics
     const addToCartEventId = generateCapiEventId('atc');
@@ -430,6 +448,7 @@ export const ShopContextProvider = ({ children }: ShopContextProviderProps) => {
       handleDeleteProduct,
       handleDecreaseItemQuantity,
       handleIncreaseItemQuantity,
+      handleSetItemQuantity,
       getItemQuantity,
       clearCart,
       newProductAdded,

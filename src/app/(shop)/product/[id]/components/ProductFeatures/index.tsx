@@ -1,7 +1,8 @@
 'use client'; 
 
 import { Stack, Typography } from '@mui/material';
-import { BadgeCheck, Box, Headset, LockKeyhole } from 'lucide-react';
+import { BadgeCheck, LockKeyhole } from '@/components/icons';
+import { Box, Headset } from 'lucide-react';
 import useStyles from './styles';
 
 

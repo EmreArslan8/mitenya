@@ -1,15 +1,23 @@
 import { Box, Stack, Typography } from '@mui/material';
-import CMSImage from '@/components/cms/shared/CMSImage';
 import DOMPurify from 'isomorphic-dompurify';
-import { ChevronRight } from 'lucide-react';
+import BlogCard from '@/components/cms/shared/BlogCard';
+import CMSImage from '@/components/cms/shared/CMSImage';
+import ArticleNav from './ArticleNav';
+import SidebarArticles, { type SidebarArticle } from './SidebarArticles';
+import ShareBox from './ShareBox';
+import { prepareArticle } from './article';
+import styles from './styles';
 
 interface BlogEntity {
   id: number;
   attributes: {
     title: string;
     content: string;
+    excerpt?: string;
+    author?: string;
     publishDate?: string;
     publishedAt?: string;
+    updatedAt?: string;
     cover?: {
       data?: {
         attributes: {
@@ -61,254 +69,207 @@ async function getBlog(slug: string): Promise<BlogEntity | null> {
   return json.data?.[0] ?? null;
 }
 
-const BlogDetailPageView = async ({ slug }: { slug: string }) => {
-  const blog = await getBlog(slug);
+interface BlogSummary {
+  id: number;
+  attributes: {
+    title: string;
+    slug: string;
+    excerpt?: string;
+    publishDate?: string;
+    publishedAt?: string;
+    cover?: { data?: { attributes: { url: string; alternativeText?: string } } };
+  };
+}
 
-  if (!blog) {
-    return (
-      <Stack alignItems="center" justifyContent="center" sx={{ py: 12, gap: 1.5 }}>
-        <Typography sx={{ fontSize: 18, fontWeight: 600, color: '#1C1C1E' }}>
-          Blog bulunamadı
-        </Typography>
-        <Typography sx={{ fontSize: 14, color: '#8E8E93' }}>
-          Aradığınız yazı mevcut değil veya kaldırılmış olabilir.
-        </Typography>
-      </Stack>
-    );
-  }
+async function getOtherBlogs(slug: string): Promise<BlogSummary[]> {
+  if (!strapiUrl || !cmsBearer) return [];
 
-  const { title, content, publishDate, publishedAt, cover } = blog.attributes;
+  const res = await fetch(
+    `${strapiUrl}/blogs?sort=publishDate:desc&filters[slug][$ne]=${slug}` +
+      '&pagination[limit]=9&populate[cover]=*&publicationState=live',
+    {
+      headers: { Authorization: `Bearer ${cmsBearer}` },
+      next: { revalidate: 60 },
+    }
+  );
 
-  const formattedDate = (publishDate || publishedAt)
-    ? new Date(publishDate ?? publishedAt!).toLocaleDateString('tr-TR', {
+  if (!res.ok) return [];
+  const json = await res.json();
+  return json.data ?? [];
+}
+
+const formatDate = (value?: string | null) =>
+  value
+    ? new Date(value).toLocaleDateString('tr-TR', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
       })
     : null;
 
+const BlogDetailPageView = async ({ slug }: { slug: string }) => {
+  const [blog, otherBlogs] = await Promise.all([getBlog(slug), getOtherBlogs(slug)]);
+
+  if (!blog) {
+    return (
+      <Stack alignItems="center" justifyContent="center" sx={styles.notFound}>
+        <Typography sx={styles.notFoundTitle}>Blog bulunamadı</Typography>
+        <Typography sx={styles.notFoundSubtitle}>
+          Aradığınız yazı mevcut değil veya kaldırılmış olabilir.
+        </Typography>
+      </Stack>
+    );
+  }
+
+  const {
+    title,
+    content,
+    excerpt,
+    author,
+    publishDate,
+    publishedAt,
+    updatedAt,
+    cover,
+  } = blog.attributes;
+
+  const { html, toc, readingMinutes } = prepareArticle(sanitizeHtml(content));
+
+  const authorName = author || 'Mitenya Editör';
+  const sidebarItems: SidebarArticle[] = otherBlogs.map((item) => ({
+    slug: item.attributes.slug,
+    title: item.attributes.title,
+    date: formatDate(item.attributes.publishDate ?? item.attributes.publishedAt),
+  }));
+  const relatedBlogs = otherBlogs.slice(0, 3);
+
+  const publishedLabel = formatDate(publishDate ?? publishedAt);
+  const publishedIso = publishDate ?? publishedAt;
+  const updatedLabel =
+    updatedAt && publishedIso && new Date(updatedAt) > new Date(publishedIso)
+      ? formatDate(updatedAt)
+      : null;
+
   return (
-    <Stack
-      sx={{
-        maxWidth: 780,
-        mx: 'auto',
-        width: '100%',
-        gap: { xs: 3, md: 5 },
-        pb: { xs: 6, md: 10 },
-      }}
-    >
-      {/* Breadcrumb */}
-      <Stack
-        direction="row"
-        alignItems="center"
-        gap={0.5}
-        sx={{ pt: { xs: 1, md: 2 } }}
-      >
-        <Typography
-          component="a"
-          href="/"
-          sx={{
-            fontSize: 13,
-            color: '#8E8E93',
-            textDecoration: 'none',
-            '&:hover': { color: '#3A3A3C' },
-          }}
-        >
-          Ana Sayfa
-        </Typography>
-        <ChevronRight size={14} color="#AEAEB2" />
-        <Typography
-          component="a"
-          href="/blogs"
-          sx={{
-            fontSize: 13,
-            color: '#8E8E93',
-            textDecoration: 'none',
-            '&:hover': { color: '#3A3A3C' },
-          }}
-        >
-          Blog
-        </Typography>
-        <ChevronRight size={14} color="#AEAEB2" />
-        <Typography
-          sx={{
-            fontSize: 13,
-            color: '#3A3A3C',
-            fontWeight: 500,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            maxWidth: 200,
-          }}
-        >
-          {title}
-        </Typography>
-      </Stack>
-
-      {/* Article Header */}
-      <Stack gap={2}>
-        <Typography
-          component="h1"
-          sx={{
-            fontSize: { xs: 26, md: 36 },
-            fontWeight: 800,
-            color: '#1C1C1E',
-            lineHeight: 1.2,
-            letterSpacing: '-0.02em',
-          }}
-        >
-          {title}
-        </Typography>
-
-        {formattedDate && (
-          <Typography
-            sx={{
-              fontSize: { xs: 13, md: 14 },
-              color: '#8E8E93',
-              fontWeight: 500,
-            }}
-          >
-            {formattedDate}
-          </Typography>
-        )}
-      </Stack>
-
-      {/* Cover Image */}
+    <Stack sx={styles.page}>
       {cover?.data && (
-        <Box
-          sx={{
-            position: 'relative',
-            width: '100%',
-            aspectRatio: '16/9',
-            borderRadius: 2,
-            overflow: 'hidden',
-            bgcolor: '#F5F5F7',
-          }}
-        >
+        <Box sx={styles.cover}>
           <CMSImage
             src={cover.data.attributes.url}
-            alt={cover.data.attributes.alternativeText}
+            alt={cover.data.attributes.alternativeText || title}
             fill
-            style={{ objectFit: 'cover' }}
+            sizes="(max-width: 1200px) 100vw, 1160px"
+            style={{ objectFit: 'cover', objectPosition: 'center' }}
             priority
           />
         </Box>
       )}
 
-      {/* Article Content */}
-      <Box
-        dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
-        sx={{
-          color: '#3A3A3C',
-          fontSize: { xs: 15, md: 17 },
-          lineHeight: 1.8,
-          letterSpacing: '0.01em',
+      {/* Solda okuma sütunu · sağda arama, öne çıkanlar ve bölüm listesi */}
+      <Box sx={styles.grid}>
+        <Box component="article" sx={styles.contentColumn}>
+          {/* Başlık ve künye */}
+          <Stack sx={styles.header}>
+            <Typography component="span" sx={styles.eyebrow}>
+              Cilt bakım rehberi
+            </Typography>
 
-          '& h1': {
-            fontSize: { xs: 24, md: 30 },
-            fontWeight: 800,
-            color: '#1C1C1E',
-            mt: 5,
-            mb: 2,
-            lineHeight: 1.25,
-          },
-          '& h2': {
-            fontSize: { xs: 20, md: 24 },
-            fontWeight: 700,
-            color: '#1C1C1E',
-            mt: 4,
-            mb: 1.5,
-            lineHeight: 1.3,
-          },
-          '& h3': {
-            fontSize: { xs: 17, md: 20 },
-            fontWeight: 700,
-            color: '#1C1C1E',
-            mt: 3,
-            mb: 1,
-            lineHeight: 1.35,
-          },
-          '& h4, & h5, & h6': {
-            fontSize: { xs: 16, md: 18 },
-            fontWeight: 600,
-            color: '#1C1C1E',
-            mt: 2.5,
-            mb: 1,
-          },
-          '& p': {
-            mb: 2,
-            '&:last-child': { mb: 0 },
-          },
-          '& a': {
-            color: '#1C1C1E',
-            fontWeight: 600,
-            textDecorationColor: '#C1121F',
-            textUnderlineOffset: '3px',
-            transition: 'color 0.2s ease',
-            '&:hover': { color: '#C1121F' },
-          },
-          '& img': {
-            maxWidth: '100%',
-            height: 'auto',
-            borderRadius: '8px',
-            my: 3,
-          },
-          '& blockquote': {
-            borderLeft: '3px solid #C1121F',
-            pl: 3,
-            ml: 0,
-            my: 3,
-            color: '#6E6E73',
-            fontStyle: 'italic',
-            fontFamily: 'var(--font-albert-sans-italic)',
-            fontSize: { xs: 16, md: 18 },
-          },
+            <Typography component="h1" sx={styles.title}>
+              {title}
+            </Typography>
 
-          '& ul, & ol': {
-            pl: 3,
-            mb: 2,
-            '& li': {
-              mb: 0.75,
-            },
-          },
-          '& pre': {
-            bgcolor: '#F5F5F7',
-            borderRadius: '8px',
-            p: 2.5,
-            overflow: 'auto',
-            my: 3,
-            fontSize: 14,
-          },
-          '& code': {
-            bgcolor: '#F5F5F7',
-            px: 0.75,
-            py: 0.25,
-            borderRadius: '4px',
-            fontSize: '0.9em',
-          },
-          '& table': {
-            width: '100%',
-            borderCollapse: 'collapse',
-            my: 3,
-            '& th, & td': {
-              border: '1px solid #E5E5EA',
-              px: 2,
-              py: 1.5,
-              textAlign: 'left',
-              fontSize: 14,
-            },
-            '& th': {
-              bgcolor: '#F5F5F7',
-              fontWeight: 600,
-              color: '#1C1C1E',
-            },
-          },
-          '& strong, & b': {
-            fontWeight: 700,
-            color: '#1C1C1E',
-          },
-        }}
-      />
+            <Stack sx={styles.byline}>
+              <Box aria-hidden sx={styles.bylineAvatar}>
+                {authorName.charAt(0).toLocaleUpperCase('tr-TR')}
+              </Box>
+              <Typography component="span" sx={styles.bylineName}>
+                {authorName}
+              </Typography>
+              {publishedLabel && (
+                <>
+                  <Box sx={styles.metaDot} />
+                  <Typography component="time" dateTime={publishedIso} sx={styles.metaText}>
+                    {publishedLabel}
+                  </Typography>
+                </>
+              )}
+              <Box sx={styles.metaDot} />
+              <Typography component="span" sx={styles.metaText}>
+                {readingMinutes} dk okuma
+              </Typography>
+              {updatedLabel && (
+                <>
+                  <Box sx={styles.metaDot} />
+                  <Typography component="span" sx={styles.metaText}>
+                    Güncellendi: {updatedLabel}
+                  </Typography>
+                </>
+              )}
+            </Stack>
+
+            {excerpt && <Typography sx={styles.excerpt}>{excerpt}</Typography>}
+          </Stack>
+
+          {toc.length > 1 && (
+            <Box component="details" sx={styles.mobileToc}>
+              <summary>
+                <span>Bu rehberde</span>
+                <small>{toc.length} bölüm</small>
+              </summary>
+              <ol>
+                {toc.map((item) => (
+                  <li key={item.id}>
+                    <a href={`#${item.id}`}>{item.text}</a>
+                  </li>
+                ))}
+              </ol>
+            </Box>
+          )}
+
+          <Box dangerouslySetInnerHTML={{ __html: html }} sx={styles.article} />
+
+          <Stack direction="row" sx={styles.authorCard}>
+            <Box aria-hidden sx={styles.authorMark}>M</Box>
+            <Stack sx={styles.authorBody}>
+              <Typography sx={styles.authorLabel}>Yazıyı hazırlayan</Typography>
+              <Typography sx={styles.authorTitle}>{author || 'Mitenya Editör'}</Typography>
+              <Typography sx={styles.authorText}>
+                Mitenya cilt bakım içerikleri, ürün formülasyonları ve kullanım rutinleri üzerine
+                hazırlanır. İçerikler bilgilendirme amaçlıdır; tıbbi tavsiye yerine geçmez.
+              </Typography>
+            </Stack>
+          </Stack>
+
+          <Box sx={styles.footerShare}>
+            <Typography component="span" sx={styles.shareLabel}>Bu yazıyı paylaş</Typography>
+            <ShareBox title={title} />
+          </Box>
+        </Box>
+
+        <Box component="aside" sx={styles.railRight}>
+          <SidebarArticles items={sidebarItems} />
+          <ArticleNav items={toc} />
+        </Box>
+      </Box>
+
+      {relatedBlogs.length > 0 && (
+        <Stack component="section" sx={styles.related}>
+          <Typography component="h2" sx={styles.relatedTitle}>
+            İlgili Yazılar
+          </Typography>
+          <Box sx={styles.relatedGrid}>
+            {relatedBlogs.map((item) => (
+              <BlogCard
+                key={item.id}
+                slug={item.attributes.slug}
+                title={item.attributes.title}
+                excerpt={item.attributes.excerpt}
+                publishedAt={item.attributes.publishDate ?? item.attributes.publishedAt}
+                coverImage={item.attributes.cover?.data?.attributes}
+              />
+            ))}
+          </Box>
+        </Stack>
+      )}
     </Stack>
   );
 };

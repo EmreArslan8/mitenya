@@ -11,13 +11,15 @@ const useStyles = withPalette((palette) => ({
     width: { xs: '100%', sm: 'fit-content' },
     maxWidth: { sm: 600 },
     maxHeight: 'calc(100% - 16px)',
-    borderRadius: { xs: '16px 16px 0px 0px', sm: 2 },
+    /* Kartlarla aynı dil: köşe yuvarlaması yok. */
+    borderRadius: 0,
     background: palette.bg.main,
   },
   cardBody: {
     p: { xs: 2, sm: 3 },
     gap: 3,
-    overflowY: 'scroll',
+    /* Sadece taşarsa kaydırsın; her modalda boş kaydırma çubuğu çıkmasın. */
+    overflowY: 'auto',
     maxWidth: '100%',
   },
 }));

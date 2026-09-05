@@ -27,12 +27,8 @@ const useStyles = withPalette((palette) => ({
     aspectRatio: { xs: '0.8', sm: '1 / 1' },
     borderRadius: 0,
     overflow: 'hidden',
-    // Cizgi yerine zemin: beyaz kesimli urun fotograflarini cerceve cizmeden
-    // ayirir, izgarada her kart esit agirlikta bir blok olarak okunur.
-    background: {
-      xs: palette.white.main,
-      sm: palette.gray[50] ?? palette.bg.light,
-    },
+    // Urun fotograflari her yerde beyaz zeminde durur.
+    background: palette.white.main,
     marginBottom: 0.25,
   },
   image: {
@@ -78,8 +74,8 @@ const useStyles = withPalette((palette) => ({
     px: { xs: 1.25, sm: 1.5 },
     py: { xs: '3px', sm: '4px' },
     borderRadius: 999,
-    fontSize: { xs: 10, sm: 11 },
-    fontWeight: 800,
+    fontSize: 11,
+    fontWeight: 700,
     lineHeight: 1.2,
     letterSpacing: '0.02em',
   },
@@ -95,15 +91,15 @@ const useStyles = withPalette((palette) => ({
   badgeDiscount: {
     px: { xs: 1.25, sm: 1.5 },
     py: { xs: '4px', sm: '4px' },
-    fontSize: { xs: 12, sm: 11 },
-    fontWeight: 800,
+    fontSize: 11,
+    fontWeight: 700,
     color: palette.accentRed.dark,
     background: 'rgba(255, 255, 255, 0.88)',
     border: `1px solid ${palette.accentRed.light}`,
     boxShadow: '0 4px 14px rgba(90, 8, 13, 0.10)',
     backdropFilter: 'blur(8px) saturate(135%)',
     WebkitBackdropFilter: 'blur(8px) saturate(135%)',
-    letterSpacing: '0.01em',
+    letterSpacing: '0.02em',
   },
   favoriteButton: {
     width: 36,
@@ -150,17 +146,17 @@ const useStyles = withPalette((palette) => ({
   subtitle: {
     color: palette.text.mediumLight,
     fontSize: 11,
-    fontWeight: 700,
+    fontWeight: 600,
     lineHeight: 1.2,
-    letterSpacing: '0.02em',
+    letterSpacing: '0.06em',
     textTransform: 'uppercase',
   },
   productName: {
     color: palette.text.main,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: 600,
-    lineHeight: 1.35,
-    minHeight: '38px',
+    lineHeight: 1.4,
+    minHeight: '42px',
     whiteSpace: 'normal',
     wordBreak: 'break-word',
     overflow: 'hidden',
@@ -188,7 +184,7 @@ const useStyles = withPalette((palette) => ({
   },
   originalPrice: {
     color: palette.text.medium,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 400,
     textDecoration: 'line-through',
     lineHeight: 1.2,

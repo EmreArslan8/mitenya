@@ -5,7 +5,7 @@ import Card from '@/components/common/Card';
 import InfoItem from '@/components/InfoItem';
 import parseDate from '@/lib/utils/parseDate';
 import { Box, Chip, Stack } from '@mui/material';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 import useStyles from './styles';
 

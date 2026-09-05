@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { compressedJson } from '@/lib/api/compressedJson';
 import { rateLimit } from '@/lib/api/rateLimit';
 import { getClientIp } from '@/lib/api/getClientIp';
 
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
     }
 
     const json = await res.json();
-    return NextResponse.json(json);
+    return compressedJson(req, json);
   } catch (err) {
     console.error('Blog list fetch error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

@@ -8,7 +8,8 @@ import useAddress from '@/lib/api/useAddress';
 import { IconButton, Menu, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import styles from './styles';
-import { Check, Trash } from 'lucide-react';
+import { Check } from '@/components/icons';
+import { Trash } from 'lucide-react';
 
 const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => void }) => {
   const { deleteAddress } = useAddress();

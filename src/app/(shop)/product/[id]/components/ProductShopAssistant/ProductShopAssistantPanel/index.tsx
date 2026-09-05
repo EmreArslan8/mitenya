@@ -1,9 +1,10 @@
 'use client';
 
 import type { ChangeEvent, KeyboardEvent } from 'react';
+import { CloseIcon } from '@/components/icons';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Box, Button, IconButton, Stack, Typography } from '@mui/material';
-import { Send, Sparkles, X } from 'lucide-react';
+import { Send, Sparkles } from 'lucide-react';
 import useStyles from './styles';
 
 const MAX_USER_MESSAGES = 20;
@@ -247,7 +248,7 @@ const ProductShopAssistantPanel = ({ productId, onClose }: ProductShopAssistantP
           </Box>
         </Box>
         <IconButton size="small" onClick={onClose} sx={styles.closeButton} aria-label="Paneli kapat">
-          <X size={18} />
+          <CloseIcon size={18} />
         </IconButton>
       </Box>
 

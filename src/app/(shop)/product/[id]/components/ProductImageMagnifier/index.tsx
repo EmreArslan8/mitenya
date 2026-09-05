@@ -2,18 +2,26 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { Box, Portal } from '@mui/material';
+import NextImage from 'next/image';
 import {
   containerSx,
-  mainImageSx,
   getLensSx,
   getZoomContainerSx,
   getZoomedImageSx,
 } from './styles';
 
 interface ProductImageMagnifierProps {
+  /** HAM kaynak. srcset'i next/image loader'i uretir. */
   src?: string;
-  srcSet?: string;
+  /**
+   * Buyutec katmaninin kullandigi yuksek cozunurluklu URL. Ayri tutuluyor
+   * cunku buyutecte gorsel %250 olceklendiginden ekran boyutuna gore secilen
+   * responsive aday yetmez. Cagiran taraf bunu masaustunde ana gorselin
+   * indirdigi URL ile AYNI uretirse tarayici ikinci bir istek yapmaz.
+   */
+  zoomSrc?: string;
   sizes?: string;
+  quality?: number;
   alt?: string;
   zoomLevel?: number;
   loading?: 'eager' | 'lazy';
@@ -22,8 +30,9 @@ interface ProductImageMagnifierProps {
 
 const ProductImageMagnifier = ({
   src = '',
-  srcSet,
+  zoomSrc,
   sizes,
+  quality,
   alt = '',
   zoomLevel = 2.5,
   loading = 'eager',
@@ -77,16 +86,18 @@ const ProductImageMagnifier = ({
         onMouseMove={handleMouseMove}
         sx={containerSx}
       >
-        <Box
-          component="img"
-          src={src}
-          srcSet={srcSet}
-          sizes={sizes}
-          alt={alt}
-          loading={loading}
-          fetchPriority={fetchPriority}
-          sx={mainImageSx}
-        />
+        {src && (
+          <NextImage
+            src={src}
+            alt={alt}
+            fill
+            sizes={sizes}
+            quality={quality}
+            loading={loading}
+            fetchPriority={fetchPriority}
+            style={{ objectFit: 'contain' }}
+          />
+        )}
 
         {showZoom && (
           <Box sx={getLensSx(lensPosition, lensSize)} />
@@ -96,9 +107,10 @@ const ProductImageMagnifier = ({
       {showZoom && zoomContainerRect && (
         <Portal>
           <Box sx={getZoomContainerSx(zoomContainerRect, window.innerWidth)}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <Box
               component="img"
-              src={src}
+              src={zoomSrc ?? src}
               alt={`${alt} - zoomed`}
               sx={getZoomedImageSx(position, zoomLevel)}
             />

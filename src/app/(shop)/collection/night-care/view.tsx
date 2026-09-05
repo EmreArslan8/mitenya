@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Box, Grid, Stack, Typography, Select, MenuItem, Fade } from '@mui/material';
-import { Moon, Stars, Sparkles, ChevronRight, Home } from 'lucide-react';
+import { ChevronRight } from '@/components/icons';
+import { Moon, Stars, Sparkles, Home } from 'lucide-react';
 import Link from '@/components/common/Link';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import { ShopSearchResponse, ShopSearchSort } from '@/lib/api/types';

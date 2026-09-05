@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 import { BlockComponentBaseProps } from '..';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import styles from './styles';
-import { Minus, Plus } from 'lucide-react';
+import { Minus, Plus } from '@/components/icons';
 
 export interface FAQProps extends BlockComponentBaseProps {
   section: SectionBaseProps;

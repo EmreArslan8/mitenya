@@ -9,7 +9,8 @@ import { sendPurchaseEventForOrder } from '@/lib/utils/googleAnalytics';
 import { onMetaPixelReady, trackPurchase } from '@/lib/analytics/metaPixel';
 import { trackTikTokPurchase, trackTikTokWithUser } from '@/lib/analytics/tiktokPixel';
 import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material';
-import { Check, PackageSearch } from 'lucide-react';
+import { Check } from '@/components/icons';
+import { PackageSearch } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useContext, useEffect, useRef, useState } from 'react';
 

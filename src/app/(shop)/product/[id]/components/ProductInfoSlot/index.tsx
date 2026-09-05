@@ -1,4 +1,5 @@
-import { Truck, Undo2 } from 'lucide-react';
+import { Undo2 } from '@/components/icons';
+import { Truck } from 'lucide-react';
 import s from './ProductInfoSlot.module.css';
 
 // RSC (Server Component) — 'use client' YOK. Statik trust kartı + SKT kutusu.

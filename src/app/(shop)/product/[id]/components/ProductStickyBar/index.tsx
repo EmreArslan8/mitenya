@@ -5,7 +5,7 @@ import { CrossFade } from '@/components/common/CrossFade';
 import useScreen from '@/lib/hooks/useScreen';
 import { R2_IMAGE_PROFILES, r2ImageUrl } from '@/lib/utils/r2';
 import formatPrice from '@/lib/utils/formatPrice';
-import { Check } from 'lucide-react';
+import { Check } from '@/components/icons';
 import { Box, Stack, Typography } from '@mui/material';
 import useStyles from '../../styles';
 

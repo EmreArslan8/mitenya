@@ -7,7 +7,7 @@ import AddressForm from '../AddressCard/AddressForm';
 import NewAddressModal from '../AddressCard/modals/NewAddressModal';
 import Button from '../common/Button';
 import useStyles from './styles';
-import { ChevronDown, Plus } from 'lucide-react';
+import { ChevronDown, Plus } from '@/components/icons';
 
 interface AddressSelectorProps {
   value?: AddressData;

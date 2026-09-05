@@ -1,7 +1,8 @@
 'use client';
 
 import { Box, Typography } from '@mui/material';
-import { ArrowUpRight, Sparkles } from 'lucide-react';
+import { ArrowUpRight } from '@/components/icons';
+import { Sparkles } from 'lucide-react';
 import { openProductQA } from '../events';
 import useTypewriter from '@/lib/hooks/useTypewriter';
 import styles from './styles';

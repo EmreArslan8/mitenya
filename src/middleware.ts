@@ -55,9 +55,15 @@ export async function middleware(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
+      // Giris/uyelik artik ayri bir sayfa (/uyelik) — modal degil.
       const url = request.nextUrl.clone();
-      url.pathname = '/';
-      url.searchParams.set('login', 'true');
+      url.pathname = '/uyelik';
+      url.search = '';
+      url.searchParams.set(
+        'returnUrl',
+        `${request.nextUrl.pathname}${request.nextUrl.search}`
+      );
+      url.searchParams.set('type', 'uye-girisi');
       return NextResponse.redirect(url);
     }
   }

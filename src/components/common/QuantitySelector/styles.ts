@@ -20,6 +20,33 @@ const useStyles = withPalette((palette) => ({
     p: 0,
   },
   decreaseButtonColor: (value: number) => (value === 1 ? palette.error.main : 'currentColor'),
+  /*
+   * Elle yazılabilen adet alanı. Normalde düz sayı gibi durur; üstüne
+   * gelince zemin ve imleç değişerek yazılabilir olduğunu belli eder.
+   */
+  itemQuantityInput: {
+    width: 28,
+    height: 24,
+    p: 0,
+    border: 0,
+    outline: 'none',
+    background: 'transparent',
+    textAlign: 'center',
+    color: palette.text.main,
+    fontSize: 18,
+    fontWeight: 700,
+    fontFamily: 'inherit',
+    borderRadius: '4px',
+    cursor: 'text',
+    transition: 'background-color 0.15s',
+    '&:hover': { backgroundColor: palette.bg.dark },
+    '&:focus': { backgroundColor: palette.bg.dark },
+    // Sayı okunun alan daraltmasını engelle
+    '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button': {
+      WebkitAppearance: 'none',
+      margin: 0,
+    },
+  },
   itemQuantityValue: {
     alignItems: 'center',
     justifyContent: 'center',

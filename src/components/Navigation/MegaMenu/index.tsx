@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Stack, Typography } from '@mui/material';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight } from '@/components/icons';
 import Image from 'next/image';
 import useStyles from './styles';
 

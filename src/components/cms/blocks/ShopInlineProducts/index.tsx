@@ -37,6 +37,7 @@ const SliderWithDots = ({ children, count, slidesToShow, slidesToScroll, styles 
         autoplaySpeed={3200}
         pauseOnHover
         afterChange={setCurrent}
+        arrowVariant="editorial"
       >
         {children}
       </CustomSlider>
@@ -171,7 +172,7 @@ const ShopInlineProducts = ({
   if (error) return <></>;
 
   return (
-    <SectionBase {...section} sectionWidth="100%" sx={{ gap: 2 }}>
+    <SectionBase {...section} sx={{ gap: 2 }}>
       <Stack alignItems="stretch" width="100%">
         {displayType === 'grid' ? (
           <Grid container spacing={{ xs: 2, md: 4 }} pb={{ xs: 1, sm: 2 }}>
@@ -213,6 +214,7 @@ const ShopInlineProducts = ({
               slidesToScroll={slidesToScroll}
               infinite={false}
               pauseOnHover
+              arrowVariant="editorial"
             >
               {products.length
                 ? products.map((e) => (

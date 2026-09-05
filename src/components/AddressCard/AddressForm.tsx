@@ -9,7 +9,7 @@ import { DestinationCountry } from '@/lib/utils/countries';
 import tokenize from '@/lib/utils/tokenize';
 import { Stack, Typography } from '@mui/material';
 import { useFormik } from 'formik';
-import { Asterisk } from 'lucide-react';
+import { Asterisk } from '@/components/icons';
 import React, { useEffect, useRef, useState } from 'react';
 
 type AddressFormFields = {

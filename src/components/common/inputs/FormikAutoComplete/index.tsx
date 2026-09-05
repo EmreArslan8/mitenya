@@ -1,5 +1,5 @@
 import { Autocomplete, Stack, TextField, Typography, SxProps } from '@mui/material';
-import { Asterisk } from 'lucide-react';
+import { Asterisk } from '@/components/icons';
 
 const FormikAutocomplete = ({
   formik,

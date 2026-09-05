@@ -1,6 +1,6 @@
 import { usePalette } from '@/theme/ThemeRegistry';
 import { Box, InputAdornment, Stack, TextField, Typography } from '@mui/material';
-import { Asterisk } from 'lucide-react';
+import { Asterisk } from '@/components/icons';
 import { ChangeEvent, ReactNode, useMemo, useState } from 'react';
 
 const FormikTextField = ({

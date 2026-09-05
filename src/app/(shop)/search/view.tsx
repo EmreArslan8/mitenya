@@ -1,6 +1,18 @@
 'use client';
 
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
+
+/**
+ * Olculen gercek slot genislikleri (filtre sidebar'i kabi daraltiyor):
+ *   390px -> 177px (45.4vw) | 600px -> 83px (13.8vw) | 768px -> 139px (18.1vw)
+ *   1024px -> 221px (21.6vw) | 1440px+ -> 332px (kap max'a ulasiyor)
+ *
+ * Sidebar SABIT genislikte oldugu icin kartin vw orani viewport buyudukce
+ * artiyor; tek bir vw degeri yetmiyor, uc kademe gerekiyor. Sidebar sm'de
+ * (600px) devreye girdigi icin ilk kirilma 599px.
+ */
+const SEARCH_CARD_SIZES =
+  '(max-width: 599px) 46vw, (max-width: 899px) 18vw, (max-width: 1199px) 22vw, 340px';
 import ScrollToTopButton from '@/components/ScrollToTopButton';
 import SearchSort from '@/components/SearchSort';
 import { fetchProducts } from '@/lib/api/shop';
@@ -127,7 +139,7 @@ const SearchProductsView = ({ initialData }: SearchProductsViewProps) => {
         <Grid container columnSpacing={2.5} rowSpacing={3}>
           {products?.map((p) => (
             <Grid item xs={6} sm={4} md={4} key={p.url}>
-              <ProductCard data={p} />
+              <ProductCard data={p} sizes={SEARCH_CARD_SIZES} />
             </Grid>
           ))}
           {loading &&

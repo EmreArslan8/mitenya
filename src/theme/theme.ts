@@ -215,7 +215,7 @@ export const getDesignTokens = (
             textTransform: 'uppercase',
             fontWeight: 800,
             whiteSpace: 'nowrap',
-            borderRadius: 8,
+            borderRadius: '0 !important',
             boxSizing: 'border-box',
             flexShrink: 0,
           },

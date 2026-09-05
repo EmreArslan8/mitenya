@@ -2,11 +2,25 @@ import { withPalette } from '@/theme/ThemeRegistry';
 
 const useStyles = withPalette((palette) => ({
   cardBody: { px: 2, py: 1.5, gap: 2 },
+  pageTitle: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 1,
+  },
+  pageTitleText: {
+    fontSize: { xs: 24, md: 32 },
+    lineHeight: 1.2,
+    fontWeight: 600,
+    color: palette.text.main,
+  },
+  pageTitleCount: {
+    fontSize: { xs: 14, md: 16 },
+    lineHeight: 1.2,
+    fontWeight: 400,
+    color: palette.text.mediumLight,
+  },
   products: {
-    border: '1px solid',
-    borderColor: palette.tertiary.light,
-    borderRadius: 1,
-    py: 2,
+    borderRadius: 0,
     gap: 2,
   },
   priceLine: {

@@ -1,6 +1,7 @@
 'use client';
 
 import { ShopProductData } from '@/lib/api/types';
+import { Check, CloseIcon } from '@/components/icons';
 import { CrossFade } from '@/components/common/CrossFade';
 import {
   Box,
@@ -16,7 +17,7 @@ import Button from '@/components/common/Button';
 import { ShopContext } from '@/contexts/ShopContext';
 import formatPrice from '@/lib/utils/formatPrice';
 import useScreen from '@/lib/hooks/useScreen';
-import { Check, ShoppingBag, X } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
 
 interface QuickAddModalProps {
   open: boolean;
@@ -139,7 +140,7 @@ const QuickAddModal = ({ open, onClose, product, loading }: QuickAddModalProps) 
               Hızlı Ekle
             </Typography>
             <IconButton onClick={handleClose} size="small">
-              <X />
+              <CloseIcon />
             </IconButton>
           </Stack>
 

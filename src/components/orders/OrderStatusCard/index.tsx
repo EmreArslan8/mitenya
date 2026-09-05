@@ -4,14 +4,8 @@ import { ShopOrderStatus } from '@/lib/api/types';
 import { Box, Stack, Typography } from '@mui/material';
 import SupportButton from '../../SupportButtonSimple';
 import Button from '../../common/Button';
-import {
-  Clock,
-  PackageCheck,
-  Truck,
-  XCircle,
-  CheckCircle2,
-  SquareArrowOutUpRight,
-} from 'lucide-react';
+import { CheckCircle2, Clock, XCircle } from '@/components/icons';
+import { PackageCheck, Truck, SquareArrowOutUpRight } from 'lucide-react';
 import { ReactNode } from 'react';
 
 /* ── Status pipeline config ── */

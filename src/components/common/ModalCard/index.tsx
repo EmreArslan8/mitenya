@@ -1,9 +1,9 @@
 import { Modal, Slide, Stack, SxProps } from '@mui/material';
+import { CloseIcon } from '@/components/icons';
 import { ReactNode } from 'react';
 import Card, { CardProps } from '../Card';
 import useStyles from './styles';
 import useScreen from '@/lib/hooks/useScreen';
-import { SlidersHorizontal, X } from 'lucide-react';
 
 type ModalCardLayout = 'dialog' | 'bottom-sheet';
 
@@ -34,22 +34,14 @@ const ModalCard = ({
   disableAutoFocus,
   CardProps,
   BodyProps,
-  iconName,
   customIcon,
-  iconProps,
   ...cardProps
 }: ModalCardProps) => {
   const styles = useStyles();
   const { isMobile } = useScreen();
   const isBottomSheet = layout === 'bottom-sheet';
   const isWideLayout = fullWidth || isBottomSheet;
-  const modalIcon =
-    customIcon ||
-    (iconName === 'tune' ? (
-      <Stack component="span" sx={{ color: 'primary.main', display: 'inline-flex' }}>
-        <SlidersHorizontal size={24} color="currentColor" />
-      </Stack>
-    ) : undefined);
+
 
   return (
     <Modal
@@ -76,9 +68,7 @@ const ModalCard = ({
   <div tabIndex={-1} style={{ outline: 'none', width: isWideLayout ? '100%' : undefined }}>
     <Card
       {...cardProps}
-      iconName={iconName === 'tune' ? undefined : iconName}
-      iconProps={iconProps}
-      customIcon={modalIcon}
+      customIcon={customIcon}
       sx={{
         ...styles.card,
         ...(isWideLayout ? { width: '100%', maxWidth: '100%' } : {}),
@@ -86,11 +76,22 @@ const ModalCard = ({
         ...CardProps?.sx,
       }}
       stickyHeader
-      action={ showCloseIcon && (
-        <Stack component="span" onClick={onClose}sx={{ cursor: onClose ? 'pointer' : 'default' }} >
-          <X size={20} />
-        </Stack>
-      )}
+      action={
+        showCloseIcon && (
+          <Stack
+            component="span"
+            onClick={onClose}
+            sx={{
+              display: 'inline-flex',
+              cursor: onClose ? 'pointer' : 'default',
+              /* Masaüstünde 20px fazla ufak kalıyordu. */
+              '& svg': { width: { xs: 20, sm: 28 }, height: { xs: 20, sm: 28 } },
+            }}
+          >
+            <CloseIcon size={28} />
+          </Stack>
+        )
+      }
     >
       <Stack {...BodyProps} sx={{ ...styles.cardBody, ...BodyProps?.sx }}>
         {children}

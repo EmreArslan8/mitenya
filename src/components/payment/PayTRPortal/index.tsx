@@ -1,9 +1,10 @@
 'use client';
 
 import LoadingOverlay from '@/components/LoadingOverlay';
+import { CloseIcon, Lock } from '@/components/icons';
 import { Box, Modal, Stack, IconButton, Typography } from '@mui/material'
 import { useEffect, useState } from 'react';
-import { ShieldCheck, Lock, X } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 interface PayTRPortalProps {
   token: string;
@@ -87,7 +88,7 @@ const PayTRPortal = ({ token, open, onClose, onSuccess, onError }: PayTRPortalPr
             </Typography>
           </Stack>
           <IconButton size="small" onClick={onClose}>
-            <X size={20} />
+            <CloseIcon size={20} />
           </IconButton>
         </Stack>
 

@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import NextLink from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight } from '@/components/icons';
 import { ShopProductData } from '@/lib/api/types';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';

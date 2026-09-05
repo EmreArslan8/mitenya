@@ -1,10 +1,10 @@
 'use client';
 
 import { ShopContext } from '@/contexts/ShopContext';
+import { ArrowLeft, CloseIcon, History, Search } from '@/components/icons';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
 import formatPrice from '@/lib/utils/formatPrice';
 import { Box, CircularProgress, IconButton, Stack, TextField, Typography } from '@mui/material';
-import { ArrowLeft, History, Search, X } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useContext, useEffect, useRef, useState } from 'react';
@@ -149,7 +149,7 @@ const MobileSearchOverlay = ({ open, onClose }: MobileSearchOverlayProps) => {
             startAdornment: <Search size={18} strokeWidth={1.5} style={{ marginRight: 8 }} />,
             endAdornment: query ? (
               <IconButton size="small" onClick={() => setQuery('')} aria-label="Temizle">
-                <X size={16} strokeWidth={1.8} />
+                <CloseIcon size={16} />
               </IconButton>
             ) : null,
           }}
@@ -179,7 +179,7 @@ const MobileSearchOverlay = ({ open, onClose }: MobileSearchOverlayProps) => {
                     onClick={() => removeSearchQuery(item)}
                     aria-label="Kaldır"
                   >
-                    <X size={15} strokeWidth={1.8} />
+                    <CloseIcon size={15} />
                   </IconButton>
                 </Stack>
               ))}

@@ -2,7 +2,7 @@
 
 import { Accordion, AccordionSummary, AccordionDetails, Typography, Stack } from '@mui/material';
 import DOMPurify from 'isomorphic-dompurify';
-import { Minus, Plus } from 'lucide-react';
+import { Minus, Plus } from '@/components/icons';
 import { useState } from 'react';
 import Markdown, { MarkdownOptions } from '@/components/common/Markdown';
 import useStyles from './styles';

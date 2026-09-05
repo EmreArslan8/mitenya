@@ -4,6 +4,7 @@ import { FavoritesContextProvider } from "@/contexts/FavoritesContext";
 import { ShopContextProvider } from "@/contexts/ShopContext";
 import { albertSans, albertSansItalic } from "@/lib/fonts";
 import ThemeRegistry from "@/theme/ThemeRegistry";
+import type { Viewport } from "next";
 import { Suspense } from "react";
 import AnalyticsDefer from "@/components/analytics/AnalyticsDefer";
 
@@ -40,7 +41,6 @@ export default function RootLayout({
           name="emotion-insertion-point"
           content="emotion-insertion-point"
         />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
           name="format-detection"
           content="telephone=no, date=no, email=no, address=no"
@@ -103,6 +103,15 @@ export default function RootLayout({
     </html>
   );
 }
+
+/**
+ * Viewport, `<meta>` olarak elle yazilirsa Next'in kendi enjekte ettigiyle
+ * birlikte sayfada IKI kez basiliyor. Resmi yol bu export.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
 
 export const generateMetadata = async () => ({
   title: { template: "%s | Mitenya", default: "Mitenya | Kore Kozmetik ve Cilt Bakım Ürünleri" },

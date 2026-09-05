@@ -6,7 +6,9 @@ import { Button, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 import AddressForm from '../AddressForm';
 import styles from '../styles';
-import { CircleCheckBig, TriangleAlert } from 'lucide-react';
+import { CircleCheckBig } from '@/components/icons';
+import { Pencil } from 'lucide-react';
+import { TriangleAlert } from 'lucide-react';
 
 interface EditAddressModalProps {
   initialData: AddressData;
@@ -52,7 +54,7 @@ const EditAddressModal = ({ initialData, open, onEdited, onClose }: EditAddressM
     <ModalCard
       open={open}
       onClose={handleClose}
-      iconName="edit"
+      customIcon={<Pencil size={24} />}
       showCloseIcon
       title= "Adres Düzenle"
       CardProps={{ sx: styles.modalCard }}

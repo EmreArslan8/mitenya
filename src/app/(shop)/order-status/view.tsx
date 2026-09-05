@@ -4,18 +4,8 @@ import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { useAuth } from '@/contexts/AuthContext';
 import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
-import {
-  AlertCircle,
-  ArrowRight,
-  CheckCircle2,
-  Clock3,
-  LockKeyhole,
-  LogIn,
-  PackageCheck,
-  PackageSearch,
-  Truck,
-  UserPlus,
-} from 'lucide-react';
+import { AlertCircle, ArrowRight, CheckCircle2, Clock3, LockKeyhole } from '@/components/icons';
+import { LogIn, PackageCheck, PackageSearch, Truck, UserPlus } from 'lucide-react';
 import { Box, CircularProgress, Divider, Stack, TextField, Typography } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useState, type FormEvent } from 'react';
@@ -254,7 +244,7 @@ const OrderStatusLookupContent = () => {
                       <Button variant="contained" startIcon={<LogIn size={18} />} onClick={() => openAuthenticator()}>
                         Giriş Yap
                       </Button>
-                      <Button variant="outlined" startIcon={<UserPlus size={18} />} onClick={() => openAuthenticator()}>
+                      <Button variant="outlined" startIcon={<UserPlus size={18} />} onClick={() => openAuthenticator({ type: 'uye-ol' })}>
                         Hesap Oluştur
                       </Button>
                     </>
@@ -323,7 +313,7 @@ const OrderStatusLookupContent = () => {
                       <Button variant="text" size="small" onClick={() => openAuthenticator()}>
                         Giriş Yap
                       </Button>
-                      <Button variant="text" size="small" onClick={() => openAuthenticator()}>
+                      <Button variant="text" size="small" onClick={() => openAuthenticator({ type: 'uye-ol' })}>
                         Üye Ol
                       </Button>
                     </Stack>

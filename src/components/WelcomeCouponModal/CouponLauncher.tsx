@@ -1,8 +1,8 @@
 'use client';
 
 import useScreen from '@/lib/hooks/useScreen';
+import { CloseIcon } from '@/components/icons';
 import { Box, Stack, Typography } from '@mui/material';
-import { X } from 'lucide-react';
 import { useLauncherStyles } from './styles';
 
 type Props = {
@@ -45,7 +45,7 @@ const CouponLauncher = ({ discountPercent, onReopen, onDismiss }: Props) => {
         onClick={onDismiss}
         sx={s.dismiss}
       >
-        <X size={isMobile ? 20 : 12} />
+        <CloseIcon size={isMobile ? 20 : 12} />
       </Box>
     </Box>
   );

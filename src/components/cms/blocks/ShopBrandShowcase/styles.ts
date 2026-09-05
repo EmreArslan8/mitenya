@@ -3,8 +3,8 @@ import { withPalette } from '@/theme/ThemeRegistry';
 const useStyles = withPalette((palette) => ({
   wrapper: {
     width: '100%',
-    px: { xs: 1, md: 2 },
-    py: { xs: 1.5, md: 2.5 },
+    px: 0,
+    py: 2.5,
   },
 
   // Ana grid:

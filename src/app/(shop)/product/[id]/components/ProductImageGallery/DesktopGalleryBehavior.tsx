@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Card from '@/components/common/Card';
-import { R2_IMAGE_PROFILES, r2ImageSrcSet, r2ImageUrl } from '@/lib/utils/r2';
+import { R2_IMAGE_PROFILES, r2ImageUrl, r2Url } from '@/lib/utils/r2';
+import NextImage from 'next/image';
 import { Box, CircularProgress, IconButton, Stack, Typography } from '@mui/material';
-import { ChevronLeft, ChevronRight, Heart, Share } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart } from '@/components/icons';
+import { Share } from 'lucide-react';
 import ProductImageMagnifier from '../ProductImageMagnifier';
 import useStyles from './styles';
 import { DesktopGalleryBehaviorProps } from './types';
@@ -27,12 +29,14 @@ const DesktopGalleryBehavior = ({
   }, [imageList]);
 
   const activeImage = imageList.includes(currentImg ?? '') ? currentImg : imageList[0];
-  const activeDisplaySrc = r2ImageUrl(activeImage, {
+
+  // Ana gorsel: ham kaynak, srcset'i next/image loader'i kuruyor.
+  const activeRawSrc = r2Url(activeImage);
+  // Buyutec katmani: %250 olceklendigi icin sabit yuksek cozunurluk gerekli.
+  // Bu URL, masaustunde ana gorselin sectigi adayla BIREBIR ayni string
+  // (`width=1280,format=auto,quality=82`), dolayisiyla ikinci indirme olmuyor.
+  const activeZoomSrc = r2ImageUrl(activeImage, {
     width: 1280,
-    quality: primaryProfile.quality,
-    format: primaryProfile.format,
-  });
-  const activeDisplaySrcSet = r2ImageSrcSet(activeImage, primaryProfile.widths, {
     quality: primaryProfile.quality,
     format: primaryProfile.format,
   });
@@ -67,20 +71,19 @@ const DesktopGalleryBehavior = ({
                 }}
                 aria-label={`Urun gorseli ${index + 1}`}
               >
-                <img
-                  src={r2ImageUrl(src, {
-                    width: thumbnailProfile.widths[1],
-                    quality: thumbnailProfile.quality,
-                    format: thumbnailProfile.format,
-                  })}
-                  srcSet={r2ImageSrcSet(src, thumbnailProfile.widths, {
-                    quality: thumbnailProfile.quality,
-                    format: thumbnailProfile.format,
-                  })}
-                  sizes={thumbnailProfile.sizes}
+                {/*
+                  Thumbnail sabit 96px: `sizes` YERINE width/height veriliyor.
+                  Boylece next/image kind="x"e dusup tam 2 aday uretiyor
+                  (96w 1x, 192w 2x). `sizes="96px"` yazilsaydi icinde vw
+                  olmadigi icin TUM aday listesi basilirdi.
+                */}
+                <NextImage
+                  src={r2Url(src)}
                   alt=""
+                  width={96}
+                  height={96}
+                  quality={thumbnailProfile.quality}
                   loading="lazy"
-                  decoding="async"
                   style={styles.thumbnailImage}
                 />
               </Box>
@@ -123,9 +126,10 @@ const DesktopGalleryBehavior = ({
 
           <Box sx={styles.imageContainer}>
             <ProductImageMagnifier
-              src={activeDisplaySrc}
-              srcSet={activeDisplaySrcSet}
+              src={activeRawSrc}
+              zoomSrc={activeZoomSrc}
               sizes={primaryProfile.sizes}
+              quality={primaryProfile.quality}
               alt={name}
               zoomLevel={2.5}
               loading={currentImageIndex === 0 ? 'eager' : 'lazy'}

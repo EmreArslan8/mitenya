@@ -6,7 +6,7 @@ import CMSImage from '@/components/cms/shared/CMSImage';
 import { SharedImageType } from '@/components/cms/shared/cmsTypes';
 import SectionBase, { SectionBaseProps } from '@/components/cms/shared/SectionBase';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Stack, Typography } from '@mui/material';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown } from '@/components/icons';
 import { useState } from 'react';
 import type { BlockComponentBaseProps } from '..';
 import useStyles from './styles';

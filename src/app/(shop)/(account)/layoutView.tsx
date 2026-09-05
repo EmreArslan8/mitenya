@@ -5,17 +5,13 @@ import {
   LogIn,
   PackageSearch,
   MessageSquareText,
-  UserRound,
   MapPinned,
-  CreditCard,
   Bell,
-  Heart,
-  LockKeyhole,
   BookUser,
   CircleHelp,
-  ChevronRight,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { ChevronRight, CreditCard, Heart, LockKeyhole, UserRound } from '@/components/icons';
+import type { ComponentType, SVGProps } from 'react';
 
 import SupportButton from '@/components/SupportButtonSimple';
 import Button from '@/components/common/Button';
@@ -32,7 +28,7 @@ type NavItem = {
   url?: string;
   external?: boolean;
   section?: 'profile' | 'addresses' | 'security' | 'notifications' | 'favorites';
-  Icon: LucideIcon;
+  Icon: ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }>;
 };
 
 const navGroups: { title: string; items: NavItem[] }[] = [

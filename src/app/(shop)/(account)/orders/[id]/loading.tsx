@@ -6,7 +6,7 @@ import TwoColumnLayout, {
   PrimaryColumn,
   SecondaryColumn,
 } from '@/components/layouts/TwoColumnLayout';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 
 const CardShell = ({ children }: { children: React.ReactNode }) => (
