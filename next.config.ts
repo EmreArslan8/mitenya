@@ -2,6 +2,13 @@ import type { NextConfig } from 'next';
 import { DEVICE_SIZES, IMAGE_SIZES, QUALITIES } from './src/lib/imageSizesConfig';
 
 const nextConfig: NextConfig = {
+  /**
+   * Docker imaji `next start` yerine `.next/standalone/server.js` calistiriyor.
+   * Boylece bu dosya runtime'da hic okunmuyor: config (redirects/rewrites/headers/
+   * images) build sirasinda gomuluyor ve runner imajinda `src/` bulunmadigi icin
+   * cikan "Cannot find module './src/lib/imageSizesConfig'" hatasi ortadan kalkiyor.
+   */
+  output: 'standalone',
   productionBrowserSourceMaps: process.env.MITENYA_SOURCE_MAPS === 'true',
   /**
    * GÜVENLİK UYARISI: Bu ayarlar geçici olarak aktif.

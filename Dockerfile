@@ -42,16 +42,16 @@ WORKDIR /app
 ENV NODE_ENV=production
 RUN apk add --no-cache curl
 
-# Gerekli dosyaları kopyala
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/yarn.lock ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
+# Standalone cikti: Next, sunucuyu ve yalnizca gercekten kullanilan node_modules'u
+# .next/standalone icine kendisi topluyor. `next start` calismadigi icin runtime'da
+# next.config.ts okunmuyor (config build'e gomulu) — src/ kopyalamaya gerek yok.
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-# next.config.ts runtime'da da gerekli (redirects/rewrites/headers okunması için)
-COPY --from=builder /app/next.config.ts ./next.config.ts
 
-ENV PORT=3000
+ENV PORT=3000 \
+    HOSTNAME=0.0.0.0 \
+    NEXT_TELEMETRY_DISABLED=1
 EXPOSE 3000
 
-CMD ["yarn", "start"]
+CMD ["node", "server.js"]
