@@ -27,6 +27,7 @@ const CheckoutLayout = ({ children }: { children: React.ReactNode }) => (
           width={125}
           height={40}
           priority
+          unoptimized
         />
       </Link>
     </header>

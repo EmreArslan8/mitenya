@@ -1,12 +1,6 @@
-import { Box } from '@mui/material';
 import Link from '@/components/common/Link';
-import {
-  BRAND_BOX_HEIGHT,
-  BRAND_BOX_HEIGHT_HIGHLIGHT,
-  brandLogoHeight,
-} from '@/lib/shop/brandLogo';
+import { BRAND_BOX_HEIGHT, BRAND_BOX_HEIGHT_HIGHLIGHT, brandLogoHeight } from '@/lib/shop/brandLogo';
 import CMSImage from '../CMSImage';
-import useStyles from './styles';
 import { SharedImageType } from '../cmsTypes';
 
 interface BrandItemProps {
@@ -17,29 +11,19 @@ interface BrandItemProps {
 }
 
 const BrandItem = ({ logo, url, highlight, alt }: BrandItemProps) => {
-  const styles = useStyles();
   const { url: src, alternativeText, width, height } = logo.data.attributes;
   const name = alt ?? alternativeText ?? 'Marka logosu';
-
-  // Kutu tüm logolar için sabit; logo kutunun İÇİNE oturur, kutuyu zorlamaz.
   const boxHeight = highlight ? BRAND_BOX_HEIGHT_HIGHLIGHT : BRAND_BOX_HEIGHT;
-  // Yükseklik logonun oranından türetilir (bkz. lib/shop/brandLogo)
   const logoHeight = Math.round(brandLogoHeight(boxHeight, width, height, name));
   const logoWidth = width && height ? Math.round(logoHeight * (width / height)) : logoHeight;
-
   const content = (
-    <Box sx={{ ...styles.root, ...(highlight ? styles.highlight : null), height: boxHeight }}>
-      <CMSImage
-        src={src}
-        alt={name}
-        width={logoWidth}
-        height={logoHeight}
-        sizes={`${logoWidth}px`}
-        style={{ width: logoWidth, height: logoHeight, objectFit: 'contain' }}
-      />
-    </Box>
+    <div
+      style={{ height: boxHeight }}
+      className={`flex items-center justify-center transition-[filter,opacity] duration-200 ${highlight ? 'opacity-100' : 'grayscale opacity-70 hover:grayscale-0 hover:opacity-100'}`}
+    >
+      <CMSImage src={src} alt={name} width={logoWidth} height={logoHeight} sizes={`${logoWidth}px`} style={{ width: logoWidth, height: logoHeight, objectFit: 'contain' }} />
+    </div>
   );
-
   return url ? <Link href={url}>{content}</Link> : content;
 };
 

@@ -14,13 +14,11 @@ import { ChevronRight, CreditCard, Heart, LockKeyhole, UserRound } from '@/compo
 import type { ComponentType, SVGProps } from 'react';
 
 import SupportButton from '@/components/SupportButtonSimple';
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
-import useScreen from '@/lib/hooks/useScreen';
-import { MenuItem, Stack, Typography, Box, Divider } from '@mui/material';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ReactNode } from 'react';
-import useStyles from './styles';
+import { cn } from '@/lib/utils/cn';
 
 const getSupportUrl = 'https://api.whatsapp.com/send?phone=905070617930';
 type NavItem = {
@@ -56,8 +54,6 @@ const navGroups: { title: string; items: NavItem[] }[] = [
 
 const AccountPagesLayoutView = ({ children, reviewCount }: { children: ReactNode; reviewCount: number }) => {
   const { isAuthenticated, openAuthenticator, customerData } = useAuth();
-  const { smDown, smUp } = useScreen();
-  const styles = useStyles();
   const pathname = usePathname();
   const safePathname = pathname ?? '';
   const searchParams = useSearchParams();
@@ -87,88 +83,79 @@ const AccountPagesLayoutView = ({ children, reviewCount }: { children: ReactNode
     router.push(item.url);
   };
 
-  if (isAuthenticated === undefined || (!smDown && !smUp)) return <></>;
+  if (isAuthenticated === undefined) return null;
 
   if (isAuthenticated === false)
     return (
-      <Stack sx={styles.authContainer}>
-        <Box sx={styles.authIconBox}>
+      <div className="flex flex-col items-center gap-6 overflow-hidden py-12 text-center sm:py-20">
+        <div className="grid size-[88px] place-items-center rounded-[22px] bg-[linear-gradient(135deg,var(--color-bg-dark)_0%,var(--color-gray-100)_100%)]">
           <Hand size={40} strokeWidth={1.2} color="#8E8E93" />
-        </Box>
+        </div>
 
-        <Stack gap={1} alignItems="center">
-          <Typography sx={styles.authTitle}>
+        <div className="flex flex-col items-center gap-2">
+          <h1 className="text-xl font-extrabold tracking-[-0.3px] text-text sm:text-2xl">
             Giriş Yapın
-          </Typography>
-          <Typography sx={styles.authDescription}>
+          </h1>
+          <p className="max-w-[400px] text-[15px] font-medium leading-relaxed text-text-medium-light sm:text-base">
             Siparişlerinizi, adreslerinizi ve hesap bilgilerinizi görüntülemek için giriş yapmanız gerekiyor.
-          </Typography>
-        </Stack>
+          </p>
+        </div>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} gap={1} width="100%" maxWidth={380}>
-          <SupportButton variant="outlined" color="secondary" sx={{ flex: 1 }} />
+        <div className="flex w-full max-w-[380px] flex-col gap-2 sm:flex-row [&>*]:flex-1">
+          <SupportButton variant="outlined" color="secondary" />
           <Button
             variant="contained"
             startIcon={<LogIn size={18} />}
             onClick={() => openAuthenticator()}
-            sx={{ flex: 1 }}
           >
             Giriş Yap
           </Button>
-        </Stack>
-      </Stack>
+        </div>
+      </div>
     );
 
   return (
-    <Stack sx={styles.container}>
-      {smUp && (
-        <Stack sx={styles.navigation}>
-          <Stack sx={styles.accountIdentity}>
-            <Typography sx={styles.accountName}>{customerData?.fullName || 'Kullanıcı'}</Typography>
-          </Stack>
+    <div className="flex w-full flex-col gap-4 sm:flex-row sm:gap-6 md:gap-8">
+      <nav className="hidden h-fit w-[232px] shrink-0 flex-col gap-2 rounded-2xl bg-transparent p-2 sm:flex md:w-60 lg:w-[248px]">
+          <div className="rounded-xl border border-gray-200 bg-white px-2.5 py-2">
+            <p className="text-[17px] font-semibold leading-tight text-text">{customerData?.fullName || 'Kullanıcı'}</p>
+          </div>
           {navGroups.map((group, groupIndex) => (
-            <Stack key={group.title} sx={styles.groupCard}>
-              <Typography sx={styles.groupTitle}>{group.title}</Typography>
-              <Stack>
+            <div key={group.title} className="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white p-1.5">
+              <h2 className="px-1 py-0.5 text-base font-semibold leading-tight tracking-[-0.1px] text-text">{group.title}</h2>
+              <div>
                 {group.items.map((item) => {
                   const selected = isItemSelected(item);
                   const isDisabled = !item.url;
                   return (
-                    <MenuItem
+                    <button
+                      type="button"
                       key={item.label}
-                      selected={selected}
                       disabled={isDisabled}
                       onClick={() => handleNavClick(item)}
-                      sx={styles.menuItem}
+                      className={cn('flex min-h-[38px] w-full items-center gap-[7px] rounded-[9px] px-1.5 py-1 text-left text-[13px] transition disabled:cursor-default disabled:opacity-100', selected ? 'bg-bg-dark font-medium text-text' : 'text-text-medium-light hover:bg-bg-dark hover:text-text')}
                     >
-                      <Box
-                        sx={{
-                          ...styles.menuItemIcon,
-                          bgcolor: selected ? 'text.main' : 'transparent',
-                        }}
-                      >
+                      <span className={cn('flex size-[26px] shrink-0 items-center justify-center rounded-[7px] border border-gray-200', selected ? 'bg-text' : 'bg-white')}>
                         <item.Icon
                           size={16}
                           color={selected ? '#fff' : '#8E8E93'}
                           strokeWidth={selected ? 2.2 : 1.8}
                         />
-                      </Box>
-                      <Typography sx={styles.menuItemLabel}>{item.label}</Typography>
+                      </span>
+                      <span className="flex-1 text-[13px] font-normal leading-tight text-inherit">{item.label}</span>
                       {item.label === 'Değerlendirmelerim' && reviewCount > 0
-                        ? <Box sx={styles.menuBadge}>{reviewCount}</Box>
+                        ? <span className="grid h-5 min-w-5 place-items-center rounded-full bg-gray-100 px-1 text-[11px] font-extrabold text-text">{reviewCount}</span>
                         : !isDisabled && <ChevronRight size={14} color="#8E8E93" />}
-                    </MenuItem>
+                    </button>
                   );
                 })}
-              </Stack>
-              {groupIndex < navGroups.length - 1 && <Divider sx={styles.divider} />}
-            </Stack>
+              </div>
+              {groupIndex < navGroups.length - 1 && <hr className="mx-0.5 my-1.5 border-0 border-t border-gray-200" />}
+            </div>
           ))}
-
-        </Stack>
-      )}
+      </nav>
       {children}
-    </Stack>
+    </div>
   );
 };
 

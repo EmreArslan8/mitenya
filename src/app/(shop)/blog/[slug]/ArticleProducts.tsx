@@ -1,25 +1,23 @@
-import { Box, Stack, Typography } from '@mui/material';
 import Link from '@/components/common/Link';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
 import formatPrice from '@/lib/utils/formatPrice';
 import type { ShopProductListItemData } from '@/lib/api/types';
-import styles from './styles';
 
 const ArticleProducts = ({ products }: { products: ShopProductListItemData[] }) => {
   if (!products.length) return null;
 
   return (
-    <Stack sx={styles.productCard}>
-      <Typography sx={styles.sideLabel}>Yazıdaki ürünler</Typography>
+    <section className="flex flex-col gap-3 rounded-2xl border border-gray-100 p-4">
+      <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500">Yazıdaki ürünler</h2>
 
-      <Stack sx={styles.productList}>
+      <div className="flex flex-col gap-3">
         {products.map((product) => {
           const hasDiscount = product.price.originalPrice > product.price.currentPrice;
 
           return (
-            <Link key={product.id} href={product.url} style={styles.productLink}>
-              <Stack sx={styles.productRow}>
-                <Box sx={styles.productThumb}>
+            <Link key={product.id} href={product.url} className="block text-inherit no-underline">
+              <div className="flex items-center gap-2.5 rounded-xl transition-colors hover:bg-gray-50">
+                <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-gray-50">
                   {product.imgSrc && (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
@@ -29,40 +27,40 @@ const ArticleProducts = ({ products }: { products: ShopProductListItemData[] }) 
                       alt={product.name}
                       loading="lazy"
                       decoding="async"
-                      style={styles.productImage}
+                      className="block size-full object-cover"
                     />
                   )}
                   {hasDiscount && (
-                    <Box component="span" sx={styles.productBadge}>
+                    <span className="absolute bottom-[3px] left-[3px] rounded bg-accentRed px-1 text-[10px] font-bold leading-[15px] text-white">
                       %{getDiscountPercent(product.price)}
-                    </Box>
+                    </span>
                   )}
-                </Box>
+                </div>
 
-                <Stack sx={styles.productInfo}>
-                  <Typography sx={styles.productBrand}>{product.brand}</Typography>
-                  <Typography sx={styles.productName}>{product.name}</Typography>
-                  <Stack sx={styles.productPriceRow}>
-                    <Typography component="span" sx={styles.productPrice}>
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <span className="text-[10.5px] font-semibold uppercase tracking-[0.08em] text-gray-500">{product.brand}</span>
+                  <p className="line-clamp-2 text-[13px] font-semibold leading-[1.35] text-gray-800">{product.name}</p>
+                  <div className="mt-0.5 flex items-baseline gap-1.5">
+                    <span className="text-[13.5px] font-bold text-gray-800">
                       {formatPrice(product.price.currentPrice, product.price.currency)}
-                    </Typography>
+                    </span>
                     {hasDiscount && (
-                      <Typography component="span" sx={styles.productOldPrice}>
+                      <span className="text-[11.5px] text-gray-500 line-through">
                         {formatPrice(product.price.originalPrice, product.price.currency)}
-                      </Typography>
+                      </span>
                     )}
-                  </Stack>
-                </Stack>
-              </Stack>
+                  </div>
+                </div>
+              </div>
             </Link>
           );
         })}
-      </Stack>
+      </div>
 
-      <Typography component="a" href="/search" sx={styles.productAllLink}>
+      <a href="/search" className="text-[12.5px] font-semibold text-accentRed no-underline hover:underline">
         Tüm ürünleri gör
-      </Typography>
-    </Stack>
+      </a>
+    </section>
   );
 };
 

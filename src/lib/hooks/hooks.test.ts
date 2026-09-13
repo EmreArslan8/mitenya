@@ -6,20 +6,6 @@ vi.mock('cookies-next', () => ({
   getCookie: vi.fn(),
 }));
 
-// Mock MUI
-vi.mock('@mui/material/styles', () => ({
-  useTheme: () => ({
-    breakpoints: {
-      down: () => '(max-width: 600px)',
-      up: () => '(min-width: 600px)',
-    },
-  }),
-}));
-
-vi.mock('@mui/material/useMediaQuery', () => ({
-  default: vi.fn(() => false),
-}));
-
 describe('useIsMobileApp', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -61,25 +47,25 @@ describe('useScreen', () => {
     vi.clearAllMocks();
   });
 
-  it('should return screen size states', async () => {
+  it('returns the named media-query result', async () => {
     const useScreen = (await import('./useScreen')).default;
-    const { result } = renderHook(() => useScreen());
+    const { result } = renderHook(() => useScreen('smDown'));
 
-    expect(result.current).toHaveProperty('isMobile');
-    expect(result.current).toHaveProperty('isTablet');
-    expect(result.current).toHaveProperty('smDown');
-    expect(result.current).toHaveProperty('mdDown');
-    expect(result.current).toHaveProperty('lgDown');
-    expect(result.current).toHaveProperty('smUp');
-    expect(result.current).toHaveProperty('mdUp');
-    expect(result.current).toHaveProperty('lgUp');
+    expect(typeof result.current).toBe('boolean');
   });
 
-  it('should return boolean values', async () => {
+  it('shares one matchMedia store for the same query', async () => {
+    vi.resetModules();
+    const matchMedia = vi.fn(globalThis.matchMedia);
+    vi.stubGlobal('matchMedia', matchMedia);
     const useScreen = (await import('./useScreen')).default;
-    const { result } = renderHook(() => useScreen());
 
-    expect(typeof result.current.isMobile).toBe('boolean');
-    expect(typeof result.current.isTablet).toBe('boolean');
+    const first = renderHook(() => useScreen('mdUp'));
+    const second = renderHook(() => useScreen('mdUp'));
+
+    expect(matchMedia).toHaveBeenCalledTimes(1);
+    first.unmount();
+    second.unmount();
+    vi.unstubAllGlobals();
   });
 });

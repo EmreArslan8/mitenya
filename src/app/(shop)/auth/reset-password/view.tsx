@@ -1,14 +1,14 @@
 'use client';
 
-import { Snackbar, Stack, Typography } from '@mui/material';
 import { useFormik } from 'formik';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useSupabase } from '@/lib/supabase/client';
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/Button';
 import Banner from '@/components/common/Banner';
 import PasswordField from '@/components/Authenticator/PasswordField';
 import { validatePassword } from '@/lib/utils/password';
+import { Toast } from '@/components/ui/Toast';
 
 const getPasswordUpdateErrorMessage = (message?: string) => {
   if (!message) {
@@ -141,40 +141,24 @@ export default function ResetPasswordView({ recoveryAllowed }: { recoveryAllowed
   if (sessionReady === undefined) return null;
 
   return (
-    <Stack
-      alignItems="center"
-      justifyContent="center"
-      minHeight="100vh"
-      px={2}
-      sx={{ backgroundColor: 'background.default' }}
-    >
-      <Stack
-        gap={3}
-        sx={{
-          width: '100%',
-          maxWidth: 420,
-          backgroundColor: 'background.paper',
-          borderRadius: 2,
-          p: { xs: 3, sm: 4 },
-          boxShadow: 1,
-        }}
-      >
-        <Stack gap={0.5}>
+    <main className="flex min-h-screen items-center justify-center bg-bg px-4">
+      <div className="flex w-full max-w-[420px] flex-col gap-6 rounded-2xl bg-bg-paper p-6 shadow sm:p-8">
+        <div className="flex flex-col gap-1">
           {/* fontSize kirilimli: duz deger tema h2'nin sm blogunda 20px'e dusuyor. */}
-          <Typography variant="h2" sx={{ fontSize: { xs: 22, sm: 22 }, lineHeight: { xs: 1.3, sm: 1.3 } }} fontWeight={700}>
+          <h1 className="text-[22px] font-bold leading-[1.3]">
             {sessionReady ? 'Yeni şifre belirle' : 'Şifre sıfırlama linki geçersiz'}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
+          </h1>
+          <p className="text-sm text-text-medium-light">
             {!sessionReady
               ? 'Link süresi dolmuş olabilir veya daha önce kullanılmış olabilir. Yeni link isteyerek tekrar deneyin.'
               : success
               ? 'Şifren başarıyla güncellendi. Yönlendiriliyorsun...'
               : 'Hesabın için yeni bir şifre oluştur.'}
-          </Typography>
-        </Stack>
+          </p>
+        </div>
 
         {sessionReady && !success && (
-          <Stack component="form" gap={2} onSubmit={formik.handleSubmit} autoComplete="on">
+          <form className="flex flex-col gap-4" onSubmit={formik.handleSubmit} autoComplete="on">
             <PasswordField
               name="password"
               label="Yeni Şifre"
@@ -208,7 +192,7 @@ export default function ResetPasswordView({ recoveryAllowed }: { recoveryAllowed
             >
               Şifremi Güncelle
             </Button>
-          </Stack>
+          </form>
         )}
 
         {sessionReady && success && <Banner variant="success" title="Şifren başarıyla güncellendi!" />}
@@ -218,16 +202,16 @@ export default function ResetPasswordView({ recoveryAllowed }: { recoveryAllowed
             Ana Sayfaya Dön
           </Button>
         )}
-      </Stack>
+      </div>
 
-      <Snackbar
+      <Toast
         open={!!error}
+        duration={5000}
         onClose={() => setError(undefined)}
-        autoHideDuration={5000}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        position="top-center"
       >
         <Banner variant="error" title={error} />
-      </Snackbar>
-    </Stack>
+      </Toast>
+    </main>
   );
 }

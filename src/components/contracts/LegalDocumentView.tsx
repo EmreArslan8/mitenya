@@ -1,30 +1,20 @@
-import { Stack, Typography } from '@mui/material';
-import { headerHeight } from '@/theme/theme';
+import { Typography } from '@/components/ui/Typography';
 import type { LegalDocument } from './types';
 import LegalDocumentContent from './LegalDocumentContent';
 
 const LegalDocumentView = ({ document }: { document: LegalDocument }) => {
   return (
-    <Stack
-      gap={3}
-      sx={{
-        mt: { xs: `${headerHeight.xs + 2}px`, sm: 0 },
-        mb: 3,
-        width: '100%',
-        maxWidth: 900,
-        mx: 'auto',
-      }}
-    >
-      <Stack gap={1}>
+    <div className="mx-auto mb-6 mt-[62px] flex w-full max-w-[900px] flex-col gap-6 sm:mt-0">
+      <div className="flex flex-col gap-2">
         <Typography variant="h1">{document.title}</Typography>
         {document.updatedAt && (
-          <Typography variant="body" sx={{ color: 'text.secondary', fontSize: 13 }}>
+          <Typography variant="progressLabel" className="text-text-secondary">
             Son Güncelleme: {document.updatedAt}
           </Typography>
         )}
-      </Stack>
+      </div>
       <LegalDocumentContent html={document.html} />
-    </Stack>
+    </div>
   );
 };
 

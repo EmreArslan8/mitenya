@@ -1,11 +1,12 @@
-import { Modal, Slide, Stack, SxProps } from '@mui/material';
-import { CloseIcon } from '@/components/icons';
-import { ReactNode } from 'react';
-import Card, { CardProps } from '../Card';
-import useStyles from './styles';
-import useScreen from '@/lib/hooks/useScreen';
+'use client';
 
-type ModalCardLayout = 'dialog' | 'bottom-sheet';
+import { ReactNode } from 'react';
+import { CloseIcon } from '@/components/icons';
+import Dialog from '@/components/ui/Dialog';
+import { cn } from '@/lib/utils/cn';
+import Card, { CardProps } from '../Card';
+
+type ModalCardLayout = 'dialog' | 'bottom-sheet' | 'center';
 
 export interface ModalCardProps extends CardProps {
   open: boolean;
@@ -17,90 +18,95 @@ export interface ModalCardProps extends CardProps {
   bottomOffset?: number | string;
   keepMounted?: boolean;
   disableAutoFocus?: boolean;
-  CardProps?: { sx?: SxProps };
-  BodyProps?: { sx?: SxProps };
+  dialogClassName?: string;
+  overlayClassName?: string;
+  layer?: number;
 }
 
 const ModalCard = ({
   open,
   onClose,
   children,
-  sx,
   showCloseIcon = false,
   fullWidth = false,
   layout = 'dialog',
   bottomOffset = 0,
-  keepMounted,
-  disableAutoFocus,
-  CardProps,
-  BodyProps,
+  keepMounted = false,
+  disableAutoFocus = false,
+  dialogClassName,
+  overlayClassName,
+  layer,
   customIcon,
+  className,
+  bodyClassName,
+  title,
   ...cardProps
 }: ModalCardProps) => {
-  const styles = useStyles();
-  const { isMobile } = useScreen();
   const isBottomSheet = layout === 'bottom-sheet';
-  const isWideLayout = fullWidth || isBottomSheet;
-
+  const position = isBottomSheet ? 'bottom' : layout === 'center' ? 'center' : 'responsive';
+  const offset = typeof bottomOffset === 'number' ? `${bottomOffset}px` : bottomOffset;
 
   return (
-    <Modal
-      disableAutoFocus={disableAutoFocus}
-      keepMounted={keepMounted}
+    <Dialog
       open={open}
-      onClose={onClose}
-      sx={{
-        ...styles.modal,
-        ...(isBottomSheet
-          ? {
-              p: 0,
-              mb: bottomOffset,
-              alignItems: 'end',
-              justifyContent: 'center',
-              '& .MuiSlide-root': { width: '100%' },
-              '& .MuiBackdrop-root': { bottom: bottomOffset },
-            }
-          : {}),
-        ...sx,
+      onOpenChange={(next) => {
+        if (!next) onClose?.();
       }}
+      position={position}
+      srTitle={typeof title === 'string' ? title : 'Pencere'}
+      keepMounted={keepMounted}
+      disableAutoFocus={disableAutoFocus}
+      className={cn(
+        'max-h-[calc(100%-16px)] overflow-visible bg-transparent p-0',
+        layout === 'center' &&
+          !fullWidth &&
+          'w-fit max-w-[calc(100%-8px)] sm:max-w-[calc(100%-32px)]',
+        layout === 'dialog' &&
+          !fullWidth &&
+          'sm:w-fit sm:max-w-[calc(100%-32px)]',
+        isBottomSheet && 'w-full max-w-full rounded-t-2xl',
+        fullWidth && 'w-full max-w-full',
+        dialogClassName,
+      )}
+      overlayClassName={overlayClassName}
+      style={{ marginBottom: isBottomSheet ? offset : undefined, zIndex: layer }}
+      overlayStyle={{ bottom: isBottomSheet ? offset : undefined, zIndex: layer }}
     >
-  <Slide appear={isMobile} in={open} direction="up" unmountOnExit={!keepMounted}>
-  <div tabIndex={-1} style={{ outline: 'none', width: isWideLayout ? '100%' : undefined }}>
-    <Card
-      {...cardProps}
-      customIcon={customIcon}
-      sx={{
-        ...styles.card,
-        ...(isWideLayout ? { width: '100%', maxWidth: '100%' } : {}),
-        ...(isBottomSheet ? { borderRadius: '16px 16px 0 0' } : {}),
-        ...CardProps?.sx,
-      }}
-      stickyHeader
-      action={
-        showCloseIcon && (
-          <Stack
-            component="span"
-            onClick={onClose}
-            sx={{
-              display: 'inline-flex',
-              cursor: onClose ? 'pointer' : 'default',
-              /* Masaüstünde 20px fazla ufak kalıyordu. */
-              '& svg': { width: { xs: 20, sm: 28 }, height: { xs: 20, sm: 28 } },
-            }}
-          >
-            <CloseIcon size={28} />
-          </Stack>
-        )
-      }
-    >
-      <Stack {...BodyProps} sx={{ ...styles.cardBody, ...BodyProps?.sx }}>
-        {children}
-      </Stack>
-    </Card>
-  </div>
-</Slide>
-
-    </Modal>
+      <Card
+        {...cardProps}
+        title={title}
+        customIcon={customIcon}
+        stickyHeader
+        className={cn(
+          'max-h-full w-full bg-bg sm:w-fit sm:max-w-[600px]',
+          (fullWidth || isBottomSheet) && 'max-w-full sm:w-full sm:max-w-full',
+          isBottomSheet && 'rounded-t-2xl',
+          className,
+        )}
+        headerClassName={cn('bg-bg', cardProps.headerClassName)}
+        action={
+          showCloseIcon ? (
+            <button
+              type="button"
+              aria-label="Pencereyi kapat"
+              onClick={onClose}
+              className="inline-flex cursor-pointer text-text [&_svg]:size-5 sm:[&_svg]:size-7"
+            >
+              <CloseIcon size={28} />
+            </button>
+          ) : cardProps.action
+        }
+      >
+        <div
+          className={cn(
+            'flex max-w-full flex-col gap-6 overflow-y-auto p-4 sm:p-6',
+            bodyClassName,
+          )}
+        >
+          {children}
+        </div>
+      </Card>
+    </Dialog>
   );
 };
 

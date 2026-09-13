@@ -1,7 +1,6 @@
 'use client';
 
-import { Stack, Typography } from '@mui/material';
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
@@ -11,27 +10,18 @@ function AuthErrorContent() {
   const message = searchParams.get('message') || 'Giriş yapılırken bir hata oluştu';
 
   return (
-    <Stack
-      alignItems="center"
-      justifyContent="center"
-      gap={3}
-      sx={{ minHeight: '50vh', p: 4 }}
-    >
-      <Typography variant="h4" component="h1">
-        Giriş Hatası
-      </Typography>
-      <Typography color="text.secondary" textAlign="center">
-        {message}
-      </Typography>
-      <Stack direction="row" gap={2}>
-        <Link href="/" passHref>
+    <main className="flex min-h-[50vh] flex-col items-center justify-center gap-6 p-8">
+      <h1 className="text-2xl font-bold">Giriş Hatası</h1>
+      <p className="text-center text-text-medium-light">{message}</p>
+      <div className="flex gap-4">
+        <Link href="/">
           <Button variant="outlined">Ana Sayfaya Dön</Button>
         </Link>
-        <Link href="/" passHref>
+        <Link href="/">
           <Button variant="contained">Tekrar Dene</Button>
         </Link>
-      </Stack>
-    </Stack>
+      </div>
+    </main>
   );
 }
 

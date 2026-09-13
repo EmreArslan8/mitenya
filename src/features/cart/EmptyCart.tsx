@@ -1,8 +1,6 @@
 'use client';
 
-import Button from '@/components/common/Button';
-import { withPalette } from '@/theme/ThemeRegistry';
-import { Box, Stack, Typography } from '@mui/material';
+import Button from '@/components/ui/Button';
 import Image from 'next/image';
 
 /**
@@ -24,40 +22,6 @@ const ILLUSTRATION = {
   height: 800,
 };
 
-const useStyles = withPalette((palette) => ({
-  root: {
-    alignItems: 'center',
-    textAlign: 'center',
-    py: { xs: 5, md: 9 },
-    px: 2,
-    gap: 1,
-  },
-  illustration: {
-    width: '100%',
-    maxWidth: { xs: 170, md: 220 },
-    height: 'auto',
-  },
-  title: {
-    mt: { xs: 2.5, md: 4 },
-    fontSize: { xs: 22, md: 28 },
-    lineHeight: 1.25,
-    fontWeight: 600,
-    color: palette.text.main,
-  },
-  subtitle: {
-    mt: 1,
-    maxWidth: 420,
-    fontSize: { xs: 14, md: 16 },
-    lineHeight: 1.5,
-    color: palette.text.mediumLight,
-  },
-  action: {
-    mt: { xs: 3, md: 4 },
-    minWidth: { xs: '100%', sm: 260 },
-    py: 1.5,
-  },
-}));
-
 export interface EmptyCartProps {
   /** Sepet drawer/modal içinde daha kompakt görünsün diye. */
   compact?: boolean;
@@ -66,13 +30,11 @@ export interface EmptyCartProps {
 }
 
 const EmptyCart = ({ compact = false, onAction }: EmptyCartProps) => {
-  const styles = useStyles();
-
   return (
-    <Stack sx={[styles.root, compact && { py: { xs: 3, md: 4 } }]}>
+    <div className={`flex flex-col items-center gap-2 px-4 text-center ${compact ? 'py-6 md:py-8' : 'py-10 md:py-[72px]'}`}>
       {/* Genişlik sarmalayıcıda: MUI `Box component={Image}` kalıbı width/height
           prop'larını sistem prop'u sanıp Image'a iletmiyor. */}
-      <Box sx={[styles.illustration, compact && { maxWidth: { xs: 140, md: 160 } }]}>
+      <div className={`w-full ${compact ? 'max-w-[140px] md:max-w-40' : 'max-w-[170px] md:max-w-[220px]'}`}>
         <Image
           src={ILLUSTRATION.src}
           alt=""
@@ -84,23 +46,24 @@ const EmptyCart = ({ compact = false, onAction }: EmptyCartProps) => {
           unoptimized
           style={{ width: '100%', height: 'auto' }}
         />
-      </Box>
-      <Typography component="h2" sx={styles.title}>
+      </div>
+      <h2 className="mt-5 text-[22px] leading-tight font-semibold text-text md:mt-8 md:text-[28px]">
         Sepetin boş görünüyor
-      </Typography>
-      <Typography sx={styles.subtitle}>
+      </h2>
+      <p className="mt-2 max-w-[420px] text-sm leading-normal text-text-medium-light md:text-base">
         Cildinin ihtiyacı olan bakımı keşfetmeye ne dersin?
-      </Typography>
+      </p>
       <Button
         variant="contained"
         href="/"
         onClick={onAction}
-        sx={styles.action}
+        color="primary"
+        className="mt-6 min-w-full py-3 sm:min-w-[260px] md:mt-8"
         dataLayerEventId="empty_cart_start_shopping"
       >
         Alışverişe Başla
       </Button>
-    </Stack>
+    </div>
   );
 };
 

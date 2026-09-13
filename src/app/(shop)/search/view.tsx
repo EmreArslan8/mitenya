@@ -17,17 +17,15 @@ import ScrollToTopButton from '@/components/ScrollToTopButton';
 import SearchSort from '@/components/SearchSort';
 import { fetchProducts } from '@/lib/api/shop';
 import { ShopProductListItemData, ShopSearchResponse } from '@/lib/api/types';
-import useScreen from '@/lib/hooks/useScreen';
-import { Grid, Stack, Typography } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import ProductGrid from '@/components/ProductGrid';
 
 interface SearchProductsViewProps {
   initialData: ShopSearchResponse;
 }
 
 const SearchProductsView = ({ initialData }: SearchProductsViewProps) => {
-  const { smUp } = useScreen();
   const endOfPageMarkerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams()!;
   const searchParamsKey = searchParams.toString();
@@ -106,51 +104,32 @@ const SearchProductsView = ({ initialData }: SearchProductsViewProps) => {
 
   return (
     <>
-      <Stack gap={{ xs: 1.25, sm: 1.5 }} >
-        {smUp && (
-          <Stack
-            gap={{ xs: 0.5, sm: 0.75, md: 1 }}
-            alignItems="center"
-            sx={{ textAlign: 'center', mb: { xs: 1.5, sm: 2, md: 2.5 } }}
-          >
+      <div className="flex flex-col gap-2.5 sm:gap-3">
+        <div className="mb-4 hidden flex-col items-center gap-1.5 text-center sm:flex md:mb-5 md:gap-2">
             {query && (
-              <Typography
-                variant="h2"
-                sx={{ color: 'accentRed.main', fontWeight: 800, fontSize: { xs: 26, sm: 30 } }}
-              >
+              <h2 className="text-[30px] font-extrabold text-accentRed">
                 “{query}”
-              </Typography>
+              </h2>
             )}
-            <Typography variant="warningSemibold">Arama Sonuçları</Typography>
-          </Stack>
-        )}
-        <Stack
-          direction="row"
-          alignItems={{ xs: 'flex-start', sm: 'center' }}
-          justifyContent="space-between"
-          flexWrap="wrap"
-          rowGap={1}
-        >
-          <Typography variant="h3">{initialData.totalCount} adet ürün gösteriliyor</Typography>
-          {smUp && initialData.sortOptions && initialData.sortOptions.length > 1 && (
-            <SearchSort sortOptions={initialData.sortOptions} />
+            <p className="font-semibold text-warning">Arama Sonuçları</p>
+        </div>
+        <div className="flex flex-wrap items-start justify-between gap-y-2 sm:items-center">
+          <h3 className="text-lg font-semibold">{initialData.totalCount} adet ürün gösteriliyor</h3>
+          {initialData.sortOptions && initialData.sortOptions.length > 1 && (
+            <div className="hidden sm:block"><SearchSort sortOptions={initialData.sortOptions} /></div>
           )}
-        </Stack>
-        <Grid container columnSpacing={2.5} rowSpacing={3}>
+        </div>
+        <ProductGrid layout="withSidebar">
           {products?.map((p) => (
-            <Grid item xs={6} sm={4} md={4} key={p.url}>
-              <ProductCard data={p} sizes={SEARCH_CARD_SIZES} />
-            </Grid>
+            <ProductCard data={p} sizes={SEARCH_CARD_SIZES} key={p.url} />
           ))}
           {loading &&
             Array.from(Array((products.length % 4) + 4).keys()).map((e) => (
-              <Grid item xs={6} sm={4} md={4} key={e}>
-                <ProductCardSkeleton />
-              </Grid>
+              <ProductCardSkeleton key={e} />
             ))}
-        </Grid>
+        </ProductGrid>
         <div ref={endOfPageMarkerRef} style={{ height: '1px', visibility: 'hidden' }} />
-      </Stack>
+      </div>
       <ScrollToTopButton />
     </>
   );

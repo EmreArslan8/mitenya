@@ -1,11 +1,19 @@
-import { CategoryData } from './types';
+/**
+ * `groupCategories` icin gereken minimum kategori sekli. Eskiden `./types`
+ * icindeki `CategoryData` import ediliyordu; o tip artik yok (Sanity semasi
+ * `CategoryParent`/`CategorySub` olarak bolundu), bu yuzden yerelde tanimli.
+ */
+type GroupableCategory = {
+  _id: string;
+  parent?: { _ref?: string } | null;
+};
 
 /* -------------------------------------------------------------------------- */
 /* 🧮 YARDIMCI FONKSİYONLAR */
 /* -------------------------------------------------------------------------- */
 
 // Ana ve alt kategorileri grupla (örnek: header menüde dropdown için)
-export const groupCategories = (categories: CategoryData[]) => {
+export const groupCategories = <T extends GroupableCategory>(categories: T[]) => {
   const topLevel = categories.filter((c) => !c.parent);
   const subLevel = categories.filter((c) => c.parent);
   return topLevel.map((cat) => ({

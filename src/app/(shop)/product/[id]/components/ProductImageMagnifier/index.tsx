@@ -1,14 +1,8 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Box, Portal } from '@mui/material';
 import NextImage from 'next/image';
-import {
-  containerSx,
-  getLensSx,
-  getZoomContainerSx,
-  getZoomedImageSx,
-} from './styles';
+import { createPortal } from 'react-dom';
 
 interface ProductImageMagnifierProps {
   /** HAM kaynak. srcset'i next/image loader'i uretir. */
@@ -79,12 +73,12 @@ const ProductImageMagnifier = ({
 
   return (
     <>
-      <Box
+      <div
         ref={containerRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
-        sx={containerSx}
+        className="relative size-full cursor-crosshair overflow-hidden"
       >
         {src && (
           <NextImage
@@ -100,22 +94,27 @@ const ProductImageMagnifier = ({
         )}
 
         {showZoom && (
-          <Box sx={getLensSx(lensPosition, lensSize)} />
+          <span
+            className="pointer-events-none absolute border-2 border-black/30 bg-white/30 shadow-[0_0_0_9999px_rgba(0,0,0,0.15)]"
+            style={{ left: lensPosition.x, top: lensPosition.y, width: lensSize, height: lensSize }}
+          />
         )}
-      </Box>
+      </div>
 
-      {showZoom && zoomContainerRect && (
-        <Portal>
-          <Box sx={getZoomContainerSx(zoomContainerRect, window.innerWidth)}>
+      {showZoom && zoomContainerRect && createPortal(
+          <div
+            className="pointer-events-none fixed z-[1300] overflow-hidden rounded-lg border border-[#e0e0e0] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.15)]"
+            style={{ left: zoomContainerRect.right + 20, top: zoomContainerRect.top, width: Math.min(500, window.innerWidth - zoomContainerRect.right - 40), height: zoomContainerRect.height }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <Box
-              component="img"
+            <img
               src={zoomSrc ?? src}
               alt={`${alt} - zoomed`}
-              sx={getZoomedImageSx(position, zoomLevel)}
+              className="absolute max-w-none object-contain"
+              style={{ width: `${zoomLevel * 100}%`, height: `${zoomLevel * 100}%`, left: `${-position.x * zoomLevel + 50}%`, top: `${-position.y * zoomLevel + 50}%` }}
             />
-          </Box>
-        </Portal>
+          </div>,
+          document.body,
       )}
     </>
   );

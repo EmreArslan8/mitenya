@@ -100,8 +100,8 @@ const getTrackingNumber = async (shipmentId: string | null | undefined) => {
   if (!shipmentId || shipmentId === '00000000-0000-0000-0000-000000000000') return undefined;
   try {
     const url = `/shipments/v1/${shipmentId}`;
-    const res = await bring(url);
-    return res[0]?.trackingNumber;
+    const [res] = await bring<{ trackingNumber?: string }>(url);
+    return res?.trackingNumber;
   } catch (err) {
     console.error(err);
     return undefined;

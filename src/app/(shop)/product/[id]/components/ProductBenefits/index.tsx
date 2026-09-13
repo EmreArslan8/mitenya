@@ -1,82 +1,27 @@
-'use client';
-
-import { Box, Stack, Typography, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
-import { ChevronDown } from '@/components/icons';
 import { Sparkles } from 'lucide-react';
-import { withPalette } from '@/theme/ThemeRegistry';
+import { ChevronDown } from '@/components/icons';
+import { Accordion, AccordionItem } from '@/components/ui/Accordion';
+import { Stack } from '@/components/ui/Stack';
+import { Typography } from '@/components/ui/Typography';
+
+/**
+ * Öne çıkan faydalar — ADR-0002 Faz 2'de MUI Accordion'dan Radix'e taşındı.
+ *
+ * `'use client'` KALKTI: açık/kapalı durumu artık Radix'te ve varsayılan açık
+ * olması `defaultValue` ile veriliyor — bu dosyada başka etkileşim yok, yani
+ * artık SERVER COMPONENT.
+ *
+ * Eski `withPalette` stillerinin karşılıkları (konvansiyon.md §1/§3):
+ *   accordion  borderTop gray[100] + pt 12px
+ *   titleRow   flex-row, gap 6px, py 2px
+ *   title      13px / 800 / ls 0.07em / uppercase / primary / lh 1
+ *   chevron    primary, opacity 0.7
+ *   details    pt 12px
+ *   grid       tek sütun, gap 10px · item flex-row gap 10px
+ *   emoji      15px / lh 1 / shrink-0 · text 14px / 1.45 / 500 / text.main
+ */
 
 type BenefitItem = { icon?: string; text: string };
-
-const useStyles = withPalette((palette) => ({
-  accordion: {
-    background: 'transparent',
-    boxShadow: 'none',
-    border: 'none',
-    borderTop: `1px solid ${palette.gray?.[100] ?? '#E5E5EA'}`,
-    borderRadius: '0 !important',
-    pt: '12px',
-    '&::before': { display: 'none' },
-    '&.Mui-expanded': { margin: 0 },
-  },
-  summary: {
-    px: 0,
-    minHeight: '0 !important',
-    '& .MuiAccordionSummary-content': { margin: 0 },
-    '& .MuiAccordionSummary-content.Mui-expanded': { margin: 0 },
-    '&.Mui-expanded': { minHeight: 0 },
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: '6px',
-    py: '2px',
-  },
-  titleIcon: {
-    color: palette.primary.main,
-    opacity: 0.85,
-    display: 'flex',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 13,
-    fontWeight: 800,
-    letterSpacing: '0.07em',
-    textTransform: 'uppercase' as const,
-    color: palette.primary.main,
-    lineHeight: 1,
-  },
-  chevron: {
-    color: palette.primary.main,
-    opacity: 0.7,
-    transition: 'transform 0.2s ease',
-  },
-  details: {
-    px: 0,
-    pt: '12px',
-    pb: 0,
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr',
-    gap: '10px',
-  },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  emoji: {
-    fontSize: 15,
-    lineHeight: 1,
-    flexShrink: 0,
-  },
-  text: {
-    fontSize: 14,
-    lineHeight: 1.45,
-    color: palette.text.main,
-    fontWeight: 500,
-  },
-}));
 
 const ProductBenefits = ({
   benefits,
@@ -85,35 +30,51 @@ const ProductBenefits = ({
   benefits: BenefitItem[];
   title?: string;
 }) => {
-  const styles = useStyles();
-
   if (!benefits.length) return null;
 
   return (
-    <Accordion disableGutters defaultExpanded sx={styles.accordion}>
-      <AccordionSummary
-        expandIcon={<ChevronDown size={15} strokeWidth={2.5} style={styles.chevron} />}
-        sx={styles.summary}
+    <Accordion defaultValue={['benefits']}>
+      <AccordionItem
+        value="benefits"
+        className="border-t border-gray-100 pt-3"
+        contentClassName="pt-3"
+        hideChevron
+        trigger={
+          <>
+            <span className="flex flex-row items-center gap-1.5 py-0.5">
+              <span className="flex items-center text-primary opacity-85">
+                <Sparkles size={13} strokeWidth={2.5} />
+              </span>
+              <Typography
+                as="span"
+                className="text-[13px] font-extrabold uppercase leading-none tracking-[0.07em] text-primary"
+              >
+                {title}
+              </Typography>
+            </span>
+            <ChevronDown
+              size={15}
+              strokeWidth={2.5}
+              className="shrink-0 text-primary opacity-70 transition-transform duration-200 group-data-[state=open]:rotate-180"
+            />
+          </>
+        }
       >
-        <Stack sx={styles.titleRow}>
-          <Box sx={styles.titleIcon}>
-            <Sparkles size={13} strokeWidth={2.5} />
-          </Box>
-          <Typography sx={styles.title}>{title}</Typography>
-        </Stack>
-      </AccordionSummary>
-      <AccordionDetails sx={styles.details}>
-        <Box sx={styles.grid}>
+        <div className="grid grid-cols-1 gap-2.5">
           {benefits.map((benefit) => (
-            <Stack key={benefit.text} sx={styles.item}>
+            <Stack key={benefit.text} direction="row" align="center" className="gap-2.5">
               {benefit.icon ? (
-                <Typography component="span" sx={styles.emoji}>{benefit.icon}</Typography>
+                <Typography as="span" className="shrink-0 text-[15px] leading-none">
+                  {benefit.icon}
+                </Typography>
               ) : null}
-              <Typography sx={styles.text}>{benefit.text}</Typography>
+              <Typography as="span" className="text-[14px] font-medium leading-[1.45] text-text">
+                {benefit.text}
+              </Typography>
             </Stack>
           ))}
-        </Box>
-      </AccordionDetails>
+        </div>
+      </AccordionItem>
     </Accordion>
   );
 };

@@ -103,11 +103,12 @@ export const initializePayment = async (
       },
       paymentMethod: paymentType,
     };
-    const [res] = await bring(url, { body });
+    // Uc uc noktasi odeme linkini/oturum kimligini duz string olarak donuyor.
+    const [res] = await bring<string>(url, { body });
     if (!res) throw new Error('Could not initialize payment.');
 
     // TODO: Find a better way to do this.
-    let data;
+    let data: { paymentLink?: string; sessionId?: string } | undefined;
     switch (paymentType) {
       case 'Stripe': {
         data = { paymentLink: res };

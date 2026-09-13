@@ -1,7 +1,5 @@
 import { BadgeCheck, Undo2 } from '@/components/icons';
 import { Truck } from 'lucide-react';
-import { Stack, Typography } from '@mui/material';
-import useStyles from './styles';
 
 /*
  * Sepetin üstündeki güven şeridi.
@@ -29,21 +27,19 @@ const ITEMS = [
 ];
 
 const CartTrustBar = () => {
-  const styles = useStyles();
-
   return (
-    <Stack sx={styles.bleed}>
-      <Stack sx={styles.inner}>
+    <div className="relative left-1/2 w-screen -translate-x-1/2 bg-accentRed-light">
+      <div className="mx-auto flex w-full max-w-[1340px] flex-col items-center justify-center gap-2 px-4 py-2.5 md:flex-row md:gap-0">
         {ITEMS.map(({ Icon, text }) => (
-          <Stack key={text} sx={styles.item}>
+          <div key={text} className="flex min-w-0 items-center justify-center gap-2 px-0 text-accentRed md:border-l md:border-accentRed/[18%] md:px-6 md:first:border-l-0">
             <Icon size={16} />
-            <Typography component="span" sx={styles.text}>
+            <span className="truncate text-[13px] leading-[18px] font-medium tracking-[0.24px] text-text">
               {text}
-            </Typography>
-          </Stack>
+            </span>
+          </div>
         ))}
-      </Stack>
-    </Stack>
+      </div>
+    </div>
   );
 };
 

@@ -3,14 +3,16 @@
 
 import Card from '@/components/common/Card';
 import { ShopFilter, ShopFilterType } from '@/lib/api/types';
-import useScreen from '@/lib/hooks/useScreen';
-import { Box, Grid, Stack, TextField, Typography, Checkbox, Slider } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
-import useStyles from './styles';
-import Button from '@/components/common/Button';
+import Button from '@/components/ui/Button';
 import { FILTER_TYPE_LABEL_TR } from '@/lib/utils/filters';
 import { Search, SearchX } from '@/components/icons';
 import { useSearchParams } from 'next/navigation';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { Slider } from '@/components/ui/Slider';
+import { Input } from '@/components/ui/Input';
+import { cn } from '@/lib/utils/cn';
+import useScreen from '@/lib/hooks/useScreen';
 
 const showScrollThreshold = 8;
 const PRICE_CAP = 2000;
@@ -49,8 +51,7 @@ const FilterCard = ({
   singleColumnOnMobile = false,
 }: FilterCardProps) => {
 
-  const styles = useStyles();
-  const { smUp } = useScreen();
+  const smUp = useScreen('smUp');
   const searchParams = useSearchParams();
   const [query, setQuery] = useState('');
   const [options, setOptions] = useState(data);
@@ -112,70 +113,70 @@ const FilterCard = ({
     <Card
       title={
         (smUp || showTitleOnMobile) && (
-          <Stack>
-            <Typography variant="cardTitle" fontWeight={600} textTransform="none">
-              {FILTER_TYPE_LABEL_TR[type]}
-            </Typography>
-          </Stack>
+          <span className="font-semibold normal-case">{FILTER_TYPE_LABEL_TR[type]}</span>
         )
       }
       noDivider
       collapsible={!(type === 'category' && data.length === 1)}
       defaultCollapsed={defaultCollapsedOverride ?? index > 1}
-      sx={styles.card}
+      headerClassName="p-0"
     >
       {type === 'category' && data.length === 1 && (
         <Button
           size="small"
           arrow="start"
           color="primary"
-          sx={{ alignSelf: 'start', mx: -1.5, '&:hover': { background: 'transparent' } }}
+          variant="text"
+          className="-mx-3 self-start hover:bg-transparent"
           onClick={() => onOptionClicked({ ...data[0], selected: true, allowMultiple: true })}
         >
           Önceki kategorilere dön
         </Button>
       )}
       {scrollable && !isPriceFilter && (
-        <TextField
+        <Input
           size="small"
           value={query}
-          InputProps={{ startAdornment: <Search style={styles.searchIcon} /> }}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Ara..."
-          sx={styles.searchInput}
+          aria-label="Filtre içinde ara"
+          /* Eski styles.searchInput: m {xs:'0 0 4px', sm:'8px 0 2px'} */
+          className="mb-1 sm:mb-0.5 sm:mt-2"
+          startSlot={<Search className="shrink-0 text-[20px] sm:text-[15px]" />}
         />
       )}
       {isPriceFilter ? (
-        <Stack sx={styles.priceWrapper}>
+        <div className="flex w-full max-w-full flex-col gap-2.5 overflow-visible pt-1.5">
           <Slider
             min={priceMeta?.min ?? 0}
             max={priceMeta?.max ?? PRICE_CAP}
             value={priceRange}
-            onChange={(_, newValue) => {
-              const [nextMin, nextMax] = newValue as [number, number];
+            onValueChange={(next) => {
+              const [nextMin, nextMax] = next as [number, number];
               setPriceRange([nextMin, nextMax]);
               if (nextMax < (priceMeta?.max ?? PRICE_CAP)) setIsUpperOpenEnded(false);
             }}
-            valueLabelDisplay="off"
-            sx={styles.priceSlider}
+            ariaLabels={['En düşük fiyat', 'En yüksek fiyat']}
           />
-          <Stack sx={styles.priceInputsRow}>
-            <TextField
+          <div className="flex items-center justify-between gap-1.5">
+            <Input
               size="small"
               type="number"
+              inputMode="numeric"
               value={priceRange[0]}
               onChange={(e) => {
                 const nextMin = Number(e.target.value);
                 if (!Number.isFinite(nextMin)) return;
                 setPriceRange(([, max]) => [Math.min(nextMin, max), max]);
               }}
-              sx={styles.priceInput}
-              inputProps={{ min: priceMeta?.min ?? 0, max: priceRange[1] }}
+              aria-label="En düşük fiyat"
+              className="w-[48%]"
             />
-            <Typography sx={styles.priceTo}>ile</Typography>
-            <TextField
+            <span className="text-sm text-text-medium">ile</span>
+            <Input
               size="small"
               type="number"
+              inputMode="numeric"
               value={priceRange[1]}
               onChange={(e) => {
                 const nextMax = Number(e.target.value);
@@ -183,16 +184,16 @@ const FilterCard = ({
                 setPriceRange(([min]) => [min, Math.max(nextMax, min)]);
                 setIsUpperOpenEnded(false);
               }}
-              sx={styles.priceInput}
-              inputProps={{ min: priceRange[0], max: priceMeta?.max ?? PRICE_CAP }}
+              aria-label="En yüksek fiyat"
+              className="w-[48%]"
               disabled={isUpperOpenEnded}
             />
-          </Stack>
+          </div>
           <Button
             size="small"
             color="primary"
             variant="contained"
-            sx={styles.priceApplyButton}
+            className="mt-0.5 min-h-[46px] w-full min-w-[120px] self-stretch rounded-xl font-extrabold tracking-[0.03em] uppercase"
             onClick={() => {
               const nextPrice = serializePriceToken(
                 priceRange[0],
@@ -211,29 +212,29 @@ const FilterCard = ({
           >
             Uygula
           </Button>
-        </Stack>
+        </div>
       ) : (
-      <Stack position="relative">
+      <div className="relative">
         {scrollable && (
           <>
-            <Box sx={styles.itemsShadowTop} />
-            <Box sx={styles.itemsShadowBottom} />
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-2.5 bg-gradient-to-t from-white/20 to-white" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-2.5 bg-gradient-to-b from-white/20 to-white" />
           </>
         )}
-        <Stack sx={styles.items}>
-          <Grid container columnSpacing={2}>
+        <div className="max-h-none w-full overflow-y-auto py-1 pr-1 [scrollbar-color:var(--color-gray-400)_transparent] [scrollbar-width:thin] sm:max-h-[230px]">
+          <div className={cn('grid gap-x-4', singleColumnOnMobile ? 'grid-cols-1' : 'grid-cols-2', 'sm:grid-cols-1')}>
             {options.length ? (
               options.map((e) => {
                 const isUnavailable = e.count === 0 && !e.selected;
                 return (
-                <Grid item xs={singleColumnOnMobile ? 12 : 6} sm={12} key={JSON.stringify(e.searchOptions) + e.text}>
-                  <Stack
-                    sx={{
-                      ...styles.item,
-                      ...(isUnavailable ? styles.itemDisabled : {}),
-                      textTransform: type === 'category' ? 'capitalize' : 'initial',
-                      fontWeight: e.selected ? 600 : 400,
-                    }}
+                <div key={JSON.stringify(e.searchOptions) + e.text}>
+                  <div
+                    className={cn(
+                      'flex shrink-0 cursor-pointer items-center gap-2 py-2 text-[19px] leading-[1.35] text-text-medium sm:gap-1 sm:py-1 sm:text-sm sm:leading-[1.25]',
+                      isUnavailable && 'cursor-not-allowed opacity-60',
+                      type === 'category' && 'capitalize',
+                      e.selected && 'font-semibold',
+                    )}
                     onClick={() => {
                       if (isUnavailable) return;
                       onOptionClicked(e);
@@ -241,31 +242,32 @@ const FilterCard = ({
                   >
                     {e.allowMultiple && (
                       <Checkbox
-                        size="small"
                         checked={Boolean(e.selected)}
                         disabled={isUnavailable}
-                        onClick={(event) => event.stopPropagation()}
-                        onChange={() => {
+                        onCheckedChange={() => {
                           if (isUnavailable) return;
                           onOptionClicked(e);
                         }}
-                        sx={{ ...styles.checkbox, ...(isUnavailable ? styles.controlDisabled : {}) }}
+                        /* Satır da onOptionClicked çağırıyor; guard olmazsa
+                           filtre uygulanıp anında geri alınır. */
+                        onClick={(event) => event.stopPropagation()}
+                        aria-label={e.text}
                       />
                     )}
                     {e.text}
-                  </Stack>
-                </Grid>
+                  </div>
+                </div>
                 );
               })
             ) : (
-              <Stack textAlign="center" mt={1}>
+              <div className="mt-2 flex flex-col items-center text-center">
                 <SearchX  color="tertiary" size={40} />
-                <Typography variant="warning">Seçenek bulunamadı</Typography>
-              </Stack>
+                <p className="text-warning">Seçenek bulunamadı</p>
+              </div>
             )}
-          </Grid>
-        </Stack>
-      </Stack>
+          </div>
+        </div>
+      </div>
       )}
     </Card>
   );

@@ -2,12 +2,12 @@ import SearchSort from '@/components/SearchSort';
 import { ArrowLeft, ChevronRight, CloseIcon } from '@/components/icons';
 import { ShopFilter, ShopFilterType, ShopSearchResponseFilters, ShopSearchSort } from '@/lib/api/types';
 import { FILTER_TYPE_LABEL_TR } from '@/lib/utils/filters';
-import { Chip } from '@mui/material';
-import { Drawer, IconButton, Stack, Typography } from '@mui/material';
+
 import { SlidersHorizontal } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import FilterCard from '../FilterCard';
-import useStyles from './styles';
+import { Chip } from '@/components/ui/Chip';
+import { Dialog } from '@/components/ui/Dialog';
 
 interface MobileFiltersProps {
   filters: Omit<ShopSearchResponseFilters, 'selectedOptions'>;
@@ -22,7 +22,6 @@ const MobileFilters = ({
   resultsCount,
   onOptionClicked,
 }: MobileFiltersProps) => {
-  const styles = useStyles();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeFilterType, setActiveFilterType] = useState<ShopFilterType | null>(null);
 
@@ -63,9 +62,9 @@ const MobileFilters = ({
   );
 
   return (
-    <Stack sx={styles.mobileFiltersWrapper}>
-      <Stack sx={styles.mobileFiltersBar}>
-        <Stack sx={styles.sortWrap}>
+    <div className="min-h-[52px]">
+      <div className="fixed right-0 left-0 z-[1296] grid min-h-[52px] grid-cols-2 border-y border-gray-200 bg-bg [top:var(--mobile-nav-bottom,56px)]">
+        <div className="min-w-0 border-r border-gray-200">
           {sortOptions && sortOptions.length > 1 ? (
             <SearchSort
               sortOptions={sortOptions}
@@ -74,61 +73,55 @@ const MobileFilters = ({
               hideSelectedValue
             />
           ) : (
-            <Stack sx={{ ...styles.filterTrigger, opacity: 0.5, pointerEvents: 'none' }}>Sırala</Stack>
+            <div className="flex min-h-[50px] w-full items-center justify-center px-3 text-[17px] font-extrabold uppercase opacity-50">Sırala</div>
           )}
-        </Stack>
-        <Stack
-          role="button"
-          tabIndex={0}
+        </div>
+        <button
+          type="button"
           aria-label="Filtrele"
-          sx={styles.filterTrigger}
+          className="flex min-h-[50px] w-full cursor-pointer appearance-none select-none items-center justify-center gap-2 border-0 bg-bg px-3 text-[17px] leading-none font-extrabold tracking-[0.02em] uppercase hover:bg-bg-light focus-visible:bg-bg-light focus-visible:outline-none"
           onClick={() => setDrawerOpen(true)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              setDrawerOpen(true);
-            }
-          }}
         >
           <SlidersHorizontal size={17} />
           Filtrele
-        </Stack>
-      </Stack>
+        </button>
+      </div>
 
-      <Drawer
-        anchor="right"
+      <Dialog
+        position="right"
         open={drawerOpen}
-        onClose={resetDrawerState}
-        sx={styles.drawer}
-        PaperProps={{ sx: styles.drawerPaper }}
+        onOpenChange={(next) => { if (!next) resetDrawerState(); }}
+        srTitle="Filtreler"
+        className="w-screen max-w-full bg-bg sm:max-w-[420px]"
       >
-        <Stack sx={styles.drawerHeader}>
+        <div className="flex min-h-[58px] items-center justify-between bg-text px-3">
           {activeFilter ? (
-            <IconButton onClick={() => setActiveFilterType(null)} aria-label="Filtre listesine dön" sx={styles.headerAction}>
+            <button type="button" onClick={() => setActiveFilterType(null)} aria-label="Filtre listesine dön" className="inline-flex size-9 appearance-none items-center justify-center border-0 bg-transparent text-bg">
               <ArrowLeft size={20} />
-            </IconButton>
+            </button>
           ) : (
-            <Stack sx={styles.headerSpacer} />
+            <span className="size-9 shrink-0" />
           )}
-          <Typography sx={styles.drawerTitle}>{currentFilterLabel}</Typography>
-          <IconButton onClick={resetDrawerState} aria-label="Filtre panelini kapat" sx={styles.headerAction}>
+          <h2 className="text-[23px] font-extrabold tracking-[0.05em] text-bg uppercase">{currentFilterLabel}</h2>
+          <button type="button" onClick={resetDrawerState} aria-label="Filtre panelini kapat" className="inline-flex size-9 appearance-none items-center justify-center border-0 bg-transparent text-bg">
             <CloseIcon size={20} />
-          </IconButton>
-        </Stack>
+          </button>
+        </div>
 
         {!activeFilter ? (
-          <Stack sx={styles.drawerList}>
+          <div className="h-[calc(100%_-_116px)] overflow-y-auto border-t border-gray-200 bg-bg px-4 pt-2.5 pb-4">
             {!!selectedChips.length && (
-              <Stack sx={styles.selectedChipsWrap}>
+              <div className="flex flex-wrap gap-1.5 pb-2.5">
                 {selectedChips.map((chip) => (
                   <Chip
                     key={chip.key}
                     label={chip.label}
                     onDelete={() => onOptionClicked(chip.option)}
-                    sx={styles.selectedChip}
+                    deleteLabel={`${chip.label} filtresini kaldır`}
+                    className="h-auto min-h-[30px] rounded-full border border-gray-200 bg-gray-50 px-1.5 py-1"
                   />
                 ))}
-              </Stack>
+              </div>
             )}
             {filterGroups.map((group) => {
               const selectedOptions = group.filter((option) => option.selected);
@@ -139,35 +132,28 @@ const MobileFilters = ({
                 .join(', ');
 
               return (
-                <Stack
+                <button
+                  type="button"
                   key={group[0].type}
-                  role="button"
-                  tabIndex={0}
                   onClick={() => openFilterDetail(group[0].type)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      openFilterDetail(group[0].type);
-                    }
-                  }}
-                  sx={styles.filterListItem}
+                  className="flex min-h-16 w-full cursor-pointer appearance-none select-none items-center justify-between border-0 border-b border-gray-200 bg-bg py-2.5 text-left text-text"
                 >
-                  <Stack sx={styles.filterListMeta}>
-                    <Typography sx={styles.filterListLabel}>{FILTER_TYPE_LABEL_TR[group[0].type]}</Typography>
+                  <span className="flex min-w-0 flex-col gap-0.5">
+                    <span className="text-base font-bold">{FILTER_TYPE_LABEL_TR[group[0].type]}</span>
                     {!!selectedCount && (
-                      <Typography sx={styles.filterListSelected}>
+                      <span className="max-w-full truncate text-[13px] text-text-medium">
                         {selectedCount} seçili
                         {selectedPreview ? ` · ${selectedPreview}` : ''}
-                      </Typography>
+                      </span>
                     )}
-                  </Stack>
+                  </span>
                   <ChevronRight size={18} />
-                </Stack>
+                </button>
               );
             })}
-          </Stack>
+          </div>
         ) : (
-          <Stack sx={styles.drawerDetail}>
+          <div className="h-[calc(100%_-_116px)] overflow-y-auto border-t border-gray-200 bg-bg px-4 pt-2.5 pb-4">
             <FilterCard
               index={0}
               data={activeFilter}
@@ -176,19 +162,19 @@ const MobileFilters = ({
               defaultCollapsedOverride={false}
               singleColumnOnMobile
             />
-          </Stack>
+          </div>
         )}
 
-        <Stack sx={styles.drawerFooter}>
-          <Stack role="button" tabIndex={0} sx={styles.cancelAction} onClick={resetDrawerState}>
+        <div className="grid h-[58px] grid-cols-2 border-t border-gray-300 bg-bg">
+          <button type="button" className="flex appearance-none items-center justify-center border-0 border-r border-gray-300 bg-bg text-[17px] font-bold tracking-[0.06em] uppercase" onClick={resetDrawerState}>
             İptal Et
-          </Stack>
-          <Stack role="button" tabIndex={0} sx={styles.resultsAction} onClick={resetDrawerState}>
+          </button>
+          <button type="button" className="flex appearance-none items-center justify-center border-0 bg-text text-[17px] font-bold tracking-[0.06em] text-bg uppercase" onClick={resetDrawerState}>
             Sonuçlar {typeof resultsCount === 'number' ? `(${resultsCount})` : ''}
-          </Stack>
-        </Stack>
-      </Drawer>
-    </Stack>
+          </button>
+        </div>
+      </Dialog>
+    </div>
   );
 };
 

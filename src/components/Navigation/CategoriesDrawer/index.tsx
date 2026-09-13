@@ -2,18 +2,10 @@
 
 import { CategoryParent } from '@/lib/api/types';
 import { ArrowLeft, ChevronRight, CloseIcon, Heart, User } from '@/components/icons';
-import {
-  Box,
-  Drawer,
-  IconButton,
-  MenuItem,
-  Stack,
-  Typography,
-} from '@mui/material';
+import Dialog from '@/components/ui/Dialog';
 import { Package } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import useStyles from './styles';
 
 interface CategoriesDrawerProps {
   open: boolean;
@@ -36,7 +28,6 @@ const CategoriesDrawer = ({
   onOrders,
   onNavigate,
 }: CategoriesDrawerProps) => {
-  const styles = useStyles();
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
   const [activeSubId, setActiveSubId] = useState<number | null>(null);
 
@@ -73,90 +64,107 @@ const CategoriesDrawer = ({
   const isLevel1 = activeCategoryId === null;
   const isLevel2 = activeCategoryId !== null && activeSubId === null;
   const isLevel3 = activeSubId !== null;
+  const actionClassName =
+    'flex w-full min-h-0 appearance-none items-center gap-4 border-x-0 border-t-0 border-b border-gray-200 bg-white px-5 py-4 text-left last:border-b-0 hover:bg-gray-50 disabled:cursor-default disabled:opacity-45';
+  const categoryClassName =
+    'flex w-full min-h-0 appearance-none items-center justify-between border-x-0 border-t-0 border-b border-gray-200 bg-white px-5 py-4 text-left last:border-b-0 hover:bg-gray-50 disabled:cursor-default disabled:opacity-45';
 
   return (
-    <Drawer
-      anchor="left"
+    <Dialog
       open={open}
-      onClose={onClose}
-      ModalProps={{ keepMounted: true }}
-      sx={styles.drawer}
-      PaperProps={{ sx: styles.paper }}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      position="left"
+      srTitle="Kategoriler"
+      keepMounted
+      className="h-full w-[88vw] max-w-none bg-[#f5f5f5] p-0 sm:w-[380px]"
     >
-      <Stack sx={styles.content}>
-        <Stack direction="row" sx={styles.header}>
-          <Box sx={styles.headerLogoWrap}>
+      <div className="flex h-full flex-col overflow-hidden">
+        <header className="flex shrink-0 items-center justify-between bg-[#f5f5f5] px-5 py-3">
+          <div className="flex min-h-[34px] items-center">
             <Image
-              src={styles.headerLogo.src}
+              src="/static/images/logo.svg"
               alt="Mitenya"
-              width={styles.headerLogo.width}
-              height={styles.headerLogo.height}
-              style={styles.headerLogo}
+              width={118}
+              height={38}
+              className="h-[38px] w-[118px] object-contain"
               priority
+              unoptimized
             />
-          </Box>
-          <IconButton onClick={onClose} aria-label="Kapat" sx={styles.closeButton}>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Kapat"
+            className="inline-flex appearance-none items-center justify-center border-0 bg-transparent p-0 text-text"
+          >
             <CloseIcon size={28} />
-          </IconButton>
-        </Stack>
+          </button>
+        </header>
 
-        <Stack sx={styles.body}>
-          <Stack sx={styles.sectionHeader}>
-            <Typography sx={styles.sectionHeaderLabel}>Hesabım</Typography>
-          </Stack>
+        <div className="flex flex-1 flex-col overflow-y-auto bg-[#f5f5f5] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-h-14 items-start bg-[#f5f5f5] px-5 pb-3 pt-4">
+            <h2 className="text-base font-medium leading-[1.2] text-text">Hesabım</h2>
+          </div>
 
-          <Stack sx={styles.listContainer}>
-            <MenuItem sx={styles.actionItem} onClick={() => handleAction(onAccount)} disabled={!onAccount}>
-              <User size={32} strokeWidth={1.5} style={styles.actionIcon} />
-              <Typography sx={styles.actionLabel}>
+          <div className="bg-white">
+            <button type="button" className={actionClassName} onClick={() => handleAction(onAccount)} disabled={!onAccount}>
+              <User size={32} strokeWidth={1.5} className="size-8 shrink-0 text-text" />
+              <span className="text-base font-normal leading-[1.3] text-text">
                 {isAuthenticated ? 'Hesabım' : 'Giriş yap'}
-              </Typography>
-            </MenuItem>
+              </span>
+            </button>
             
-            <MenuItem sx={styles.actionItem} onClick={() => handleAction(onFavorites)} disabled={!onFavorites}>
-              <Heart size={32} strokeWidth={1.5} style={styles.actionIcon} />
-              <Typography sx={styles.actionLabel}>Favorilerim</Typography>
-            </MenuItem>
+            <button type="button" className={actionClassName} onClick={() => handleAction(onFavorites)} disabled={!onFavorites}>
+              <Heart size={32} strokeWidth={1.5} className="size-8 shrink-0 text-text" />
+              <span className="text-base font-normal leading-[1.3] text-text">Favorilerim</span>
+            </button>
             
-            <MenuItem sx={styles.actionItem} onClick={() => handleAction(onOrders)} disabled={!onOrders}>
-              <Package size={32} strokeWidth={1.5} style={styles.actionIcon} />
-              <Typography sx={styles.actionLabel}>Sipariş takibi</Typography>
-            </MenuItem>
-          </Stack>
+            <button type="button" className={actionClassName} onClick={() => handleAction(onOrders)} disabled={!onOrders}>
+              <Package size={32} strokeWidth={1.5} className="size-8 shrink-0 text-text" />
+              <span className="text-base font-normal leading-[1.3] text-text">Sipariş takibi</span>
+            </button>
+          </div>
 
-          {/* Kategoriler Bölümü */}
-          <Stack direction="row" alignItems="center" gap={1} sx={styles.sectionHeader}>
+          <div className="flex min-h-14 items-start gap-2 bg-[#f5f5f5] px-5 pb-3 pt-4">
             {!isLevel1 && (
-              <IconButton onClick={handleBack} size="small" sx={styles.sectionBackButton}>
+              <button
+                type="button"
+                onClick={handleBack}
+                aria-label="Geri"
+                className="mr-2 inline-flex appearance-none items-center justify-center border-0 bg-transparent p-0 text-text"
+              >
                 <ArrowLeft size={20} strokeWidth={1.5} />
-              </IconButton>
+              </button>
             )}
-            <Typography sx={styles.sectionHeaderLabel}>
+            <h2 className="text-base font-medium leading-[1.2] text-text">
               {isLevel1 ? 'Kategoriler' : isLevel2 ? 'Tüm Kategoriler' : activeCategory?.label}
-            </Typography>
-          </Stack>
+            </h2>
+          </div>
           
           {!hasCategories && (
-            <Typography sx={styles.emptyText}>Kategori bulunamadı</Typography>
+            <p className="bg-white px-5 py-4 text-sm text-text-medium">Kategori bulunamadı</p>
           )}
 
-          <Stack sx={styles.listContainer}>
+          <div className="bg-white">
             {isLevel1 &&
               categories?.map((category) => {
                 const hasSubs = !!category.subs?.length;
                 return (
-                  <MenuItem
+                  <button
+                    type="button"
                     key={category.id}
-                    sx={styles.categoryItem}
+                    className={categoryClassName}
                     onClick={() => {
                       if (hasSubs) setActiveCategoryId(category.id);
                       else handleNavigate(category.slug);
                     }}
                     disabled={!hasSubs && !category.slug}
                   >
-                    <Typography sx={styles.categoryLabel}>{category.label}</Typography>
-                    {hasSubs && <ChevronRight size={24} strokeWidth={1.5} style={styles.chevronIcon} />}
-                  </MenuItem>
+                    <span className="flex-1 text-base font-medium leading-[1.3] text-text">{category.label}</span>
+                    {hasSubs && <ChevronRight size={24} strokeWidth={1.5} className="size-8 shrink-0 text-text" />}
+                  </button>
                 );
               })}
 
@@ -164,50 +172,50 @@ const CategoriesDrawer = ({
               activeCategory?.subs?.map((sub) => {
                 const hasItems = !!sub.items?.length;
                 return (
-                  <MenuItem
+                  <button
+                    type="button"
                     key={sub.id}
-                    sx={styles.categoryItem}
+                    className={categoryClassName}
                     onClick={() => {
                       if (hasItems) setActiveSubId(sub.id);
                       else handleNavigate(sub.slug);
                     }}
                     disabled={!hasItems && !sub.slug}
                   >
-                    <Typography sx={styles.categoryLabel}>{sub.label}</Typography>
-                    {hasItems && <ChevronRight size={24} strokeWidth={1.5} style={styles.chevronIcon} />}
-                  </MenuItem>
+                    <span className="flex-1 text-base font-medium leading-[1.3] text-text">{sub.label}</span>
+                    {hasItems && <ChevronRight size={24} strokeWidth={1.5} className="size-8 shrink-0 text-text" />}
+                  </button>
                 );
               })}
 
             {isLevel3 &&
               activeSub?.items?.map((item) => (
-                <MenuItem
+                <button
+                  type="button"
                   key={item.id}
-                  sx={styles.categoryItem}
+                  className={categoryClassName}
                   onClick={() => handleNavigate(item.slug)}
                   disabled={!item.slug}
                 >
-                  <Typography sx={styles.categoryLabel}>{item.label}</Typography>
-                </MenuItem>
+                  <span className="flex-1 text-base font-medium leading-[1.3] text-text">{item.label}</span>
+                </button>
               ))}
-          </Stack>
+          </div>
 
-          {/* Footer Yardım Linki */}
-          <Stack sx={styles.footerLinks}>
-            <MenuItem
-              component="a"
+          <div className="mt-auto border-t border-gray-200 bg-[#f5f5f5] pb-8 pt-4">
+            <a
               href="https://api.whatsapp.com/send?phone=905070617930"
               target="_blank"
               rel="noreferrer"
-              sx={styles.footerLinkItem}
               onClick={onClose}
+              className="flex min-h-12 items-center justify-center bg-transparent px-5 text-[15px] font-medium text-text-medium hover:underline"
             >
               Yardım
-            </MenuItem>
-          </Stack>
-        </Stack>
-      </Stack>
-    </Drawer>
+            </a>
+          </div>
+        </div>
+      </div>
+    </Dialog>
   );
 };
 

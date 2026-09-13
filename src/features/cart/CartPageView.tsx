@@ -2,10 +2,12 @@
 
 import LoadingOverlay from '@/components/LoadingOverlay';
 import CartTrustBar from '@/components/ShoppingCart/CartTrustBar';
-import CheckoutCard, { PriceLines } from '@/components/ShoppingCart/CheckoutCard';
+import CheckoutCard from '@/components/ShoppingCart/CheckoutCard';
 import ShopCartProductCard from '@/components/ShoppingCart/ShopCartProductCard';
-import Button from '@/components/common/Button';
 import ModalCard from '@/components/common/ModalCard';
+import { Button } from '@/components/ui/Button';
+import { Divider } from '@/components/ui/Divider';
+import { Typography } from '@/components/ui/Typography';
 import TwoColumnLayout, {
   PrimaryColumn,
   SecondaryColumn,
@@ -18,15 +20,15 @@ import useScreen from '@/lib/hooks/useScreen';
 import { readStoredWelcomeCoupon } from '@/lib/shop/welcomeCoupon';
 import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
 import { pushItemToDataLayer } from '@/lib/utils/googleAnalytics';
-import { Box, Checkbox, Divider, Portal, Stack, Typography, debounce } from '@mui/material';
-import { useCallback, useContext, useEffect, useState } from 'react';
-import useStyles from './styles';
+import { useContext, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import EmptyCart from './EmptyCart';
 import { usePathname, useRouter } from 'next/navigation';
-import InfoItem from '@/components/InfoItem';
 import { ChevronRight, ChevronUp } from '@/components/icons';
 import formatPrice from '@/lib/utils/formatPrice';
 import { Trash } from 'lucide-react';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { cn } from '@/lib/utils/cn';
 
 
 export interface CartPageViewProps {
@@ -45,8 +47,7 @@ const CartPageView = ({
   onItemClick,
   visible = true,
 }: CartPageViewProps) => {
-  const { isMobile } = useScreen();
-  const styles = useStyles();
+  const isMobile = useScreen('smDown');
   const router = useRouter();
   const pathname = usePathname();
   const {
@@ -78,22 +79,6 @@ const CartPageView = ({
    */
   const isEmpty = !!cart && cart.length === 0 && unavailableItems.length === 0;
 
-  const handleUpdateOrderSummary = useCallback(
-    debounce(async (selected, discountCode) => {
-      try {
-        const data = await getOrderSummary({
-          products: selected,
-          discountCode,
-        });
-        setOrderSummary(data?.orderSummary);
-        setSummaryLoading(false);
-      } catch {
-        setSummaryLoading(false);
-      }
-    }, 1000),
-    []
-  );
-
   const handleContinue = async () => {
     if (!selected?.length) {
       return;
@@ -116,7 +101,7 @@ const CartPageView = ({
       promo_code: storedCode,
       apply_method: 'auto',
     });
-  }, []);
+  }, [discountCode]);
 
   useEffect(() => {
     if (!selected?.length) {
@@ -130,8 +115,21 @@ const CartPageView = ({
     // kadar dönüyordu.) isAuthenticated değişince bu effect yeniden çalışır.
     if (isAuthenticated === undefined) return;
 
+    let cancelled = false;
     setSummaryLoading(true);
-    handleUpdateOrderSummary(selected, discountCode);
+    const timer = window.setTimeout(async () => {
+      try {
+        const data = await getOrderSummary({ products: selected, discountCode: discountCode ?? undefined });
+        if (!cancelled) setOrderSummary(data?.orderSummary);
+      } finally {
+        if (!cancelled) setSummaryLoading(false);
+      }
+    }, 1000);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [selected, discountCode, isAuthenticated]);
 
 
@@ -140,40 +138,37 @@ const CartPageView = ({
   }
 
   return (
-    <Stack
-      gap={3}
-      
-    >
+    <div className="flex flex-col gap-6">
       {visible && <LoadingOverlay loading={summaryLoading} />}
       {!hideTitle && <CartTrustBar />}
       {!hideTitle && (
-        <Stack sx={styles.pageTitle}>
-          <Typography component="h1" sx={styles.pageTitleText}>
+        <div className="flex items-baseline gap-2">
+          <Typography variant="h1" className="font-semibold md:text-[32px] md:leading-[38px]">
             Sepet
           </Typography>
           {!!itemCount && (
-            <Typography component="span" sx={styles.pageTitleCount}>
+            <Typography variant="body2" as="span" className="tracking-normal text-text-medium-light md:text-[16px] md:leading-[19px]">
               {itemCount} ürün
             </Typography>
           )}
-        </Stack>
+        </div>
       )}
-      <TwoColumnLayout sx={{ pb: 3, gap: 3 }}>
-        <PrimaryColumn sx={{ gap: 0.5 }}>
-          <Stack sx={styles.products}>
+      <TwoColumnLayout className="gap-6 pb-6">
+        <PrimaryColumn className="gap-1">
+          <div className="flex flex-col gap-4 rounded-none">
             {cart &&
               (cart.length ? (
                 cart.map((e, i) => (
-                  <Stack gap={2} key={`${e.id}-${e.variants?.map(v => v.options.find(o => o.selected)?.value ?? '').join('-') ?? ''}`}>
-                    <Stack direction="row" alignItems="center">
+                  <div className="flex flex-col gap-4" key={`${e.id}-${e.variants?.map(v => v.options.find(o => o.selected)?.value ?? '').join('-') ?? ''}`}>
+                    <div className="flex items-center">
                       <ShopCartProductCard
                         data={e}
                         selection={
                           <Checkbox
-                            size="small"
                             checked={isSelected(e)}
-                            onChange={() => toggleSelected(e)}
-                            sx={{ mr: 1 }}
+                            onCheckedChange={() => toggleSelected(e)}
+                            className="mr-2"
+                            aria-label="Ürünü seç"
                           />
                         }
                         editable
@@ -181,49 +176,46 @@ const CartPageView = ({
                         headerAction={
                           i === 0 ? (
                             // Eşik aşıldıysa kazanılmış bir hak — yeşille söylüyoruz.
-                            <Stack
-                              direction="row"
-                              alignItems="center"
-                              gap="4px"
-                              sx={{ color: freeShippingRemaining > 0 ? 'inherit' : 'success.main' }}
-                            >
-                              <Typography sx={{ fontSize: 12, lineHeight: '16px' }}>
+                            <div className={cn('flex items-center gap-1', freeShippingRemaining <= 0 && 'text-success')}>
+                              <Typography variant="caption" className="leading-4 tracking-normal">
                                 {freeShippingRemaining > 0
                                   ? `${formatPrice(freeShippingRemaining, orderSummary?.currency ?? 'TRY')}'lik daha ekle kargo bedava`
                                   : 'Kargo bedava'}
                               </Typography>
                               <ChevronRight size={16} />
-                            </Stack>
+                            </div>
                           ) : undefined
                         }
                       />
-                    </Stack>
-                    {i < cart.length - 1 && <Divider flexItem />}
-                  </Stack>
+                    </div>
+                    {i < cart.length - 1 && <Divider />}
+                  </div>
                 ))
               ) : null)}
-          </Stack>
+          </div>
           
           {unavailableItems.length > 0 && (
-            <Stack mt={3} gap={2}>
+            <div className="mt-6 flex flex-col gap-4">
               <Divider />
-              <Typography variant="cardTitle" sx={styles.unavailableItemsTitle}>
+              <Typography variant="cardTitle" className="mt-4 text-tertiary">
                 Stokta Yok
               </Typography>
-              <Stack sx={styles.products}>
+              <div className="flex flex-col gap-4 rounded-none">
                 {unavailableItems.map((e) => (
-                  <Stack direction="row" pr={2} alignItems="center" key={`${e.id}-${e.variants?.map(v => v.options.find(o => o.selected)?.value ?? '').join('-') ?? ''}`}>
-                    <Box
-                      sx={{ px: 1, color: 'error.main', cursor: 'pointer' }}
+                  <div className="flex items-center pr-4" key={`${e.id}-${e.variants?.map(v => v.options.find(o => o.selected)?.value ?? '').join('-') ?? ''}`}>
+                    <button
+                      type="button"
+                      className="cursor-pointer border-0 bg-transparent px-2 text-error"
                       onClick={() => handleDismissUnavailableItem(e)}
+                      aria-label="Stokta olmayan ürünü kaldır"
                     >
-                      <Trash size={18} color='red' />
-                    </Box>
+                      <Trash size={18} />
+                    </button>
                     <ShopCartProductCard data={e} unavailable />
-                  </Stack>
+                  </div>
                 ))}
-              </Stack>
-            </Stack>
+              </div>
+            </div>
           )}
 
 
@@ -233,9 +225,7 @@ const CartPageView = ({
           {!isMobile && !!cart?.length && (
             <CheckoutCard
               title="Sipariş Özeti"
-              titleProps={{
-                sx: { fontSize: 24, fontWeight: 600, lineHeight: '34px', textTransform: 'none' },
-              }}
+              titleClassName="text-2xl font-semibold leading-[34px] normal-case"
               orderSummary={orderSummary}
               numSelected={numSelected}
               discountCode={discountCode}
@@ -260,50 +250,47 @@ const CartPageView = ({
         </SecondaryColumn>
        
       </TwoColumnLayout>
-      {isMobile && !!selected?.length && (
-        <Portal disablePortal={!visible}>
-          <Stack sx={styles.mobileCheckoutBar} zIndex={isCartPage ? 0 : 1300}>
-            <Stack direction="row" alignItems="center" gap={1.5} flex={1}>
-              <Box
+      {isMobile && !!selected?.length && (() => {
+        const mobileBar = (
+          <div className={cn('fixed bottom-0 left-0 flex w-full items-center justify-between bg-bg px-4 py-2 shadow-[0_0_5px_#00000010]', isCartPage ? 'z-0' : 'z-[1300]')}>
+            <div className="flex flex-1 items-center gap-3">
+              <button
+                type="button"
                 onClick={() => setSummaryModalOpen((prev) => !prev)}
-                sx={{
-                  width: 36, height: 36, borderRadius: '50%',
-                  border: '1.5px solid', borderColor: 'divider',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', flexShrink: 0,
-                  transition: 'transform 0.2s',
-                  transform: summaryModalOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                }}
+                className={cn('flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-gray-100 bg-transparent transition-transform duration-200', summaryModalOpen && 'rotate-180')}
+                aria-label="Sipariş özetini göster"
               >
                 <ChevronUp size={18} />
-              </Box>
-              <Stack sx={{ flex: 1, alignItems: 'center' }}>
-                <Typography sx={{ fontSize: 11, color: 'text.secondary', lineHeight: 1.2 }}>Toplam</Typography>
-                <Typography sx={{ fontSize: 16, fontWeight: 700, lineHeight: 1.3 }}>
+              </button>
+              <div className="flex flex-1 flex-col items-center">
+                <Typography variant="caption" className="text-[11px] leading-[1.2] tracking-normal text-text-secondary">Toplam</Typography>
+                <Typography variant="body1" className="font-bold leading-[1.3] tracking-normal">
                   {orderSummary?.totalDue} {currencyLabel}
                 </Typography>
-              </Stack>
-            </Stack>
+              </div>
+            </div>
             <Button
               variant="contained"
               loading={buttonLoading}
               disabled={!selected?.length}
               onClick={handleContinue}
-              sx={{ whiteSpace: 'nowrap' }}
+              className="whitespace-nowrap"
             >
               Sepeti Onayla
             </Button>
-          </Stack>
-        </Portal>
-      )}
+          </div>
+        );
+        return visible && typeof document !== 'undefined' ? createPortal(mobileBar, document.body) : mobileBar;
+      })()}
       {isMobile && (
         <ModalCard
           open={visible && summaryModalOpen}
           onClose={() => setSummaryModalOpen(false)}
           layout="bottom-sheet"
           fullWidth
-          BodyProps={{ sx: { p: 0 } }}
-          sx={{ zIndex: 1298, mb: '64px', '& .MuiBackdrop-root': { bottom: 64 } }}
+          bodyClassName="p-0"
+          bottomOffset={64}
+          layer={1298}
         >
           <CheckoutCard
             showLines
@@ -315,7 +302,7 @@ const CartPageView = ({
           />
         </ModalCard>
       )}
-    </Stack>
+    </div>
   );
 };
 

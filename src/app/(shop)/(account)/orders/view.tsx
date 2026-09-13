@@ -1,13 +1,12 @@
 'use client';
 
 import OrderListItemCard from '@/components/orders/OrderListItemCard';
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/Button';
 import { PagedResults, ShopOrderListItemData, ShopOrderStatus } from '@/lib/api/types';
 import { UserReview } from '@/lib/api/supabaseReviews';
-import { Box, Stack, Typography } from '@mui/material';
 import { Package, ShoppingBag, Star } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import useStyles from './styles';
+import { cn } from '@/lib/utils/cn';
 
 type OrderFilter = 'all' | ShopOrderStatus;
 
@@ -27,7 +26,6 @@ type OrdersPageViewProps = {
 };
 
 const OrdersPageView = ({ data, section, reviews }: OrdersPageViewProps) => {
-  const styles = useStyles();
   const [activeFilter, setActiveFilter] = useState<OrderFilter>('all');
   const total = data.totalRecordCount ?? 0;
   const statusCounts = useMemo(
@@ -50,49 +48,43 @@ const OrdersPageView = ({ data, section, reviews }: OrdersPageViewProps) => {
 
   if (section === 'reviews') {
     return (
-      <Stack sx={styles.page}>
-        <Stack sx={styles.header}>
-          <Stack sx={styles.headerRow}>
-            <Typography variant="h2" sx={styles.pageTitle}>
+      <div className="flex w-full flex-col gap-8">
+        <header className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <h1 className="text-[22px] font-extrabold leading-tight tracking-[-0.3px] sm:text-[26px]">
               Değerlendirmelerim
-            </Typography>
-            {reviews.length > 0 && <Box sx={styles.totalBadge}>{reviews.length}</Box>}
-          </Stack>
-          <Typography sx={styles.description}>
+            </h1>
+            {reviews.length > 0 && <span className="rounded bg-text px-2 py-0.5 text-[11px] font-extrabold leading-normal tracking-[0.5px] text-white">{reviews.length}</span>}
+          </div>
+          <p className="max-w-[480px] text-[15px] font-medium leading-normal text-text-medium-light">
             Ürünlere yazdığınız değerlendirmeler burada listelenir.
-          </Typography>
-        </Stack>
+          </p>
+        </header>
 
         {reviews.length === 0 ? (
-          <Stack sx={styles.emptyState}>
-            <Box sx={styles.emptyIconBox}>
+          <div className="flex flex-col items-center gap-6 rounded-2xl border border-dashed border-gray-200 bg-bg-light py-12 text-center sm:py-20">
+            <div className="grid size-20 place-items-center rounded-[20px] bg-[linear-gradient(135deg,#F5F5F7_0%,#E5E5EA_100%)]">
               <Star size={32} strokeWidth={1.5} color="#8E8E93" />
-            </Box>
-            <Stack sx={styles.emptyTextBox}>
-              <Typography sx={styles.emptyTitle}>Henüz değerlendirme yok</Typography>
-              <Typography sx={styles.emptyDescription}>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <h2 className="text-lg font-bold tracking-[-0.2px] text-text sm:text-xl">Henüz değerlendirme yok</h2>
+              <p className="max-w-[400px] text-[15px] font-medium leading-relaxed text-text-medium-light">
                 Teslim aldığınız ürünler için değerlendirme yazabilirsiniz.
-              </Typography>
-            </Stack>
-          </Stack>
+              </p>
+            </div>
+          </div>
         ) : (
-          <Stack sx={styles.orderList}>
+          <div className="flex flex-col gap-3">
             {reviews.map((review) => (
-              <Stack
+              <article
                 key={review.id}
-                sx={{
-                  p: 2,
-                  borderRadius: 2,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  gap: 1,
-                }}
+                className="flex flex-col gap-2 rounded-2xl border border-gray-100 p-4"
               >
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  <Typography fontWeight={600} fontSize={14}>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold">
                     {review.productName}
-                  </Typography>
-                  <Stack direction="row" gap={0.5} alignItems="center">
+                  </span>
+                  <div className="flex items-center gap-1">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
                         key={i}
@@ -101,100 +93,99 @@ const OrdersPageView = ({ data, section, reviews }: OrdersPageViewProps) => {
                         color={i < review.rating ? '#F59E0B' : '#D1D5DB'}
                       />
                     ))}
-                  </Stack>
-                </Stack>
+                  </div>
+                </div>
                 {review.title && (
-                  <Typography fontWeight={500} fontSize={13}>
+                  <p className="text-[13px] font-medium">
                     {review.title}
-                  </Typography>
+                  </p>
                 )}
-                <Typography fontSize={13} color="text.secondary">
+                <p className="text-[13px] text-text-secondary">
                   {review.text}
-                </Typography>
-                <Typography fontSize={11} color="text.disabled">
+                </p>
+                <time className="text-[11px] text-text-disabled">
                   {new Date(review.createdAt).toLocaleDateString('tr-TR')}
-                </Typography>
-              </Stack>
+                </time>
+              </article>
             ))}
-          </Stack>
+          </div>
         )}
-      </Stack>
+      </div>
     );
   }
 
   return (
-    <Stack sx={styles.page}>
+    <div className="flex w-full flex-col gap-8">
       {/* Header */}
-      <Stack sx={styles.header}>
-        <Stack sx={styles.headerRow}>
-          <Typography variant="h2" sx={styles.pageTitle}>
+      <header className="flex flex-col gap-2">
+        <div className="flex items-center gap-3">
+          <h1 className="text-[22px] font-extrabold leading-tight tracking-[-0.3px] sm:text-[26px]">
             Siparişlerim
-          </Typography>
-          {total > 0 && <Box sx={styles.totalBadge}>{total}</Box>}
-        </Stack>
-        <Typography sx={styles.description}>
+          </h1>
+          {total > 0 && <span className="rounded bg-text px-2 py-0.5 text-[11px] font-extrabold leading-normal tracking-[0.5px] text-white">{total}</span>}
+        </div>
+        <p className="max-w-[480px] text-[15px] font-medium leading-normal text-text-medium-light">
           Siparişlerinizi takip edin, detaylarını görüntüleyin.
-        </Typography>
-      </Stack>
+        </p>
+      </header>
 
       {/* Filters */}
       {total > 0 && (
-        <Stack sx={styles.filtersRow}>
+        <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
           {FILTERS.map((filter) => {
             const isActive = activeFilter === filter.key;
             const count = filter.key === 'all' ? total : statusCounts[filter.key];
 
             return (
-              <Box
+              <button
                 key={filter.key}
-                component="button"
                 type="button"
                 onClick={() => setActiveFilter(filter.key)}
-                sx={styles.filterPill(isActive)}
+                className={cn('flex shrink-0 select-none items-center gap-2 whitespace-nowrap rounded-[10px] border px-3 py-2 transition', isActive ? 'border-text bg-text text-white' : 'border-gray-200 bg-white text-text-medium hover:border-text hover:text-text')}
               >
-                <Typography sx={styles.filterLabel}>{filter.label}</Typography>
-                <Box sx={styles.filterBadge(isActive)}>
+                <span className="text-[13px] font-bold leading-none">{filter.label}</span>
+                <span className={cn('grid h-5 min-w-5 place-items-center rounded-full px-1 text-[11px] font-extrabold leading-none', isActive ? 'bg-white/20 text-white' : 'bg-bg-dark text-text')}>
                   {count}
-                </Box>
-              </Box>
+                </span>
+              </button>
             );
           })}
-        </Stack>
+        </div>
       )}
 
       {/* Order List */}
       {total ? (
         isFilterEmpty ? (
-          <Stack sx={styles.filterEmptyState}>
-            <Typography sx={styles.filterEmptyTitle}>
+          <div className="flex flex-col items-center justify-center gap-2 rounded-[14px] border border-dashed border-gray-200 bg-bg-light py-8 text-center sm:py-10">
+            <p className="text-base font-bold text-text">
               Bu filtrede sipariş bulunmuyor
-            </Typography>
-            <Typography sx={styles.filterEmptyDescription}>
+            </p>
+            <p className="text-sm font-medium text-text-medium-light">
               Farklı bir filtre seçerek diğer siparişleri görüntüleyin.
-            </Typography>
-          </Stack>
+            </p>
+          </div>
         ) : (
-          <Stack sx={styles.orderList}>
+          <div className="flex flex-col gap-3">
             {filteredOrders.map((e) => (
               <OrderListItemCard data={e} key={e.id} />
             ))}
-          </Stack>
+          </div>
         )
       ) : (
         /* Empty State */
-        <Stack sx={styles.emptyState}>
-          <Box sx={styles.emptyIconBox}>
+        <div className="flex flex-col items-center gap-6 rounded-2xl border border-dashed border-gray-200 bg-bg-light py-12 text-center sm:py-20">
+          <div className="grid size-20 place-items-center rounded-[20px] bg-[linear-gradient(135deg,#F5F5F7_0%,#E5E5EA_100%)]">
             <Package size={32} strokeWidth={1.5} color="#8E8E93" />
-          </Box>
+          </div>
 
-          <Stack sx={styles.emptyTextBox}>
-            <Typography sx={styles.emptyTitle}>
+          <div className="flex flex-col items-center gap-2">
+            <h2 className="text-lg font-bold tracking-[-0.2px] text-text sm:text-xl">
               Henüz siparişiniz yok
-            </Typography>
-            <Typography sx={styles.emptyDescription}>
+            </h2>
+            <p className="max-w-[400px] text-[15px] font-medium leading-relaxed text-text-medium-light">
               Siparişleriniz burada listelenecektir. Hemen alışverişe başlayın!
-            </Typography>
-          </Stack>
+            </p>
+          </div>
 
           <Button
             variant="contained"
@@ -203,9 +194,9 @@ const OrdersPageView = ({ data, section, reviews }: OrdersPageViewProps) => {
           >
             Alışverişe Başla
           </Button>
-        </Stack>
+        </div>
       )}
-    </Stack>
+    </div>
   );
 };
 

@@ -1,12 +1,12 @@
 'use client';
 
-import { Stack, TextField, Typography } from '@mui/material';
-import { LoadingButton } from '@mui/lab';
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import Banner from '@/components/common/Banner';
 import GoogleAuthButton from './GoogleAuthButton';
 import PasswordField from '../PasswordField';
+import { TextField } from '@/components/ui/TextField';
+import { Button } from '@/components/ui/Button';
 
 interface Props {
   onSubmit: (email: string, password: string) => Promise<boolean>;
@@ -39,12 +39,11 @@ const SignInForm = ({ onSubmit, onForgotPassword, returnUrl }: Props) => {
   });
 
   return (
-    <Stack gap={3}>
+    <div className="flex flex-col gap-6">
       <GoogleAuthButton returnUrl={returnUrl} />
 
-      <Stack component="form" gap={2} onSubmit={formik.handleSubmit} autoComplete="on">
+      <form className="flex flex-col gap-4" onSubmit={formik.handleSubmit} autoComplete="on">
         <TextField
-          fullWidth
           name="email"
           label="E-posta adresi"
           type="email"
@@ -52,8 +51,7 @@ const SignInForm = ({ onSubmit, onForgotPassword, returnUrl }: Props) => {
           value={formik.values.email}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          error={formik.touched.email && !!formik.errors.email}
-          helperText={formik.touched.email && formik.errors.email}
+          error={formik.touched.email ? formik.errors.email : undefined}
         />
         <PasswordField
           name="password"
@@ -65,31 +63,21 @@ const SignInForm = ({ onSubmit, onForgotPassword, returnUrl }: Props) => {
           helperText={formik.touched.password ? formik.errors.password : undefined}
         />
 
-        <Typography
-          component="button"
+        <button
           type="button"
-          variant="caption"
           onClick={onForgotPassword}
-          sx={{
-            p: 0,
-            border: 'none',
-            background: 'transparent',
-            color: 'text.secondary',
-            cursor: 'pointer',
-            textDecoration: 'underline',
-            textAlign: 'right',
-          }}
+          className="border-0 bg-transparent p-0 text-right text-xs text-text-medium-light underline"
         >
           Şifremi unuttum
-        </Typography>
+        </button>
 
-        <LoadingButton loading={loading} variant="contained" type="submit" fullWidth size="large">
+        <Button loading={loading} variant="contained" type="submit" fullWidth size="large">
           Giriş Yap
-        </LoadingButton>
-      </Stack>
+        </Button>
+      </form>
 
       {!!error && <Banner variant="error" title={error} />}
-    </Stack>
+    </div>
   );
 };
 

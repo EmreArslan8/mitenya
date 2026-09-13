@@ -43,7 +43,7 @@ const preloadProductMainImage = (imagePathOrUrl: string | undefined) => {
 /** Rota parametresi slug de olabilir, UUID de. */
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const ProductPage = async ({ params }: { params: { id: string } }) => {
+const ProductPage = async ({ params }: { params: Promise<{ id: string }> }) => {
   // ADR-0001: isPreviewBot() kaldırıldı — headers() çağırıyordu ve ISR'ı engelliyordu.
   // Sayfa artık cache'lendiği için crawler'lara render maliyeti yok; gate gereksiz.
   const { id } = await params;
@@ -69,7 +69,7 @@ export const maxDuration = 30;
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params; // ✔ zorunlu çözüm
 

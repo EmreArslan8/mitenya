@@ -1,33 +1,19 @@
 'use client';
 
-import Button from '@/components/common/Button';
-import { ArrowLeft, CloseIcon, Heart, History, Menu, Search, User } from '@/components/icons';
-import CartPageView from '@/features/cart/CartPageView';
+import Button from '@/components/ui/Button';
+import { ArrowLeft, CloseIcon, Heart, Menu, Search } from '@/components/icons';
 import AccountMenu from './AccountMenu';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
-import MobileSearchOverlay from './MobileSearchOverlay';
-import MegaMenu, { MegaMenuContent, MegaMenuGroup } from './MegaMenu';
+import type { MegaMenuContent, MegaMenuGroup } from './MegaMenu';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { MegaNavCMSLink, ShopHeaderData, ShopHeaderLink } from '@/lib/api/types';
 import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
-import useScreen from '@/lib/hooks/useScreen';
 import { trackTikTokSearch, trackTikTokWithUser } from '@/lib/analytics/tiktokPixel';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
-import { signOut } from '@/lib/utils/signOut';
-import { headerHeight } from '@/theme/theme';
-import {
-  Badge,
-  Box,
-  Divider,
-  Grid,
-  IconButton,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { headerHeight } from '@/theme/breakpoints';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   FormEvent,
@@ -40,26 +26,22 @@ import {
 } from 'react';
 import LoadingOverlay from '../LoadingOverlay';
 import ShoppingCartButton from '../ShoppingCart/ShoppingCartButton';
-import ModalCard from '../common/ModalCard';
-import CategoriesDrawer from './CategoriesDrawer';
-import useStyles, { ANNOUNCEMENT_HEIGHT } from './styles';
-import {
-  Headset,
-  ShoppingBag,
-  LogOut,
-  LogIn,
-  HelpCircle,
-  Settings,
-  PackageSearch,
-} from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
+import useScreen from '@/lib/hooks/useScreen';
 
+const loadMegaMenu = () => import('./MegaMenu');
+const loadMobileSearchOverlay = () => import('./MobileSearchOverlay');
+const loadCategoriesDrawer = () => import('./CategoriesDrawer');
+const loadCartDrawer = () => import('./CartDrawer');
 
-const getSupportUrl = 'https://api.whatsapp.com/send?phone=905070617930';
+const LazyMegaMenu = dynamic(loadMegaMenu, { ssr: false });
+const LazyMobileSearchOverlay = dynamic(loadMobileSearchOverlay, { ssr: false });
+const LazyCategoriesDrawer = dynamic(loadCategoriesDrawer, { ssr: false });
+const LazyCartDrawer = dynamic(loadCartDrawer, { ssr: false });
 
-const accountModalRoutes = [
-  { label: 'orders', labelTr: 'Siparişler', url: '/orders', icon: History },
-  { label: 'settings', labelTr: 'Ayarlar', url: '/settings', icon: Settings },
-];
+const ANNOUNCEMENT_HEIGHT = 34;
 
 interface NavigationProps {
   data: ShopHeaderData | undefined;
@@ -280,11 +262,10 @@ const BANNER_ROTATE_INTERVAL = 4000;
 
 const Navigation = ({ data }: NavigationProps) => {
   const isMobileApp = useIsMobileApp();
+  const isMobile = useScreen('smDown');
   const router = useRouter();
   const pathname = usePathname();
-  const { smDown } = useScreen();
   const isSearchRoute = pathname === '/search';
-  const isMobileSearchRoute = smDown && isSearchRoute;
   const isMinimal = MINIMAL_ROUTES.some((r) => pathname?.startsWith(r));
   const { isAuthenticated, openAuthenticator } = useAuth();
   const { numItems, newProductAdded } = useContext(ShopContext);
@@ -295,8 +276,9 @@ const Navigation = ({ data }: NavigationProps) => {
   const isMobileRef = useRef(true);
   const navVarsSyncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [cartModalOpen, setCartModalOpen] = useState(false);
-  const [accountModalOpen, setAccountModalOpen] = useState(false);
+  const [cartDrawerActivated, setCartDrawerActivated] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [categoriesDrawerActivated, setCategoriesDrawerActivated] = useState(false);
   const [mobileSearchInputOpen, setMobileSearchInputOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const megaMenuOpenTimer = useRef<number | null>(null);
@@ -304,7 +286,6 @@ const Navigation = ({ data }: NavigationProps) => {
   const [desktopSearchOpen, setDesktopSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [bannerIndex, setBannerIndex] = useState(0);
-  const styles = useStyles();
   const bannerLinks = useMemo(() => data?.bannerLinks ?? [], [data?.bannerLinks]);
   const activeBannerLink = bannerLinks[bannerIndex % (bannerLinks.length || 1)];
   const secondaryLinks = useMemo(() => data?.links ?? [], [data?.links]);
@@ -315,18 +296,25 @@ const Navigation = ({ data }: NavigationProps) => {
 
 
   const toggleCartModalOpen = () => {
-    if (!smDown) return;
+    if (!isMobile) return;
     if (cartModalOpen) return setCartModalOpen(false);
+    void loadCartDrawer();
+    setCartDrawerActivated(true);
     setCategoriesOpen(false);
-    setAccountModalOpen(false);
     setCartModalOpen(true);
   };
 
   const toggleCategoriesModalOpen = () => {
     if (categoriesOpen) return setCategoriesOpen(false);
-    setAccountModalOpen(false);
+    void loadCategoriesDrawer();
+    setCategoriesDrawerActivated(true);
     setCartModalOpen(false);
     setCategoriesOpen(true);
+  };
+
+  const toggleMobileSearch = () => {
+    if (!mobileSearchInputOpen) void loadMobileSearchOverlay();
+    setMobileSearchInputOpen((prev) => !prev);
   };
 
   const handleAccountButtonClick = (destination: string = '/orders') => {
@@ -348,6 +336,7 @@ const Navigation = ({ data }: NavigationProps) => {
   // Hover davranisi: acilis gecikmeli (jitter'i onler), kapanis toleransli
   // (link ile panel arasindaki capraz harekette menu kacmasin).
   const openMegaMenu = (index: number) => {
+    void loadMegaMenu();
     if (megaMenuCloseTimer.current) window.clearTimeout(megaMenuCloseTimer.current);
     if (megaMenuOpenTimer.current) window.clearTimeout(megaMenuOpenTimer.current);
     megaMenuOpenTimer.current = window.setTimeout(
@@ -425,9 +414,9 @@ const Navigation = ({ data }: NavigationProps) => {
   }, [handleScroll]);
 
   useEffect(() => {
-    isMobileRef.current = smDown;
-    if (!smDown) setCartModalOpen(false);
-  }, [smDown, pathname, cartModalOpen]);
+    isMobileRef.current = isMobile;
+    if (!isMobile) setCartModalOpen(false);
+  }, [isMobile]);
 
   useEffect(() => {
     setMobileSearchInputOpen(false);
@@ -452,7 +441,7 @@ const Navigation = ({ data }: NavigationProps) => {
       node.removeEventListener('transitionend', onTransitionEnd);
       observer?.disconnect();
     };
-  }, [updateMobileNavVars, smDown, pathname, mounted, mobileSearchInputOpen]);
+  }, [updateMobileNavVars, pathname, mounted, mobileSearchInputOpen]);
 
   useEffect(() => {
     return () => {
@@ -478,7 +467,10 @@ const Navigation = ({ data }: NavigationProps) => {
   );
 
   useEffect(() => {
-    if (newProductAdded) setCartModalOpen(true);
+    if (!newProductAdded) return;
+    void loadCartDrawer();
+    setCartDrawerActivated(true);
+    setCartModalOpen(true);
   }, [newProductAdded]);
 
   useEffect(() => {
@@ -516,90 +508,87 @@ const Navigation = ({ data }: NavigationProps) => {
 
   return (
     <>
-      <Stack
-        sx={{
-          ...styles.container,
-          ...(isMobileSearchRoute ? { height: { xs: 'var(--mobile-nav-spacer, 94px)' } } : {}),
-        }}
-      >
-        <Stack sx={styles.innerContainer} ref={navbarRef}>
+      <div className={isSearchRoute ? 'h-[var(--mobile-nav-spacer,94px)] sm:h-auto' : 'h-14 sm:h-auto'}>
+        <div
+          className="fixed left-0 right-0 top-0 z-[1297] h-auto bg-bg px-2 transition-[top,box-shadow] duration-200 sm:px-6 md:relative"
+          ref={navbarRef}
+        >
           {!isMinimal && (
-          <Stack sx={styles.banner}>
-            <Stack sx={styles.bannerInnerContainer}>
+          <div className={isMobileApp ? 'relative left-1/2 hidden h-[34px] w-screen -translate-x-1/2 overflow-hidden bg-bg sm:flex sm:justify-center' : 'relative left-1/2 hidden h-[34px] w-screen -translate-x-1/2 overflow-hidden bg-error sm:flex sm:justify-center'}>
+            <div className="relative flex w-screen items-center justify-center self-center overflow-hidden">
               {activeBannerLink ? (
-                <MenuItem
+                <button
+                  type="button"
                   key={`${activeBannerLink.label}-${bannerIndex}`}
-                  sx={styles.bannerLink}
+                  className={isMobileApp ? 'min-h-[34px] appearance-none border-0 bg-transparent px-6 text-[13px] tracking-[0.01em] text-text motion-reduce:animate-none' : 'min-h-[34px] appearance-none border-0 bg-transparent px-6 text-[13px] tracking-[0.01em] text-error-contrast-text motion-reduce:animate-none'}
                   onClick={() => handleLinkClick(activeBannerLink)}
                 >
                   {activeBannerLink.label}
-                </MenuItem>
+                </button>
               ) : null}
-            </Stack>
-          </Stack>
+            </div>
+          </div>
           )}
-          <Stack sx={styles.content} onMouseLeave={closeMegaMenu}>
+          <div className="relative mx-auto flex w-full max-w-[1340px] flex-col gap-1 py-2" onMouseLeave={closeMegaMenu}>
             {!isMinimal && !!secondaryLinks.length && (
-              <Stack sx={styles.utilityLinks}>
+              <div className="hidden w-full items-center justify-end sm:flex">
                 {secondaryLinks.map((link) => (
-                  <MenuItem
+                  <button
+                    type="button"
                     key={`${link.label}-${link.slug}`}
-                    sx={{ ...styles.utilityLink, ...(link.slug ? {} : styles.utilityLinkInert) }}
+                    className="appearance-none border-0 bg-transparent px-2 py-0.5 text-[13px] font-normal whitespace-nowrap text-text-medium-light hover:text-error disabled:cursor-default"
+                    disabled={!link.slug}
                     onMouseEnter={() => setActiveCategory(null)}
                     onClick={() => handleLinkClick(link)}
                   >
                     {link.label}
-                  </MenuItem>
+                  </button>
                 ))}
-              </Stack>
+              </div>
             )}
-            <Stack sx={styles.primaryBar}>
+            <div className="flex items-center justify-between gap-4">
               {isMinimal ? (
                 <>
-                  <Stack direction="row" alignItems="center" gap={1} sx={{ cursor: 'pointer' }} onClick={() => router.push('/')}>
+                  <button type="button" className="flex appearance-none items-center gap-2 border-0 bg-transparent p-0" onClick={() => router.push('/')}>
                     <Image
-                      src={styles.logo.src}
+                      src="/static/images/logo.svg"
                       alt="mitenya"
-                      width={styles.logo.width}
-                      height={styles.logo.height}
-                      style={styles.logo}
+                      width={150}
+                      height={48}
+                      className="h-12 w-[150px] object-contain"
+                      unoptimized
                     />
-                  </Stack>
-                  <MenuItem onClick={() => router.push('/cart')} sx={{ gap: 1 }}>
+                  </button>
+                  <button type="button" className="flex appearance-none items-center gap-2 border-0 bg-transparent p-2" onClick={() => router.push('/cart')}>
                     <ArrowLeft size={18} />
-                    <Typography fontSize={14}>Sepete Dön</Typography>
-                  </MenuItem>
+                    <span className="text-sm">Sepete Dön</span>
+                  </button>
                 </>
               ) : (
                 <>
-              {/* Mobile primary bar — xs'te flex, sm+'da CSS ile gizli */}
-              <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-                sx={{ display: { xs: 'flex', sm: 'none' }, width: '100%' }}
-              >
+              <div className="flex w-full items-center justify-between sm:hidden">
                   {isMobileApp && pathname?.includes('/product/') ? (
-                    <IconButton onClick={() => router.back()} aria-label="Geri">
+                    <button type="button" className="inline-flex size-10 appearance-none items-center justify-center border-0 bg-transparent p-0" onClick={() => router.back()} aria-label="Geri">
                       <ArrowLeft size={24} />
-                    </IconButton>
+                    </button>
                   ) : (
-                    <IconButton onClick={toggleCategoriesModalOpen} aria-label="Kategoriler">
+                    <button type="button" className="inline-flex size-10 appearance-none items-center justify-center border-0 bg-transparent p-0" onClick={toggleCategoriesModalOpen} aria-label="Kategoriler">
                       <Menu size={24} strokeWidth={1.5} />
-                    </IconButton>
+                    </button>
                   )}
-                  <Stack sx={styles.logoMobileTapArea} onClick={() => router.push('/')}>
+                  <button type="button" className="flex min-h-11 flex-1 appearance-none items-center justify-center border-0 bg-transparent p-0" onClick={() => router.push('/')}>
                     <Image
-                      src={styles.logoMobile.src}
+                      src="/static/images/logo.svg"
                       alt="mitenya"
-                      width={styles.logoMobile.width}
-                      height={styles.logoMobile.height}
-                      style={styles.logoMobile}
+                      width={110}
+                      height={30}
+                      className="h-[30px] w-[110px] object-contain"
+                      unoptimized
                     />
-                  </Stack>
-                  <Stack direction="row" alignItems="center" gap={1}>
-                    <IconButton
-                      onClick={() => setMobileSearchInputOpen((prev) => !prev)}
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <button type="button" className="inline-flex size-10 appearance-none items-center justify-center border-0 bg-transparent p-0"
+                      onClick={toggleMobileSearch}
                       aria-label={mobileSearchInputOpen ? 'Aramayı kapat' : 'Arama'}
                       aria-expanded={mobileSearchInputOpen}
                     >
@@ -608,58 +597,47 @@ const Navigation = ({ data }: NavigationProps) => {
                       ) : (
                         <Search size={24} strokeWidth={1.5} />
                       )}
-                    </IconButton>
-                    <IconButton
+                    </button>
+                    <button type="button" className="inline-flex size-10 appearance-none items-center justify-center border-0 bg-transparent p-0"
                       onClick={toggleCartModalOpen}
                       aria-label={numItems ? `Sepet (${numItems} ürün)` : 'Sepet'}
                     >
-                      <Badge
-                        variant="dot"
-                        color="error"
-                        invisible={!numItems}
-                        sx={{ '& .MuiBadge-badge': { minWidth: 7, height: 7, borderRadius: '50%' } }}
-                      >
+                      <Badge dot invisible={!numItems} badgeClassName="size-[7px] rounded-full">
                         <ShoppingBag size={24} strokeWidth={1.5} />
                       </Badge>
-                    </IconButton>
-                  </Stack>
-              </Stack>
-              {/* Desktop primary bar — sm+'da flex, xs'te CSS ile gizli */}
-              <Stack
-                direction="row"
-                alignItems="center"
-                gap={2}
-                sx={{ display: { xs: 'none', sm: 'flex' }, width: '100%' }}
-              >
-                  <Stack sx={styles.barSide}>
-                  <IconButton
+                    </button>
+                  </div>
+              </div>
+              <div className="hidden w-full items-center gap-4 sm:flex">
+                  <div className="flex min-w-0 flex-1 items-center [&>*]:shrink-0">
+                  <button type="button" className="mr-2 hidden size-12 appearance-none items-center justify-center border-0 bg-transparent p-0 sm:flex md:hidden"
                     onClick={toggleCategoriesModalOpen}
                     aria-label="Kategoriler"
-                    sx={styles.categoriesToggle}
                   >
                     <Menu size={24} />
-                  </IconButton>
+                  </button>
                   {isMobileApp && pathname?.includes('/product/') ? (
-                    <MenuItem onClick={() => router.back()} sx={styles.backButton}>
+                    <button type="button" className="flex h-10 appearance-none items-center rounded-lg border-0 bg-transparent p-2 text-text" onClick={() => router.back()}>
                       <ArrowLeft size={24} />
-                    </MenuItem>
+                    </button>
                   ) : (
-                    <Stack sx={styles.inlineLogo} onClick={() => router.push('/')}>
+                    <button type="button" className="flex shrink-0 appearance-none items-center border-0 bg-transparent p-0" onClick={() => router.push('/')}>
                       <Image
-                        src={styles.logo.src}
+                        src="/static/images/logo.svg"
                         alt="mitenya"
-                        width={styles.logo.width}
-                        height={styles.logo.height}
-                        style={styles.logo}
+                        width={150}
+                        height={48}
+                        className="h-12 w-[150px] object-contain"
+                        unoptimized
                       />
-                    </Stack>
+                    </button>
                   )}
-                  </Stack>
-                  <Stack sx={styles.categoryBar}>
+                  </div>
+                  <nav className="hidden min-w-0 shrink items-center justify-center overflow-hidden text-bg-contrast-text md:flex">
                     {headerLinks.map((link, index) => (
-                      <MenuItem
+                      <button type="button"
                         key={link.id}
-                        sx={styles.shopHeaderLink}
+                        className="relative appearance-none border-0 bg-transparent px-2 py-2.5 text-[15px] font-bold uppercase tracking-[0.01em] whitespace-nowrap text-text-medium transition-colors after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:origin-center after:scale-x-0 after:rounded after:bg-error after:transition-transform hover:text-error hover:after:scale-x-100 focus-visible:text-error focus-visible:after:scale-x-100 lg:px-4"
                         aria-expanded={link.panel ? activeCategory === index : undefined}
                         onMouseEnter={() => (link.panel ? openMegaMenu(index) : closeMegaMenu())}
                         onClick={() => {
@@ -668,47 +646,44 @@ const Navigation = ({ data }: NavigationProps) => {
                         }}
                       >
                         {link.label}
-                      </MenuItem>
+                      </button>
                     ))}
-                  </Stack>
-                  <Stack sx={{ ...styles.barSide, justifyContent: 'flex-end' }}>
-                    <Stack sx={styles.actions}>
-                      <MenuItem
-                        sx={{ ...styles.action, ...styles.actionIcon }}
+                  </nav>
+                  <div className="flex min-w-0 flex-1 items-center justify-end">
+                    <div className="flex shrink-0 items-center lg:gap-1">
+                      <button type="button" className="flex size-12 min-w-12 appearance-none items-center justify-center border-0 bg-transparent p-0 text-bg-contrast-text [&_svg]:size-6"
                         onClick={() => setDesktopSearchOpen((prev) => !prev)}
                         aria-label="Ara"
                         aria-expanded={desktopSearchOpen}
                       >
                         {desktopSearchOpen ? <CloseIcon /> : <Search />}
-                      </MenuItem>
+                      </button>
                       {mounted && (
                         <>
-                          <AccountMenu triggerSx={{ ...styles.action, ...styles.actionIcon }} />
-                          <MenuItem
-                            sx={{ ...styles.action, ...styles.actionIcon }}
+                          <AccountMenu triggerClassName="flex min-w-0 items-center gap-2 px-2 text-bg-contrast-text [&_svg]:size-[23px]" />
+                          <button type="button" className="flex size-12 min-w-12 appearance-none items-center justify-center border-0 bg-transparent p-0 text-bg-contrast-text [&_svg]:size-6"
                             onClick={() => handleAccountButtonClick('/settings?section=favorites')}
                             aria-label="Favorilerim"
                           >
                             <Badge
-                              badgeContent={favoriteIds.size}
-                              color="error"
-                              sx={{ '& .MuiBadge-badge': { minWidth: 19, height: 19, fontSize: 11, px: 0.5 } }}
+                              content={favoriteIds.size}
+                              badgeClassName="h-[19px] min-w-[19px] px-1 text-[11px]"
                             >
                               <Heart />
                             </Badge>
-                          </MenuItem>
+                          </button>
                           <ShoppingCartButton compact />
                         </>
                       )}
-                    </Stack>
-                  </Stack>
-              </Stack>
+                    </div>
+                  </div>
+              </div>
                 </>
               )}
-            </Stack>
+            </div>
 
             {!isMinimal && activePanel && (
-              <MegaMenu
+              <LazyMegaMenu
                 {...activePanel}
                 onSelect={(href) => {
                   setActiveCategory(null);
@@ -718,206 +693,43 @@ const Navigation = ({ data }: NavigationProps) => {
                 onMouseLeave={closeMegaMenu}
               />
             )}
-          </Stack>
+          </div>
           {!isMinimal && desktopSearchOpen && (
-            <Stack sx={styles.searchPanel}>
-              <Stack sx={styles.searchPanelInner}>
+            <div className="absolute left-0 right-0 top-full z-[1298] hidden animate-[mega-menu-in_.18s_ease] border-t border-gray-100 bg-bg px-6 py-5 shadow-[0_18px_30px_rgba(15,20,32,0.10)] motion-reduce:animate-none sm:flex">
+              <div className="mx-auto w-full max-w-[1340px]">
                 <SearchBar wide autoFocus onBlur={() => undefined} />
-              </Stack>
-            </Stack>
+              </div>
+            </div>
           )}
-        </Stack>
-      </Stack>
-      {/* {!isMinimal && smDown && (
-        <Stack sx={styles.bottomNavigation}>
-          <BottomNavigation
-            showLabels
-            value={
-              cartModalOpen || pathname === '/checkout'
-                ? '/cart'
-                : accountModalOpen || accountModalRoutes.some((e) => pathname?.startsWith(e.url))
-                  ? '/account'
-                  : pathname
-            }
-            sx={{
-              '& .MuiBottomNavigationAction-root': { px: 0, minWidth: 0 },
-              // Mobilde ince çizgi: header ile aynı ağırlık.
-              '& svg': { strokeWidth: 1.5 },
-            }}
-          >
-            <BottomNavigationAction
-              value="/"
-              label="AnaSayfa"
-              icon={<Home />}
-              onClick={() => {
-                if (!((cartModalOpen || accountModalOpen) && pathname === '/')) router.push('/');
-                setAccountModalOpen(false);
-                setCartModalOpen(false);
-                setCategoriesOpen(false);
-              }}
-            />
-            <BottomNavigationAction
-              value="favorites"
-              label={'Favoriler'}
-              icon={<Heart size={24} />}
-            />
-            <BottomNavigationAction
-              value="/cart"
-              label="Sepet"
-              icon={
-                <Badge
-                  badgeContent={numItems}
-                  color="error"
-                  sx={{ '& .MuiBadge-badge': { minWidth: 18, height: 18, fontSize: 11, mt: '2px', px: 0.5 } }}
-                >
-                  <ShoppingBag />
-                </Badge>
-              }
-              onClick={toggleCartModalOpen}
-            />
-            <BottomNavigationAction
-              value="/account"
-              label="Hesap"
-              icon={<User />}
-              onClick={toggleAccountModalOpen}
-            />
-            <BottomNavigationAction
-              value="chat"
-              label="İletişim"
-              icon={
-                <Badge
-                  badgeContent={unreadCount}
-                  color="error"
-                  sx={{ '& .MuiBadge-badge': { minWidth: 18, height: 18, mt: '2px', px: 0.5 } }}
-                >
-                  <Headset />
-                </Badge>
-              }
-              onClick={() => {
-                // Crisp.chat.show();
-                // Crisp.chat.open();
-              }}
-            />
-          </BottomNavigation>
-        </Stack>
-      )} */}
-      {!isMinimal && (
-        <MobileSearchOverlay
+        </div>
+      </div>
+      {!isMinimal && mobileSearchInputOpen && (
+        <LazyMobileSearchOverlay
           open={mobileSearchInputOpen}
           onClose={() => setMobileSearchInputOpen(false)}
         />
       )}
       {!isMinimal && (
         <>
-          <ModalCard
-            keepMounted={smDown}
-            open={cartModalOpen}
-            onClose={() => setCartModalOpen(false)}
-            showCloseIcon
-            title="Sepet"
-            fullWidth={isCartEmpty}
-            CardProps={{
-              sx: {
-                height: isCartEmpty ? 'auto' : '100%',
-                // Boş sepet artık illüstrasyonlu bir blok; eski 300px'lik kutuya sığmıyor.
-                maxHeight: isCartEmpty ? { xs: '70vh', sm: 520 } : undefined,
-                pb: isCartEmpty ? 2 : 12,
-              },
-            }}
-            sx={{ zIndex: 1297 }}
-          >
-            <CartPageView
-              hideTitle
-              visible={cartModalOpen}
-              onContinue={() => setCartModalOpen(false)}
-              onItemClick={() => setCartModalOpen(false)}
+          {cartDrawerActivated && (
+            <LazyCartDrawer
+              open={cartModalOpen}
+              empty={isCartEmpty}
+              onClose={() => setCartModalOpen(false)}
             />
-          </ModalCard>
-          <ModalCard
-            title="Hesap"
-            keepMounted={smDown}
-            showCloseIcon
-            open={accountModalOpen}
-            onClose={() => setAccountModalOpen(false)}
-            sx={{ zIndex: 1299 }}
-          >
-            <Grid container spacing={1} pb={9}>
-              <Grid item xs={12}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  {isAuthenticated ? (
-                    <MenuItem onClick={signOut} sx={styles.logoutButton}>
-                      <LogOut /> Çıkış
-                    </MenuItem>
-                  ) : (
-                    <MenuItem onClick={() => openAuthenticator()} sx={styles.loginButton}>
-                      <LogIn /> Giriş Yap
-                    </MenuItem>
-                  )}
-                </Stack>
-              </Grid>
-              <Grid item xs={12}>
-                <Divider sx={{ my: 1 }} />
-              </Grid>
-              <Grid item xs={6}>
-                <MenuItem
-                  onClick={() => {
-                    router.push('/siparis-takip');
-                    setAccountModalOpen(false);
-                  }}
-                  sx={styles.accountMenuItem}
-                >
-                  <PackageSearch size={18} />
-                  Sipariş Takip
-                </MenuItem>
-              </Grid>
-              {accountModalRoutes.map((e) => (
-                <Grid item xs={6} key={e.label}>
-                  <MenuItem
-                    onClick={() => {
-                      handleAccountButtonClick(e.url);
-                      setAccountModalOpen(false);
-                    }}
-                    sx={styles.accountMenuItem}
-                  >
-                    <e.icon size={18} />
-                    {e.labelTr}
-                  </MenuItem>
-                </Grid>
-              ))}
-              {getSupportUrl && (
-                <Grid item xs={6}>
-                  <MenuItem
-                    component="a"
-                    href={getSupportUrl!}
-                    target="_blank"
-                    sx={styles.accountMenuItem}
-                  >
-                    <Headset /> Yardım
-                  </MenuItem>
-                </Grid>
-              )}
-              <Grid item xs={6}>
-                <MenuItem
-                  component="a"
-                  href={`https://help.mitenya.com/`}
-                  target="_blank"
-                  sx={styles.accountMenuItem}
-                >
-                  <HelpCircle /> SSS
-                </MenuItem>
-              </Grid>
-            </Grid>
-          </ModalCard>
-          <CategoriesDrawer
-            open={categoriesOpen}
-            onClose={() => setCategoriesOpen(false)}
-            categories={data?.categories}
-            isAuthenticated={isAuthenticated ?? undefined}
-            onAccount={() => handleAccountButtonClick('/settings')}
-            onOrders={() => isAuthenticated ? handleAccountButtonClick('/orders') : router.push('/siparis-takip')}
-            onFavorites={() => handleAccountButtonClick('/settings?section=favorites')}
-            onNavigate={(slug) => router.push(`/${slug}`)}
-          />
+          )}
+          {categoriesDrawerActivated && (
+            <LazyCategoriesDrawer
+              open={categoriesOpen}
+              onClose={() => setCategoriesOpen(false)}
+              categories={data?.categories}
+              isAuthenticated={isAuthenticated ?? undefined}
+              onAccount={() => handleAccountButtonClick('/settings')}
+              onOrders={() => isAuthenticated ? handleAccountButtonClick('/orders') : router.push('/siparis-takip')}
+              onFavorites={() => handleAccountButtonClick('/settings?section=favorites')}
+              onNavigate={(slug) => router.push(`/${slug}`)}
+            />
+          )}
         </>
       )}
     </>
@@ -932,7 +744,6 @@ interface SearchBarProps {
 }
 
 const SearchBar = ({ onFocus, onBlur, autoFocus, wide }: SearchBarProps) => {
-  const styles = useStyles();
   const router = useRouter();
   const { customerData } = useAuth();
   const searchParams = useSearchParams()!;
@@ -995,14 +806,12 @@ const SearchBar = ({ onFocus, onBlur, autoFocus, wide }: SearchBarProps) => {
   }, [searchHistoryRef]);
 
   return (
-    <Stack
-      component="form"
+    <form
       onSubmit={handleSubmit}
-      sx={wide ? { ...styles.searchBar, ...styles.searchBarWide } : styles.searchBar}
+      className={wide ? 'relative flex w-full max-w-none justify-start gap-2.5' : 'relative flex w-full max-w-full justify-end gap-2.5 sm:max-w-[260px]'}
       autoComplete="off"
     >
-      <TextField
-        fullWidth
+      <Input
         size="small"
         autoComplete="off"
         autoFocus={autoFocus}
@@ -1015,53 +824,48 @@ const SearchBar = ({ onFocus, onBlur, autoFocus, wide }: SearchBarProps) => {
           setShowHistory(true);
         }}
         placeholder="Ara"
-        sx={[styles.searchBarInput, ...(wide ? [styles.searchBarInputWide] : [])]}
-        InputProps={{
-          endAdornment: (
-            <IconButton type="submit" size="small" aria-label="Ara">
-              <Search size={20} strokeWidth={2.4} />
-            </IconButton>
-          ),
-        }}
+        aria-label="Ürün ara"
+        /* Eski styles.searchBarInput: köşe 0, minHeight {xs:36, sm:38} */
+        className="min-h-9 rounded-none sm:min-h-[38px]"
+        endSlot={
+          <button type="submit" aria-label="Ara" className="inline-flex size-8 appearance-none items-center justify-center rounded-full border-0 bg-transparent p-0 text-text sm:size-[34px]">
+            <Search size={20} strokeWidth={2.4} />
+          </button>
+        }
       />
       <LoadingOverlay loading={loading} />
       {showHistory && searchHistory.length > 0 && (
-        <Box sx={styles.historyContainer} ref={searchHistoryRef} id="search-history-container">
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="body1" fontWeight="bold">
-              Arama Geçmişi
-            </Typography>
-            <Button size="small" color="neutral" sx={{ mx: -2 }} onClick={clearAllHistory}>
+        <div className="absolute left-0 top-[calc(100%+8px)] z-[1] w-full rounded-[10px] border border-gray-100 bg-white/[94%] px-3.5 py-2.5 shadow-[0_20px_34px_rgba(9,16,29,0.14)] backdrop-blur-[10px]" ref={searchHistoryRef} id="search-history-container">
+          <div className="flex items-center justify-between">
+            <strong>Arama Geçmişi</strong>
+            <Button size="small" color="neutral" variant="text" className="-mx-4" onClick={clearAllHistory}>
               Temizle
             </Button>
-          </Stack>
-          <Stack gap={1}>
+          </div>
+          <div className="flex flex-col gap-2">
             {searchHistory
               .slice(-10)
               .reverse()
               .map((item) => (
-                <Stack
+                <div
                   key={item}
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  sx={styles.historyItem}
+                  className="flex items-center justify-between"
                 >
-                  <Typography
+                  <button type="button"
                     onClick={() => handleHistoryClick(item)}
-                    sx={{ cursor: 'pointer', width: '100%' }}
+                    className="w-full appearance-none border-0 bg-transparent p-0 text-left"
                   >
                     {item}
-                  </Typography>
-                  <IconButton onClick={() => removeSearchQuery(item)} size="small">
+                  </button>
+                  <button type="button" aria-label={`${item} aramasını kaldır`} onClick={() => removeSearchQuery(item)} className="inline-flex size-8 appearance-none items-center justify-center border-0 bg-transparent p-0">
                     <CloseIcon />
-                  </IconButton>
-                </Stack>
+                  </button>
+                </div>
               ))}
-          </Stack>
-        </Box>
+          </div>
+        </div>
       )}
-    </Stack>
+    </form>
   );
 };
 

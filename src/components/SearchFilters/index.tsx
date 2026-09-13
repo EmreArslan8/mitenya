@@ -13,14 +13,12 @@ import searchUrlFromOptions, {
   removeSearchOptions,
   searchOptionsFromSearchParams,
 } from '@/lib/shop/searchHelpers';
-import { Chip, Divider, Stack, Typography } from '@mui/material';
-import CancelIcon from '@mui/icons-material/Cancel';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import LoadingOverlay from '../LoadingOverlay';
 import FilterCard from './FilterCard';
 import MobileFilters from './MobileFilters';
-import useStyles from './styles';
+import { Chip } from '@/components/ui/Chip';
 
 interface SearchFiltersProps {
   data: ShopSearchResponseFilters;
@@ -40,7 +38,6 @@ const FILTER_OPTION_KEYS: ShopFilterType[] = [
 ];
 
 const SearchFilters = ({ data, sortOptions, resultsCount }: SearchFiltersProps) => {
-  const styles = useStyles();
   const router = useRouter();
   const searchParams = useSearchParams();
   const filters = Object.fromEntries(
@@ -70,10 +67,9 @@ const SearchFilters = ({ data, sortOptions, resultsCount }: SearchFiltersProps) 
   );
 
   const [loading, setLoading] = useState(false);
-  const { isMobile } = useScreen();
+  const isMobile = useScreen('smDown');
   const prevScrollPosition = useRef(0);
   const ref = useRef<HTMLDivElement>(null);
-  const isMobileRef = useRef(true);
 
   const handleOptionClicked = (option: ShopFilter<ShopFilterType>) => {
     let newOptions;
@@ -113,10 +109,6 @@ const SearchFilters = ({ data, sortOptions, resultsCount }: SearchFiltersProps) 
   }, []);
 
   useEffect(() => {
-    isMobileRef.current = isMobile;
-  }, [isMobile]);
-
-  useEffect(() => {
     setLoading(false);
   }, [data]);
 
@@ -130,54 +122,48 @@ const SearchFilters = ({ data, sortOptions, resultsCount }: SearchFiltersProps) 
           onOptionClicked={handleOptionClicked}
         />
       ) : (
-        <Stack sx={styles.aside} ref={ref}>
-          <Stack sx={styles.headerWrap}>
-            <Typography sx={styles.mainTitle}>Filtreleme Seçenekleri</Typography>
-            <Divider />
+        <aside className="sticky top-[146px] flex flex-col gap-4 overflow-y-auto pr-1 transition-[top] duration-200 [scrollbar-color:var(--color-gray-400)_transparent] [scrollbar-width:thin]" ref={ref}>
+          <div className="flex flex-col gap-2.5 pb-1.5">
+            <h2 className="text-xl font-extrabold tracking-[0.01em] text-primaryDark">Filtreleme Seçenekleri</h2>
+            <hr className="border-gray-200" />
             {!!selectedChips.length && (
-              <Stack sx={styles.selectedWrap}>
-                <Stack sx={styles.selectedHeader}>
-                  <Typography sx={styles.selectedTitle}>Seçilen Filtreler</Typography>
-                  <Typography
+              <div className="flex flex-col gap-4 border-b-2 border-gray-100 pt-2 pb-10">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-bold text-primaryDark">Seçilen Filtreler</h3>
+                  <button
+                    type="button"
                     role="button"
-                    tabIndex={0}
-                    sx={styles.clearAction}
+                    className="cursor-pointer appearance-none border-0 bg-transparent text-xs font-semibold tracking-[0.03em] text-primaryDark underline"
                     onClick={handleClearAllFilters}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        handleClearAllFilters();
-                      }
-                    }}
                   >
                     TEMİZLE
-                  </Typography>
-                </Stack>
-                <Stack sx={styles.selectedChipRow}>
+                  </button>
+                </div>
+                <div className="flex max-h-[110px] flex-wrap gap-3 overflow-y-auto pr-1 [scrollbar-color:var(--color-gray-400)_transparent] [scrollbar-width:thin]">
                   {selectedChips.map((chip) => (
                     <Chip
                       key={chip.key}
                       label={chip.label}
                       onDelete={() => handleOptionClicked(chip.option)}
-                      deleteIcon={<CancelIcon />}
-                      sx={styles.selectedChip}
+                      deleteLabel={`${chip.label} filtresini kaldır`}
+                      className="h-auto min-h-[30px] rounded-full border border-gray-200 bg-gray-50 px-1.5 py-1"
                     />
                   ))}
-                </Stack>
-              </Stack>
+                </div>
+              </div>
             )}
-          </Stack>
+          </div>
           {Object.entries(filters).map(([k, v], i) => (
-            <Stack gap={2} key={k}>
+            <div className="flex flex-col gap-4" key={k}>
               <FilterCard
                 index={i}
                 data={v}
                 onOptionClicked={handleOptionClicked}
               />
-              {i < Object.keys(filters).length - 1 && <Divider />}
-            </Stack>
+              {i < Object.keys(filters).length - 1 && <hr className="border-gray-200" />}
+            </div>
           ))}
-        </Stack>
+        </aside>
       )}
       <LoadingOverlay loading={loading} />
     </>

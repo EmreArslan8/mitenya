@@ -1,13 +1,16 @@
 import Banner from '@/components/common/Banner';
-import Button from '@/components/common/Button';
 import Card, { CardProps } from '@/components/common/Card';
+import { Button } from '@/components/ui/Button';
+import { Divider } from '@/components/ui/Divider';
+import { Typography } from '@/components/ui/Typography';
 import { ShopOrderSummaryData } from '@/lib/api/types';
 import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
 import { ChevronDown } from '@/components/icons';
 import formatPrice from '@/lib/utils/formatPrice';
-import { CircularProgress, Collapse, Divider, Stack, TextField, Typography } from '@mui/material';
+import { Spinner } from '@/components/ui/Spinner';
+import { cn } from '@/lib/utils/cn';
 import { FormEvent, ReactNode, useEffect, useState } from 'react';
-import useStyles from './styles';
+import { Input } from '@/components/ui/Input';
 
 const CheckoutCard = ({
   title,
@@ -17,9 +20,9 @@ const CheckoutCard = ({
   loading,
   action,
   showLines,
-  hideTitleIcon = false,
-  titleProps,
-  sx,
+  titleClassName,
+  headerClassName,
+  className,
 }: {
   title?: ReactNode;
   numSelected?: number;
@@ -30,10 +33,10 @@ const CheckoutCard = ({
   action?: ReactNode;
   showLines?: boolean;
   hideTitleIcon?: boolean;
-  titleProps?: CardProps['titleProps'];
-  sx?: CardProps['sx'];
+  titleClassName?: CardProps['titleClassName'];
+  headerClassName?: CardProps['headerClassName'];
+  className?: CardProps['className'];
 }) => {
-  const styles = useStyles();
   const [code, setCode] = useState(initialDiscountCode ?? '');
   const currencyLabel = getDisplayCurrencyCode(orderSummary?.currency ?? 'TRY');
   const appliedDiscountCode = orderSummary?.discountCode;
@@ -57,116 +60,72 @@ const CheckoutCard = ({
     <Card
       border={!!title}
       title={title}
-      titleProps={titleProps}
-      sx={sx}
+      titleClassName={titleClassName}
+      headerClassName={headerClassName}
+      className={className}
     >
-      <Stack sx={styles.cardBody}>
+      <div className="relative flex flex-col overflow-hidden rounded-none">
         {showLines && orderSummary && (
           <PriceLines orderSummary={orderSummary} />
         )}
-        <Stack>
-          {/* <Banner
-            variant="success"
-            title="Final Price"
-            IconProps={{ name: 'handshake', fontSize: 26 }}
-            sx={{ mx: -2, borderRadius: 0, p: 2 }}
-          />
-          <Divider sx={{ mx: -2 }} />
-          <Banner
-            title="Shipping"
-            IconProps={{ name: 'local_shipping', fontSize: 26 }}
-            sx={{ mx: -2, borderRadius: 0, p: 2 }}
-          /> */}
-          {/* <Divider sx={{ mx: -2 }} /> */}
+        <div className="flex flex-col">
           <Banner
             variant="neutral"
             title="İndirim Kuponu Uygula"
             collapsible
             defaultCollapsed
-
-            sx={{ borderRadius: 0, p: 2 }}
+            className="rounded-none p-4"
           >
-            <Stack component="form" gap={1.5} onSubmit={handleSubmitDiscountCode}>
-              <TextField
-                fullWidth
-                size="small"
+            <form className="flex flex-col gap-3" onSubmit={handleSubmitDiscountCode}>
+              <Input
                 value={code}
                 placeholder="Kupon kodu giriniz"
+                aria-label="Kupon kodu"
                 onChange={(e) => setCode(e.target.value)}
                 disabled={!!appliedDiscountCode}
-                sx={styles.discountInput}
+                size="large"
+                variant="soft"
               />
               {!loading && initialDiscountCode && !appliedDiscountCode && (
-                <Typography variant="caption" color="error">Geçersiz İndirim Kodu</Typography>
+                <Typography variant="caption" className="text-error">Geçersiz İndirim Kodu</Typography>
               )}
               {appliedDiscountCode ? (
-                <Stack sx={styles.appliedDiscountRow}>
-                  <Typography sx={styles.appliedDiscountText}>
+                <div className="flex items-center justify-between gap-3">
+                  <Typography variant="progressLabelBold" className="text-success">
                     {appliedDiscountCode} uygulandı
                     {!!orderSummary?.promotionDiscount && `: -${orderSummary.promotionDiscount} ${currencyLabel}`}
                   </Typography>
                   <Button
                     variant="text"
-                    size="small"
                     type="button"
                     onClick={handleClearDiscountCode}
-                    sx={styles.removeDiscountButton}
+                    size="small"
+                    className="h-auto min-w-0 p-0 text-[13px] font-bold normal-case underline hover:bg-transparent hover:text-text"
                   >
                     Kaldır
                   </Button>
-                </Stack>
+                </div>
               ) : (
                 <Button
                   variant="contained"
                   type="submit"
                   disabled={!code.trim()}
-                  sx={{ borderRadius: 1, width: '50%' }}
+                  className="w-1/2 rounded-sm"
                 >
                   Kuponu Uygula
                 </Button>
               )}
-            </Stack>
+            </form>
           </Banner>
-          {/* {!!orderSummary?.totalDiscount && (
-              <Banner
-                title="Discount"
-                variant="success"
-                IconProps={{ name: 'trending_down' }}
-                collapsible
-                defaultCollapsed
-                action={
-                  <Typography variant="cardTitle" whiteSpace="nowrap" sx={styles.discount} mx={1}>
-                    -{orderSummary.totalDiscount} {orderSummary.currency}
-                  </Typography>
-                }
-              >
-                <Stack sx={styles.priceLine}>
-                  <Typography variant="caption">
-                     Product Discount {orderSummary.productDiscountPercent}
-                  </Typography>
-                  <Typography variant="caption" fontWeight={500}>
-                    {orderSummary.productCostPreDiscount! - orderSummary.productCost!} {orderSummary.currency}
-                  </Typography>
-                </Stack>
-                {orderSummary.discountCode && (
-                  <Stack sx={styles.priceLine}>
-                    <Typography variant="caption"> Promotion Discount</Typography>
-                    <Typography variant="caption" fontWeight={500}>
-                      {orderSummary.promotionDiscount} {orderSummary.currency}
-                    </Typography>
-                  </Stack>
-                )}
-              </Banner>
-            )} */}
-        </Stack>
-        {action && <Stack sx={styles.checkoutAction}>{action}</Stack>}
+        </div>
+        {action && <div className="flex flex-col gap-4 px-4 pb-4">{action}</div>}
 
         {loading && (
-          <Stack sx={styles.loadingOverlay}>
-            <CircularProgress />
-          </Stack>
+          <div className="absolute inset-0 z-1 flex items-center justify-center bg-white/[12.5%] backdrop-blur-[1px]">
+            <Spinner className="text-primary" />
+          </div>
         )}
-      </Stack>
+      </div>
     </Card>
   );
 };
@@ -176,7 +135,6 @@ export const PriceLines = ({
 }: {
   orderSummary?: Partial<ShopOrderSummaryData>;
 }) => {
-  const styles = useStyles();
   const [earningsOpen, setEarningsOpen] = useState(false);
   const currency = orderSummary?.currency ?? 'TRY';
   const price = (value?: number) => formatPrice(value ?? 0, currency);
@@ -196,74 +154,80 @@ export const PriceLines = ({
   const freeShipping = !orderSummary?.shipmentCost;
 
   return (
-    <Stack sx={styles.summaryBlock}>
-      <Stack sx={styles.priceLine}>
-        <Typography sx={styles.priceLabel}>Sepet Tutarı</Typography>
-        <Typography sx={styles.priceValue}>{price(subtotal)}</Typography>
-      </Stack>
+    <div className="flex flex-col gap-3 px-4 py-4">
+      <div className="flex items-center justify-between gap-2 text-text-medium">
+        <Typography variant="body2" className="tracking-normal text-text">Sepet Tutarı</Typography>
+        <Typography variant="body2" className="font-semibold tracking-normal text-text">{price(subtotal)}</Typography>
+      </div>
 
-      <Stack sx={styles.priceLine}>
-        <Typography sx={styles.priceLabel}>Kargo Ücreti</Typography>
-        <Typography sx={freeShipping ? styles.freeShippingValue : styles.priceValue}>
+      <div className="flex items-center justify-between gap-2 text-text-medium">
+        <Typography variant="body2" className="tracking-normal text-text">Kargo Ücreti</Typography>
+        <Typography variant="body2" className={cn('font-semibold tracking-normal', freeShipping ? 'text-success' : 'text-text')}>
           {freeShipping ? 'Ücretsiz' : price(orderSummary?.shipmentCost)}
         </Typography>
-      </Stack>
+      </div>
 
       {!!orderSummary?.codServiceFee && (
-        <Stack sx={styles.priceLine}>
-          <Typography sx={styles.priceLabel}>Kapıda Ödeme Hizmet Bedeli</Typography>
-          <Typography sx={styles.priceValue}>{price(orderSummary.codServiceFee)}</Typography>
-        </Stack>
+        <div className="flex items-center justify-between gap-2">
+          <Typography variant="body2" className="tracking-normal text-text">Kapıda Ödeme Hizmet Bedeli</Typography>
+          <Typography variant="body2" className="font-semibold tracking-normal text-text">{price(orderSummary.codServiceFee)}</Typography>
+        </div>
       )}
 
       {earnings > 0 && (
         <>
-          <Divider sx={styles.divider} />
-          <Stack
-            sx={styles.priceLine}
+          <Divider className="my-1 border-black/[6%]" />
+          <div
+            className={cn('flex items-center justify-between gap-2', hasBreakdown && 'cursor-pointer')}
             onClick={hasBreakdown ? () => setEarningsOpen((prev) => !prev) : undefined}
-            style={hasBreakdown ? { cursor: 'pointer' } : undefined}
           >
-            <Stack sx={styles.earningsLabel}>
-              <Typography sx={styles.priceLabel}>Kazancın</Typography>
+            <div className="flex items-center gap-1">
+              <Typography variant="body2" className="tracking-normal text-text">Kazancın</Typography>
               {hasBreakdown && (
-                <Stack sx={styles.earningsChevron(earningsOpen)}>
+                <span className={cn('inline-flex text-text-medium-light transition-transform duration-150', earningsOpen && 'rotate-180')}>
                   <ChevronDown size={18} />
-                </Stack>
+                </span>
               )}
-            </Stack>
-            <Typography sx={styles.discountValue}>-{price(earnings)}</Typography>
-          </Stack>
+            </div>
+            <Typography variant="body2" className="font-semibold tracking-normal text-success">-{price(earnings)}</Typography>
+          </div>
 
           {hasBreakdown && (
-            <Collapse in={earningsOpen} unmountOnExit>
-              <Stack sx={styles.breakdown}>
-                <Stack sx={styles.priceLine}>
-                  <Typography sx={styles.breakdownLabel}>Ürün indirimi</Typography>
-                  <Typography sx={styles.breakdownValue}>-{price(productDiscount)}</Typography>
-                </Stack>
-                <Stack sx={styles.priceLine}>
-                  <Typography sx={styles.breakdownLabel}>
-                    Kupon indirimi{orderSummary?.discountCode ? ` (${orderSummary.discountCode})` : ''}
-                  </Typography>
-                  <Typography sx={styles.breakdownValue}>-{price(promotionDiscount)}</Typography>
-                </Stack>
-              </Stack>
-            </Collapse>
+            <div
+              className={cn(
+                'grid transition-[grid-template-rows] duration-300 ease-in-out',
+                earningsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+              )}
+            >
+              <div className="overflow-hidden">
+                <div className="flex flex-col gap-2 pl-3 pt-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Typography variant="progressLabel" className="text-text-medium-light">Ürün indirimi</Typography>
+                    <Typography variant="progressLabel" className="font-medium text-success">-{price(productDiscount)}</Typography>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <Typography variant="progressLabel" className="text-text-medium-light">
+                      Kupon indirimi{orderSummary?.discountCode ? ` (${orderSummary.discountCode})` : ''}
+                    </Typography>
+                    <Typography variant="progressLabel" className="font-medium text-success">-{price(promotionDiscount)}</Typography>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </>
       )}
 
       {!!orderSummary?.totalDue && (
         <>
-          <Divider sx={styles.divider} />
-          <Stack sx={styles.totalDuePriceLine}>
-            <Typography sx={styles.totalLabel}>Toplam</Typography>
-            <Typography sx={styles.totalValue}>{price(orderSummary.totalDue)}</Typography>
-          </Stack>
+          <Divider className="my-1 border-black/[6%]" />
+          <div className="flex items-center justify-between gap-2 text-text">
+            <Typography variant="body1" className="leading-[34px] tracking-normal">Toplam</Typography>
+            <Typography variant="h1" as="span" className="text-[24px] leading-[34px]">{price(orderSummary.totalDue)}</Typography>
+          </div>
         </>
       )}
-    </Stack>
+    </div>
   );
 };
 

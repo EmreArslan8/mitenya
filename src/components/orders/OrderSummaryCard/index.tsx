@@ -4,7 +4,7 @@ import Banner from '@/components/common/Banner';
 import { ShopOrderSummaryData } from '@/lib/api/types';
 import { Currency } from '@/lib/utils/currencies';
 import formatPrice from '@/lib/utils/formatPrice';
-import { Divider, Stack, Typography } from '@mui/material';
+import { Divider } from '@/components/ui/Divider';
 
 interface OrderSummaryCardProps {
   data: ShopOrderSummaryData;
@@ -20,71 +20,31 @@ const SummaryRow = ({
   value: string;
   bold?: boolean;
 }) => (
-  <Stack
-    direction="row"
-    alignItems="center"
-    justifyContent="space-between"
-    gap={1}
-  >
-    <Typography
-      sx={{
-        fontSize: 14,
-        fontWeight: bold ? 600 : 400,
-        color: 'text.mediumLight',
-        lineHeight: 1,
-      }}
-    >
+  <div className="flex items-center justify-between gap-2">
+    <span className={bold ? 'text-sm font-semibold leading-none text-text-medium-light' : 'text-sm leading-none text-text-medium-light'}>
       {label}
-    </Typography>
-    <Typography
-      sx={{
-        fontSize: bold ? 15 : 14,
-        fontWeight: bold ? 700 : 600,
-        color: 'text.main',
-        whiteSpace: 'nowrap',
-        lineHeight: 1,
-      }}
-    >
+    </span>
+    <span className={bold ? 'whitespace-nowrap text-[15px] font-bold leading-none text-text' : 'whitespace-nowrap text-sm font-semibold leading-none text-text'}>
       {value}
-    </Typography>
-  </Stack>
+    </span>
+  </div>
 );
 
 const OrderSummaryCard = ({ data, productCurrency }: OrderSummaryCardProps) => {
-  const hasDiscount = Boolean((data as any).discount);
+  const discount = data.totalDiscount || data.promotionDiscount || 0;
+  const hasDiscount = discount > 0;
 
   return (
-    <Stack
-      sx={{
-        borderRadius: '12px',
-        border: (theme) => `1px solid ${theme.palette.gray[100]}`,
-        bgcolor: 'white.main',
-        overflow: 'hidden',
-      }}
-    >
+    <section className="overflow-hidden rounded-xl border border-gray-100 bg-white">
       {/* Header */}
-      <Stack
-        sx={{
-          px: { xs: 2, sm: 2.5 },
-          py: 1.5,
-          borderBottom: (theme) => `1px solid ${theme.palette.gray[100]}`,
-        }}
-      >
-        <Typography
-          sx={{
-            fontSize: 13,
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: 0,
-            color: 'text.medium',
-          }}
-        >
+      <div className="border-b border-gray-100 px-4 py-3 sm:px-5">
+        <p className="text-[13px] font-bold uppercase text-text-medium">
           Sipariş Özeti
-        </Typography>
-      </Stack>
+        </p>
+      </div>
 
       {/* Summary rows */}
-      <Stack sx={{ px: { xs: 2, sm: 2.5 }, py: 2, gap: 1.5 }}>
+      <div className="flex flex-col gap-3 px-4 py-4 sm:px-5">
         <SummaryRow
           label="Ürünler Toplamı"
           value={formatPrice(data.productCost, productCurrency)}
@@ -112,46 +72,36 @@ const OrderSummaryCard = ({ data, productCurrency }: OrderSummaryCardProps) => {
 
         {hasDiscount && (
           <>
-            <Divider flexItem sx={{ borderColor: 'gray.100' }} />
+            <Divider className="border-gray-100" />
             <SummaryRow
               label="Ara Toplam"
               value={formatPrice(data.total, data.currency)}
               bold
             />
-            <Banner variant="success" horizontal noIcon sx={{ mx: -0.5, borderRadius: '8px' }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" width="100%">
-                <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'success.main' }}>
+            <Banner variant="success" horizontal noIcon className="-mx-1 rounded-lg">
+              <div className="flex w-full items-center justify-between">
+                <span className="text-[13px] font-bold text-success">
                   İndirim
-                </Typography>
-                <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'success.main' }}>
-                  - {formatPrice((data as any).discount, data.currency)}
-                </Typography>
-              </Stack>
+                </span>
+                <span className="text-sm font-bold text-success">
+                  - {formatPrice(discount, data.currency)}
+                </span>
+              </div>
             </Banner>
           </>
         )}
-      </Stack>
+      </div>
 
       {/* Total */}
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{
-          px: { xs: 2, sm: 2.5 },
-          py: 2,
-          borderTop: (theme) => `1px solid ${theme.palette.gray[100]}`,
-          bgcolor: 'bg.light',
-        }}
-      >
-        <Typography sx={{ fontSize: 14, fontWeight: 800, color: 'text.main', letterSpacing: -0.1 }}>
+      <div className="flex items-center justify-between border-t border-gray-100 bg-bg-light px-4 py-4 sm:px-5">
+        <span className="text-sm font-extrabold tracking-[-0.1px] text-text">
           Ödenecek Tutar
-        </Typography>
-        <Typography sx={{ fontSize: 18, fontWeight: 800, color: 'text.main', letterSpacing: -0.2 }}>
+        </span>
+        <span className="text-lg font-extrabold tracking-[-0.2px] text-text">
           {formatPrice(data.totalDue, data.currency)}
-        </Typography>
-      </Stack>
-    </Stack>
+        </span>
+      </div>
+    </section>
   );
 };
 

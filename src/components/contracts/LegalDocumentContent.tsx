@@ -1,4 +1,3 @@
-import { Box } from '@mui/material';
 import DOMPurify from 'isomorphic-dompurify';
 
 const sanitizeConfig = {
@@ -50,59 +49,9 @@ const LegalDocumentContent = ({ html }: { html: string }) => {
   const safeHtml = wrapTables(sanitizeHtml(html));
 
   return (
-    <Box
-      sx={{
-        width: '100%',
-        minWidth: 0,
-        '& p': {
-          fontSize: 15,
-          lineHeight: '22px',
-          color: 'text.primary',
-          mb: 1.25,
-        },
-        '& ul, & ol': {
-          pl: 3,
-          mb: 2,
-        },
-        '& li': {
-          fontSize: 15,
-          lineHeight: '22px',
-          mb: 1,
-        },
-        '& .legal-table-wrap': {
-          width: '100%',
-          maxWidth: '100%',
-          overflowX: 'auto',
-          WebkitOverflowScrolling: 'touch',
-          mb: 2,
-        },
-        '& table': {
-          width: '100%',
-          minWidth: 640,
-          borderCollapse: 'collapse',
-          border: '1px solid',
-          borderColor: 'tertiary.light',
-        },
-        '& th, & td': {
-          border: '1px solid',
-          borderColor: 'tertiary.light',
-          padding: '8px 10px',
-          verticalAlign: 'top',
-        },
-        '& table p': {
-          mb: 0,
-        },
-        '& strong': { fontWeight: 700 },
-        '& a': {
-          color: 'primary.main',
-          textDecoration: 'underline',
-          overflowWrap: 'anywhere',
-          wordBreak: 'break-word',
-        },
-      }}
-    >
+    <div className="w-full min-w-0 [&_a]:break-words [&_a]:text-primary [&_a]:underline [&_li]:mb-2 [&_li]:text-[15px] [&_li]:leading-[22px] [&_ol]:mb-4 [&_ol]:pl-6 [&_p]:mb-2.5 [&_p]:text-[15px] [&_p]:leading-[22px] [&_strong]:font-bold [&_ul]:mb-4 [&_ul]:pl-6 [&_.legal-table-wrap]:mb-4 [&_.legal-table-wrap]:w-full [&_.legal-table-wrap]:max-w-full [&_.legal-table-wrap]:overflow-x-auto [&_table]:w-full [&_table]:min-w-[640px] [&_table]:border-collapse [&_table]:border [&_table]:border-tertiary-light [&_table_p]:mb-0 [&_td]:border [&_td]:border-tertiary-light [&_td]:px-2.5 [&_td]:py-2 [&_td]:align-top [&_th]:border [&_th]:border-tertiary-light [&_th]:px-2.5 [&_th]:py-2 [&_th]:align-top">
       <div dangerouslySetInnerHTML={{ __html: safeHtml }} />
-    </Box>
+    </div>
   );
 };
 

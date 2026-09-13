@@ -437,4 +437,5 @@ export function getCacheStatus(): { valid: boolean; age: number | null } {
 }
 
 export { PRICE_RANGES };
-export type { CategoryAggregation, BrandAggregation, ConcernAggregation, BenefitAggregation, PriceRange, FilterCache };
+// `FilterCache` zaten tanimlandigi yerde (satir 41) export ediliyor; burada tekrarlanmiyor.
+export type { CategoryAggregation, BrandAggregation, ConcernAggregation, BenefitAggregation, PriceRange };

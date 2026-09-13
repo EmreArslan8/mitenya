@@ -118,7 +118,7 @@ describe('mergeSearchOptions', () => {
   });
 
   it('should preserve other options when merging', () => {
-    const current = { category: 'makeup', sort: 'asc' };
+    const current = { category: 'makeup', sort: 'asc' } as const;
     const toMerge = { brand: 'loreal' };
     const result = mergeSearchOptions(current, toMerge);
     expect(result.category).toBe('makeup');
@@ -150,7 +150,7 @@ describe('removeSearchOptions', () => {
   });
 
   it('should preserve unrelated options when removing non-existing key', () => {
-    const current = { sort: 'asc' };
+    const current = { sort: 'asc' } as const;
     const toRemove = { brand: 'loreal' };
     const result = removeSearchOptions(current, toRemove);
     expect(result).toEqual({ sort: 'asc' });

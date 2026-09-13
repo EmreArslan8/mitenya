@@ -1,7 +1,3 @@
-'use client';
-
-import { Box, Stack, Typography } from '@mui/material';
-
 /**
  * Sol sutundaki marka seridi: sonsuz kayan logo marquee.
  * prefers-reduced-motion acikken hareket duruyor.
@@ -16,60 +12,30 @@ const BRANDS = [
 ];
 
 const Showcase = () => (
-  <Stack sx={{ gap: 1, maxWidth: 460, width: '100%' }}>
-    <Typography
-      variant="caption"
-      sx={{ color: 'text.secondary', letterSpacing: '0.14em', textTransform: 'uppercase' }}
-    >
+  <div className="flex w-full max-w-[460px] flex-col gap-2">
+    <p className="text-xs uppercase tracking-[0.14em] text-text-medium-light">
       Mitenya&apos;da yer alan markalar
-    </Typography>
+    </p>
 
-    <Box
-      sx={{
-        position: 'relative',
-        overflow: 'hidden',
-        // Kenarlarda yumusak kayboluş
-        maskImage: 'linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent)',
-        WebkitMaskImage: 'linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent)',
-      }}
-    >
-      <Stack
-        direction="row"
-        sx={{
-          width: 'max-content',
-          alignItems: 'center',
-          animation: 'mitenyaMarquee 28s linear infinite',
-          '@keyframes mitenyaMarquee': {
-            from: { transform: 'translateX(0)' },
-            to: { transform: 'translateX(-50%)' },
-          },
-          '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
-        }}
-      >
+    <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_12%,#000_88%,transparent)]">
+      <div className="flex w-max items-center animate-[mitenya-marquee_28s_linear_infinite] motion-reduce:animate-none">
         {[...BRANDS, ...BRANDS].map((brand, index) => (
-          <Box
+          <span
             key={`${brand.name}-${index}`}
-            sx={{
-              flex: '0 0 auto',
-              px: 3,
-              color: 'text.light',
-              opacity: 0.75,
-              display: 'flex',
-              alignItems: 'center',
-            }}
+            className="flex shrink-0 items-center px-6 text-text-light opacity-75"
           >
-            <Box
-              component="img"
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={brand.src}
               alt={brand.name}
               loading="lazy"
-              sx={{ height: 18, width: 'auto', objectFit: 'contain', display: 'block' }}
+              className="block h-[18px] w-auto object-contain"
             />
-          </Box>
+          </span>
         ))}
-      </Stack>
-    </Box>
-  </Stack>
+      </div>
+    </div>
+  </div>
 );
 
 export default Showcase;

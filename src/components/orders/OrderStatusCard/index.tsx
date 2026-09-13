@@ -1,9 +1,9 @@
 'use client';
 
 import { ShopOrderStatus } from '@/lib/api/types';
-import { Box, Stack, Typography } from '@mui/material';
 import SupportButton from '../../SupportButtonSimple';
-import Button from '../../common/Button';
+import { Button } from '@/components/ui/Button';
+import { cn } from '@/lib/utils/cn';
 import { CheckCircle2, Clock, XCircle } from '@/components/icons';
 import { PackageCheck, Truck, SquareArrowOutUpRight } from 'lucide-react';
 import { ReactNode } from 'react';
@@ -48,201 +48,85 @@ const OrderStatusCard = ({
   const activeIdx = statusIndex[status];
 
   return (
-    <Stack
-      sx={{
-        borderRadius: { xs: '14px', sm: '16px' },
-        border: (theme) =>
-          isCancelled
-            ? `1px solid ${theme.palette.error.light}`
-            : `1px solid ${theme.palette.gray[100]}CC`,
-        bgcolor: isCancelled ? 'error.light' : 'white.main',
-        boxShadow: isCancelled ? 'none' : '0 10px 30px rgba(17, 24, 39, 0.06)',
-        overflow: 'hidden',
-      }}
-    >
+    <section className={cn('overflow-hidden rounded-[14px] border sm:rounded-2xl', isCancelled ? 'border-error-light bg-error-light shadow-none' : 'border-gray-100/80 bg-white shadow-[0_10px_30px_rgba(17,24,39,0.06)]')}>
       {/* Header with order number */}
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{
-          px: { xs: 2.25, sm: 2.75 },
-          py: { xs: 1.4, sm: 1.6 },
-          borderBottom: (theme) =>
-            `1px solid ${isCancelled ? theme.palette.error.main + '22' : theme.palette.gray[100]}`,
-        }}
-      >
-        <Stack direction="row" alignItems="center" gap={1}>
-          <Typography
-            sx={{
-              fontSize: 12,
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: 0.35,
-              color: isCancelled ? 'error.dark' : 'text.medium',
-            }}
-          >
+      <div className={cn('flex items-center justify-between border-b px-[18px] py-[11px] sm:px-[22px] sm:py-[13px]', isCancelled ? 'border-error/15' : 'border-gray-100')}>
+        <div className="flex items-center gap-2">
+          <span className={cn('text-xs font-semibold uppercase tracking-[0.35px]', isCancelled ? 'text-error-dark' : 'text-text-medium')}>
             Sipariş No
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: { xs: 14, sm: 15 },
-              fontWeight: 800,
-              letterSpacing: 0.2,
-              color: isCancelled ? 'error.dark' : 'text.main',
-            }}
-          >
+          </span>
+          <span className={cn('text-sm font-extrabold tracking-[0.2px] sm:text-[15px]', isCancelled ? 'text-error-dark' : 'text-text')}>
             #{orderId}
-          </Typography>
-        </Stack>
-      </Stack>
+          </span>
+        </div>
+      </div>
 
       {/* Status content */}
-      <Stack sx={{ px: { xs: 2.25, sm: 2.75 }, py: { xs: 2.4, sm: 2.8 }, gap: { xs: 2.25, sm: 2.6 } }}>
+      <div className="flex flex-col gap-[18px] px-[18px] py-[19px] sm:gap-[21px] sm:px-[22px] sm:py-[22px]">
         {/* Cancelled state */}
         {isCancelled ? (
-          <Stack gap={2.1} alignItems="flex-start">
-            <Stack direction="row" alignItems="center" gap={1.1}>
+          <div className="flex flex-col items-start gap-[17px]">
+            <div className="flex items-center gap-[9px]">
               <XCircle size={20} strokeWidth={2} color="#C1121F" />
-              <Typography sx={{ fontSize: { xs: 16, sm: 17 }, fontWeight: 750, color: 'error.main' }}>
+              <span className="text-base font-bold text-error sm:text-[17px]">
                 İptal Edildi
-              </Typography>
-            </Stack>
-            <Typography sx={{ fontSize: 14, fontWeight: 500, color: 'error.dark', lineHeight: 1.75 }}>
+              </span>
+            </div>
+            <p className="text-sm font-medium leading-[1.75] text-error-dark">
               {statusDescriptions.cancelled}
-            </Typography>
+            </p>
             <SupportButton size="small" />
-          </Stack>
+          </div>
         ) : (
           <>
             {/* Timeline stepper */}
-            <Stack
-              direction="row"
-              alignItems="flex-start"
-              sx={{ gap: 0, width: '100%' }}
-            >
+            <div className="flex w-full items-start">
               {steps.map((step, i) => {
                 const isCompleted = i < activeIdx;
                 const isActive = i === activeIdx;
                 const isPending = i > activeIdx;
 
                 return (
-                  <Stack
-                    key={step.key}
-                    alignItems="center"
-                    sx={{ flex: 1, position: 'relative' }}
-                  >
+                  <div key={step.key} className="relative flex flex-1 flex-col items-center">
                     {/* Connector line (before the circle) */}
                     {i > 0 && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: { xs: 15, sm: 16 },
-                          right: '50%',
-                          width: '100%',
-                          height: 1.5,
-                          bgcolor: isCompleted || isActive ? 'gray.300' : 'gray.100',
-                          transition: 'background-color 0.25s ease',
-                        }}
-                      />
+                      <span className={cn('absolute right-1/2 top-[15px] h-[1.5px] w-full transition-colors sm:top-4', isCompleted || isActive ? 'bg-gray-300' : 'bg-gray-100')} />
                     )}
 
                     {/* Step circle */}
-                    <Box
-                      sx={{
-                        width: { xs: 30, sm: 32 },
-                        height: { xs: 30, sm: 32 },
-                        borderRadius: '50%',
-                        display: 'grid',
-                        placeItems: 'center',
-                        position: 'relative',
-                        zIndex: 1,
-                        bgcolor: isActive ? '#F4F5F7' : isCompleted ? '#F8F9FB' : '#FCFCFD',
-                        border: '1px solid',
-                        borderColor: isActive ? 'text.main' : isCompleted ? 'gray.300' : 'gray.100',
-                        color: 'text.main',
-                        transition: 'all 0.25s ease',
-                        boxShadow: isActive ? '0 0 0 3px rgba(17, 24, 39, 0.08)' : 'none',
-                        '& svg': {
-                          color: 'text.main',
-                        },
-                      }}
-                    >
+                    <span className={cn('relative z-[1] grid size-[30px] place-items-center rounded-full border text-text transition-all sm:size-8', isActive ? 'border-text bg-[#F4F5F7] shadow-[0_0_0_3px_rgba(17,24,39,0.08)]' : isCompleted ? 'border-gray-300 bg-[#F8F9FB]' : 'border-gray-100 bg-[#FCFCFD]')}>
                       {isCompleted ? (
                         <CheckCircle2 size={14} strokeWidth={2.5} />
                       ) : (
                         step.icon
                       )}
-                    </Box>
+                    </span>
 
                     {/* Step label */}
-                    <Typography
-                      sx={{
-                        mt: { xs: 1, sm: 1.1 },
-                        fontSize: 12,
-                        fontWeight: isActive ? 700 : 500,
-                        color: isActive ? 'text.main' : isPending ? 'text.disabled' : 'text.medium',
-                        textAlign: 'center',
-                        lineHeight: 1.3,
-                      }}
-                    >
+                    <span className={cn('mt-2 text-center text-xs leading-[1.3] sm:mt-[9px]', isActive ? 'font-bold text-text' : isPending ? 'font-medium text-text-disabled' : 'font-medium text-text-medium')}>
                       {step.label}
-                    </Typography>
-                  </Stack>
+                    </span>
+                  </div>
                 );
               })}
-            </Stack>
+            </div>
 
             {/* Description */}
-            <Typography
-              sx={{
-                fontSize: 14,
-                fontWeight: 500,
-                color: 'text.mediumLight',
-                lineHeight: 1.75,
-              }}
-            >
+            <p className="text-sm font-medium leading-[1.75] text-text-medium-light">
               {statusDescriptions[status]}
-            </Typography>
+            </p>
 
             {/* Tracking info for shipped */}
             {status === 'shipped' && trackingNumber && (
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                alignItems={{ xs: 'flex-start', sm: 'center' }}
-                gap={1.5}
-                sx={{
-                  p: { xs: 1.4, sm: 1.6 },
-                  borderRadius: '10px',
-                  bgcolor: '#F8FAFC',
-                  border: '1px solid',
-                  borderColor: 'gray.100',
-                }}
-              >
-                <Stack direction="row" alignItems="center" gap={0.75}>
-                  <Typography
-                    sx={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: 'text.medium',
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                    }}
-                  >
+              <div className="flex flex-col items-start gap-3 rounded-[10px] border border-gray-100 bg-[#F8FAFC] p-[11px] sm:flex-row sm:items-center sm:p-[13px]">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-semibold uppercase tracking-[0.5px] text-text-medium">
                     Takip No:
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: 'text.main',
-                      fontFamily: 'monospace',
-                      letterSpacing: 0.5,
-                    }}
-                  >
+                  </span>
+                  <span className="font-mono text-sm font-bold tracking-[0.5px] text-text">
                     {trackingNumber}
-                  </Typography>
-                </Stack>
+                  </span>
+                </div>
                 <Button
                   size="small"
                   color="neutral"
@@ -250,24 +134,16 @@ const OrderStatusCard = ({
                   href={`https://my.fargo.uz/track?id=${trackingNumber}`}
                   target="_blank"
                   endIcon={<SquareArrowOutUpRight size={14} />}
-                  sx={{
-                    fontSize: 12,
-                    borderColor: 'gray.200',
-                    bgcolor: 'white.main',
-                    '&:hover': {
-                      borderColor: 'text.main',
-                      bgcolor: 'white.main',
-                    },
-                  }}
+                  className="border-gray-200 bg-white text-xs normal-case hover:border-text hover:bg-white"
                 >
                   Kargoyu Takip Et
                 </Button>
-              </Stack>
+              </div>
             )}
           </>
         )}
-      </Stack>
-    </Stack>
+      </div>
+    </section>
   );
 };
 

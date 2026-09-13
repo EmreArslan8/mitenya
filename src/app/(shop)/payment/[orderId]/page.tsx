@@ -1,16 +1,18 @@
 'use client';
 
-import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
+import { Button } from '@/components/ui/Button';
+import { Divider } from '@/components/ui/Divider';
+import { Typography } from '@/components/ui/Typography';
 import PayTRPortal from '@/components/payment/PayTRPortal';
 import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
 import { withCsrfHeaders } from '@/lib/utils/csrf';
-import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material';
 import { CreditCard, LockKeyhole } from '@/components/icons';
 import { ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface CheckoutSessionData {
   id: string;
@@ -107,45 +109,28 @@ const PaymentPage = () => {
 
   if (loading) {
     return (
-      <Stack alignItems="center" justifyContent="center" minHeight="60vh">
-        <CircularProgress />
-      </Stack>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Spinner className="text-primary" />
+      </div>
     );
   }
 
   if (!checkoutSession) {
     return (
-      <Stack alignItems="center" justifyContent="center" minHeight="60vh">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <Typography>Ödeme oturumu bulunamadı</Typography>
-      </Stack>
+      </div>
     );
   }
 
   return (
     <>
-      <Stack
-        alignItems="center"
-        py={{ xs: 3, md: 6 }}
-        px={2}
-        sx={{
-          background:
-            'radial-gradient(1200px 420px at 50% 0%, rgba(221, 202, 171, 0.28), transparent 62%)',
-        }}
-      >
-        <Card sx={{ maxWidth: 620, width: '100%', p: { xs: 2.5, md: 3.5 }, borderRadius: 3 }}>
-          <Stack gap={3}>
-            <Stack gap={1.25}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
-                <Stack direction="row" alignItems="center" gap={1}>
-                  <Box
-                    sx={{
-                      width: { xs: 72, sm: 84 },
-                      height: 30,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
+      <div className="flex items-center justify-center bg-[radial-gradient(1200px_420px_at_50%_0%,rgba(221,202,171,0.28),transparent_62%)] px-4 py-6 md:py-12">
+        <Card className="w-full max-w-[620px] rounded-3xl p-5 md:p-7">
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                  <div className="flex h-[30px] w-[72px] shrink-0 items-center justify-center sm:w-[84px]">
                     <Image
                       src="/static/images/paytr-logo.svg"
                       alt="PayTR"
@@ -153,106 +138,75 @@ const PaymentPage = () => {
                       height={24}
                       style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
                       priority
+                      unoptimized
                     />
-                  </Box>
-                  <Box>
-                    <Typography variant="h5" fontWeight={700}>
+                  </div>
+                  <div>
+                    <Typography variant="h5" className="font-bold">
                       Güvenli Ödeme
                     </Typography>
-                    <Typography color="text.secondary" fontSize={13}>
+                    <Typography variant="progressLabel" className="text-text-secondary">
                       Siparişiniz SSL ile korunur, işlem PayTR altyapısında tamamlanır.
                     </Typography>
-                  </Box>
-                </Stack>
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  gap={0.75}
-                  sx={{ px: 1, py: 0.75, bgcolor: 'success.light', borderRadius: 999 }}
-                >
+                  </div>
+              </div>
+                <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-success-light px-2 py-1.5 text-success">
                   <ShieldCheck size={14} />
-                  <Typography fontSize={12} fontWeight={700}>
+                  <Typography variant="caption" as="span" className="font-bold tracking-normal">
                     3D Secure
                   </Typography>
-                </Stack>
-              </Stack>
-            </Stack>
+                </div>
+            </div>
 
-            <Box
-              sx={{
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 2,
-                p: 2,
-                bgcolor: 'background.default',
-              }}
-            >
-              <Stack gap={1.5}>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography color="text.secondary">Checkout ID</Typography>
-                  <Typography fontWeight={600}>{checkoutSession.id.slice(0, 8)}...</Typography>
-                </Stack>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography color="text.secondary">Ödeme Yöntemi</Typography>
-                  <Typography fontWeight={600}>PayTR</Typography>
-                </Stack>
+            <div className="rounded-lg border border-gray-100 bg-bg p-4">
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between gap-3">
+                  <Typography className="text-text-secondary">Checkout ID</Typography>
+                  <Typography className="font-semibold">{checkoutSession.id.slice(0, 8)}...</Typography>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <Typography className="text-text-secondary">Ödeme Yöntemi</Typography>
+                  <Typography className="font-semibold">PayTR</Typography>
+                </div>
                 <Divider />
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography fontWeight={700}>Toplam Ödeme</Typography>
-                  <Typography variant="h5" fontWeight={800} color="primary.main">
+                <div className="flex items-center justify-between gap-3">
+                  <Typography className="font-bold">Toplam Ödeme</Typography>
+                  <Typography variant="h5" className="font-extrabold text-primary">
                     {checkoutSession.total_amount} {currencyLabel}
                   </Typography>
-                </Stack>
-              </Stack>
-            </Box>
+                </div>
+              </div>
+            </div>
 
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              alignItems={{ xs: 'flex-start', sm: 'center' }}
-              justifyContent="space-between"
-              gap={1}
-              sx={{ px: 1 }}
-            >
-              <Stack direction="row" alignItems="center" gap={0.75}>
+            <div className="flex flex-col items-start justify-between gap-2 px-2 sm:flex-row sm:items-center">
+              <div className="flex items-center gap-1.5">
                 <LockKeyhole size={16} />
-                <Typography fontSize={13} color="text.secondary">
+                <Typography variant="progressLabel" className="text-text-secondary">
                   Kart bilgileriniz tarafımızda tutulmaz.
                 </Typography>
-              </Stack>
-              <Stack direction="row" alignItems="center" gap={1}>
-                <Typography fontSize={12} color="text.secondary" sx={{ mr: 0.5 }}>
+              </div>
+              <div className="flex items-center gap-2">
+                <Typography variant="caption" className="mr-0.5 text-text-secondary">
                   Desteklenen Kartlar
                 </Typography>
                 {trustedCards.map((card) => (
-                  <Box
-                    key={card}
-                    sx={{
-                      width: 42,
-                      height: 28,
-                      borderRadius: 1,
-                      bgcolor: 'common.white',
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
+                  <div key={card} className="flex h-7 w-[42px] items-center justify-center rounded border border-gray-100 bg-white">
                     <Image
                       src={`/static/images/${card}.svg`}
                       alt={card}
                       width={28}
                       height={20}
                       style={{ objectFit: 'contain' }}
+                      unoptimized
                     />
-                  </Box>
+                  </div>
                 ))}
-              </Stack>
-            </Stack>
+              </div>
+            </div>
 
             <Divider />
 
-            <Stack gap={1.25}>
+            <div className="flex flex-col gap-2.5">
               {!isAlreadyCompleted && (
                 <Button
                   variant="contained"
@@ -267,13 +221,7 @@ const PaymentPage = () => {
               )}
 
               {isAlreadyCompleted && (
-                <Typography
-                  fontSize={13}
-                  fontWeight={600}
-                  color="success.dark"
-                  textAlign="center"
-                  sx={{ py: 0.75 }}
-                >
+                <Typography variant="progressLabel" align="center" className="py-1.5 font-semibold text-success-dark">
                   Bu checkout için ödeme tamamlanmış durumda.
                 </Typography>
               )}
@@ -281,10 +229,10 @@ const PaymentPage = () => {
               <Button variant="text" fullWidth onClick={handleBackToCart} disabled={processingPayment}>
                 Sepete Dön
               </Button>
-            </Stack>
-          </Stack>
+            </div>
+          </div>
         </Card>
-      </Stack>
+      </div>
 
       <PayTRPortal
         token={paytrToken}

@@ -8,13 +8,13 @@ import isPreviewBot from '@/lib/utils/isPreviewBot';
 const HOME_DESCRIPTION =
   "Orijinal Kore kozmetik ve cilt bakım ürünleri Mitenya'da. Retinol serum, güneş kremi ve göz bakımında Beauty of Joseon, Numbuzin, Celimax. Hızlı kargo.";
 
-const HomePage = async ({ params }: { params: { slug?: string } }) => {
+const HomePage = async ({ params }: { params: Promise<{ slug?: string }> }) => {
   const bot = await isPreviewBot();
 
   if (bot) {
     return null;
   }
-  const slug = params?.slug;
+  const { slug } = await params;
   const [data, couponSet] = await Promise.all([
     fetchShopIndex(slug),
     fetchShopCouponSet(),
@@ -33,10 +33,11 @@ const HomePage = async ({ params }: { params: { slug?: string } }) => {
 };
 
 export const generateMetadata = async ({
-  params: { slug },
+  params,
 }: {
-  params: { slug?: string };
+  params: Promise<{ slug?: string }>;
 }): Promise<Metadata> => {
+  const { slug } = await params;
   const data = await fetchShopIndex(slug);
   if (!data) notFound();
 

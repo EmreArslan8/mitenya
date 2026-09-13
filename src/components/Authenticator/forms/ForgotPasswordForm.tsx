@@ -1,10 +1,10 @@
 'use client';
 
-import { Stack, TextField } from '@mui/material';
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import Banner from '@/components/common/Banner';
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/Button';
+import { TextField } from '@/components/ui/TextField';
 
 interface Props {
   onBack: () => void;
@@ -46,13 +46,12 @@ const ForgotPasswordForm = ({ onBack, onSubmit }: Props) => {
   });
 
   return (
-    <Stack gap={3}>
+    <div className="flex flex-col gap-6">
       {feedback && <Banner variant={feedbackVariant} title={feedback} />}
 
       {!sent && (
-        <Stack component="form" gap={2} onSubmit={formik.handleSubmit}>
+        <form className="flex flex-col gap-4" onSubmit={formik.handleSubmit}>
           <TextField
-            fullWidth
             name="email"
             label="E-posta adresi"
             type="email"
@@ -60,8 +59,7 @@ const ForgotPasswordForm = ({ onBack, onSubmit }: Props) => {
             value={formik.values.email}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            error={formik.touched.email && !!formik.errors.email}
-            helperText={formik.touched.email && formik.errors.email}
+            error={formik.touched.email ? formik.errors.email : undefined}
           />
           <Button
             loading={loading}
@@ -73,13 +71,13 @@ const ForgotPasswordForm = ({ onBack, onSubmit }: Props) => {
           >
             Bağlantı Gönder
           </Button>
-        </Stack>
+        </form>
       )}
 
       <Button variant={sent ? 'outlined' : 'text'} fullWidth onClick={onBack}>
         Giriş ekranına dön
       </Button>
-    </Stack>
+    </div>
   );
 };
 

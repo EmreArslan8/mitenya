@@ -1,26 +1,17 @@
 'use client';
 
 import { useCallback, useMemo, useRef, useState } from 'react';
-import Button from '@/components/common/Button';
+import Button from '@/components/ui/Button';
 import Card from '@/components/common/Card';
 import { ShopProductRating, ShopProductReview } from '@/lib/api/types';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePalette } from '@/theme/ThemeRegistry';
-import {
-  Box,
-  Divider,
-  FormControl,
-  LinearProgress,
-  MenuItem,
-  Rating,
-  Select,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
 import { CheckCircle2 } from '@/components/icons';
 import { Pencil } from 'lucide-react';
-import useStyles from './styles';
+import { Rating } from '@/components/ui/Rating';
+import { Select, SelectItem } from '@/components/ui/Select';
+import { RatingInput } from '@/components/ui/Rating/RatingInput';
+import { Input } from '@/components/ui/Input';
+import { ProgressBar } from '@/components/ui/ProgressBar';
 
 type SortOption = 'newest' | 'oldest' | 'highest' | 'lowest';
 
@@ -40,8 +31,6 @@ const ProductReviews = ({
   initialReviews: ShopProductReview[];
   initialRating?: ShopProductRating;
 }) => {
-  const styles = useStyles();
-  const palette = usePalette();
   const { isAuthenticated, openAuthenticator, customerData } = useAuth();
 
   const [reviews, setReviews] = useState<ShopProductReview[]>(initialReviews);
@@ -223,46 +212,27 @@ const ProductReviews = ({
   };
 
   return (
-    <Stack
-      gap={3}
-      sx={{
-        px: { xs: '16px', sm: '32px' },
-      }}
-    >
-      <Typography
-        variant="h2"
-        sx={{
-          fontWeight: 500,
-          fontSize: { xs: 24, sm: 36 },
-          lineHeight: { xs: '28px', sm: '40px' },
-        }}
-      >
+    <section className="flex flex-col gap-6 px-4 sm:px-8">
+      <h2 className="text-2xl leading-7 font-medium sm:text-4xl sm:leading-10">
         Müşteri Yorumları
-      </Typography>
+      </h2>
 
       <Card border>
         {hasReviews && (
           <>
             {/* Rating Summary Header */}
-            <Stack sx={{ px: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 }, pb: 2 }}>
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                gap={{ xs: 2, sm: 4 }}
-                alignItems={{ sm: 'center' }}
-                justifyContent="space-between"
-              >
+            <div className="px-4 pt-4 pb-4 sm:px-6 sm:pt-6">
+              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center sm:gap-8">
                 {/* Left: Overall Rating */}
-                <Stack direction="row" gap={2} alignItems="center">
+                <div className="flex items-center gap-4">
                   <Rating
-                    readOnly
-                    precision={0.1}
                     value={computedRating?.averageRating ?? 0}
-                    sx={{ fontSize: { xs: 24, sm: 28 }, color: palette.warning.main }}
+                    className="text-[24px] sm:text-[28px]"
                   />
-                  <Typography variant="body" sx={{ color: palette.text.medium, whiteSpace: 'nowrap' }}>
+                  <span className="whitespace-nowrap text-text-medium">
                     {totalReviews} değerlendirmeye dayalı
-                  </Typography>
-                </Stack>
+                  </span>
+                </div>
 
                 {/* Right: Write Review Button */}
                 <Button
@@ -276,387 +246,253 @@ const ProductReviews = ({
                       openReviewForm();
                     }
                   }}
-                  sx={{
-                    whiteSpace: 'nowrap',
-                    borderRadius: '8px',
-                    px: 3,
-                    py: 1,
-                    fontWeight: 600,
-                    borderColor: palette.gray[200],
-                    color: palette.text.main,
-                    '&:hover': {
-                      borderColor: palette.gray[400],
-                      backgroundColor: palette.bg.light,
-                    },
-                  }}
+                  color="primary"
+                  className="rounded-lg border-gray-200 px-6 py-2 font-semibold whitespace-nowrap text-text hover:border-gray-400 hover:bg-bg-light"
                 >
                   {showForm ? 'Vazgeç' : 'Yorum Yaz'}
                 </Button>
-              </Stack>
+              </div>
 
               {/* Rating Breakdown Bars */}
-              <Stack sx={{ mt: 2, maxWidth: 340 }} gap={0.3}>
+              <div className="mt-4 flex max-w-[340px] flex-col gap-0.5">
                 {[5, 4, 3, 2, 1].map((star) => {
                   const count = ratingDistribution[star - 1];
                   const pct = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
                   return (
-                    <Stack key={star} direction="row" alignItems="center" gap={1}>
-                      <Rating
-                        readOnly
-                        value={star}
-                        max={5}
-                        sx={{ fontSize: 14, color: palette.warning.main }}
-                      />
-                      <LinearProgress
-                        variant="determinate"
+                    <div key={star} className="flex items-center gap-2">
+                      <Rating value={star} className="text-[14px]" />
+                      <ProgressBar
                         value={pct}
-                        sx={{
-                          flex: 1,
-                          height: 8,
-                          borderRadius: 4,
-                          backgroundColor: palette.gray[100],
-                          '& .MuiLinearProgress-bar': {
-                            backgroundColor: palette.warning.main,
-                            borderRadius: 4,
-                          },
-                        }}
+                        label={`${star} yıldız oranı`}
+                        className="h-2 flex-1 rounded bg-gray-100"
+                        indicatorClassName="rounded bg-warning"
                       />
-                      <Typography
-                        variant="caption"
-                        sx={{ color: palette.text.medium, minWidth: 28, textAlign: 'right', fontSize: 12 }}
-                      >
+                      <span className="min-w-7 text-right text-xs text-text-medium">
                         {Math.round(pct)}%
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: palette.text.light, minWidth: 22, textAlign: 'right', fontSize: 12 }}
-                      >
+                      </span>
+                      <span className="min-w-[22px] text-right text-xs text-text-light">
                         ({count})
-                      </Typography>
-                    </Stack>
+                      </span>
+                    </div>
                   );
                 })}
-              </Stack>
-            </Stack>
-            <Divider />
+              </div>
+            </div>
+            <hr className="border-gray-200" />
           </>
         )}
 
         {/* Eligibility error (shown once on click, outside form) */}
         {!showForm && error && (
-          <Stack
-            sx={{
-              mx: { xs: 2, sm: 3 },
-              mt: 2,
-              px: 2,
-              py: 1,
-              borderRadius: 1,
-              border: '1px solid',
-              borderColor: palette.error.main,
-              backgroundColor: palette.error.light,
-            }}
-          >
-            <Typography variant="caption" sx={{ color: palette.error.main, fontWeight: 600 }}>
+          <div className="mx-4 mt-4 rounded-lg border border-error bg-error-light px-4 py-2 sm:mx-6">
+            <p className="text-xs font-semibold text-error">
               {error}
-            </Typography>
-          </Stack>
+            </p>
+          </div>
         )}
 
         {/* Review Form (toggle) */}
         {showForm && (
           <>
-            <Stack sx={{ px: { xs: 2, sm: 3 }, py: 3 }} gap={2.5}>
+            <div className="flex flex-col gap-5 px-4 py-6 sm:px-6">
               {!hasReviews && (
-                <Stack direction="row" justifyContent="flex-end">
-                  <Button variant="text" onClick={() => setShowForm(false)} sx={{ color: palette.text.medium }}>
+                <div className="flex justify-end">
+                  <Button variant="text" onClick={() => setShowForm(false)} className="text-text-medium">
                     Vazgeç
                   </Button>
-                </Stack>
+                </div>
               )}
               {error && (
-                <Stack
-                  sx={{
-                    px: 2,
-                    py: 1,
-                    borderRadius: 1,
-                    border: '1px solid',
-                    borderColor: palette.error.main,
-                    backgroundColor: palette.error.light,
-                  }}
-                >
-                  <Typography variant="caption" sx={{ color: palette.error.main, fontWeight: 600 }}>
+                <div className="rounded-lg border border-error bg-error-light px-4 py-2">
+                  <p className="text-xs font-semibold text-error">
                     {error}
-                  </Typography>
-                </Stack>
+                  </p>
+                </div>
               )}
 
               {/* Display Name */}
-              <Stack gap={0.5}>
-                <Stack direction="row" alignItems="center" gap={1}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold">
                     Görünen Ad
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: palette.text.light }}>
+                  </span>
+                  <span className="text-xs text-text-light">
                     (herkese açık olarak görüntülenir: {customerData?.fullName ?? 'Kullanıcı'})
-                  </Typography>
-                </Stack>
-                <TextField
-                  fullWidth
+                  </span>
+                </div>
+                <Input
                   size="small"
                   placeholder="Görünen adınız"
                   value={customerData?.fullName ?? ''}
                   disabled
-                  sx={{
-                    backgroundColor: palette.bg.light,
-                    borderRadius: 1,
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '8px',
-                    },
-                  }}
+                  aria-label="Görünen adınız"
+                  className="rounded-lg bg-bg-light"
                 />
-              </Stack>
+              </div>
 
               {/* Rating */}
-              <Stack gap={0.5}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  Puan
-                </Typography>
-                <Rating
-                  value={myRating}
-                  onChange={(_, value) => setMyRating(value ?? 0)}
-                  sx={{ fontSize: 28, color: palette.warning.main }}
-                />
-              </Stack>
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-semibold">Puan</span>
+                <RatingInput value={myRating} onChange={setMyRating} />
+              </div>
 
               {/* Review Title */}
-              <Stack gap={0.5}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  Yorum Başlığı
-                </Typography>
-                <TextField
-                  fullWidth
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-semibold">Yorum Başlığı</span>
+                <Input
                   size="small"
                   placeholder="Yorumunuza bir başlık verin"
                   value={myTitle}
                   onChange={(e) => setMyTitle(e.target.value)}
-                  sx={{
-                    backgroundColor: palette.bg.light,
-                    borderRadius: 1,
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '8px',
-                    },
-                  }}
+                  aria-label="Yorum başlığı"
+                  className="rounded-lg bg-bg-light"
                 />
-              </Stack>
+              </div>
 
               {/* Review Content */}
-              <Stack gap={0.5}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  Yorum İçeriği
-                </Typography>
-                <TextField
-                  fullWidth
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-semibold">Yorum İçeriği</span>
+                <Input
                   size="small"
                   placeholder="Ürünle ilgili deneyiminizi yazın..."
                   value={myText}
                   onChange={(e) => setMyText(e.target.value)}
                   multiline
                   minRows={4}
-                  sx={{
-                    backgroundColor: palette.bg.light,
-                    borderRadius: 1,
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '8px',
-                    },
-                  }}
+                  aria-label="Yorum metni"
+                  className="rounded-lg bg-bg-light"
                 />
-              </Stack>
+              </div>
 
-              <Typography variant="caption" sx={{ color: palette.text.light }}>
+              <p className="text-xs text-text-light">
                 Verilerinizi nasıl kullandığımız: Bıraktığınız yorum hakkında yalnızca gerektiğinde sizinle
                 iletişime geçeceğiz. Yorumunuzu göndererek şartlarımızı, gizlilik ve içerik politikalarımızı
                 kabul etmiş olursunuz.
-              </Typography>
+              </p>
 
               <Button
                 variant="contained"
                 loading={loading}
                 onClick={handleSubmit}
-                sx={{
-                  alignSelf: 'flex-start',
-                  borderRadius: '8px',
-                  px: 4,
-                  py: 1.2,
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  fontSize: 15,
-                }}
+                color="primary"
+                className="self-start rounded-lg px-8 py-2.5 text-[15px] font-semibold normal-case"
               >
                 Yorumu Gönder
               </Button>
-            </Stack>
-            <Divider />
+            </div>
+            <hr className="border-gray-200" />
           </>
         )}
 
         {/* Success Message */}
         {success && (
-          <Stack
-            sx={{
-              mx: { xs: 2, sm: 3 },
-              mt: 2,
-              px: 2,
-              py: 1,
-              borderRadius: 1,
-              border: '1px solid',
-              borderColor: palette.success.main,
-              backgroundColor: palette.success.light,
-            }}
-          >
-            <Typography variant="caption" sx={{ color: palette.success.main, fontWeight: 600 }}>
+          <div className="mx-4 mt-4 rounded-lg border border-success bg-success-light px-4 py-2 sm:mx-6">
+            <p className="text-xs font-semibold text-success">
               {success}
-            </Typography>
-          </Stack>
+            </p>
+          </div>
         )}
 
         {/* Sort Dropdown */}
         {reviews.length > 0 && (
-          <Stack sx={{ px: { xs: 2, sm: 3 }, pt: 2 }}>
-            <FormControl size="small" sx={{ maxWidth: 180 }}>
+          <div className="px-4 pt-4 sm:px-6">
+            {/* MUI FormControl yalnızca genişlik kabuğuydu; düz div yeter. */}
+            <div className="max-w-[180px]">
               <Select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                sx={{
-                  borderRadius: '8px',
-                  fontSize: 14,
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: palette.gray[200],
-                  },
-                }}
+                onValueChange={(v) => setSortBy(v as SortOption)}
+                aria-label="Yorum sıralaması"
+                className="h-10 rounded-lg text-[14px]"
               >
                 {SORT_OPTIONS.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>
+                  <SelectItem key={opt.value} value={opt.value}>
                     {opt.label}
-                  </MenuItem>
+                  </SelectItem>
                 ))}
               </Select>
-            </FormControl>
-          </Stack>
+            </div>
+          </div>
         )}
 
         {/* Reviews List */}
         {sortedReviews.length > 0 ? (
-          <Stack sx={{ px: { xs: 2, sm: 3 }, pb: 3 }}>
+          <div className="px-4 pb-6 sm:px-6">
             {sortedReviews.map((review, i) => (
-              <Stack key={review.id ?? `${review.date ?? 'd'}-${i}`}>
-                <Divider sx={{ my: 2 }} />
-                <Stack gap={1}>
+              <article key={review.id ?? `${review.date ?? 'd'}-${i}`}>
+                <hr className="my-4 border-gray-200" />
+                <div className="flex flex-col gap-2">
                   {/* Rating + Date */}
-                  <Stack direction="row" alignItems="center" gap={1.5}>
+                  <div className="flex items-center gap-3">
                     {review.rating && (
-                      <Rating
-                        readOnly
-                        value={review.rating}
-                        sx={{ fontSize: 18, color: palette.warning.main }}
-                      />
+                      <Rating value={review.rating} className="text-[18px]" />
                     )}
-                    <Typography variant="caption" sx={{ color: palette.text.light }}>
+                    <span className="text-xs text-text-light">
                       {formatReviewDate(review.date)}
-                    </Typography>
-                  </Stack>
+                    </span>
+                  </div>
 
                   {/* Avatar + Name + Verified */}
-                  <Stack direction="row" alignItems="center" gap={1}>
-                    <Box
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: '50%',
-                        backgroundColor: palette.gray[100],
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Typography
-                        variant="body2"
-                        sx={{ fontWeight: 700, color: palette.text.medium }}
-                      >
+                  <div className="flex items-center gap-2">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gray-100">
+                      <span className="text-sm font-bold text-text-medium">
                         {getInitial(review.name)}
-                      </Typography>
-                    </Box>
-                    <Stack direction="row" alignItems="center" gap={0.5}>
+                      </span>
+                    </span>
+                    <div className="flex items-center gap-1">
                       {review.verified === true && (
-                        <Stack
-                          direction="row"
-                          alignItems="center"
-                          gap={0.3}
-                          sx={{
-                            backgroundColor: palette.success.light,
-                            borderRadius: '4px',
-                            px: 0.8,
-                            py: 0.2,
-                          }}
-                        >
-                          <CheckCircle2 size={12} color={palette.success.main} />
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: palette.success.main,
-                              fontWeight: 600,
-                              fontSize: 11,
-                            }}
-                          >
+                        <span className="flex items-center gap-0.5 rounded bg-success-light px-1.5 py-0.5">
+                          <CheckCircle2 size={12} className="text-success" />
+                          <span className="text-[11px] font-semibold text-success">
                             Doğrulanmış
-                          </Typography>
-                        </Stack>
+                          </span>
+                        </span>
                       )}
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      <span className="text-sm font-semibold">
                         {review.name ?? 'Kullanıcı'}
-                      </Typography>
-                    </Stack>
-                  </Stack>
+                      </span>
+                    </div>
+                  </div>
 
                   {/* Review Title */}
                   {review.title && (
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    <p className="text-sm font-bold">
                       {review.title}
-                    </Typography>
+                    </p>
                   )}
 
                   {/* Review Text */}
-                  <Typography variant="body" sx={{ color: palette.text.main, lineHeight: 1.6 }}>
+                  <p className="leading-[1.6] text-text">
                     {review.text}
-                  </Typography>
-                </Stack>
-              </Stack>
+                  </p>
+                </div>
+              </article>
             ))}
-          </Stack>
+          </div>
         ) : (
           !showForm && (
-            <Stack sx={styles.emptyState}>
-              <Typography sx={styles.emptyStateTitle}>
+            <div className="flex flex-col items-center justify-center gap-3.5 px-4 py-8 text-center sm:px-6 sm:py-10">
+              <p className="text-xl leading-[26px] font-medium tracking-[0.01em] text-text-medium sm:text-2xl sm:leading-[30px]">
                 Henüz yorum yok, ilk yorumu şimdi yazmak ister misiniz?
-              </Typography>
+              </p>
               <Button
                 variant="contained"
                 disabled={eligibilityLoading}
                 loading={eligibilityLoading}
                 onClick={openReviewForm}
-                sx={styles.emptyStateButton}
+                color="primary"
+                className="rounded-lg px-5 py-2 text-base font-bold sm:px-7 sm:py-5 sm:text-lg"
                 size="small"
               >
-                <Stack direction="row" alignItems="center" gap={1}>
+                <span className="inline-flex items-center gap-2">
                   <Pencil size={16} />
                   Yorum Yaz
-                </Stack>
+                </span>
               </Button>
-            </Stack>
+            </div>
           )
         )}
       </Card>
-    </Stack>
+    </section>
   );
 };
 

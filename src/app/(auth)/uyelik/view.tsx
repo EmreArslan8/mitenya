@@ -1,6 +1,5 @@
 'use client';
 
-import { Snackbar, Stack, Typography } from '@mui/material';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -13,7 +12,8 @@ import VerificationForm from '@/components/Authenticator/forms/VerificationForm'
 import useAuthActions from '@/components/Authenticator/useAuthActions';
 import Showcase from './Showcase';
 import { useAuth } from '@/contexts/AuthContext';
-import useStyles from './styles';
+import { Toast } from '@/components/ui/Toast';
+import { cn } from '@/lib/utils/cn';
 
 type Step = 'signin' | 'signup' | 'verification' | 'forgot-password';
 
@@ -25,7 +25,6 @@ const sanitizeReturnUrl = (value: string | null) => {
 };
 
 const UyelikView = () => {
-  const styles = useStyles();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated } = useAuth();
@@ -102,69 +101,72 @@ const UyelikView = () => {
   const tabValue = step === 'signup' || step === 'verification' ? 'signup' : 'signin';
 
   return (
-    <Stack sx={styles.root}>
-      <Stack sx={styles.aside}>
+    <main className="relative flex flex-col md:min-h-screen md:flex-row">
+      <aside className="hidden flex-1 basis-1/2 flex-col gap-6 bg-bg bg-[radial-gradient(120%_80%_at_0%_0%,rgba(193,18,31,0.05)_0%,rgba(255,255,255,0)_55%)] px-12 py-14 md:flex lg:px-16">
         <Link href="/" aria-label="Mitenya ana sayfa" style={{ display: 'inline-flex' }}>
-          <Image src="/static/images/logo.svg" alt="Mitenya" width={125} height={40} priority />
+          <Image src="/static/images/logo.svg" alt="Mitenya" width={125} height={40} priority unoptimized />
         </Link>
 
-        <Typography component="h1" sx={styles.asideTitle}>
+        <h1 className="text-[28px] font-medium leading-tight tracking-[-0.01em] text-text lg:text-[32px]">
           {copy.title}
-        </Typography>
-        <Typography sx={styles.asideBody}>{copy.body}</Typography>
+        </h1>
+        <p className="max-w-[460px] text-[15px] leading-[1.8] text-text-medium-light">{copy.body}</p>
 
-        <Stack sx={styles.switchRow}>
-          <Typography sx={styles.asideBody}>{copy.switchLabel}</Typography>
-          <Typography
-            component="button"
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="max-w-[460px] text-[15px] leading-[1.8] text-text-medium-light">{copy.switchLabel}</p>
+          <button
             type="button"
             onClick={() => setStep(copy.switchTo)}
-            sx={styles.switchLink}
+            className="border-0 bg-transparent p-0 text-[15px] font-semibold text-text underline underline-offset-4 transition-opacity hover:opacity-60"
           >
             {copy.switchAction}
-          </Typography>
-        </Stack>
+          </button>
+        </div>
 
         <Showcase />
-      </Stack>
+      </aside>
 
-      <Stack sx={styles.panel}>
-        <Stack sx={styles.panelInner}>
+      <section className="flex flex-1 basis-1/2 items-center bg-white px-5 py-8 sm:px-8 md:border-l md:border-gray-100 md:bg-bg-dark md:px-12 md:py-14 lg:px-16">
+        <div className="mx-auto flex w-full max-w-[440px] flex-col gap-6 md:mt-16 [&_[data-auth-field]]:rounded-none">
           {/* Mobilde sol sutun gizli — logo forma tasiniyor. */}
-          <Stack sx={styles.mobileLogo}>
+          <div className="mb-2 flex self-center md:hidden">
             <Link href="/" aria-label="Mitenya ana sayfa" style={{ display: 'inline-flex' }}>
-              <Image src="/static/images/logo.svg" alt="Mitenya" width={125} height={40} priority />
+              <Image src="/static/images/logo.svg" alt="Mitenya" width={125} height={40} priority unoptimized />
             </Link>
-          </Stack>
+          </div>
           {step === 'forgot-password' ? (
             <>
-              <Typography component="h2" sx={styles.stepTitle}>
+              <h2 className="text-xl font-semibold leading-[1.3] text-text sm:text-[22px]">
                 Şifreni sıfırla
-              </Typography>
+              </h2>
               <ForgotPasswordForm onBack={() => setStep('signin')} onSubmit={forgotPassword} />
             </>
           ) : (
             <>
-              <Stack sx={styles.tabs} role="tablist" aria-label="Giriş yap veya üye ol">
+              <div className="flex w-full items-stretch border-b border-gray-100 md:gap-8 md:border-0" role="tablist" aria-label="Giriş yap veya üye ol">
                 {(
                   [
                     ['signin', 'Giriş Yap'],
                     ['signup', 'Üye Ol'],
                   ] as const
                 ).map(([value, label]) => (
-                  <Typography
+                  <button
                     key={value}
-                    component="button"
                     type="button"
                     role="tab"
                     aria-selected={tabValue === value}
                     onClick={() => setStep(value)}
-                    sx={styles.tab(tabValue === value)}
+                    className={cn(
+                      'mb-[-1px] flex-1 border-0 border-b-2 bg-transparent p-0 pb-3 text-center text-[17px] leading-tight transition-colors md:mb-0 md:flex-none md:border-0 md:pb-0 md:text-[22px] md:underline-offset-8',
+                      tabValue === value
+                        ? 'border-text font-semibold text-text md:underline'
+                        : 'border-transparent font-normal text-text-medium-light',
+                    )}
                   >
                     {label}
-                  </Typography>
+                  </button>
                 ))}
-              </Stack>
+              </div>
 
               {step === 'signin' && (
                 <SignInForm
@@ -176,9 +178,9 @@ const UyelikView = () => {
               {step === 'signup' && <SignUpForm onSubmit={handleSignUp} returnUrl={returnUrl} />}
               {step === 'verification' && (
                 <>
-                  <Typography component="h2" sx={styles.stepTitle}>
+                  <h2 className="text-xl font-semibold leading-[1.3] text-text sm:text-[22px]">
                     E-postanı doğrula
-                  </Typography>
+                  </h2>
                   <VerificationForm
                     email={signupEmail}
                     onBack={() => setStep('signup')}
@@ -190,26 +192,26 @@ const UyelikView = () => {
             </>
           )}
 
-          <Stack sx={styles.orderTracking}>
-            <Typography variant="body2" color="text.secondary">
+          <div className="mt-2 flex items-center gap-2 border-t border-gray-100 pt-2">
+            <p className="text-sm text-text-medium-light">
               Üye olmadan verdiğin siparişler için
-            </Typography>
+            </p>
             <Link href="/order-status" style={{ fontWeight: 700 }}>
               Sipariş Takibi
             </Link>
-          </Stack>
-        </Stack>
-      </Stack>
+          </div>
+        </div>
+      </section>
 
-      <Snackbar
+      <Toast
         open={!!error}
+        duration={5000}
         onClose={() => setError(undefined)}
-        autoHideDuration={5000}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        position="top-center"
       >
         <Banner variant="error" title={error} />
-      </Snackbar>
-    </Stack>
+      </Toast>
+    </main>
   );
 };
 

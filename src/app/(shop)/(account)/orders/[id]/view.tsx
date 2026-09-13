@@ -1,7 +1,7 @@
 'use client';
 
 import AddressCard from '@/components/AddressCard';
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/Button';
 import ModalCard from '@/components/common/ModalCard';
 import TwoColumnLayout, {
   PrimaryColumn,
@@ -11,11 +11,11 @@ import OrderProductsCard from '@/components/orders/OrderProductsCard';
 import OrderStatusCard from '@/components/orders/OrderStatusCard';
 import OrderSummaryCard from '@/components/orders/OrderSummaryCard';
 import { ShopOrderData } from '@/lib/api/types';
-import { Stack, TextField, Typography } from '@mui/material';
 import { ArrowLeft, Ban } from '@/components/icons';
 import { ReceiptText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
+import { TextField } from '@/components/ui/TextField';
 
 const OrderDetailsPageView = ({ data }: { data: ShopOrderData }) => {
   const router = useRouter();
@@ -45,30 +45,22 @@ const OrderDetailsPageView = ({ data }: { data: ShopOrderData }) => {
       }
       setStatus('cancelled');
       setCancelOpen(false);
-    } catch (err: any) {
-      setCancelError(err.message || 'Sipariş iptal edilemedi');
+    } catch (err: unknown) {
+      setCancelError(err instanceof Error ? err.message : 'Sipariş iptal edilemedi');
     } finally {
       setCanceling(false);
     }
   };
 
   return (
-    <Stack gap={2} width="100%">
+    <div className="flex w-full flex-col gap-4">
       {/* Back button */}
       <Button
         size="small"
         color="tertiary"
         onClick={() => router.push('/orders')}
         startIcon={<ArrowLeft size={16} />}
-        sx={{
-          alignSelf: 'start',
-          textTransform: 'none',
-          fontWeight: 600,
-          fontSize: 14,
-          color: 'text.mediumLight',
-          px: 0,
-          '&:hover': { color: 'text.main', bgcolor: 'transparent' },
-        }}
+        className="self-start px-0 text-sm font-semibold normal-case text-text-medium-light hover:bg-transparent hover:text-text"
       >
         Siparişlerim
       </Button>
@@ -90,7 +82,7 @@ const OrderDetailsPageView = ({ data }: { data: ShopOrderData }) => {
           />
 
           {/* Action buttons */}
-          <Stack gap={1}>
+          <div className="flex flex-col gap-2">
             {canCancel && (
               <Button
                 size="small"
@@ -98,12 +90,7 @@ const OrderDetailsPageView = ({ data }: { data: ShopOrderData }) => {
                 variant="outlined"
                 startIcon={<Ban size={14} />}
                 onClick={() => setCancelOpen(true)}
-                sx={{
-                  borderRadius: '10px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  fontSize: 13,
-                }}
+                className="rounded-[10px] text-[13px] font-semibold normal-case"
               >
                 Siparişi İptal Et
               </Button>
@@ -115,17 +102,12 @@ const OrderDetailsPageView = ({ data }: { data: ShopOrderData }) => {
                 variant="tonal"
                 href={data.invoiceUrl}
                 startIcon={<ReceiptText size={16} />}
-                sx={{
-                  borderRadius: '10px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  fontSize: 13,
-                }}
+                className="rounded-[10px] text-[13px] font-semibold normal-case"
               >
                 Faturayı Görüntüle
               </Button>
             )}
-          </Stack>
+          </div>
 
           <AddressCard hideDelete hideEdit data={data.address} />
         </SecondaryColumn>
@@ -133,39 +115,33 @@ const OrderDetailsPageView = ({ data }: { data: ShopOrderData }) => {
 
       {/* Cancel Modal */}
       <ModalCard open={cancelOpen} onClose={() => setCancelOpen(false)} title="Siparişi İptal Et">
-        <Stack gap={2.5}>
-          <Typography sx={{ color: 'text.mediumLight', fontSize: 14, lineHeight: 1.6 }}>
+        <div className="flex flex-col gap-5">
+          <p className="text-sm leading-relaxed text-text-medium-light">
             Bu işlem geri alınamaz. Yalnızca hazırlık aşamasındaki siparişler iptal edilebilir.
-          </Typography>
+          </p>
 
           <TextField
             label="İptal nedeni (opsiyonel)"
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}
-            fullWidth
-            size="small"
             multiline
             minRows={2}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '10px',
-              },
-            }}
+            className="rounded-[10px]"
           />
 
           {cancelError && (
-            <Typography sx={{ color: 'error.main', fontSize: 13, fontWeight: 500 }}>
+            <p className="text-[13px] font-medium text-error">
               {cancelError}
-            </Typography>
+            </p>
           )}
 
-          <Stack direction="row" gap={1} justifyContent="flex-end">
+          <div className="flex justify-end gap-2">
             <Button
               variant="outlined"
               color="primary"
               size="small"
               onClick={() => setCancelOpen(false)}
-              sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+              className="rounded-[10px] font-semibold normal-case"
             >
               Vazgeç
             </Button>
@@ -175,14 +151,14 @@ const OrderDetailsPageView = ({ data }: { data: ShopOrderData }) => {
               size="small"
               onClick={handleCancel}
               disabled={canceling}
-              sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+              className="rounded-[10px] font-semibold normal-case"
             >
               {canceling ? 'İptal Ediliyor...' : 'Siparişi İptal Et'}
             </Button>
-          </Stack>
-        </Stack>
+          </div>
+        </div>
       </ModalCard>
-    </Stack>
+    </div>
   );
 };
 

@@ -3,7 +3,9 @@ import { CustomerData, ShopOrderSummaryData, ShopProductData } from '../api/type
 import { buildAttributionFromDocument } from '../analytics/attribution';
 import { pushItemToDataLayer } from './dataLayer';
 
-export type { DataLayerEvent } from './dataLayer';
+import type { DataLayerEvent } from './dataLayer';
+
+export type { DataLayerEvent };
 export { pushItemToDataLayer };
 
 interface CommonEventParams {

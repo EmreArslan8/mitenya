@@ -1,6 +1,4 @@
-import { Grid } from '@mui/material';
 import { BlockComponentBaseProps } from '..';
-
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import ShopPromoCard, { ShopPromoCardProps } from '../../shared/ShopPromoCard';
 
@@ -11,13 +9,9 @@ export interface ShopPromoCardsProps extends BlockComponentBaseProps {
 
 const ShopPromoCards = ({ cards = [], section }: ShopPromoCardsProps) => (
   <SectionBase {...section}>
-    <Grid container spacing={{ xs: 2, md: 3 }}>
-      {cards.slice(0, 2).map((card, index) => (
-        <Grid item xs={12} md={6} key={card?.title ?? index}>
-          <ShopPromoCard {...card} />
-        </Grid>
-      ))}
-    </Grid>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+      {cards.slice(0, 2).map((card, index) => <ShopPromoCard {...card} key={card?.title ?? index} />)}
+    </div>
   </SectionBase>
 );
 

@@ -1,11 +1,9 @@
-import useWindowSize from '@/lib/hooks/useWindowSize';
-import { Box, Stack, SxProps, Typography } from '@mui/material';
-import { ReactNode, useEffect, useRef, useState } from 'react';
-import Markdown, { MarkdownOptions } from '../../../common/Markdown';
-import useStyles, { primaryStyle } from './styles';
-import useScreen from '@/lib/hooks/useScreen';
-import { defaultMaxWidth } from '@/theme/theme';
-import Button from '@/components/common/Button';
+import { ReactNode } from 'react';
+import Button from '@/components/ui/Button';
+import Stack from '@/components/ui/Stack';
+import Markdown, { MarkdownOptions } from '@/components/common/Markdown';
+import { cn } from '@/lib/utils/cn';
+import DynamicTitleSection from './DynamicTitleSection';
 
 export interface SectionBaseProps {
   sectionHeader?: string;
@@ -17,7 +15,7 @@ export interface SectionBaseProps {
   sectionBackground?: 'default' | 'primary';
   sectionLabel?: string;
   sectionHref?: string;
-  sx?: SxProps;
+  className?: string;
   children: ReactNode;
 }
 
@@ -30,67 +28,33 @@ const SectionBase = ({
   fullBleed = false,
   sectionLabel,
   sectionHref,
-  sx = {},
+  className,
   children,
 }: SectionBaseProps) => {
-  const selectedStyle = sectionBackground === 'primary' ? primaryStyle() : {};
-  const { smUp } = useScreen();
-
-  // Zeminli bolumler de tasar: renkli bant kabin degil ekranin genisligi kadar olmali.
-  const hasBackground = Boolean(smUp && selectedStyle.sectionBackground?.bg);
+  const hasBackground = sectionBackground === 'primary';
   const bleeding = fullBleed || hasBackground;
-
-  // Tam tasma: kabin ortasindan viewport kenarina negatif margin ile cikilir.
-  // maxWidth birakilirsa 100vw etkisiz kalir; ikisi birlikte verilmeli.
-  const bleed = bleeding
-    ? {
-        width: '100vw',
-        maxWidth: 'none',
-        ml: 'calc(50% - 50vw)',
-        overflow: 'clip',
-        // Gorsel bantlar kenara dayanir. Icerikli bolumlerde yan bosluk slider
-        // oklarinin yeri: icerik 1340'ta kalir, oklar bu olukta durur.
-        ...(fullBleed ? { p: 0 } : { px: { xs: 1, sm: '56px', md: '72px' } }),
-      }
-    : {};
 
   const content = (
     <>
       {(sectionHeader || sectionDescription || sectionLabel) && (
         <Stack gap={1}>
           {(sectionHeader || sectionLabel) && (
-            <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Stack direction="row" align="center" justify="between" gap={1}>
+              <div className="min-w-0 flex-1">
                 {sectionHeader && (
                   <DynamicTitle
                     title={splitTextWithDynamicSections(sectionHeader)}
                     align={sectionLabel ? 'left' : 'center'}
                   />
                 )}
-              </Box>
+              </div>
               {sectionLabel && (
                 <Button
                   color="neutral"
                   arrow="end"
                   size="small"
                   variant="outlined"
-                  sx={{
-                    color: 'gray.900',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    lineHeight: 1,
-                    px: 1.25,
-                    py: 0.75,
-                    minHeight: 28,
-                    borderRadius: 1,
-                    borderColor: 'gray.300',
-                    backgroundColor: 'common.white',
-                    letterSpacing: '0.02em',
-                    '&:hover': {
-                      borderColor: 'gray.400',
-                      backgroundColor: 'gray.50',
-                    },
-                  }}
+                  className="min-h-7 rounded-lg border-gray-300 bg-white px-2.5 py-1.5 text-xs font-bold leading-none tracking-[0.02em] text-gray-900 hover:border-gray-400 hover:bg-gray-50"
                   href={sectionHref}
                 >
                   {sectionLabel}
@@ -99,10 +63,7 @@ const SectionBase = ({
             </Stack>
           )}
           {sectionDescription && (
-            <Markdown
-              text={sectionDescription}
-              options={sectionDescriptionMarkdownOptions}
-            />
+            <Markdown text={sectionDescription} options={sectionDescriptionMarkdownOptions} />
           )}
         </Stack>
       )}
@@ -111,47 +72,35 @@ const SectionBase = ({
   );
 
   return (
-    <Stack
+    <section
       id={sectionHeader}
-      sx={{
-        gap: 3,
-        maxWidth: sectionWidth,
-        width: '100%',
-        height: '100%',
-        flexGrow: 1,
-        backgroundColor: selectedStyle.sectionBackground?.bg,
-        padding: 1,
-        ...bleed,
-        ...sx,
-      }}
+      style={{ maxWidth: bleeding ? undefined : sectionWidth }}
+      className={cn(
+        'flex h-full w-full flex-1 flex-col gap-6 p-2',
+        fullBleed && 'ml-[calc(50%-50vw)] w-screen max-w-none overflow-clip p-0',
+        hasBackground &&
+          'sm:ml-[calc(50%-50vw)] sm:w-screen sm:max-w-none sm:overflow-clip sm:bg-gray-50 sm:px-14 sm:py-2 md:px-[72px]',
+        className,
+      )}
     >
       {bleeding && !fullBleed ? (
-        <Stack sx={{ width: '100%', maxWidth: defaultMaxWidth, mx: 'auto', gap: 3 }}>
-          {content}
-        </Stack>
+        <div className="mx-auto flex w-full max-w-[1340px] flex-col gap-6">{content}</div>
       ) : (
         content
       )}
-    </Stack>
+    </section>
   );
 };
 
-const splitTextWithDynamicSections = (
-  text: string
-): (string | string[])[] => {
+const splitTextWithDynamicSections = (text: string): (string | string[])[] => {
   const sections = text.split(/(\[[^\]]+\])/);
   const result: (string | string[])[] = [];
 
   for (const section of sections) {
     if (section.startsWith('[') && section.endsWith(']')) {
-      result.push(
-        section
-          .slice(1, -1)
-          .split(',')
-          .map((s) => s.trim())
-      );
+      result.push(section.slice(1, -1).split(',').map((word) => word.trim()));
     } else {
-      section.split(/\s+/).forEach((word) => result.push(word));
+      section.split(/\s+/).filter(Boolean).forEach((word) => result.push(word));
     }
   }
 
@@ -164,102 +113,28 @@ const DynamicTitle = ({
 }: {
   title: (string | string[])[];
   align?: 'left' | 'center';
-}) => {
-  const styles = useStyles();
-
-  return (
-    <Box component="h2" sx={styles.heading}>
-      <Stack
-        sx={styles.title}
-        columnGap={0.5}
-        direction="row"
-        flexWrap="wrap"
-        justifyContent={align === 'left' ? 'flex-start' : 'center'}
-        alignItems="center"
-      >
-        {title.map((section) =>
-          typeof section === 'string' ? (
-            <Markdown
-              key={section}
-              text={`${section} `}
-              options={styles.dynamicTitleMarkdownOptions}
-            />
-          ) : (
-            <DynamicTitleSection
-              key={section.toString()}
-              section={section}
-            />
-          )
-        )}
-      </Stack>
-    </Box>
-  );
-};
-
-const DynamicTitleSection = ({ section }: { section: string[] }) => {
-  const styles = useStyles();
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  // ✅ Doğru DOM tipleri
-  const parentRef = useRef<HTMLSpanElement | null>(null);
-  const itemsRef = useRef<(HTMLSpanElement | null)[]>([]);
-
-  const { width: windowWidth } = useWindowSize();
-
-  // 🔹 En geniş kelimeye göre container genişliği
-  useEffect(() => {
-    if (!parentRef.current) return;
-
-    let maxWidth = 0;
-
-    itemsRef.current.forEach((item) => {
-      if (!item) return;
-      maxWidth = Math.max(maxWidth, item.offsetWidth);
-    });
-
-    parentRef.current.style.width = `${maxWidth + 12}px`;
-  }, [windowWidth]);
-
-  // 🔹 Text rotasyonu
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % section.length);
-    }, 2000);
-
-    return () => clearInterval(intervalId);
-  }, [section.length]);
-
-  return (
-    <Box
-      component="span"
-      ref={parentRef}
-      sx={{
-        ...styles.dynamicTitleSectionContainer,
-        height: { xs: '31.2px', sm: '41.6px' },
-      }}
+}) => (
+  <h2 className="m-0 w-full text-2xl font-semibold leading-[1.15] tracking-[-0.01em] text-gray-900 sm:text-[30px] sm:tracking-[-0.02em] md:text-[34px] md:font-medium md:tracking-[-0.025em]">
+    <span
+      className={cn(
+        'flex w-fit flex-row flex-wrap items-center gap-x-1 pl-2 text-center text-gray-900',
+        align === 'left' ? 'justify-start' : 'justify-center',
+      )}
     >
-      <Box sx={styles.dynamicTitleSectionUnderline} />
-
-      {section.map((word, i) => (
-        <Typography
-          key={word}
-          variant="h2"
-          component="span"
-          sx={{
-            ...styles.dynamicTitleSection,
-            ...(currentIndex === i
-              ? styles.dynamicTitleSectionActive
-              : {}),
-          }}
-          ref={(el) => {
-            itemsRef.current[i] = el;
-          }}
-        >
-          {word}
-        </Typography>
-      ))}
-    </Box>
-  );
-};
+      {title.map((section, index) =>
+        typeof section === 'string' ? (
+          <Markdown
+            key={`${section}-${index}`}
+            text={`${section} `}
+            component="span"
+            className="!block !gap-0 [&_*]:!m-0 [&_*]:!text-[inherit] [&_*]:!font-[inherit] [&_*]:!leading-[inherit] [&_*]:!tracking-[inherit] [&_strong]:!font-semibold [&_strong]:!text-primary"
+          />
+        ) : (
+          <DynamicTitleSection key={`${section.join('-')}-${index}`} section={section} />
+        ),
+      )}
+    </span>
+  </h2>
+);
 
 export default SectionBase;

@@ -1,21 +1,19 @@
 'use client';
 
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Snackbar, Stack } from '@mui/material';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Check } from '@/components/icons';
-import Button from '@/components/common/Button';
+import Button from '@/components/ui/Button';
 import Banner from '@/components/common/Banner';
 import { CrossFade } from '@/components/common/CrossFade';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
 import { ShopProductData } from '@/lib/api/types';
-import useScreen from '@/lib/hooks/useScreen';
 import AddedToCartModal from '@/components/ShoppingCart/AddedToCartModal';
 import ProductStickyBar from '../ProductStickyBar';
 import ProductVariants from '../ProductVariants';
-import useStyles from '../../styles';
+import { Toast } from '@/components/ui/Toast';
 
 // Client island: satın-alma çekirdeği. variants state + CTA (Hemen Al / Sepete Ekle /
 // stok bildirimi) + sticky bar + kendi stok-bildirim Snackbar'ı. variants↔CTA aynı
@@ -34,8 +32,6 @@ const ProductPurchaseIsland = ({ data }: { data: ShopProductData }) => {
   const { isCartReady, handleAddItem, getItemQuantity } = useContext(ShopContext);
   const { isAuthenticated, openAuthenticator } = useAuth();
   const router = useRouter();
-  const styles = useStyles();
-  const { smUp } = useScreen();
   const ctaRowRef = useRef<HTMLDivElement>(null);
   const checkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [variants, setVariants] = useState(data.variants);
@@ -57,7 +53,6 @@ const ProductPurchaseIsland = ({ data }: { data: ShopProductData }) => {
     showCheck || (isOutOfStock ? stockAlertRequested : isOverCartLimit || isVariantSelectionMissing);
   const addToCartLoading = (!isOutOfStock && !isCartReady) || stockAlertLoading;
   const shouldShowStickyBar = !isOutOfStock && !isMainCtaVisible;
-  const isDesktop = smUp;
 
   const handleSelectOption = (variantName: string, optionValue: string) => {
     setVariants((prev) =>
@@ -196,14 +191,15 @@ const ProductPurchaseIsland = ({ data }: { data: ShopProductData }) => {
           sizeGuide={data.sizeGuide}
         />
       )}
-      <Stack sx={styles.ctaRow} ref={ctaRowRef}>
+      <div className="mt-2 mb-4 flex gap-2" ref={ctaRowRef}>
         {!isOutOfStock && (
           <Button
             variant="outlined"
             loading={!isCartReady}
             disabled={buyNowDisabled}
             onClick={handleBuyNow}
-            sx={styles.buyNowButton}
+            color="primary"
+            className="h-12 flex-1 rounded-xl border-text-medium text-sm font-bold tracking-[0.01em] normal-case text-text"
           >
             Hemen Al
           </Button>
@@ -213,19 +209,18 @@ const ProductPurchaseIsland = ({ data }: { data: ShopProductData }) => {
           loading={addToCartLoading}
           disabled={addToCartDisabled}
           onClick={isOutOfStock ? handleOutOfStockClick : handleAddToCart}
-          sx={styles.ctaButton}
+          color="primary"
+          className="h-12 flex-1 rounded-xl text-sm font-bold tracking-[0.01em] normal-case"
         >
           <CrossFade
             components={[
               {
                 in: showCheck,
-                component: isDesktop ? (
-                  <Stack direction="row" alignItems="center" gap={1}>
+                component: (
+                  <span className="inline-flex items-center gap-2">
                     <Check />
-                    Eklendi
-                  </Stack>
-                ) : (
-                  <Check />
+                    <span className="hidden sm:inline">Eklendi</span>
+                  </span>
                 ),
               },
               {
@@ -239,7 +234,7 @@ const ProductPurchaseIsland = ({ data }: { data: ShopProductData }) => {
             ]}
           />
         </Button>
-      </Stack>
+      </div>
       <ProductStickyBar
         imgSrc={data.imgSrc ?? data.images?.[0]}
         name={data.name}
@@ -255,17 +250,17 @@ const ProductPurchaseIsland = ({ data }: { data: ShopProductData }) => {
         onClose={() => setAddedToCart(null)}
         product={addedToCart ?? undefined}
       />
-      <Snackbar
+      <Toast
         open={!!feedback}
-        autoHideDuration={3000}
+        duration={3000}
         onClose={() => setFeedback(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        position="top-center"
       >
         <Banner
           variant={feedback?.variant ?? 'success'}
           title={feedback?.title}
         />
-      </Snackbar>
+      </Toast>
     </>
   );
 };

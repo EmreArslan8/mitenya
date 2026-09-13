@@ -1,9 +1,19 @@
 'use client';
 
-import { IconButton, InputAdornment, TextField } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
+import { TextField } from '@/components/ui/TextField';
 
+/**
+ * Göster/gizle düğmeli şifre alanı.
+ *
+ * ADR-0002 Faz 3: MUI `TextField` + `InputAdornment` + `@mui/icons-material`
+ * yerine `ui/TextField` + `lucide-react`. İkonlar zaten `lucide` (projede
+ * `@mui/icons-material` yalnızca 1 yerde kalmıştı).
+ *
+ * Erişilebilirlik: göster/gizle gerçek bir `<button>`, `aria-label`'ı duruma
+ * göre değişiyor ve `tabIndex={-1}` DEĞİL — klavyeyle ulaşılabilir.
+ */
 interface PasswordFieldProps {
   name: string;
   label: string;
@@ -14,33 +24,39 @@ interface PasswordFieldProps {
   autoComplete?: string;
 }
 
-const PasswordField = ({ name, label, value, onChange, error, helperText, autoComplete }: PasswordFieldProps) => {
+const PasswordField = ({
+  name,
+  label,
+  value,
+  onChange,
+  error,
+  helperText,
+  autoComplete,
+}: PasswordFieldProps) => {
   const [show, setShow] = useState(false);
+
   return (
     <TextField
-      fullWidth
       name={name}
       label={label}
       type={show ? 'text' : 'password'}
       value={value}
       onChange={onChange}
-      error={error}
-      helperText={helperText}
       autoComplete={autoComplete}
-      InputProps={{
-        endAdornment: (
-          <InputAdornment position="end">
-            <IconButton
-              size="small"
-              onClick={() => setShow((s) => !s)}
-              edge="end"
-              aria-label={show ? 'Şifreyi gizle' : 'Şifreyi göster'}
-            >
-              {show ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-            </IconButton>
-          </InputAdornment>
-        ),
-      }}
+      /* `error` boolean geliyor; mesajı `helperText` taşıyor (MUI'deki
+         davranışın aynısı) — bu yüzden ikisi ayrı prop olarak veriliyor. */
+      error={error ? helperText || true : false}
+      helperText={error ? undefined : helperText}
+      endSlot={
+        <button
+          type="button"
+          onClick={() => setShow((s) => !s)}
+          aria-label={show ? 'Şifreyi gizle' : 'Şifreyi göster'}
+          className="flex size-6 shrink-0 items-center justify-center rounded text-text-light outline-none transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-primary/40"
+        >
+          {show ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
+      }
     />
   );
 };

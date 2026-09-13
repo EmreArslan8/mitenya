@@ -1,27 +1,12 @@
-"use client";
-
 import BlockManager from "@/components/cms/blocks";
 import WelcomeCouponModal from '@/components/WelcomeCouponModal';
 import { CMSPageData } from "@/lib/api/cms";
 import { ShopCoupon } from '@/lib/api/types';
-import { Box, Stack } from "@mui/material";
 
 const gapValues = {
-  small: { xs: 3, sm: 5 },
-  medium: { xs: 5, sm: 8 },
-  large: { xs: 8, sm: 12 },
-};  
-
-const srOnly = {
-  position: 'absolute',
-  width: '1px',
-  height: '1px',
-  padding: 0,
-  margin: '-1px',
-  overflow: 'hidden',
-  clip: 'rect(0,0,0,0)',
-  whiteSpace: 'nowrap',
-  borderWidth: 0,
+  small: 'gap-6 sm:gap-10',
+  medium: 'gap-10 sm:gap-16',
+  large: 'gap-16 sm:gap-24',
 } as const;
 
 const HomePageView = ({ data, coupons = [] }: { data?: CMSPageData; coupons?: ShopCoupon[] }) => {
@@ -31,15 +16,13 @@ const HomePageView = ({ data, coupons = [] }: { data?: CMSPageData; coupons?: Sh
   }
 
   return (
-    <Stack
-      gap={gapValues[data?.gap ?? "medium"]}
-    >
+    <div className={`flex flex-col ${gapValues[data?.gap ?? "medium"]}`}>
       <WelcomeCouponModal coupons={coupons} placement="home" />
-      <Box component="h1" sx={srOnly}>
+      <h1 className="sr-only">
         Kore Kozmetik ve Cilt Bakım Ürünleri - Mitenya
-      </Box>
+      </h1>
       {data?.blocks && <BlockManager blocks={data.blocks} />}
-    </Stack>
+    </div>
   );
 };
 

@@ -1,9 +1,10 @@
+import "./globals.css";
+
 import { AuthContextProvider } from "@/contexts/AuthContext";
 import { CookieConsentProvider } from "@/contexts/CookieConsentContext";
 import { FavoritesContextProvider } from "@/contexts/FavoritesContext";
 import { ShopContextProvider } from "@/contexts/ShopContext";
 import { albertSans, albertSansItalic } from "@/lib/fonts";
-import ThemeRegistry from "@/theme/ThemeRegistry";
 import type { Viewport } from "next";
 import { Suspense } from "react";
 import AnalyticsDefer from "@/components/analytics/AnalyticsDefer";
@@ -17,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-  <html lang="tr" className={`${albertSans.variable} ${albertSansItalic.variable}`}>
+    <html lang="tr" className={`${albertSans.variable} ${albertSansItalic.variable}`}>
       <head>
         <meta charSet="utf-8" />
         {/* perf: LCP görseli cross-origin cdn.mitenya.com'dan geliyor. Bağlantıyı
@@ -37,10 +38,6 @@ export default function RootLayout({
         )}
 
 
-        <meta
-          name="emotion-insertion-point"
-          content="emotion-insertion-point"
-        />
         <meta
           name="format-detection"
           content="telephone=no, date=no, email=no, address=no"
@@ -85,8 +82,7 @@ export default function RootLayout({
       </head>
 
       <body style={{ overflowX: "hidden" }}>
-        <ThemeRegistry>
-          <CookieConsentProvider>
+        <CookieConsentProvider>
             <Suspense fallback={null}>
               <AnalyticsDefer />
             </Suspense>
@@ -97,8 +93,7 @@ export default function RootLayout({
                 </ShopContextProvider>
               </FavoritesContextProvider>
             </AuthContextProvider>
-          </CookieConsentProvider>
-        </ThemeRegistry>
+        </CookieConsentProvider>
       </body>
     </html>
   );

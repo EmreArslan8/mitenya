@@ -1,7 +1,5 @@
-'use client';
-
-import { Box, Divider, Stack, Typography } from '@mui/material';
-import useStyles from './styles';
+import { Divider } from '@/components/ui/Divider';
+import { Typography } from '@/components/ui/Typography';
 
 const SECTIONS = [
   {
@@ -62,49 +60,47 @@ const SECTIONS = [
 ];
 
 const HakkimizdaView = () => {
-  const styles = useStyles();
-
   return (
-    <Stack sx={styles.container}>
-      <Typography sx={styles.pageTitle}>Hakkımızda</Typography>
+    <div className="ml-4 flex w-full max-w-[800px] flex-col gap-5 py-4 sm:ml-8 sm:gap-6 sm:py-6">
+      <Typography variant="h1" className="text-[28px] font-extrabold leading-[1.15] tracking-[-0.02em] sm:text-[34px]">Hakkımızda</Typography>
 
       {SECTIONS.map((section, i) => (
-        <Stack key={section.title}>
-          <Stack sx={styles.section}>
-            <Typography sx={styles.sectionTitle}>{section.title}</Typography>
+        <div key={section.title}>
+          <section className="flex flex-col gap-3">
+            <Typography variant="h2" className="leading-[1.3]">{section.title}</Typography>
 
             {section.paragraphs.map((p, j) => (
-              <Typography key={j} sx={styles.sectionBody}>
+              <Typography key={j} variant="body2" className="leading-[1.85] tracking-normal text-text-medium-light sm:text-[15px]">
                 {p}
               </Typography>
             ))}
 
             {section.bullets && (
-              <Stack sx={styles.bulletList}>
+              <ul className="flex list-none flex-col gap-1.5 pl-1">
                 {section.bullets.map((b, k) => (
-                  <Stack key={k} sx={styles.bulletItem}>
-                    <Box sx={styles.bulletDot} />
-                    <Typography sx={styles.sectionBody}>{b}</Typography>
-                  </Stack>
+                  <li key={k} className="flex items-start gap-3">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accentRed" />
+                    <Typography variant="body2" className="leading-[1.85] tracking-normal text-text-medium-light sm:text-[15px]">{b}</Typography>
+                  </li>
                 ))}
-              </Stack>
+              </ul>
             )}
 
             {section.afterBullets && (
-              <Typography sx={styles.sectionBody}>
+              <Typography variant="body2" className="leading-[1.85] tracking-normal text-text-medium-light sm:text-[15px]">
                 {section.afterBullets}
               </Typography>
             )}
-          </Stack>
+          </section>
 
-          {i < SECTIONS.length - 1 && <Divider sx={{ ...styles.divider, mt: { xs: 2.5, sm: 3 } }} />}
-        </Stack>
+          {i < SECTIONS.length - 1 && <Divider className="mt-5 border-gray-100 sm:mt-6" />}
+        </div>
       ))}
 
-      <Typography sx={styles.closing}>
+      <Typography variant="body2" className="font-semibold italic tracking-normal text-text-medium [font-family:var(--font-albert-sans-italic)] sm:text-[15px]">
         Mitenya&apos;yı tercih ettiğiniz için teşekkür ederiz.
       </Typography>
-    </Stack>
+    </div>
   );
 };
 
