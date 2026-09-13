@@ -1,9 +1,7 @@
 'use client';
 
-import { Box, Stack, Typography } from '@mui/material';
 import { ArrowRight } from '@/components/icons';
 import Image from 'next/image';
-import useStyles from './styles';
 
 export interface MegaMenuLink {
   id: string;
@@ -66,8 +64,6 @@ const MegaMenu = ({
   onMouseEnter,
   onMouseLeave,
 }: MegaMenuProps) => {
-  const styles = useStyles();
-
   const isEmpty =
     (variant === 'columns' && !groups.length) ||
     (variant === 'tiles' && !tiles.length) ||
@@ -75,96 +71,136 @@ const MegaMenu = ({
   if (isEmpty) return null;
 
   return (
-    <Box sx={styles.panel} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+    <div
+      className="absolute left-0 right-0 top-full z-[2000] hidden animate-[mega-menu-in_.18s_ease-out_both] border-t border-gray-100 bg-bg px-8 py-9 shadow-[0_18px_32px_rgba(15,20,32,0.10)] motion-reduce:animate-none sm:block"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       {variant === 'columns' && (
-        <Box sx={feature ? styles.innerWithFeature : styles.inner}>
-          <Box sx={styles.columns}>
+        <div
+          className={
+            feature
+              ? 'mx-auto grid max-w-[1340px] grid-cols-[minmax(0,1fr)_320px] items-start gap-12'
+              : 'mx-auto grid max-w-[1340px] items-start gap-12'
+          }
+        >
+          <div className="grid gap-x-10 [grid-auto-columns:minmax(0,1fr)] [grid-auto-flow:column]">
             {groups.map((group) => (
-              <Stack key={group.id} sx={styles.group}>
+              <div key={group.id} className="flex flex-col">
                 {group.title && (
-                  <Typography
-                    sx={styles.groupTitle}
+                  <button
+                    type="button"
+                    className="mb-3 w-fit appearance-none border-0 bg-transparent p-0 text-left text-[13px] font-bold uppercase tracking-[0.06em] text-text"
                     onClick={() => group.href && onSelect(group.href)}
                   >
                     {group.title}
-                  </Typography>
+                  </button>
                 )}
                 {group.links.map((link) => (
-                  <Typography key={link.id} sx={styles.link} onClick={() => onSelect(link.href)}>
+                  <button
+                    type="button"
+                    key={link.id}
+                    className="w-fit appearance-none border-0 bg-transparent p-0 text-left text-[14.5px] leading-[2] text-text-medium-light transition-colors hover:text-text hover:underline"
+                    onClick={() => onSelect(link.href)}
+                  >
                     {link.label}
-                  </Typography>
+                  </button>
                 ))}
                 {group.href && (
-                  <Stack sx={styles.allLink} onClick={() => onSelect(group.href!)}>
-                    <Typography sx={styles.allLinkText}>
+                  <button
+                    type="button"
+                    className="mt-3 flex w-fit appearance-none items-center gap-1.5 border-0 bg-transparent p-0 text-text hover:underline"
+                    onClick={() => onSelect(group.href!)}
+                  >
+                    <span className="text-[13.5px] font-semibold">
                       {group.allLabel ?? 'Tümünü gör'}
-                    </Typography>
+                    </span>
                     <ArrowRight size={14} strokeWidth={1.8} />
-                  </Stack>
+                  </button>
                 )}
-              </Stack>
+              </div>
             ))}
-          </Box>
+          </div>
 
           {feature && (
-            <Stack sx={styles.feature} onClick={() => onSelect(feature.href)}>
-              <Box sx={styles.featureFrame}>
+            <button
+              type="button"
+              className="group flex appearance-none flex-col gap-2.5 border-0 bg-transparent p-0 text-left"
+              onClick={() => onSelect(feature.href)}
+            >
+              <span className="relative block max-h-[200px] w-full overflow-hidden bg-gray-50 [aspect-ratio:4/3]">
                 <Image
                   src={feature.image}
                   alt={feature.caption}
                   fill
                   sizes="320px"
-                  style={{ objectFit: 'cover' }}
+                  className="object-cover transition-transform duration-[450ms] group-hover:scale-[1.03] motion-reduce:group-hover:scale-100"
                 />
-              </Box>
-              <Typography sx={styles.featureCaption}>{feature.caption}</Typography>
-            </Stack>
+              </span>
+              <span className="text-sm font-semibold text-text">{feature.caption}</span>
+            </button>
           )}
-        </Box>
+        </div>
       )}
 
       {variant === 'tiles' && (
-        <Box sx={styles.tileGrid}>
+        <div className="mx-auto grid max-w-[1340px] grid-cols-5 gap-4">
           {tiles.map((tile) => (
-            <Stack key={tile.id} sx={styles.tile} onClick={() => onSelect(tile.href)}>
-              <Box sx={styles.tileFrame}>
+            <button
+              type="button"
+              key={tile.id}
+              className="group flex appearance-none flex-col gap-2.5 border-0 bg-transparent p-0 text-left"
+              onClick={() => onSelect(tile.href)}
+            >
+              <span className="relative block max-h-[180px] w-full overflow-hidden bg-gray-50 [aspect-ratio:4/3]">
                 <Image
                   src={tile.image}
                   alt={tile.label}
                   fill
                   sizes="(min-width:1200px) 240px, 20vw"
-                  style={{ objectFit: 'cover' }}
+                  className="object-cover transition-transform duration-[450ms] group-hover:scale-[1.04] motion-reduce:group-hover:scale-100"
                 />
-              </Box>
-              <Typography sx={styles.tileLabel}>{tile.label}</Typography>
-            </Stack>
+              </span>
+              <span className="text-sm font-semibold text-text">{tile.label}</span>
+            </button>
           ))}
-        </Box>
+        </div>
       )}
 
       {variant === 'cards' && (
-        <Box sx={styles.cardGrid}>
+        <div className="mx-auto grid max-w-[1340px] grid-cols-2 gap-8">
           {cards.map((card) => (
-            <Stack key={card.id} sx={styles.card} onClick={() => onSelect(card.href)}>
-              <Box sx={styles.cardFrame}>
+            <button
+              type="button"
+              key={card.id}
+              className="group flex appearance-none items-center gap-5 border-0 bg-transparent p-0 text-left"
+              onClick={() => onSelect(card.href)}
+            >
+              <span className="relative block h-[135px] w-[180px] shrink-0 overflow-hidden bg-gray-50">
                 <Image
                   src={card.image}
                   alt={card.title}
                   fill
                   sizes="(min-width:1200px) 420px, 40vw"
-                  style={{ objectFit: 'cover' }}
+                  className="object-cover transition-transform duration-[450ms] group-hover:scale-[1.04] motion-reduce:group-hover:scale-100"
                 />
-              </Box>
-              <Stack sx={styles.cardText}>
-                <Typography sx={styles.cardLabel}>{card.label}</Typography>
-                <Typography sx={styles.cardTitle}>{card.title}</Typography>
-                <Typography sx={styles.cardDescription}>{card.description}</Typography>
-              </Stack>
-            </Stack>
+              </span>
+              <span className="flex min-w-0 flex-col gap-1">
+                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-text-medium-light">
+                  {card.label}
+                </span>
+                <span className="text-lg font-semibold tracking-[-0.01em] text-text">
+                  {card.title}
+                </span>
+                <span className="text-[13.5px] leading-[1.5] text-text-medium-light">
+                  {card.description}
+                </span>
+              </span>
+            </button>
           ))}
-        </Box>
+        </div>
       )}
-    </Box>
+    </div>
   );
 };
 

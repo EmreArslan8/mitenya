@@ -1,7 +1,5 @@
 'use client';
 
-import { Box, Checkbox, Stack, TextField, Typography } from '@mui/material';
-import { LoadingButton } from '@mui/lab';
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import Banner from '@/components/common/Banner';
@@ -9,6 +7,9 @@ import GoogleAuthButton from './GoogleAuthButton';
 import Link from '@/components/common/Link';
 import PasswordField from '../PasswordField';
 import { validatePassword } from '@/lib/utils/password';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { TextField } from '@/components/ui/TextField';
+import { Button } from '@/components/ui/Button';
 
 interface Props {
   onSubmit: (fullName: string, email: string, password: string) => Promise<boolean>;
@@ -48,23 +49,20 @@ const SignUpForm = ({ onSubmit, returnUrl }: Props) => {
   });
 
   return (
-    <Stack gap={3}>
+    <div className="flex flex-col gap-6">
       <GoogleAuthButton returnUrl={returnUrl} />
 
-      <Stack component="form" gap={2} onSubmit={formik.handleSubmit} autoComplete="on">
+      <form className="flex flex-col gap-4" onSubmit={formik.handleSubmit} autoComplete="on">
         <TextField
-          fullWidth
           name="fullName"
           label="Ad Soyad"
           autoComplete="name"
           value={formik.values.fullName}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          error={formik.touched.fullName && !!formik.errors.fullName}
-          helperText={formik.touched.fullName && formik.errors.fullName}
+          error={formik.touched.fullName ? formik.errors.fullName : undefined}
         />
         <TextField
-          fullWidth
           name="email"
           label="E-posta adresi"
           type="email"
@@ -72,8 +70,7 @@ const SignUpForm = ({ onSubmit, returnUrl }: Props) => {
           value={formik.values.email}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          error={formik.touched.email && !!formik.errors.email}
-          helperText={formik.touched.email && formik.errors.email}
+          error={formik.touched.email ? formik.errors.email : undefined}
         />
         <PasswordField
           name="password"
@@ -98,17 +95,17 @@ const SignUpForm = ({ onSubmit, returnUrl }: Props) => {
           helperText={formik.touched.passwordConfirm ? formik.errors.passwordConfirm : undefined}
         />
 
-        <Box>
-          <Stack direction="row" alignItems="center">
+        <div>
+          <div className="flex items-center gap-2">
             <Checkbox
-              size="small"
               checked={consentAccepted}
-              onChange={(e) => {
-                setConsentAccepted(e.target.checked);
-                if (e.target.checked) setConsentError(false);
+              onCheckedChange={(checked) => {
+                setConsentAccepted(checked);
+                if (checked) setConsentError(false);
               }}
+              aria-label="Üyelik sözleşmesini kabul ediyorum"
             />
-            <Typography variant="body2">
+            <p className="text-sm">
               <Link
                 href="/uyelik-ve-kullanim-sartlari"
                 target="_blank"
@@ -122,22 +119,22 @@ const SignUpForm = ({ onSubmit, returnUrl }: Props) => {
                 KVKK Aydınlatma Metni
               </Link>{' '}
               metinlerini okudum ve kabul ediyorum
-            </Typography>
-          </Stack>
+            </p>
+          </div>
           {consentError && (
-            <Typography variant="caption" color="error.main">
+            <p className="mt-1 text-xs text-error">
               Devam etmek için sözleşmeleri kabul etmelisiniz.
-            </Typography>
+            </p>
           )}
-        </Box>
+        </div>
 
-        <LoadingButton loading={loading} variant="contained" type="submit" fullWidth size="large">
+        <Button loading={loading} variant="contained" type="submit" fullWidth size="large">
           Hesap Oluştur
-        </LoadingButton>
-      </Stack>
+        </Button>
+      </form>
 
       {!!error && <Banner variant="error" title={error} />}
-    </Stack>
+    </div>
   );
 };
 

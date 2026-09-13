@@ -4,14 +4,13 @@ import AddressbookCard from '@/components/settings/AddressbookCard';
 import AccountCard from '@/components/settings/AccountCard';
 import FavoritesCard from '@/components/settings/FavoritesCard';
 import SecurityCard from '@/components/settings/SecurityCard';
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/Button';
 import { AddressData } from '@/lib/api/types';
-import useScreen from '@/lib/hooks/useScreen';
-import { Box, Divider, MenuItem, Select, Stack, Typography } from '@mui/material';
 import { Heart, LockKeyhole, UserRound } from '@/components/icons';
 import { Bell, MapPinned, PackageSearch } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo, type ComponentType, type SVGProps } from 'react';
+import { Select, SelectItem } from '@/components/ui/Select';
 
 type SettingsTab = 'profile' | 'addresses' | 'security' | 'notifications' | 'favorites';
 type SectionIcon = ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }>;
@@ -34,7 +33,6 @@ const TAB_LABELS_MOBILE: Record<SettingsTab, string> = {
 
 const SettingsView = ({ addresses, section }: { addresses: AddressData[]; section: SettingsTab }) => {
   const router = useRouter();
-  const { smDown } = useScreen();
   const selectedTitle = useMemo(() => TAB_LABELS[section], [section]);
 
   const tabMeta = useMemo(
@@ -50,164 +48,90 @@ const SettingsView = ({ addresses, section }: { addresses: AddressData[]; sectio
   );
 
   return (
-    <Stack gap={4} width="100%">
+    <div className="flex w-full flex-col gap-8">
       {/* Mobile section switcher (desktop uses the left navigation in (account)/layoutView.tsx) */}
-      {smDown && (
-        <>
-          <Box
-            sx={{
-              position: 'sticky',
-              top: 0,
-              zIndex: 2,
-              bgcolor: 'bg.light',
-              pt: 1.25,
-              pb: 1.5,
-              // Visual separation from content on scroll
-              boxShadow: '0 10px 26px rgba(16,24,40,0.06)',
-            }}
-          >
-            <Box px={1}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
-                <Typography
-                  sx={{
-                    fontSize: 18,
-                    fontWeight: 900,
-                    letterSpacing: -0.4,
-                    color: 'text.main',
-                  }}
-                >
+      <>
+          <div className="sticky top-0 z-[2] bg-bg-light pb-3 pt-2.5 shadow-[0_10px_26px_rgba(16,24,40,0.06)] sm:hidden">
+            <div className="px-2">
+              <div className="mb-2 flex items-center justify-between">
+                <h1 className="text-lg font-black tracking-[-0.4px] text-text">
                   Ayarlar
-                </Typography>
+                </h1>
                 <Button
                   size="small"
                   variant="outlined"
                   color="neutral"
                   href="/orders"
                   startIcon={<PackageSearch size={16} />}
-                  sx={{
-                    borderRadius: '999px',
-                    textTransform: 'none',
-                    fontWeight: 800,
-                    px: 1.25,
-                    py: 0.6,
-                  }}
+                  className="rounded-full px-2.5 py-1 text-xs font-extrabold normal-case"
                 >
                   Siparişlerim
                 </Button>
-              </Stack>
+              </div>
 
               <Select
-                fullWidth
                 value={section}
-                onChange={(e) => router.push(`/settings?section=${e.target.value as SettingsTab}`)}
+                onValueChange={(v) => router.push(`/settings?section=${v as SettingsTab}`)}
+                aria-label="Ayar bölümü"
+                className="h-auto rounded-[16px] border-gray-200 py-[9px] hover:border-gray-300 focus-visible:border-2 focus-visible:border-text"
+                contentClassName="mt-1 rounded-[16px] border-gray-200 shadow-[0_20px_60px_rgba(16,24,40,0.16)]"
                 renderValue={(value) => {
                   const meta = tabMeta[value as SettingsTab];
                   const Icon = meta.Icon;
                   return (
-                    <Stack direction="row" alignItems="center" gap={1}>
-                      <Box
-                        sx={{
-                          width: 34,
-                          height: 34,
-                          borderRadius: '10px',
-                          bgcolor: 'bg.dark',
-                          display: 'grid',
-                          placeItems: 'center',
-                        }}
-                      >
+                    <span className="flex items-center gap-2">
+                      <span className="grid size-[34px] place-items-center rounded-[10px] bg-bg-dark">
                         <Icon size={18} />
-                      </Box>
-                      <Typography sx={{ fontSize: 16, fontWeight: 900, letterSpacing: -0.25 }}>
-                        {meta.label}
-                      </Typography>
-                    </Stack>
+                      </span>
+                      <span className="text-[16px] font-black tracking-[-0.25px]">{meta.label}</span>
+                    </span>
                   );
-                }}
-                sx={{
-                  bgcolor: 'white.main',
-                  borderRadius: '16px',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: (theme) => theme.palette.gray[200],
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: (theme) => theme.palette.gray[300],
-                  },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'text.main',
-                    borderWidth: 2,
-                  },
-                  '& .MuiSelect-select': {
-                    py: 1.1,
-                  },
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      mt: 1,
-                      borderRadius: '16px',
-                      border: (theme) => `1px solid ${theme.palette.gray[200]}`,
-                      boxShadow: '0 20px 60px rgba(16,24,40,0.16)',
-                    },
-                  },
                 }}
               >
                 {(Object.keys(tabMeta) as SettingsTab[]).map((key) => {
                   const meta = tabMeta[key];
                   const Icon = meta.Icon;
                   return (
-                    <MenuItem key={key} value={key} sx={{ py: 1.1, gap: 1.25 }}>
-                      <Box
-                        sx={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: '10px',
-                          bgcolor: 'bg.dark',
-                          display: 'grid',
-                          placeItems: 'center',
-                        }}
-                      >
-                        <Icon size={18} />
-                      </Box>
-                      <Typography sx={{ fontSize: 15, fontWeight: 800 }}>{meta.label}</Typography>
-                    </MenuItem>
+                    <SelectItem key={key} value={key} className="gap-2.5 py-[9px]">
+                      <span className="flex items-center gap-2.5">
+                        <span className="grid size-8 place-items-center rounded-[10px] bg-bg-dark">
+                          <Icon size={18} />
+                        </span>
+                        <span className="text-[15px] font-extrabold">{meta.label}</span>
+                      </span>
+                    </SelectItem>
                   );
                 })}
               </Select>
-            </Box>
-          </Box>
+            </div>
+          </div>
 
           {/* Divider between the selector area and the section content */}
-          <Divider
-            sx={{
-              mx: 1,
-              borderColor: (theme) => theme.palette.gray[100],
-            }}
-          />
-        </>
-      )}
+          <hr className="mx-2 border-0 border-t border-gray-100 sm:hidden" />
+      </>
 
       {section !== 'addresses' && (
-        <Typography variant="h2" sx={{ fontSize: { xs: 24, sm: 28 }, color: 'text.main' }}>
+        <h1 className="text-2xl font-bold text-text sm:text-[28px]">
           {selectedTitle}
-        </Typography>
+        </h1>
       )}
 
       {section === 'profile' && (
-        <Stack width="100%">
+        <div className="w-full">
           <AccountCard />
-        </Stack>
+        </div>
       )}
 
       {section === 'addresses' && (
-        <Stack width="100%">
+        <div className="w-full">
           <AddressbookCard addresses={addresses} />
-        </Stack>
+        </div>
       )}
 
       {section === 'security' && (
-        <Stack width="100%">
+        <div className="w-full">
           <SecurityCard />
-        </Stack>
+        </div>
       )}
       {section === 'notifications' && (
         <SectionPlaceholder title="Bildirim tercihleri yakinda eklenecek." />
@@ -215,26 +139,16 @@ const SettingsView = ({ addresses, section }: { addresses: AddressData[]; sectio
       {section === 'favorites' && (
         <FavoritesCard />
       )}
-    </Stack>
+    </div>
   );
 };
 
 const SectionPlaceholder = ({ title }: { title: string }) => (
-  <Stack
-    sx={{
-      border: (theme) => `1px solid ${theme.palette.gray[100]}`,
-      borderRadius: '14px',
-      px: { xs: 2, sm: 2.5 },
-      py: { xs: 2.5, sm: 3 },
-      width: '100%',
-      bgcolor: 'white.main',
-      boxShadow: '0 6px 18px rgba(16,24,40,0.05)',
-    }}
-  >
-    <Typography sx={{ color: 'text.main', fontSize: { xs: 14, sm: 15 }, fontWeight: 600 }}>
+  <div className="w-full rounded-[14px] border border-gray-100 bg-white px-4 py-5 shadow-[0_6px_18px_rgba(16,24,40,0.05)] sm:px-5 sm:py-6">
+    <p className="text-sm font-semibold text-text sm:text-[15px]">
       {title}
-    </Typography>
-  </Stack>
+    </p>
+  </div>
 );
 
 export default SettingsView;

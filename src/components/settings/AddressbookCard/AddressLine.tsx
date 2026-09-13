@@ -1,29 +1,23 @@
 'use client';
 
 import EditAddressModal from '@/components/AddressCard/modals/EditAddressModal';
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/Button';
 import Card from '@/components/common/Card';
+import Popover from '@/components/ui/Popover';
 import { AddressData } from '@/lib/api/types';
 import useAddress from '@/lib/api/useAddress';
-import { IconButton, Menu, Stack, Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
-import styles from './styles';
+import { useState } from 'react';
 import { Check } from '@/components/icons';
 import { Trash } from 'lucide-react';
 
 const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => void }) => {
   const { deleteAddress } = useAddress();
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [deleteMenuAnchor, setDeleteMenuAnchor] = useState<HTMLElement | null>(null);
   const [deleteMenuOpen, setDeleteMenuOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const handleDeleteButtonClick = (event: React.MouseEvent<HTMLButtonElement>) =>
-    setDeleteMenuAnchor(event.currentTarget);
-
   const handleDeleteMenuClose = () => {
     setDeleteMenuOpen(false);
-    setDeleteMenuAnchor(null);
   };
 
   const handleDelete = (id: string | number) => {
@@ -36,10 +30,6 @@ const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => vo
     });
   };
 
-  useEffect(() => {
-    setDeleteMenuOpen(Boolean(deleteMenuAnchor));
-  }, [deleteMenuAnchor]);
-
   const contactFullName = [data.contactName, data.contactSurname].filter(Boolean).join(' ').trim();
   const addressLine = [data.line1, data.line2, data.line3].filter((e) => e).join(', ');
   const cityLine = [data.district, data.city].filter((e) => e).join(' / ');
@@ -47,42 +37,74 @@ const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => vo
 
   return (
     <>
-      <Stack sx={styles.address}>
-        <Stack sx={styles.addressHeader}>
-          <Typography sx={styles.addressName}>{data.name}</Typography>
+      <article className="flex w-full flex-col items-stretch gap-1.5 rounded-xl border border-gray-200 bg-bg-light p-2.5 sm:p-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-[15px] font-semibold leading-[1.35] text-text">{data.name}</h3>
           {data.isDefault && (
-            <Stack sx={styles.defaultBadge}>
+            <span className="flex size-[18px] shrink-0 items-center justify-center rounded-full bg-tertiary text-white">
               <Check size={11} />
-            </Stack>
+            </span>
           )}
-        </Stack>
+        </div>
 
-        <Stack sx={styles.addressInfo}>
-          {contactFullName && <Typography sx={styles.contactName}>{contactFullName}</Typography>}
-          <Typography sx={styles.addressLine}>{addressLine}</Typography>
-          {cityLine && <Typography sx={styles.locationLine}>{cityLine}</Typography>}
-          {phoneLine && <Typography sx={styles.phoneLine}>{phoneLine}</Typography>}
-        </Stack>
+        <div className="flex flex-col gap-[3px] text-[13px] leading-[1.45] text-text-medium">
+          {contactFullName && <p>{contactFullName}</p>}
+          <p className="break-words">{addressLine}</p>
+          {cityLine && <p>{cityLine}</p>}
+          {phoneLine && <p className="mt-0.5 font-medium leading-[1.4] text-text">{phoneLine}</p>}
+        </div>
 
-        <Stack sx={styles.addressActions}>
-          <IconButton
-            onClick={handleDeleteButtonClick}
-            sx={styles.deleteIconButton}
+        <div className="mt-0.5 flex items-center justify-between">
+          <Popover
+            open={deleteMenuOpen}
+            onOpenChange={setDeleteMenuOpen}
+            align="end"
+            className="rounded-xl border-0 p-0 shadow-[0_4px_20px_rgba(0,0,0,0.12)]"
+            trigger={
+              <button type="button" className="grid size-[34px] place-items-center rounded-lg border border-gray-200 bg-white text-error" aria-label="Adresi sil">
+                <Trash size={15} />
+              </button>
+            }
           >
-            <Trash size={15} />
-          </IconButton>
+            <Card title="Adresi silmek istediğinize emin misiniz?" className="w-[240px]">
+              <div className="flex flex-col gap-2 p-4">
+                <Button
+                  color="secondary"
+                  variant="outlined"
+                  size="small"
+                  onClick={handleDeleteMenuClose}
+                  className="rounded-[10px] text-[13px] font-semibold normal-case"
+                >
+                  Vazgeç
+                </Button>
+                <Button
+                  loading={deleteLoading}
+                  color="error"
+                  disabled={data.id === undefined}
+                  variant="contained"
+                  size="small"
+                  onClick={() => {
+                    if (data.id !== undefined) handleDelete(data.id);
+                  }}
+                  className="rounded-[10px] text-[13px] font-semibold normal-case"
+                >
+                  Sil
+                </Button>
+              </div>
+            </Card>
+          </Popover>
 
           <Button
             size="small"
             variant="outlined"
             color="secondary"
             onClick={() => setEditModalOpen(true)}
-            sx={styles.editButton}
+            className="h-[34px] rounded-lg px-2.5 text-[13px] font-medium normal-case"
           >
             Adresi Duzenle
           </Button>
-        </Stack>
-      </Stack>
+        </div>
+      </article>
 
       <EditAddressModal
         initialData={data}
@@ -91,42 +113,6 @@ const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => vo
         onEdited={onChange}
       />
 
-      <Menu
-        elevation={0}
-        open={deleteMenuOpen}
-        anchorEl={deleteMenuAnchor}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{ sx: { boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.12)', borderRadius: '12px' } }}
-        MenuListProps={{ sx: { p: 0 } }}
-      >
-        <Card title="Adresi silmek istediğinize emin misiniz?" sx={{ width: 240 }}>
-          <Stack p={2} gap={1}>
-            <Button
-              color="secondary"
-              variant="outlined"
-              size="small"
-              onClick={handleDeleteMenuClose}
-              sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, fontSize: 13 }}
-            >
-              Vazgeç
-            </Button>
-            <Button
-              loading={deleteLoading}
-              color="error"
-              disabled={data.id === undefined}
-              variant="contained"
-              size="small"
-              onClick={() => {
-                if (data.id !== undefined) handleDelete(data.id);
-              }}
-              sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, fontSize: 13 }}
-            >
-              Sil
-            </Button>
-          </Stack>
-        </Card>
-      </Menu>
     </>
   );
 };

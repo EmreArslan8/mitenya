@@ -1,24 +1,18 @@
 'use client';
 
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import useCustomerData from '@/lib/api/useCustomerData';
 import { createSupabaseBrowser } from '@/lib/supabase/browser';
 import { validatePassword } from '@/lib/utils/password';
 import { withCsrfHeaders } from '@/lib/utils/csrf';
-import {
-  Grid,
-  MenuItem,
-  Select,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from '@mui/material';
-import styles from './styles';
 import { signOut } from '@/lib/utils/signOut';
 import { useMemo, useState } from 'react';
 import { LogOut } from 'lucide-react';
+import { Select, SelectItem } from '@/components/ui/Select';
+import { Switch } from '@/components/ui/Switch';
+import { Input } from '@/components/ui/Input';
+import { TextField } from '@/components/ui/TextField';
 
 const AccountCard = () => {
   const { customerData, setCustomerData } = useAuth();
@@ -178,197 +172,217 @@ const AccountCard = () => {
   };
 
   return (
-    <Stack sx={styles.wrapper}>
-      <Stack sx={styles.header}>
-        <Typography sx={styles.headerLabel}>Kullanici Bilgilerim</Typography>
-      </Stack>
+    <section className="overflow-hidden rounded-[14px] border border-gray-100 bg-white">
+      <header className="flex items-center justify-between border-b border-gray-100 bg-white px-5 py-[18px] sm:px-6">
+        <h2 className="text-base text-text">Kullanici Bilgilerim</h2>
+      </header>
 
-      <Stack sx={styles.cardBody}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <Stack sx={styles.column}>
-              <Typography sx={styles.sectionTitle}>Uyelik Bilgilerim</Typography>
-              <Grid container spacing={2.5}>
-                <Grid item xs={12} sm={6}>
+      <div className="flex flex-col gap-6 px-5 py-[26px] sm:px-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <div className="flex h-full flex-col gap-4">
+              <h3 className="mb-3.5 text-lg text-text">Uyelik Bilgilerim</h3>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div>
                   <TextField
                     label="Ad"
-                    size="small"
+                    autoComplete="given-name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    fullWidth
-                    sx={styles.input}
+                    size="large"
                   />
-                </Grid>
-                <Grid item xs={12} sm={6}>
+                </div>
+                <div>
                   <TextField
                     label="Soyad"
-                    size="small"
+                    autoComplete="family-name"
                     value={surname}
                     onChange={(e) => setSurname(e.target.value)}
-                    fullWidth
-                    sx={styles.input}
+                    size="large"
                   />
-                </Grid>
-                <Grid item xs={12}>
+                </div>
+                <div className="sm:col-span-2">
                   <TextField
                     label="E-Mail"
-                    size="small"
+                    type="email"
+                    autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    fullWidth
-                    sx={styles.input}
+                    size="large"
                   />
-                </Grid>
-                <Grid item xs={12}>
-                  <Stack direction="row" gap={1.5}>
-                    <TextField
+                </div>
+                <div className="sm:col-span-2">
+                  <div className="flex gap-3">
+                    <Input
                       value="+90"
-                      size="small"
-                      InputProps={{ readOnly: true }}
-                      sx={{ ...styles.input, width: 92 }}
+                      readOnly
+                      aria-label="Ülke kodu"
+                      size="large"
+                      className="w-[92px]"
                     />
                     <TextField
                       label="Cep Telefonu"
-                      size="small"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel-national"
                       value={formatPhone(phone)}
                       onChange={(e) => handlePhoneChange(e.target.value)}
-                      fullWidth
-                      sx={styles.input}
+                      size="large"
                     />
-                  </Stack>
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography sx={styles.fieldLabel}>Dogum Tarihiniz</Typography>
-                  <Stack direction="row" gap={1.5}>
-                    <Select value={day} displayEmpty size="medium" onChange={(e) => setDay(e.target.value)} sx={styles.select}>
-                      <MenuItem value="">Gun</MenuItem>
+                  </div>
+                </div>
+                <div className="sm:col-span-2">
+                  <p className="mb-3 text-sm text-text">Dogum Tarihiniz</p>
+                  <div className="flex gap-3 [&>*]:flex-1">
+                    <Select
+                      value={day}
+                      onValueChange={setDay}
+                      placeholder="Gun"
+                      aria-label="Gun"
+                      clearLabel="Gun seçimini kaldır"
+                    >
+                      {/* MUI'de placeholder bir `<MenuItem value="">` idi; Radix boş
+                          değerli öğeye izin vermez — yerine `placeholder` prop'u. */}
                       {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                        <MenuItem key={d} value={String(d)}>
+                        <SelectItem key={d} value={String(d)}>
                           {d}
-                        </MenuItem>
+                        </SelectItem>
                       ))}
                     </Select>
-                    <Select value={month} displayEmpty size="medium" onChange={(e) => setMonth(e.target.value)} sx={styles.select}>
-                      <MenuItem value="">Ay</MenuItem>
+                    <Select
+                      value={month}
+                      onValueChange={setMonth}
+                      placeholder="Ay"
+                      aria-label="Ay"
+                      clearLabel="Ay seçimini kaldır"
+                    >
+                      {/* MUI'de placeholder bir `<MenuItem value="">` idi; Radix boş
+                          değerli öğeye izin vermez — yerine `placeholder` prop'u. */}
                       {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                        <MenuItem key={m} value={String(m)}>
+                        <SelectItem key={m} value={String(m)}>
                           {m}
-                        </MenuItem>
+                        </SelectItem>
                       ))}
                     </Select>
-                    <Select value={year} displayEmpty size="medium" onChange={(e) => setYear(e.target.value)} sx={styles.select}>
-                      <MenuItem value="">Yil</MenuItem>
+                    <Select
+                      value={year}
+                      onValueChange={setYear}
+                      placeholder="Yil"
+                      aria-label="Yil"
+                      clearLabel="Yil seçimini kaldır"
+                    >
+                      {/* MUI'de placeholder bir `<MenuItem value="">` idi; Radix boş
+                          değerli öğeye izin vermez — yerine `placeholder` prop'u. */}
                       {Array.from({ length: 70 }, (_, i) => 2026 - i).map((y) => (
-                        <MenuItem key={y} value={String(y)}>
+                        <SelectItem key={y} value={String(y)}>
                           {y}
-                        </MenuItem>
+                        </SelectItem>
                       ))}
                     </Select>
-                  </Stack>
-                </Grid>
-                <Grid item xs={12}>
-                  {profileError && <Typography sx={styles.errorText}>{profileError}</Typography>}
+                  </div>
+                </div>
+                <div className="sm:col-span-2">
+                  {profileError && <p className="mb-2 text-[13px] text-error">{profileError}</p>}
                   <Button
                     variant="contained"
                     onClick={handleSaveProfile}
                     disabled={savingProfile}
-                    sx={styles.primaryButton}
+                    className="mt-1 h-11 rounded-[11px] text-sm normal-case disabled:border-gray-100 disabled:bg-gray-100 disabled:text-text-medium"
                     fullWidth
                   >
                     {savingProfile ? 'Guncelleniyor...' : 'Guncelle'}
                   </Button>
-                </Grid>
-              </Grid>
-            </Stack>
-          </Grid>
+                </div>
+              </div>
+            </div>
+          </div>
 
-          <Grid item xs={12} md={6}>
-            <Stack sx={styles.column}>
-              <Typography sx={styles.sectionTitle}>Sifre Guncelleme</Typography>
-              <Stack gap={1.25}>
+          <div className="border-gray-100 md:border-l md:pl-6">
+            <div className="flex h-full flex-col gap-4">
+              <h3 className="mb-3.5 text-lg text-text">Sifre Guncelleme</h3>
+              <div className="flex flex-col gap-2.5">
                 <TextField
                   label="Su Anki Sifre"
-                  size="small"
                   type="password"
+                  autoComplete="current-password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  fullWidth
-                  sx={styles.input}
+                  size="large"
                 />
                 <TextField
                   label="Yeni Sifre"
-                  size="small"
                   type="password"
+                  autoComplete="new-password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  fullWidth
-                  sx={styles.input}
+                  size="large"
                 />
-                <Typography sx={styles.passwordHint}>
+                <p className="text-[13px] leading-normal text-text-medium">
                   Şifreniz en az 8 karakter olmalı. 1 büyük harf, 1 küçük harf ve rakam içermelidir.
-                </Typography>
+                </p>
                 <TextField
                   label="Yeni Sifre (Tekrar)"
-                  size="small"
                   type="password"
+                  autoComplete="new-password"
                   value={newPasswordRepeat}
                   onChange={(e) => setNewPasswordRepeat(e.target.value)}
-                  fullWidth
-                  sx={styles.input}
+                  size="large"
                 />
-                {passwordError && <Typography sx={styles.errorText}>{passwordError}</Typography>}
+                {passwordError && <p className="text-[13px] text-error">{passwordError}</p>}
                 <Button
                   variant="outlined"
                   onClick={handlePasswordUpdate}
                   disabled={savingPassword}
-                  sx={styles.secondaryButton}
+                  className="h-11 rounded-[11px] text-sm normal-case disabled:border-gray-100 disabled:bg-gray-100 disabled:text-text-medium"
                   fullWidth
                 >
                   {savingPassword ? 'Guncelleniyor...' : 'Guncelle'}
                 </Button>
-                <Stack sx={styles.twoFactorBox}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography sx={styles.twoFactorTitle}>Iki Adimli Dogrulama</Typography>
+                <div className="mt-1 rounded-[11px] bg-bg-light p-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-base text-text">Iki Adimli Dogrulama</h4>
                     <Switch
                       checked={twoFactorEnabled}
-                      onChange={(e) => setTwoFactorEnabled(e.target.checked)}
+                      onCheckedChange={setTwoFactorEnabled}
+                      aria-label="İki adımlı doğrulama"
                     />
-                  </Stack>
-                  <Typography sx={styles.twoFactorDesc}>
+                  </div>
+                  <p className="mt-1.5 text-[13px] leading-normal text-text-medium">
                     Iki adimli dogrulamayi etkinlestirdiginizde, oturum acarken ek dogrulama kodu istenir.
-                  </Typography>
-                </Stack>
-              </Stack>
-            </Stack>
-          </Grid>
-        </Grid>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        {successMessage && <Typography sx={styles.successText}>{successMessage}</Typography>}
+        {successMessage && <p className="text-[13px] text-success">{successMessage}</p>}
 
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
+        <div className="flex flex-wrap items-start justify-between gap-2">
           {showDeleteConfirm ? (
-            <Stack gap={1} sx={{ maxWidth: 360 }}>
-              <Typography sx={styles.deleteWarning}>
+            <div className="flex max-w-[360px] flex-col gap-2">
+              <p className="max-w-[400px] text-[13px] leading-normal text-error">
                 Hesabınız kalıcı olarak silinecek. Bu işlem geri alınamaz. Devam etmek için şifrenizi girin.
-              </Typography>
-              <TextField
-                size="small"
+              </p>
+              <Input
                 type="password"
+                autoComplete="current-password"
                 placeholder="Şifreniz"
+                aria-label="Hesap silme onayı için şifreniz"
                 value={deletePassword}
                 onChange={(e) => setDeletePassword(e.target.value)}
-                sx={styles.input}
+                size="large"
                 disabled={deletingAccount}
               />
-              {deleteError && <Typography sx={styles.errorText}>{deleteError}</Typography>}
-              <Stack direction="row" gap={1}>
+              {deleteError && <p className="text-[13px] text-error">{deleteError}</p>}
+              <div className="flex gap-2">
                 <Button
                   size="small"
                   color="error"
                   variant="contained"
                   onClick={() => handleDeleteAccount(deletePassword)}
                   disabled={deletingAccount || !deletePassword}
-                  sx={styles.logoutButton}
+                  className="rounded-[10px] text-[13px] normal-case"
                 >
                   {deletingAccount ? 'Siliniyor...' : 'Hesabımı Sil'}
                 </Button>
@@ -377,19 +391,19 @@ const AccountCard = () => {
                   variant="outlined"
                   onClick={() => { setShowDeleteConfirm(false); setDeleteError(null); setDeletePassword(''); }}
                   disabled={deletingAccount}
-                  sx={styles.logoutButton}
+                  className="rounded-[10px] text-[13px] normal-case"
                 >
                   İptal
                 </Button>
-              </Stack>
-            </Stack>
+              </div>
+            </div>
           ) : (
             <Button
               size="small"
               color="error"
               variant="text"
               onClick={() => setShowDeleteConfirm(true)}
-              sx={styles.logoutButton}
+              className="rounded-[10px] text-[13px] normal-case"
             >
               Hesabı Sil
             </Button>
@@ -400,13 +414,13 @@ const AccountCard = () => {
             variant="tonal"
             onClick={signOut}
             startIcon={<LogOut size={14} />}
-            sx={styles.logoutButton}
+            className="rounded-[10px] text-[13px] normal-case"
           >
             Cikis Yap
           </Button>
-        </Stack>
-      </Stack>
-    </Stack>
+        </div>
+      </div>
+    </section>
   );
 };
 

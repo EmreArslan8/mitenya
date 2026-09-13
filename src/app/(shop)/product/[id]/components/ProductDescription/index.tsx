@@ -1,11 +1,10 @@
 'use client';
 
-import { Accordion, AccordionSummary, AccordionDetails, Typography, Stack } from '@mui/material';
+import { Accordion, AccordionItem } from '@/components/ui/Accordion';
+import { Typography } from '@/components/ui/Typography';
 import DOMPurify from 'isomorphic-dompurify';
 import { Minus, Plus } from '@/components/icons';
-import { useState } from 'react';
 import Markdown, { MarkdownOptions } from '@/components/common/Markdown';
-import useStyles from './styles';
 
 interface Section {
   title: string;
@@ -76,40 +75,44 @@ const MARKDOWN_OPTIONS: MarkdownOptions = {
 };
 
 const ProductDescription = ({ description, defaultExpanded = 0 }: ProductDescriptionProps) => {
-  const styles = useStyles();
   const sections = parseHtmlSections(description);
-  const [expanded, setExpanded] = useState<number | false>(defaultExpanded);
-
-  const handleChange = (index: number) => (_: React.SyntheticEvent, isExpanded: boolean) => {
-    setExpanded(isExpanded ? index : false);
-  };
 
   if (sections.length === 0) {
     return <Markdown text={description} />;
   }
 
   return (
-    <Stack sx={styles.container}>
+    <Accordion
+      /* MUI'de `expanded === index` idi: biri açılınca diğeri kapanıyordu. */
+      type="single"
+      className="border-t border-gray-200"
+      defaultValue={defaultExpanded >= 0 ? [String(defaultExpanded)] : []}
+    >
       {sections.map((section, index) => (
-        <Accordion
+        <AccordionItem
           key={index}
-          expanded={expanded === index}
-          onChange={handleChange(index)}
-          sx={styles.accordion}
-          disableGutters
+          value={String(index)}
+          className="border-b border-gray-200"
+          triggerClassName="px-2 py-3.5"
+          contentClassName="px-3.5 pb-4"
+          hideChevron
+          trigger={
+            <>
+              <Typography as="span" className="text-[16px] leading-[1.45] text-text">
+                {section.title}
+              </Typography>
+              {/* MUI'de ikon `expanded` state'iyle değişiyordu; artık data-[state] ile. */}
+              <span className="shrink-0 text-text">
+                <Plus size={22} className="group-data-[state=open]:hidden" />
+                <Minus size={22} className="hidden group-data-[state=open]:block" />
+              </span>
+            </>
+          }
         >
-          <AccordionSummary
-            expandIcon={expanded === index ? <Minus size={22} /> : <Plus size={22} />}
-            sx={styles.summary}
-          >
-            <Typography sx={styles.title}>{section.title}</Typography>
-          </AccordionSummary>
-          <AccordionDetails sx={styles.details}>
-            <Markdown text={section.content} options={MARKDOWN_OPTIONS} sx={styles.markdown} />
-          </AccordionDetails>
-        </Accordion>
+          <Markdown text={section.content} options={MARKDOWN_OPTIONS} className="text-text" />
+        </AccordionItem>
       ))}
-    </Stack>
+    </Accordion>
   );
 };
 

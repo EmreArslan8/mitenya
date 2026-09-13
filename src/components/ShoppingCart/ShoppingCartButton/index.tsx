@@ -1,27 +1,24 @@
-import Button from '@/components/common/Button';
+import Button from '@/components/ui/Button';
 import Card from '@/components/common/Card';
+import Popover from '@/components/ui/Popover';
 import { ShopContext } from '@/contexts/ShopContext';
 import { ShopProductData } from '@/lib/api/types';
 import { CartBagIcon } from '@/components/icons';
-import { MenuItem, Popover, Stack, Typography } from '@mui/material';
 import { useContext, useEffect, useRef, useState } from 'react';
-import useStyles from './styles';
 import { useRouter } from 'next/navigation';
 import formatPrice from '@/lib/utils/formatPrice';
-import useScreen from '@/lib/hooks/useScreen';
+import Image from 'next/image';
+import { matchesMedia } from '@/theme/breakpoints';
 
 /** Butondan panele geçerken panelin kapanmaması için kısa gecikme. */
 const HOVER_CLOSE_DELAY = 160;
 
 const ShoppingCartButton = ({ compact = false }: { compact?: boolean }) => {
   const router = useRouter();
-  const buttonRef = useRef<HTMLLIElement>(null);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { cart, numItems, newProductAdded } = useContext(ShopContext);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const { smDown } = useScreen();
-  const styles = useStyles();
 
   useEffect(() => {
     setIsMounted(true);
@@ -33,8 +30,8 @@ const ShoppingCartButton = ({ compact = false }: { compact?: boolean }) => {
   useEffect(() => {
     // Mobilde sepete ekleme sonrası üstteki mini-sepet popover'ı açılmasın;
     // mobilde alttaki sepet sheet'i (Navigation cartModal) zaten açılıyor.
-    if (newProductAdded && !smDown) setMenuOpen(true);
-  }, [newProductAdded, smDown]);
+    if (newProductAdded && matchesMedia('smUp')) setMenuOpen(true);
+  }, [newProductAdded]);
 
   const cancelClose = () => {
     if (closeTimeoutRef.current) {
@@ -45,13 +42,13 @@ const ShoppingCartButton = ({ compact = false }: { compact?: boolean }) => {
 
   /** Masaüstünde hover ile açılır; dokunmatikte tıklama tek yol olarak kalır. */
   const handleOpenOnHover = () => {
-    if (smDown) return;
+    if (!matchesMedia('smUp')) return;
     cancelClose();
     setMenuOpen(true);
   };
 
   const handleCloseOnHover = () => {
-    if (smDown) return;
+    if (!matchesMedia('smUp')) return;
     cancelClose();
     closeTimeoutRef.current = setTimeout(() => setMenuOpen(false), HOVER_CLOSE_DELAY);
   };
@@ -72,87 +69,76 @@ const ShoppingCartButton = ({ compact = false }: { compact?: boolean }) => {
   const hasItems = !!cart?.length;
 
   return (
-    <Stack>
-      <MenuItem
-        ref={buttonRef}
-        onClick={goToCart}
-        onMouseEnter={handleOpenOnHover}
-        onMouseLeave={handleCloseOnHover}
-        sx={[styles.button, compact && styles.buttonCompact]}
-        aria-label={compact ? 'Sepet' : undefined}
-      >
-        {/*
-          28px bilerek: komsu header ikonlari (Search/User/Heart) 24px.
-          Dolu bir govde, ayni kutudaki kontur ikonlarin yaninda optik olarak
-          kucuk kaliyor; Boyner'in header setinde de sepet 28px, arama 24px.
-        */}
-        <CartBagIcon size={28} count={isMounted ? numItems : 0} />
-        {!compact && 'Sepet'}
-      </MenuItem>
-
+    <div>
       <Popover
-        elevation={0}
-        anchorEl={buttonRef.current}
         open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        disableRestoreFocus
-        /* Panel hover ile açıldığı için altındaki içeriğin tıklanabilirliğini kapatmıyoruz. */
-        sx={{ ...styles.popover, pointerEvents: 'none' }}
-        slotProps={{
-          paper: {
-            onMouseEnter: cancelClose,
-            onMouseLeave: handleCloseOnHover,
-            sx: { pointerEvents: 'auto' },
-          },
-        }}
+        onOpenChange={setMenuOpen}
+        align="end"
+        sideOffset={0}
+        onMouseEnter={cancelClose}
+        onMouseLeave={handleCloseOnHover}
+        className="border-0 bg-transparent p-4 pt-2 shadow-none"
+        trigger={
+          <button
+            type="button"
+            onClick={goToCart}
+            onMouseEnter={handleOpenOnHover}
+            onMouseLeave={handleCloseOnHover}
+            className={
+              compact
+                ? 'inline-flex size-12 min-w-12 appearance-none items-center justify-center gap-0 border-0 bg-transparent p-0 text-bg-contrast-text [&_svg]:size-6'
+                : 'inline-flex appearance-none items-center gap-2 border-0 bg-transparent px-4 py-2 text-bg-contrast-text'
+            }
+            aria-label={compact ? 'Sepet' : undefined}
+          >
+            <CartBagIcon size={28} count={isMounted ? numItems : 0} />
+            {!compact && 'Sepet'}
+          </button>
+        }
       >
-        <Card sx={styles.menu}>
-          <Stack sx={styles.menuBody}>
+        <Card className="w-[336px] max-w-screen border border-black/8 bg-bg shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
+          <div className="flex flex-col gap-4 p-4">
             {hasItems ? (
               <>
-                <Stack sx={styles.menuHeader}>
-                  <Typography sx={styles.menuTitle}>Sepetim</Typography>
-                  <Typography sx={styles.menuCount}>{numItems} Ürün</Typography>
-                </Stack>
+                <div className="flex items-baseline gap-2">
+                  <h2 className="text-lg font-semibold leading-[1.2] text-text">Sepetim</h2>
+                  <span className="text-[13px] font-normal text-text-medium-light">{numItems} Ürün</span>
+                </div>
 
-                <Stack sx={styles.products}>
+                <div className="flex max-h-[296px] flex-col gap-3.5 overflow-y-auto">
                   {cart?.map((p) => (
                     <Product data={p} key={p.id} />
                   ))}
-                </Stack>
+                </div>
 
-                <Button variant="contained" onClick={goToCart} sx={styles.cta}>
+                <Button variant="contained" color="primary" fullWidth onClick={goToCart}>
                   Sepete Git
                 </Button>
               </>
             ) : (
-              <Stack sx={styles.empty}>
-                <Stack sx={styles.emptyIconRing}>
+              <div className="flex flex-col items-center gap-3 py-3 text-center">
+                <div className="flex size-[76px] items-center justify-center rounded-full bg-bg-dark text-text">
                   <CartBagIcon size={34} />
-                </Stack>
-                <Stack gap={0.5}>
-                  <Typography sx={styles.emptyTitle}>Sepetin boş görünüyor</Typography>
-                  <Typography sx={styles.emptyText}>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-[15px] font-semibold text-text">Sepetin boş görünüyor</h2>
+                  <p className="text-[13px] leading-[18px] text-text-medium-light">
                     Kore cilt bakımının en sevilen ürünlerine göz atmaya ne dersin?
-                  </Typography>
-                </Stack>
-                <Button variant="contained" onClick={goToShopping} sx={styles.cta}>
+                  </p>
+                </div>
+                <Button variant="contained" color="primary" fullWidth onClick={goToShopping}>
                   Alışverişe Başla
                 </Button>
-              </Stack>
+              </div>
             )}
-          </Stack>
+          </div>
         </Card>
       </Popover>
-    </Stack>
+    </div>
   );
 };
 
 const Product = ({ data }: { data: ShopProductData }) => {
-  const styles = useStyles();
-
   /** "Kırmızı / M / 5 Adet" — seçili varyantlar ve adet tek rozette. */
   const chipParts = [
     ...(data.variants
@@ -168,25 +154,31 @@ const Product = ({ data }: { data: ShopProductData }) => {
       : data.name;
 
   return (
-    <Stack sx={styles.product}>
-      <Stack sx={styles.productImageWrapper}>
-        <img src={data.imgSrc} alt={data.name} style={styles.productImage} />
-      </Stack>
-      <Stack sx={styles.info}>
-        <Typography sx={styles.productName}>
+    <div className="flex items-start gap-3">
+      <div className="flex h-[84px] w-[60px] shrink-0 items-center justify-center overflow-hidden bg-white">
+        {data.imgSrc && (
+          <Image
+            src={data.imgSrc}
+            alt={data.name ?? ''}
+            width={60}
+            height={84}
+            className="block size-full object-contain"
+          />
+        )}
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col items-start gap-1.5">
+        <p className="line-clamp-2 text-[13px] leading-[18px] text-text-medium-light [&_b]:font-semibold [&_b]:text-text">
           {brand && <b>{brand} </b>}
           {name}
-        </Typography>
-        <Stack sx={styles.variantChip}>
-          <Typography component="span" sx={styles.variantChipText}>
-            {chipParts.join(' / ')}
-          </Typography>
-        </Stack>
-        <Typography sx={styles.productPrice}>
+        </p>
+        <span className="flex items-center rounded-full border border-black/[12%] px-2 py-0.5 text-[11px] whitespace-nowrap text-text-medium-light">
+          {chipParts.join(' / ')}
+        </span>
+        <p className="text-sm font-semibold text-text">
           {formatPrice(data.price.currentPrice * data.quantity, data.price.currency)}
-        </Typography>
-      </Stack>
-    </Stack>
+        </p>
+      </div>
+    </div>
   );
 };
 

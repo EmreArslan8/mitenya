@@ -1,4 +1,3 @@
-import { Direction } from '@mui/material';
 import { ComponentType, Fragment } from 'react';
 import FAQ from './FAQ';
 import FreeText from './FreeText';
@@ -6,16 +5,16 @@ import ShopBanner from './ShopBanner';
 import ShopFeatureBox from './ShopFeatureBox';
 import ShopFeatureCards from './ShopFeatureCards';
 import ShopInfoAreas from './ShopInfoAreas';
-import ShopInlineProducts from './ShopInlineProducts';
+import ShopInlineProducts from './ShopInlineProducts/deferred';
 import ShopRibbon from './ShopRibbon';
 import ShopBadgeButtons from './ShopBadgeButtons';
-import ShopSliderCards from './ShopSliderCards';
+import ShopSliderCards from './ShopSliderCards/deferred';
 import ShopCategoryBlocks from './ShopCategoryBlocks';
 import ShopPromoCards from './ShopPromoCards';
-import ShopBrands from './ShopBrands';
+import ShopBrands from './ShopBrands/deferred';
 import ShopFeatureBanner from './ShopFeatureBanner';
-import ShopBlogCards from './ShopBlogCards';
-import ShopBrandShowcase from './ShopBrandShowcase';
+import ShopBlogCards from './ShopBlogCards/deferred';
+import ShopBrandShowcase from './ShopBrandShowcase/deferred';
 import ProductDetailBanner from './ProductDetailBanner';
 import ProductDetailTabs from './ProductDetailTabs';
 import ProductDetailIngredients from './ProductDetailIngredients';
@@ -75,7 +74,7 @@ export type CMSBlock = {
  */
 export interface BlockComponentBaseProps {
   blockIndex: number;
-  direction: Direction;
+  direction: 'ltr' | 'rtl';
 }
 
 const getBlockKey = (block: CMSBlock, index: number) =>

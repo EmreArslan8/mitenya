@@ -2,7 +2,8 @@
 
 import LoadingOverlay from '@/components/LoadingOverlay';
 import { CloseIcon, Lock } from '@/components/icons';
-import { Box, Modal, Stack, IconButton, Typography } from '@mui/material'
+import { Dialog } from '@/components/ui/Dialog';
+import { Typography } from '@/components/ui/Typography';
 import { useEffect, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
 
@@ -45,55 +46,25 @@ const PayTRPortal = ({ token, open, onClose, onSuccess, onError }: PayTRPortalPr
   if (!open || !token) return null;
 
   return (
-    <Modal
+    <Dialog
       open={open}
-      onClose={onClose}
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
+      onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }}
+      srTitle="Güvenli ödeme"
+      className="flex h-full w-full max-w-[600px] flex-col overflow-hidden rounded-none sm:h-auto sm:max-h-[90vh] sm:w-[90%] sm:rounded-lg"
     >
-      <Box
-        sx={{
-          width: { xs: '100%', sm: '90%', md: 600 },
-          maxWidth: 600,
-          height: { xs: '100%', sm: 'auto' },
-          maxHeight: { xs: '100%', sm: '90vh' },
-          bgcolor: 'background.paper',
-          borderRadius: { xs: 0, sm: 2 },
-          boxShadow: 24,
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        {/* Header */}
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          sx={{
-            px: 2,
-            py: 1.5,
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            bgcolor: 'grey.50',
-          }}
-        >
-          <Stack direction="row" alignItems="center" gap={1}>
-          <Lock color="success" size={20} />
-            <Typography variant="subtitle2" fontWeight={600}>
+        <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-4 py-3">
+          <div className="flex items-center gap-2 text-success">
+            <Lock size={20} />
+            <Typography variant="subtitle2" className="font-semibold text-text">
               Güvenli Ödeme
             </Typography>
-          </Stack>
-          <IconButton size="small" onClick={onClose}>
+          </div>
+          <button type="button" className="flex h-8 w-8 items-center justify-center border-0 bg-transparent" onClick={onClose} aria-label="Ödeme penceresini kapat">
             <CloseIcon size={20} />
-          </IconButton>
-        </Stack>
+          </button>
+        </div>
 
-        {/* PayTR iFrame */}
-        <Box sx={{ flex: 1, position: 'relative', minHeight: 400 }}>
+        <div className="relative min-h-[400px] flex-1">
           {loading && <LoadingOverlay loading />}
           <iframe
             src={`https://www.paytr.com/odeme/guvenli/${token}`}
@@ -106,29 +77,15 @@ const PayTRPortal = ({ token, open, onClose, onSuccess, onError }: PayTRPortalPr
             onLoad={() => setLoading(false)}
             allow="payment"
           />
-        </Box>
+        </div>
 
-        {/* Footer */}
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="center"
-          gap={1}
-          sx={{
-            px: 2,
-            py: 1,
-            borderTop: '1px solid',
-            borderColor: 'divider',
-            bgcolor: 'grey.50',
-          }}
-        >
-          <ShieldCheck color="success" fontSize={16} />
-          <Typography variant="caption" color="text.secondary">
+        <div className="flex items-center justify-center gap-2 border-t border-gray-100 bg-gray-50 px-4 py-2 text-success">
+          <ShieldCheck size={16} />
+          <Typography variant="caption" className="text-text-secondary">
             256-bit SSL ile şifrelenmiş güvenli bağlantı
           </Typography>
-        </Stack>
-      </Box>
-    </Modal>
+        </div>
+    </Dialog>
   );
 };
 

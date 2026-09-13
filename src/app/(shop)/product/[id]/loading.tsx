@@ -1,171 +1,197 @@
-'use client';
-
 import Image from 'next/image';
-import { Divider, Grid, Skeleton, Stack } from '@mui/material';
+import { Divider } from '@/components/ui/Divider';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Stack } from '@/components/ui/Stack';
 
+/**
+ * ADR-0002 Faz 2 (F2.1) — MUI'siz, Emotion'sız.
+ * `'use client'` kaldırıldı: etkileşim yok, artık server component.
+ *
+ * Dönüşüm notları (konvansiyon.md §1/§3):
+ *   MUI Grid -> CSS grid
+ *     container columnSpacing={{sm:5}} rowSpacing={{xs:3,sm:0}} + item xs=12 sm=6
+ *       -> grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-10 sm:gap-y-0
+ *     container spacing={2} + item xs=6 sm=3
+ *       -> grid grid-cols-2 gap-4 sm:grid-cols-4
+ *   borderRadius: 1 -> rounded-lg (8px) · 1.5 -> rounded-[12px] · 2 -> rounded-2xl (16px)
+ *                  999 -> rounded-full · 0 -> rounded-none
+ *   gap 2.25 -> gap-4.5 (18px) · 1.25 -> gap-2.5 (10px) · 0.6 -> gap-[4.8px]
+ *   borderColor 'divider' -> border-black/[12%]  (MUI varsayılanı rgba(0,0,0,.12);
+ *     palette.ts'te `divider` anahtarı yok, token'a çevrilirse renk kayar)
+ */
 const Loading = () => {
   return (
-    <Stack gap={{ xs: 4, sm: 5 }}>
+    <Stack className="gap-8 sm:gap-10">
       <Stack gap={2}>
-        <Stack direction="row" alignItems="center" gap={1} sx={{ px: { xs: 2, sm: 0 } }}>
-          <Skeleton variant="text" width={72} sx={{ fontSize: 13 }} />
+        <Stack direction="row" align="center" gap={1} className="px-4 sm:px-0">
+          <Skeleton variant="text" width={72} className="text-[13px]" />
           <Skeleton variant="circular" width={4} height={4} />
-          <Skeleton variant="text" width={84} sx={{ fontSize: 13 }} />
+          <Skeleton variant="text" width={84} className="text-[13px]" />
           <Skeleton variant="circular" width={4} height={4} />
-          <Skeleton variant="text" width={94} sx={{ fontSize: 13 }} />
+          <Skeleton variant="text" width={94} className="text-[13px]" />
         </Stack>
 
-        <Grid container columnSpacing={{ sm: 5 }} rowSpacing={{ xs: 3, sm: 0 }}>
-          <Grid item xs={12} sm={6}>
-            {/* Mobile */}
-            <Stack gap={1} sx={{ display: { xs: 'flex', sm: 'none' } }}>
+        <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-10 sm:gap-y-0">
+          <div>
+            {/* Mobil galeri */}
+            <Stack gap={1} className="sm:hidden">
               <Skeleton
                 variant="rounded"
                 width="100%"
                 height={0}
-                sx={{ pt: '118%', borderRadius: 0 }}
+                className="rounded-none pt-[118%]"
               />
-              <Stack direction="row" justifyContent="center" gap={0.75} sx={{ px: 2 }}>
+              <Stack direction="row" justify="center" gap={0.75} className="px-4">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <Skeleton key={i} variant="circular" width={8} height={8} />
                 ))}
               </Stack>
             </Stack>
 
-            {/* Desktop */}
-            <Stack direction="row" gap={1.5} sx={{ display: { xs: 'none', sm: 'flex' } }}>
-              <Stack gap={1} sx={{ width: 82, minWidth: 82 }}>
+            {/* Masaüstü galeri */}
+            <Stack direction="row" gap={1.5} className="hidden sm:flex">
+              <Stack gap={1} className="w-[82px] min-w-[82px]">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton
                     key={i}
                     variant="rounded"
                     width={82}
                     height={0}
-                    sx={{ pt: '125%', borderRadius: 1 }}
+                    className="rounded-lg pt-[125%]"
                   />
                 ))}
               </Stack>
               <Stack
-                sx={{
-                  position: 'relative',
-                  flex: 1,
-                  height: { sm: 560, md: 760 },
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                align="center"
+                justify="center"
+                className="relative flex-1 sm:h-[560px] md:h-[760px]"
               >
-                <Skeleton
-                  variant="rounded"
-                  sx={{
-                    position: 'absolute',
-                    inset: 0,
-                    borderRadius: 0,
-                  }}
-                />
+                <Skeleton variant="rounded" className="absolute inset-0 rounded-none" />
                 <Image
                   src="/static/images/logo.svg"
                   alt="Mitenya"
                   width={128}
                   height={37}
                   priority={false}
-                  style={{ position: 'relative', zIndex: 1, opacity: 0.92 }}
+                  unoptimized
+                  className="relative z-[1] opacity-[0.92]"
                 />
               </Stack>
             </Stack>
-          </Grid>
+          </div>
 
-          <Grid item xs={12} sm={6}>
-            <Stack gap={2.25} sx={{ px: { xs: 2, sm: 0 } }}>
+          <div>
+            <Stack className="gap-4.5 px-4 sm:px-0">
               <Stack gap={1}>
-                <Skeleton variant="text" width={90} sx={{ fontSize: 13 }} />
-                <Skeleton variant="text" width="88%" sx={{ fontSize: 34, lineHeight: '42px' }} />
-                <Skeleton variant="text" width="72%" sx={{ fontSize: 34, lineHeight: '42px' }} />
+                <Skeleton variant="text" width={90} className="text-[13px]" />
+                <Skeleton variant="text" width="88%" className="text-[34px] leading-[42px]" />
+                <Skeleton variant="text" width="72%" className="text-[34px] leading-[42px]" />
               </Stack>
 
-              <Stack direction="row" alignItems="center" gap={1}>
-                <Skeleton variant="text" width={110} sx={{ fontSize: 14 }} />
-                <Skeleton variant="text" width={44} sx={{ fontSize: 14 }} />
+              <Stack direction="row" align="center" gap={1}>
+                <Skeleton variant="text" width={110} className="text-[14px]" />
+                <Skeleton variant="text" width={44} className="text-[14px]" />
               </Stack>
 
-              <Stack gap={1.25}>
-                <Skeleton variant="rounded" width={112} height={30} sx={{ borderRadius: 999 }} />
-                <Skeleton variant="text" width="100%" sx={{ fontSize: 15 }} />
-                <Skeleton variant="text" width="92%" sx={{ fontSize: 15 }} />
-                <Skeleton variant="text" width="70%" sx={{ fontSize: 15 }} />
+              <Stack className="gap-2.5">
+                <Skeleton variant="rounded" width={112} height={30} className="rounded-full" />
+                <Skeleton variant="text" width="100%" className="text-[15px]" />
+                <Skeleton variant="text" width="92%" className="text-[15px]" />
+                <Skeleton variant="text" width="70%" className="text-[15px]" />
                 <Divider />
               </Stack>
 
-              <Skeleton variant="text" width={132} sx={{ fontSize: 15 }} />
+              <Skeleton variant="text" width={132} className="text-[15px]" />
 
-              <Stack direction="row" alignItems="center" gap={1}>
-                <Skeleton variant="text" width={92} sx={{ fontSize: 18 }} />
-                <Skeleton variant="text" width={140} sx={{ fontSize: 30 }} />
-                <Skeleton variant="rounded" width={92} height={28} sx={{ borderRadius: 999 }} />
+              <Stack direction="row" align="center" gap={1}>
+                <Skeleton variant="text" width={92} className="text-[18px]" />
+                <Skeleton variant="text" width={140} className="text-[30px]" />
+                <Skeleton variant="rounded" width={92} height={28} className="rounded-full" />
               </Stack>
 
               <Stack gap={1.5}>
-                <Skeleton variant="rounded" width="100%" height={54} sx={{ borderRadius: 999 }} />
-                <Stack direction={{ xs: 'column', sm: 'row' }} gap={1.25}>
-                  <Skeleton variant="rounded" width="100%" height={52} sx={{ borderRadius: 999 }} />
-                  <Skeleton variant="rounded" width="100%" height={52} sx={{ borderRadius: 999 }} />
+                <Skeleton variant="rounded" width="100%" height={54} className="rounded-full" />
+                <Stack className="flex-col gap-2.5 sm:flex-row">
+                  <Skeleton variant="rounded" width="100%" height={52} className="rounded-full" />
+                  <Skeleton variant="rounded" width="100%" height={52} className="rounded-full" />
                 </Stack>
               </Stack>
 
-              <Stack gap={1.25} sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+              <Stack className="gap-2.5 rounded-2xl border border-black/[12%] p-4">
                 {Array.from({ length: 2 }).map((_, index) => (
-                  <Stack key={index} direction="row" gap={1.25} alignItems="flex-start">
+                  <Stack key={index} direction="row" align="start" className="gap-2.5">
                     <Skeleton variant="circular" width={28} height={28} />
-                    <Stack flex={1} gap={0.6}>
-                      <Skeleton variant="text" width={140} sx={{ fontSize: 15 }} />
-                      <Skeleton variant="text" width="94%" sx={{ fontSize: 13 }} />
+                    <Stack className="flex-1 gap-[4.8px]">
+                      <Skeleton variant="text" width={140} className="text-[15px]" />
+                      <Skeleton variant="text" width="94%" className="text-[13px]" />
                     </Stack>
                   </Stack>
                 ))}
               </Stack>
 
               <Stack gap={1}>
-                <Skeleton variant="text" width={124} sx={{ fontSize: 12 }} />
-                <Skeleton variant="text" width="82%" sx={{ fontSize: 14 }} />
-                <Skeleton variant="text" width="74%" sx={{ fontSize: 14 }} />
+                <Skeleton variant="text" width={124} className="text-[12px]" />
+                <Skeleton variant="text" width="82%" className="text-[14px]" />
+                <Skeleton variant="text" width="74%" className="text-[14px]" />
               </Stack>
 
               <Stack gap={1}>
                 {Array.from({ length: 3 }).map((_, index) => (
-                  <Skeleton key={index} variant="rounded" width="100%" height={52} sx={{ borderRadius: 1.5 }} />
+                  <Skeleton
+                    key={index}
+                    variant="rounded"
+                    width="100%"
+                    height={52}
+                    className="rounded-[12px]"
+                  />
                 ))}
               </Stack>
             </Stack>
-          </Grid>
-        </Grid>
+          </div>
+        </div>
       </Stack>
 
-      <Stack gap={3} sx={{ px: { xs: 2, sm: 4 } }}>
+      <Stack gap={3} className="px-4 sm:px-8">
         <Stack gap={2}>
-          <Skeleton variant="text" width={210} sx={{ fontSize: 36, lineHeight: '40px' }} />
-          <Skeleton variant="rounded" width="100%" height={220} sx={{ borderRadius: 2 }} />
+          <Skeleton variant="text" width={210} className="text-[36px] leading-[40px]" />
+          <Skeleton variant="rounded" width="100%" height={220} className="rounded-2xl" />
           <Stack gap={1.5}>
             {Array.from({ length: 2 }).map((_, index) => (
-              <Skeleton key={index} variant="rounded" width="100%" height={120} sx={{ borderRadius: 2 }} />
+              <Skeleton
+                key={index}
+                variant="rounded"
+                width="100%"
+                height={120}
+                className="rounded-2xl"
+              />
             ))}
           </Stack>
         </Stack>
 
         <Stack gap={2}>
-          <Skeleton variant="text" width={198} sx={{ fontSize: 36, lineHeight: '40px' }} />
-          <Grid container spacing={2}>
+          <Skeleton variant="text" width={198} className="text-[36px] leading-[40px]" />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
-              <Grid item xs={6} sm={3} key={index}>
-                <Stack gap={1}>
-                  <Skeleton variant="rounded" width="100%" height={0} sx={{ pt: '132%', borderRadius: 1.5 }} />
-                  <Skeleton variant="text" width={84} sx={{ fontSize: 12 }} />
-                  <Skeleton variant="text" width="100%" sx={{ fontSize: 15 }} />
-                  <Skeleton variant="text" width="78%" sx={{ fontSize: 15 }} />
-                  <Skeleton variant="text" width={92} sx={{ fontSize: 18 }} />
-                  <Skeleton variant="rounded" width="100%" height={40} sx={{ borderRadius: 1.5 }} />
-                </Stack>
-              </Grid>
+              <Stack key={index} gap={1}>
+                <Skeleton
+                  variant="rounded"
+                  width="100%"
+                  height={0}
+                  className="rounded-[12px] pt-[132%]"
+                />
+                <Skeleton variant="text" width={84} className="text-[12px]" />
+                <Skeleton variant="text" width="100%" className="text-[15px]" />
+                <Skeleton variant="text" width="78%" className="text-[15px]" />
+                <Skeleton variant="text" width={92} className="text-[18px]" />
+                <Skeleton
+                  variant="rounded"
+                  width="100%"
+                  height={40}
+                  className="rounded-[12px]"
+                />
+              </Stack>
             ))}
-          </Grid>
+          </div>
         </Stack>
       </Stack>
     </Stack>

@@ -5,6 +5,13 @@ import CouponLauncher from './CouponLauncher';
 import CouponModal from './CouponModal';
 import { useWelcomeCoupon } from './useWelcomeCoupon';
 
+/**
+ * Hosgeldin kuponu modali gecici olarak kapatildi. Tekrar acmak icin `true` yap;
+ * altindaki kupon mantigi (useWelcomeCoupon, CouponModal, CouponLauncher) oldugu
+ * gibi duruyor.
+ */
+const WELCOME_COUPON_ENABLED = false;
+
 const WelcomeCouponModal = ({
   coupons,
   placement,
@@ -14,7 +21,7 @@ const WelcomeCouponModal = ({
 }) => {
   const coupon = useWelcomeCoupon(coupons, placement);
 
-  if (!coupon) return null;
+  if (!WELCOME_COUPON_ENABLED || !coupon) return null;
 
   const { phase, code, discountPercent, snackbarOpen, setSnackbarOpen,
     handleClose, handleCopy, handleContinue, handleReopen, handleDismissLauncher } = coupon;

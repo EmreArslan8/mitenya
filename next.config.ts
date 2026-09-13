@@ -76,7 +76,11 @@ const nextConfig: NextConfig = {
             value: 'camera=(), microphone=(), geolocation=(), payment=(self)'
           },
           (() => {
-            const isDev = process.env.NODE_ENV !== 'production';
+            // `next start` ile alinan lokal prod build'de de NODE_ENV=production
+            // oldugu icin, CMS yerel Strapi'yi gosteriyorsa http://localhost:1337
+            // izinli olmali; aksi halde CSP tum CMS gorsellerini bloklar.
+            const usesLocalCms = (process.env.NEXT_PUBLIC_STRAPI_URL ?? '').includes('localhost');
+            const isDev = process.env.NODE_ENV !== 'production' || usesLocalCms;
             const imgSrc = [
               "img-src 'self' data: https: blob:",
               isDev ? "http://localhost:1337" : null,

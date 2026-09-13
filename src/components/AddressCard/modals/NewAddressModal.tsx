@@ -1,11 +1,10 @@
 import ModalCard from '@/components/common/ModalCard';
 import { AddressData } from '@/lib/api/types';
 import useAddress from '@/lib/api/useAddress';
-import { LoadingButton } from '@mui/lab';
-import { Button, Stack, Typography } from '@mui/material';
+import { Button } from '@/components/ui/Button';
+import { Typography } from '@/components/ui/Typography';
 import { useState } from 'react';
 import AddressForm from '../AddressForm';
-import styles from '../styles';
 import { CheckCircle2 } from '@/components/icons';
 import { AlertTriangle, MapPinPlus } from 'lucide-react';
 
@@ -63,46 +62,46 @@ const NewAddressModal = ({
       customIcon={<MapPinPlus size={22} />}
       showCloseIcon
       title="Adres Ekle"
-      CardProps={{ sx: styles.modalCard }}
-      BodyProps={{ sx: { maxHeight: 'min(78vh, 720px)', overflowY: 'auto' } }}
+      className="sm:max-w-[560px]"
+      bodyClassName="max-h-[min(78vh,720px)] overflow-y-auto"
     >
-      <Stack sx={{ display: success || error ? 'none' : 'flex' }}>
+      <div className={success || error ? 'hidden' : 'flex flex-col'}>
         <AddressForm
           onSubmit={handleSubmit}
           submitTrigger={submitTrigger}
           initialValues={{ name: defaultName }}
         />
-        <LoadingButton
+        <Button
           fullWidth
           loading={loading}
           variant="contained"
           onClick={() => setSubmitTrigger((prev) => prev + 1)}
-          sx={{ width: { sm: '75%' }, mt: { xs: 2, md: 3 }, mx: 'auto' }}
+          className="mx-auto mt-4 sm:w-3/4 md:mt-6"
         >
           Adresi Kaydet
-        </LoadingButton>
-      </Stack>
+        </Button>
+      </div>
       {success && (
-        <Stack sx={styles.cardBody} alignItems="center" textAlign="center" minWidth={300}>
-          <Stack gap={1} pb={2}>
-            <CheckCircle2 size={80} color="var(--mui-palette-success-main)" />
+        <div className="flex min-w-[300px] flex-col items-center gap-4 px-4 pb-5 pt-4 text-center sm:px-5">
+          <div className="flex flex-col items-center gap-2 pb-4 text-success">
+            <CheckCircle2 size={80} />
             <Typography>Adres eklendi</Typography>
-          </Stack>
+          </div>
           <Button fullWidth variant="contained" onClick={handleClose}>
             Tamam
           </Button>
-        </Stack>
+        </div>
       )}
       {error && (
-        <Stack sx={styles.cardBody} alignItems="center" textAlign="center" minWidth={300}>
-          <Stack gap={1} pb={2}>
-            <AlertTriangle size={80} color="error.main" />
+        <div className="flex min-w-[300px] flex-col items-center gap-4 px-4 pb-5 pt-4 text-center sm:px-5">
+          <div className="flex flex-col items-center gap-2 pb-4 text-error">
+            <AlertTriangle size={80} />
             <Typography>Adres eklenemedi</Typography>
-          </Stack>
+          </div>
           <Button fullWidth variant="contained" onClick={() => setError(false)}>
             Geri
           </Button>
-        </Stack>
+        </div>
       )}
     </ModalCard>
   );

@@ -1,4 +1,3 @@
-import { Box, Stack, Typography } from '@mui/material';
 import DOMPurify from 'isomorphic-dompurify';
 import BlogCard from '@/components/cms/shared/BlogCard';
 import CMSImage from '@/components/cms/shared/CMSImage';
@@ -6,7 +5,6 @@ import ArticleNav from './ArticleNav';
 import SidebarArticles, { type SidebarArticle } from './SidebarArticles';
 import ShareBox from './ShareBox';
 import { prepareArticle } from './article';
-import styles from './styles';
 
 interface BlogEntity {
   id: number;
@@ -112,12 +110,12 @@ const BlogDetailPageView = async ({ slug }: { slug: string }) => {
 
   if (!blog) {
     return (
-      <Stack alignItems="center" justifyContent="center" sx={styles.notFound}>
-        <Typography sx={styles.notFoundTitle}>Blog bulunamadı</Typography>
-        <Typography sx={styles.notFoundSubtitle}>
+      <div className="flex flex-col items-center justify-center gap-3 py-24">
+        <h1 className="text-lg font-semibold text-gray-800">Blog bulunamadı</h1>
+        <p className="text-sm text-gray-500">
           Aradığınız yazı mevcut değil veya kaldırılmış olabilir.
-        </Typography>
-      </Stack>
+        </p>
+      </div>
     );
   }
 
@@ -150,9 +148,9 @@ const BlogDetailPageView = async ({ slug }: { slug: string }) => {
       : null;
 
   return (
-    <Stack sx={styles.page}>
+    <div className="box-border flex w-full self-center flex-col gap-5 px-2 pb-12 pt-2 sm:px-4 md:gap-9 md:px-6 md:pb-20 md:pt-4">
       {cover?.data && (
-        <Box sx={styles.cover}>
+        <div className="relative mx-auto aspect-video w-full max-w-[1160px] overflow-hidden bg-[#F8F6F2] sm:aspect-[16/3]">
           <CMSImage
             src={cover.data.attributes.url}
             alt={cover.data.attributes.alternativeText || title}
@@ -161,56 +159,56 @@ const BlogDetailPageView = async ({ slug }: { slug: string }) => {
             style={{ objectFit: 'cover', objectPosition: 'center' }}
             priority
           />
-        </Box>
+        </div>
       )}
 
       {/* Solda okuma sütunu · sağda arama, öne çıkanlar ve bölüm listesi */}
-      <Box sx={styles.grid}>
-        <Box component="article" sx={styles.contentColumn}>
+      <div className="mx-auto grid w-full max-w-[1160px] grid-cols-[minmax(0,1fr)] items-start lg:grid-cols-[minmax(0,760px)_340px] lg:gap-x-[60px]">
+        <article className="min-w-0">
           {/* Başlık ve künye */}
-          <Stack sx={styles.header}>
-            <Typography component="span" sx={styles.eyebrow}>
+          <header className="mb-6 flex w-full flex-col gap-2.5 md:mb-8 md:gap-3">
+            <span className="text-[11px] font-bold uppercase leading-tight tracking-[0.14em] text-accentRed">
               Cilt bakım rehberi
-            </Typography>
+            </span>
 
-            <Typography component="h1" sx={styles.title}>
+            <h1 className="text-pretty text-[25px] font-semibold leading-[1.18] tracking-[-0.02em] text-gray-800 sm:text-[29px] md:text-[33px]">
               {title}
-            </Typography>
+            </h1>
 
-            <Stack sx={styles.byline}>
-              <Box aria-hidden sx={styles.bylineAvatar}>
+            <div className="flex flex-wrap items-center gap-2.5 text-[12.5px] text-gray-500 md:text-[13.5px]">
+              <span aria-hidden className="grid size-[30px] shrink-0 place-items-center rounded-full bg-[#F2EFEA] text-xs font-bold text-[#8A6A55]">
                 {authorName.charAt(0).toLocaleUpperCase('tr-TR')}
-              </Box>
-              <Typography component="span" sx={styles.bylineName}>
+              </span>
+              <span className="text-[13.5px] font-semibold text-[#3A3A3C]">
                 {authorName}
-              </Typography>
+              </span>
               {publishedLabel && (
                 <>
-                  <Box sx={styles.metaDot} />
-                  <Typography component="time" dateTime={publishedIso} sx={styles.metaText}>
+                  <span className="size-[3px] shrink-0 rounded-full bg-[#C7C7CC]" />
+                  <time dateTime={publishedIso}>
                     {publishedLabel}
-                  </Typography>
+                  </time>
                 </>
               )}
-              <Box sx={styles.metaDot} />
-              <Typography component="span" sx={styles.metaText}>
+              <span className="size-[3px] shrink-0 rounded-full bg-[#C7C7CC]" />
+              <span>
                 {readingMinutes} dk okuma
-              </Typography>
+              </span>
               {updatedLabel && (
                 <>
-                  <Box sx={styles.metaDot} />
-                  <Typography component="span" sx={styles.metaText}>
+                  <span className="size-[3px] shrink-0 rounded-full bg-[#C7C7CC]" />
+                  <span>
                     Güncellendi: {updatedLabel}
-                  </Typography>
+                  </span>
                 </>
               )}
-            </Stack>
+            </div>
 
-            {excerpt && <Typography sx={styles.excerpt}>{excerpt}</Typography>}
-          </Stack>
+            {excerpt && <p className="max-w-[760px] text-base leading-[1.65] text-[#48484A] md:text-[19px]">{excerpt}</p>}
+          </header>
 
           {toc.length > 1 && (
-            <Box component="details" sx={styles.mobileToc}>
+            <details className="blog-mobile-toc mb-7 rounded-[10px] border border-gray-100 bg-[#FAFAFA] px-4 py-3.5 md:mb-9 md:px-5 md:py-4 lg:hidden">
               <summary>
                 <span>Bu rehberde</span>
                 <small>{toc.length} bölüm</small>
@@ -222,41 +220,41 @@ const BlogDetailPageView = async ({ slug }: { slug: string }) => {
                   </li>
                 ))}
               </ol>
-            </Box>
+            </details>
           )}
 
-          <Box dangerouslySetInnerHTML={{ __html: html }} sx={styles.article} />
+          <div className="blog-article" dangerouslySetInnerHTML={{ __html: html }} />
 
-          <Stack direction="row" sx={styles.authorCard}>
-            <Box aria-hidden sx={styles.authorMark}>M</Box>
-            <Stack sx={styles.authorBody}>
-              <Typography sx={styles.authorLabel}>Yazıyı hazırlayan</Typography>
-              <Typography sx={styles.authorTitle}>{author || 'Mitenya Editör'}</Typography>
-              <Typography sx={styles.authorText}>
+          <div className="mt-10 flex items-start gap-4 border-t border-gray-100 pt-6 md:mt-14 md:pt-7">
+            <span aria-hidden className="grid size-12 shrink-0 place-items-center rounded-full bg-gray-800 text-lg font-extrabold text-white">M</span>
+            <div className="flex max-w-[580px] flex-col gap-[3px]">
+              <span className="text-[10.5px] font-bold uppercase tracking-[0.11em] text-gray-500">Yazıyı hazırlayan</span>
+              <span className="text-[15px] font-bold text-gray-800">{author || 'Mitenya Editör'}</span>
+              <p className="text-[13.5px] leading-relaxed text-[#6E6E73] md:text-sm">
                 Mitenya cilt bakım içerikleri, ürün formülasyonları ve kullanım rutinleri üzerine
                 hazırlanır. İçerikler bilgilendirme amaçlıdır; tıbbi tavsiye yerine geçmez.
-              </Typography>
-            </Stack>
-          </Stack>
+              </p>
+            </div>
+          </div>
 
-          <Box sx={styles.footerShare}>
-            <Typography component="span" sx={styles.shareLabel}>Bu yazıyı paylaş</Typography>
+          <div className="mt-6 flex flex-wrap items-center gap-2 sm:pl-16">
+            <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-500">Bu yazıyı paylaş</span>
             <ShareBox title={title} />
-          </Box>
-        </Box>
+          </div>
+        </article>
 
-        <Box component="aside" sx={styles.railRight}>
+        <aside className="sticky top-24 hidden max-h-[calc(100vh-128px)] overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:w-0 lg:block">
           <SidebarArticles items={sidebarItems} />
           <ArticleNav items={toc} />
-        </Box>
-      </Box>
+        </aside>
+      </div>
 
       {relatedBlogs.length > 0 && (
-        <Stack component="section" sx={styles.related}>
-          <Typography component="h2" sx={styles.relatedTitle}>
+        <section className="mx-auto mt-8 flex w-full max-w-[1160px] flex-col gap-5 border-t border-gray-100 pt-8 md:mt-14 md:gap-8 md:pt-12">
+          <h2 className="text-center text-[22px] font-bold tracking-[-0.02em] text-gray-800 md:text-[28px]">
             İlgili Yazılar
-          </Typography>
-          <Box sx={styles.relatedGrid}>
+          </h2>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 md:gap-6">
             {relatedBlogs.map((item) => (
               <BlogCard
                 key={item.id}
@@ -267,10 +265,10 @@ const BlogDetailPageView = async ({ slug }: { slug: string }) => {
                 coverImage={item.attributes.cover?.data?.attributes}
               />
             ))}
-          </Box>
-        </Stack>
+          </div>
+        </section>
       )}
-    </Stack>
+    </div>
   );
 };
 

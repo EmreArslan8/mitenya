@@ -1,6 +1,6 @@
-import { Box, SxProps, Theme } from '@mui/material';
-import { ElementType } from 'react';
+import { createElement, ElementType } from 'react';
 import DOMPurify from 'isomorphic-dompurify';
+import { cn } from '@/lib/utils/cn';
 
 const sanitizeConfig = {
   ALLOWED_TAGS: [
@@ -18,63 +18,40 @@ const sanitizeConfig = {
 export type HtmlContentOptions = {
   [key in 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'li' | 'ul' | 'ol' | 'a' | 'strong']?: {
     variant?: string;
-    sx?: SxProps<Theme>;
+    sx?: Record<string, unknown>;
     color?: string;
     fontWeight?: number;
   };
-};
-
-const defaultSx: SxProps<Theme> = {
-  '& > *:first-of-type': { mt: 0 },
-  '& h1': { fontWeight: 700, fontSize: { xs: 24, sm: 28 }, lineHeight: 1.2, mt: 3 },
-  '& h2': { fontWeight: 700, fontSize: { xs: 18, sm: 20 }, lineHeight: 1.2, mt: 3 },
-  '& h3': { fontWeight: 700, fontSize: { xs: 16, sm: 18 }, lineHeight: 1.25, mt: 3 },
-  '& h4, & h5, & h6': { fontWeight: 700, fontSize: 16, mt: 3 },
-  '& p': { fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap', m: 0 },
-  '& ul, & ol': { m: 0, pl: '20px' },
-  '& li': { fontSize: 14, lineHeight: 1.6, '& + li': { mt: '4px' } },
-  '& strong, & b': { fontWeight: 700 },
-  '& a': { color: 'primary.main', textDecoration: 'underline' },
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 2,
-};
-
-const optionsToSx = (options: HtmlContentOptions): SxProps<Theme> => {
-  const result: Record<string, unknown> = {};
-
-  for (const [tag, config] of Object.entries(options)) {
-    if (!config) continue;
-
-    const { variant, sx, color, fontWeight } = config;
-    result[`& ${tag}`] = {
-      ...(variant ? { typography: variant } : {}),
-      ...(color ? { color } : {}),
-      ...(fontWeight ? { fontWeight } : {}),
-      ...(sx as Record<string, unknown> | undefined),
-    };
-  }
-
-  return result;
 };
 
 interface HtmlContentProps {
   html: string | undefined | null;
   component?: ElementType;
   options?: HtmlContentOptions;
-  sx?: SxProps<Theme>;
+  className?: string;
 }
 
-const HtmlContent = ({ html, component = 'article', options = {}, sx }: HtmlContentProps) => {
+const HtmlContent = ({ html, component = 'article', options = {}, className }: HtmlContentProps) => {
   if (!html) return null;
   const clean = DOMPurify.sanitize(html, sanitizeConfig);
-  return (
-    <Box
-      component={component}
-      sx={[defaultSx, optionsToSx(options), ...(Array.isArray(sx) ? sx : sx ? [sx] : [])]}
-      dangerouslySetInnerHTML={{ __html: clean }}
-    />
-  );
+  const warningParagraph = options.p?.variant === 'warning';
+  return createElement(component, {
+    className: cn(
+      'flex flex-col gap-4',
+      '[&>*:first-child]:mt-0',
+      '[&_h1]:mt-6 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:leading-[1.2] sm:[&_h1]:text-[28px]',
+      '[&_h2]:mt-6 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:leading-[1.2] sm:[&_h2]:text-xl',
+      '[&_h3]:mt-6 [&_h3]:text-base [&_h3]:font-bold [&_h3]:leading-[1.25] sm:[&_h3]:text-lg',
+      '[&_h4]:mt-6 [&_h4]:text-base [&_h4]:font-bold [&_h5]:mt-6 [&_h5]:text-base [&_h5]:font-bold [&_h6]:mt-6 [&_h6]:text-base [&_h6]:font-bold',
+      '[&_p]:m-0 [&_p]:whitespace-pre-wrap [&_p]:text-sm [&_p]:leading-[1.6]',
+      '[&_ul]:m-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:m-0 [&_ol]:list-decimal [&_ol]:pl-5',
+      '[&_li]:text-sm [&_li]:leading-[1.6] [&_li+li]:mt-1 [&_strong]:font-bold [&_b]:font-bold',
+      '[&_a]:text-primary [&_a]:underline',
+      warningParagraph && '[&_p]:text-[15px] [&_p]:font-normal [&_p]:leading-5',
+      className,
+    ),
+    dangerouslySetInnerHTML: { __html: clean },
+  });
 };
 
 export default HtmlContent;

@@ -8,7 +8,7 @@ import { getClientIp } from "@/lib/api/getClientIp";
 // Test için ödeme simülasyonu - sadece development'ta kullanılmalı
 export async function POST(
   req: NextRequest,
-  { params }: { params: { orderNumber: string } }
+  { params }: { params: Promise<{ orderNumber: string }> }
 ) {
   try {
     if (process.env.NODE_ENV === "production") {
@@ -35,7 +35,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { orderNumber } = params;
+    const { orderNumber } = await params;
 
     // Order'ı bul
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderNumber);

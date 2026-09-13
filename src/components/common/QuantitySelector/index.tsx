@@ -1,5 +1,3 @@
-import { IconButton, Stack, SxProps } from '@mui/material';
-import useStyles from './styles';
 import { Minus, Plus } from '@/components/icons';
 import { Trash } from 'lucide-react';
 import { ChangeEvent, KeyboardEvent, useEffect, useState } from 'react';
@@ -12,7 +10,7 @@ interface QuantitySelectorProps {
   onChange?: (quantity: number) => void;
   min?: number;
   max?: number;
-  sx?: SxProps;
+  className?: string;
 }
 
 const QuantitySelector = ({
@@ -22,9 +20,8 @@ const QuantitySelector = ({
   onChange,
   min = 1,
   max,
-  sx,
+  className,
 }: QuantitySelectorProps) => {
-  const styles = useStyles();
   const [draft, setDraft] = useState(String(value));
 
   // Dışarıdan gelen adet değişince (artı/eksi, sepet yenilenmesi) taslağı eşitle.
@@ -54,18 +51,17 @@ const QuantitySelector = ({
   };
 
   return (
-    <Stack sx={{ ...styles.itemQuantitySelector, ...sx } as SxProps}>
-      <IconButton sx={styles.itemQuantityButton} onClick={onDecrease}>
+    <div className={`flex h-[30px] w-fit shrink-0 items-center overflow-hidden rounded-full border border-bg-dark px-1.5 ${className ?? ''}`}>
+      <button type="button" className="inline-flex size-5 items-center justify-center border-0 bg-transparent p-0 text-text-medium" onClick={onDecrease} aria-label={value === 1 ? 'Ürünü sil' : 'Adedi azalt'}>
         {value === 1 ? (
-          <Trash size={16} color={styles.decreaseButtonColor(value)} strokeWidth={1.5} />
+          <Trash size={16} className="text-error" strokeWidth={1.5} />
         ) : (
-          <Minus size={16} color={styles.decreaseButtonColor(value)} strokeWidth={1.5} />
+          <Minus size={16} strokeWidth={1.5} />
         )}
-      </IconButton>
+      </button>
 
       {onChange ? (
-        <Stack
-          component="input"
+        <input
           type="text"
           inputMode="numeric"
           aria-label="Adet"
@@ -74,20 +70,22 @@ const QuantitySelector = ({
           onFocus={(e: ChangeEvent<HTMLInputElement>) => e.target.select()}
           onBlur={commit}
           onKeyDown={handleKeyDown}
-          sx={styles.itemQuantityInput}
+          className="h-6 w-7 cursor-text rounded border-0 bg-transparent p-0 text-center font-inherit text-lg font-bold text-text outline-none transition-colors hover:bg-bg-dark focus:bg-bg-dark"
         />
       ) : (
-        <Stack sx={styles.itemQuantityValue}>{value}</Stack>
+        <span className="flex h-6 w-6 items-center justify-center text-lg font-bold text-text">{value}</span>
       )}
 
-      <IconButton
-        sx={styles.itemQuantityButton}
+      <button
+        type="button"
+        className="inline-flex size-5 items-center justify-center border-0 bg-transparent p-0 text-text-medium disabled:opacity-50"
         disabled={Boolean(max && value >= max)}
         onClick={!max || value < max ? onIncrease : undefined}
+        aria-label="Adedi artır"
       >
         <Plus size={20} strokeWidth={1.5} />
-      </IconButton>
-    </Stack>
+      </button>
+    </div>
   );
 };
 

@@ -1,15 +1,16 @@
 'use client';
 
-import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import { useAuth } from '@/contexts/AuthContext';
 import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
 import { AlertCircle, ArrowRight, CheckCircle2, Clock3, LockKeyhole } from '@/components/icons';
 import { LogIn, PackageCheck, PackageSearch, Truck, UserPlus } from 'lucide-react';
-import { Box, CircularProgress, Divider, Stack, TextField, Typography } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useState, type FormEvent } from 'react';
-import styles from './styles';
+import { Button } from '@/components/ui/Button';
+import { Divider } from '@/components/ui/Divider';
+import { Spinner } from '@/components/ui/Spinner';
+import { TextField } from '@/components/ui/TextField';
 
 type GuestOrder = {
   id: string;
@@ -120,121 +121,118 @@ const OrderStatusLookupContent = () => {
   const currentStepIndex = order ? statusSteps.indexOf(order.status) : 0;
 
   return (
-    <Stack sx={styles.page}>
-      <Stack sx={styles.container}>
+    <main className="flex min-h-[calc(100vh-88px)] items-start justify-center bg-[#FBFBFA] px-3 py-4 md:min-h-[calc(100vh-112px)] md:px-8 md:py-8">
+      <div className="flex w-full max-w-[980px] min-w-0 flex-col gap-4">
         {loading ? (
-          <Card sx={styles.loadingCard}>
-            <Stack alignItems="center" gap={1.5}>
-              <CircularProgress size={28} />
-              <Typography fontWeight={700}>Sipariş bilgisi yükleniyor</Typography>
-            </Stack>
+          <Card className="grid min-h-[280px] place-items-center rounded-[20px] border border-[#E9E5DD] p-8 shadow-[0_22px_60px_rgba(16,24,32,0.06)]">
+            <div className="flex flex-col items-center gap-3">
+              <Spinner size={28} className="text-primary" />
+              <p className="font-bold">Sipariş bilgisi yükleniyor</p>
+            </div>
           </Card>
         ) : order ? (
-          <Stack sx={styles.resultLayout}>
-            <Card sx={styles.statusCard}>
-              <Stack gap={2.25}>
-                <Stack sx={styles.statusHeader}>
-                  <Stack direction="row" gap={1.5} alignItems="center" minWidth={0}>
-                    <Box sx={styles.statusIconBox(status.bg, status.color)}>
+          <div className="grid min-w-0 grid-cols-1 items-start gap-4 md:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.8fr)]">
+            <Card className="min-w-0 overflow-hidden rounded-[18px] border border-[#E9E5DD] p-3 shadow-[0_24px_70px_rgba(16,24,32,0.08)] md:rounded-3xl md:p-6">
+              <div className="flex flex-col gap-[18px]">
+                <div className="flex flex-col justify-between gap-3 sm:flex-row">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="grid size-[42px] shrink-0 place-items-center rounded-[14px] md:size-[52px] md:rounded-[18px]" style={{ backgroundColor: status.bg, color: status.color }}>
                       <StatusIcon size={24} />
-                    </Box>
-                    <Stack minWidth={0}>
-                      <Typography sx={styles.mutedLabel}>Güncel durum</Typography>
-                      <Typography sx={styles.statusTitle(status.color)}>{status.label}</Typography>
-                    </Stack>
-                  </Stack>
-                  <Box sx={styles.orderPill}>#{order.order_number}</Box>
-                </Stack>
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-[#6B7280]">Güncel durum</p>
+                      <p className="[overflow-wrap:anywhere] text-[19px] font-[850] md:text-2xl" style={{ color: status.color }}>{status.label}</p>
+                    </div>
+                  </div>
+                  <span className="max-w-full self-start overflow-hidden text-ellipsis rounded-full bg-[#F2EFE8] px-[13px] py-1.5 text-xs font-extrabold text-[#4B5563] sm:self-center">#{order.order_number}</span>
+                </div>
 
-                <Stack sx={styles.deliveryPanel}>
-                  <Stack direction="row" gap={1.25} alignItems="center">
-                    <Box sx={styles.deliveryIconBox}>
+                <div className="flex flex-col gap-2.5 rounded-[14px] border border-[#E1EBDC] bg-[#F8FAF7] p-[10px] md:rounded-[18px] md:p-[14px]">
+                  <div className="flex items-center gap-2.5">
+                    <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-[#E1EBDC] bg-white text-[#333942]">
                       <Clock3 size={18} />
-                    </Box>
-                    <Stack minWidth={0}>
-                      <Typography sx={styles.mutedLabel}>Son güncelleme</Typography>
-                      <Typography sx={styles.deliveryTitle}>
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-[#6B7280]">Son güncelleme</p>
+                      <p className="text-[15px] font-extrabold text-[#101820]">
                         {order.tracking_number ? 'Kargo takip numarası eklendi' : 'Siparişiniz hazırlanma sürecinde'}
-                      </Typography>
-                    </Stack>
-                  </Stack>
-                  <Typography sx={styles.deliveryText}>
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-[13px] leading-[1.55] text-[#5F6873]">
                     Kargo firması ve teslimat detayları üyelik hesabınızda daha kapsamlı görünür.
-                  </Typography>
-                </Stack>
+                  </p>
+                </div>
 
                 {order.status !== 'cancelled' && (
-                  <Stack direction="row" alignItems="center" sx={styles.timeline}>
+                  <div className="grid grid-cols-4 items-center gap-1 overflow-hidden py-1 md:gap-3 md:py-1.5">
                     {statusSteps.map((step, index) => {
                       const isDone = index <= currentStepIndex;
                       const stepMeta = statusConfig[step];
                       return (
-                        <Stack key={step} direction="row" alignItems="center" flex={1} minWidth={0}>
-                          <Stack gap={0.75} alignItems="center" flex={1} minWidth={0}>
-                            <Box sx={styles.timelineDot(isDone, stepMeta.color)} />
-                            <Typography sx={styles.timelineLabel(isDone)}>{stepMeta.label}</Typography>
-                          </Stack>
+                        <div key={step} className="flex min-w-0 flex-1 items-center">
+                          <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
+                            <span className="size-3 rounded-full" style={{ backgroundColor: isDone ? stepMeta.color : '#D9D6D0', boxShadow: isDone ? `0 0 0 5px ${stepMeta.color}1A` : 'none' }} />
+                            <span className={isDone ? 'text-center text-[9.5px] font-extrabold leading-[1.15] text-[#111827] sm:whitespace-nowrap sm:text-xs' : 'text-center text-[9.5px] font-semibold leading-[1.15] text-[#777E87] sm:whitespace-nowrap sm:text-xs'}>{stepMeta.label}</span>
+                          </div>
                           {index < statusSteps.length - 1 && (
-                            <Box sx={styles.timelineLine(index < currentStepIndex, status.color)} />
+                            <span className="mx-px h-0.5 min-w-0 flex-1 -translate-y-3 sm:mx-1" style={{ backgroundColor: index < currentStepIndex ? status.color : '#E5E0D8' }} />
                           )}
-                        </Stack>
+                        </div>
                       );
                     })}
-                  </Stack>
+                  </div>
                 )}
 
                 {order.items.length > 0 && (
-                  <Stack gap={1}>
-                    <Typography sx={styles.sectionTitle}>Ürün özeti</Typography>
+                  <div className="flex flex-col gap-2">
+                    <p className="font-[850] text-[#101820]">Ürün özeti</p>
                     {order.items.map((item) => (
-                      <Stack
+                      <div
                         key={`${item.product_name}-${item.quantity}`}
-                        sx={styles.productRow}
-                        direction="row"
-                        gap={1.5}
-                        alignItems="center"
+                        className="flex min-h-12 min-w-0 items-center gap-3 rounded-[14px] border border-[#EEEAE3] bg-[#FCFBF8] p-1.5"
                       >
-                        <Box sx={styles.productThumb}>
+                        <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-[10px] bg-[#F3F2EF] text-[#333942] [&_img]:block [&_img]:size-full [&_img]:object-cover">
                           {item.image_url ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={item.image_url} alt="" />
                           ) : (
                             <PackageSearch size={18} />
                           )}
-                        </Box>
-                        <Typography sx={styles.productName}>{item.product_name}</Typography>
-                        <Typography sx={styles.productQuantity}>x{item.quantity}</Typography>
-                      </Stack>
+                        </span>
+                        <p className="line-clamp-2 min-w-0 flex-1 [overflow-wrap:anywhere] text-sm leading-[1.35] text-[#4F565F]">{item.product_name}</p>
+                        <span className="whitespace-nowrap text-sm font-extrabold text-[#101820]">x{item.quantity}</span>
+                      </div>
                     ))}
-                  </Stack>
+                  </div>
                 )}
 
                 <Divider />
 
-                <Stack sx={styles.infoGrid}>
+                <div className="flex flex-wrap gap-x-4 gap-y-1.5 sm:gap-x-6">
                   <Info label="Sipariş Tarihi" value={formatDate(order.created_at)} />
                   <Info label="Toplam" value={formattedTotal} strong />
-                </Stack>
-              </Stack>
+                </div>
+              </div>
             </Card>
 
-            <Card sx={styles.detailCard}>
-              <Stack gap={2}>
-                <Stack direction="row" gap={1.25} alignItems="center">
-                  <Box sx={styles.lockIconBox}>
+            <Card className="rounded-2xl border border-[#E9E5DD] bg-white p-3.5 text-[#101820] shadow-[0_16px_42px_rgba(16,24,32,0.055)] md:p-[18px]">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-2.5">
+                  <span className="grid size-[38px] shrink-0 place-items-center rounded-xl border border-[#E9E5DD] bg-[#F5F3EF] text-[#333942]">
                     <LockKeyhole size={20} />
-                  </Box>
-                  <Typography sx={styles.detailTitle}>Detaylı takip hesabınızda</Typography>
-                </Stack>
-                <Typography sx={styles.detailDescription}>
+                  </span>
+                  <p className="text-base font-[850]">Detaylı takip hesabınızda</p>
+                </div>
+                <p className="text-sm leading-relaxed text-[#626B75]">
                   Teslimat adresi, fatura bilgileri, tüm ürün detayları, iptal/iade işlemleri ve geçmiş siparişleriniz için giriş yapın veya hesap oluşturun.
-                </Typography>
-                <Stack sx={styles.unlockList}>
-                  <Typography>Adres ve fatura bilgileri</Typography>
-                  <Typography>İade ve iptal işlemleri</Typography>
-                  <Typography>Geçmiş siparişler</Typography>
-                </Stack>
-                <Stack gap={1}>
+                </p>
+                <div className="flex flex-col gap-[5px] text-[13px] font-bold text-[#4F565F] [&_p]:before:mr-2 [&_p]:before:font-black [&_p]:before:text-[#8B8377] [&_p]:before:content-['+']">
+                  <p>Adres ve fatura bilgileri</p>
+                  <p>İade ve iptal işlemleri</p>
+                  <p>Geçmiş siparişler</p>
+                </div>
+                <div className="flex flex-col gap-2">
                   {isAuthenticated ? (
                     <Button variant="contained" startIcon={<PackageSearch size={18} />} onClick={() => router.push('/orders')}>
                       Siparişlerime Git
@@ -252,48 +250,47 @@ const OrderStatusLookupContent = () => {
                   <Button variant="text" onClick={() => router.push('/')}>
                     Alışverişe Devam Et
                   </Button>
-                </Stack>
-              </Stack>
+                </div>
+              </div>
             </Card>
-          </Stack>
+          </div>
         ) : (
-          <Card sx={styles.lookupCard}>
-            <Stack sx={styles.lookupShell}>
-              <Stack sx={styles.lookupIntro}>
-                <Stack gap={1}>
-                  <Typography variant="h1" sx={styles.title}>
+          <Card className="rounded-[18px] bg-white p-4 shadow-[0_16px_42px_rgba(16,24,32,0.055)] sm:p-5 md:p-6">
+            <div className="grid grid-cols-1 items-center gap-4 md:grid-cols-[minmax(0,0.95fr)_minmax(340px,0.82fr)] md:gap-6">
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2">
+                  <h1 className="max-w-[420px] text-[30px] font-[850] leading-[1.08] tracking-normal text-[#101820] sm:text-4xl md:text-[40px]">
                     Sipariş Takip
-                  </Typography>
-                  <Typography sx={styles.description}>
+                  </h1>
+                  <p className="max-w-[400px] text-[14.5px] leading-relaxed text-[#5F6670] md:text-[15px]">
                     Sipariş durumunuzu görmek için sipariş numarası ve e-posta adresinizi girin.
-                  </Typography>
-                </Stack>
-              </Stack>
+                  </p>
+                </div>
+              </div>
 
-              <Box component="form" onSubmit={handleLookup} sx={styles.formPanel}>
-                <Stack gap={2}>
-                  <Stack gap={0.25}>
-                    <Typography sx={styles.lookupTitle}>Siparişinizi bulun</Typography>
-                    <Typography sx={styles.lookupDescription}>
+              <form onSubmit={handleLookup} className="w-full bg-transparent p-0 md:rounded-[18px]">
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-0.5">
+                    <p className="text-lg font-[850] text-[#101820]">Siparişinizi bulun</p>
+                    <p className="text-[13px] leading-[1.55] text-[#667085]">
                       Bilgiler yalnızca eşleşirse gösterilir.
-                    </Typography>
-                  </Stack>
+                    </p>
+                  </div>
 
                   <TextField
                     label="Sipariş No"
                     value={orderNumber}
                     onChange={(e) => setOrderNumber(e.target.value)}
-                    fullWidth
                   />
                   <TextField
                     label="E-posta"
                     type="email"
+                    autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    fullWidth
                   />
 
-                  {error && <Typography sx={styles.errorText}>{error}</Typography>}
+                  {error && <p className="text-[13px] font-bold text-error">{error}</p>}
 
                   <Button
                     type="submit"
@@ -305,49 +302,44 @@ const OrderStatusLookupContent = () => {
                     Siparişi Göster
                   </Button>
 
-                  <Stack sx={styles.accountPrompt}>
-                    <Typography sx={styles.accountPromptText}>
+                  <div className="mt-0.5 flex flex-col gap-1 border-t border-[#EEEAE3] pt-2.5">
+                    <p className="text-[13px] leading-normal text-[#6B7280]">
                       Daha detaylı takip için giriş yapın veya üye olun.
-                    </Typography>
-                    <Stack direction="row" gap={1} flexWrap="wrap">
+                    </p>
+                    <div className="flex flex-wrap gap-2">
                       <Button variant="text" size="small" onClick={() => openAuthenticator()}>
                         Giriş Yap
                       </Button>
                       <Button variant="text" size="small" onClick={() => openAuthenticator({ type: 'uye-ol' })}>
                         Üye Ol
                       </Button>
-                    </Stack>
-                  </Stack>
-                </Stack>
-              </Box>
-            </Stack>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
           </Card>
         )}
-      </Stack>
-    </Stack>
+      </div>
+    </main>
   );
 };
 
 const Info = ({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) => (
-  <Stack
-    gap={0.25}
-    sx={styles.infoCard}
-  >
-    <Typography sx={styles.infoLabel}>{label}</Typography>
-    <Typography
-      sx={styles.infoValue(strong)}
-    >
+  <div className="flex min-w-0 items-baseline gap-1.5">
+    <span className="text-[13px] text-[#777E87]">{label}</span>
+    <span className={strong ? 'overflow-hidden text-ellipsis whitespace-nowrap text-sm font-extrabold text-[#101820]' : 'overflow-hidden text-ellipsis whitespace-nowrap text-sm font-bold text-[#101820]'}>
       {value}
-    </Typography>
-  </Stack>
+    </span>
+  </div>
 );
 
 const OrderStatusLookupView = () => (
   <Suspense
     fallback={
-      <Stack alignItems="center" justifyContent="center" minHeight="50vh">
-        <CircularProgress />
-      </Stack>
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <Spinner className="text-primary" />
+      </div>
     }
   >
     <OrderStatusLookupContent />

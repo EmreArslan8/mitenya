@@ -2,8 +2,7 @@
 
 import { useRef } from 'react';
 import { ShopResponsiveImage } from '@/lib/api/types';
-import { useTheme } from '@mui/material/styles';
-import useMediaQuery from '@mui/material/useMediaQuery';
+import useScreen from '@/lib/hooks/useScreen';
 import DesktopGalleryBehavior from './DesktopGalleryBehavior';
 import MobileGalleryBehavior from './MobileGalleryBehavior';
 import { ProductImageGalleryBaseProps } from './types';
@@ -24,10 +23,7 @@ const ProductGalleryEnhancement = ({
   onFavoriteClick,
   onShareClick,
 }: ProductGalleryEnhancementProps) => {
-  const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up('sm'), {
-    defaultMatches: false,
-  });
+  const isDesktop = useScreen('smUp');
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   return isDesktop ? (

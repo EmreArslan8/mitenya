@@ -1,82 +1,77 @@
 'use client';
 
 import { ShopProductData } from '@/lib/api/types';
-import useStyles from './styles';
-import { Divider, Stack, Typography } from '@mui/material';
 import formatPrice from '@/lib/utils/formatPrice';
+import { Divider } from '@/components/ui/Divider';
 
 const OrderProductsCard = ({ data }: { data: ShopProductData[] }) => {
-  const styles = useStyles();
-
   return (
-    <Stack sx={styles.wrapper}>
+    <section className="overflow-hidden rounded-xl border border-gray-100 bg-white">
       {/* Header */}
-      <Stack sx={styles.header}>
-        <Typography sx={styles.headerLabel}>Ürünler</Typography>
-        <Typography sx={styles.headerCount}>({data.length})</Typography>
-      </Stack>
+      <div className="flex items-center gap-2 border-b border-gray-100 px-5 py-3 sm:px-6">
+        <span className="text-[13px] font-bold uppercase text-text-medium">Ürünler</span>
+        <span className="text-[13px] font-bold text-text-medium-light">({data.length})</span>
+      </div>
 
       {/* Products */}
-      <Stack sx={styles.cardBody}>
+      <div>
         {data.map((e, i) => (
-          <Stack key={e.id ?? JSON.stringify(e)}>
-            <Stack sx={styles.productRow}>
+          <div key={e.id ?? JSON.stringify(e)}>
+            <div className="flex w-full gap-4 px-5 py-5 transition-colors hover:bg-bg-light sm:gap-5 sm:px-6">
               {/* Image */}
-              <Stack sx={styles.imageContainer}>
+              <div className="size-20 shrink-0 overflow-hidden rounded-[10px] border border-gray-100 bg-bg-light">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={e.imgSrc}
                   alt={e.name}
-                  style={styles.image}
+                  className="size-full object-contain"
                 />
-              </Stack>
+              </div>
 
               {/* Details */}
-              <Stack sx={styles.details}>
-                <Typography sx={styles.productName}>
+              <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
+                <p className="line-clamp-2 text-[15px] font-semibold leading-[1.4] text-text">
                   {e.brand && (
-                    <Typography
-                      component="span"
-                      sx={{ fontWeight: 700, fontSize: 'inherit', color: 'inherit' }}
-                    >
+                    <span className="font-bold">
                       {e.brand}{' '}
-                    </Typography>
+                    </span>
                   )}
                   {e.name}
-                </Typography>
+                </p>
 
                 {e.variants && (
-                  <Typography sx={styles.variantText}>
+                  <p className="text-xs font-medium leading-[1.3] text-text-medium-light">
                     {e.variants
                       .flatMap((v) =>
                         v.options.filter((o) => o.selected).map((o) => o.value)
                       )
                       .join(' / ')}
-                  </Typography>
+                  </p>
                 )}
 
-                <Typography sx={styles.variantText}>
+                <p className="text-xs font-medium leading-[1.3] text-text-medium-light">
                   Adet: {e.quantity}
-                </Typography>
-              </Stack>
+                </p>
+              </div>
 
               {/* Price */}
-              <Stack sx={styles.priceSection}>
-                <Typography sx={styles.price}>
+              <div className="flex shrink-0 flex-col items-end justify-center gap-0.5">
+                <span className="whitespace-nowrap text-base font-bold leading-none text-text">
                   {formatPrice(e.price.currentPrice * e.quantity, e.price.currency)}
-                </Typography>
+                </span>
                 {e.quantity > 1 && (
-                  <Typography sx={styles.quantity}>
+                  <span className="whitespace-nowrap text-[11px] font-semibold text-text-light">
                     {formatPrice(e.price.currentPrice, e.price.currency)} / adet
-                  </Typography>
+                  </span>
                 )}
-              </Stack>
-            </Stack>
+              </div>
+            </div>
 
-            {i < data.length - 1 && <Divider sx={styles.divider} />}
-          </Stack>
+            {i < data.length - 1 && <Divider className="mx-5 w-auto border-gray-100" />}
+          </div>
         ))}
-      </Stack>
-    </Stack>
+      </div>
+    </section>
   );
 };
 

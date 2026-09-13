@@ -1,9 +1,8 @@
 'use client';
 
-import { Stack, TextField, Typography } from '@mui/material';
-import { LoadingButton } from '@mui/lab';
 import { FormEvent, useEffect, useState } from 'react';
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 
 interface Props {
   email: string;
@@ -32,14 +31,13 @@ const VerificationForm = ({ email, onResend, onBack, onSubmit }: Props) => {
   }, [seconds]);
 
   return (
-    <Stack gap={3}>
-      <Typography variant="body2" color="text.secondary">
+    <div className="flex flex-col gap-6">
+      <p className="text-sm text-text-medium-light">
         <strong>{email}</strong> adresine gönderilen 6 haneli kodu gir.
-      </Typography>
+      </p>
 
-      <Stack component="form" gap={3} onSubmit={handleSubmit}>
-        <TextField
-          fullWidth
+      <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+        <Input
           value={code}
           onChange={(e) => {
             const val = e.target.value.replace(/\D/g, '');
@@ -49,9 +47,10 @@ const VerificationForm = ({ email, onResend, onBack, onSubmit }: Props) => {
           autoComplete="one-time-code"
           autoFocus
           placeholder="000000"
-          inputProps={{ maxLength: 6 }}
+          maxLength={6}
+          aria-label="Doğrulama kodu"
         />
-        <Stack direction="row" gap={1}>
+        <div className="flex gap-2">
           <Button
             variant="outlined"
             disabled={seconds > 0}
@@ -62,16 +61,16 @@ const VerificationForm = ({ email, onResend, onBack, onSubmit }: Props) => {
           >
             Yeniden Gönder {seconds > 0 && `(${seconds})`}
           </Button>
-          <LoadingButton loading={loading} variant="contained" disabled={code.length < 6} type="submit" fullWidth>
+          <Button loading={loading} variant="contained" disabled={code.length < 6} type="submit" fullWidth>
             Doğrula
-          </LoadingButton>
-        </Stack>
-      </Stack>
+          </Button>
+        </div>
+      </form>
 
-      <Button variant="text" size="small" arrow="start" onClick={onBack} sx={{ alignSelf: 'flex-start' }}>
+      <Button variant="text" size="small" arrow="start" onClick={onBack} className="self-start">
         Geri dön
       </Button>
-    </Stack>
+    </div>
   );
 };
 

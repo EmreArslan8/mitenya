@@ -1,14 +1,12 @@
 'use client';
 
-import Button from '../common/Button';
+import { Button, type ButtonProps } from '@/components/ui/Button';
 import { Headset } from 'lucide-react';
 
 const SUPPORT_URL = "https://t.me/yourSupportChannel";
 
-interface SupportButtonProps {
-  size?: 'small' | 'medium' | 'large';
+interface SupportButtonProps extends Omit<ButtonProps, 'children' | 'href' | 'target' | 'startIcon'> {
   text?: string;
-  [key: string]: any; 
 }
 
 const SupportButton = ({ size = 'medium', text = 'İletişime Geçin', ...props }: SupportButtonProps) => {

@@ -6,7 +6,7 @@ const cancellableStatuses = new Set(["processing", "preparing"]);
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { orderNumber: string } }
+  { params }: { params: Promise<{ orderNumber: string }> }
 ) {
   try {
     const supabase = await createSupabaseServer();
@@ -19,7 +19,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { orderNumber } = params;
+    const { orderNumber } = await params;
     if (!orderNumber) {
       return NextResponse.json({ error: "Order number gerekli" }, { status: 400 });
     }

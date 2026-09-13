@@ -1,11 +1,11 @@
 'use client';
 
-import Button from '@/components/common/Button';
+import { Button } from '@/components/ui/Button';
 import { validatePassword } from '@/lib/utils/password';
 import { withCsrfHeaders } from '@/lib/utils/csrf';
-import { Stack, Switch, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
-import styles from './styles';
+import { Switch } from '@/components/ui/Switch';
+import { TextField } from '@/components/ui/TextField';
 
 const SecurityCard = () => {
   const [savingPassword, setSavingPassword] = useState(false);
@@ -68,78 +68,79 @@ const SecurityCard = () => {
   };
 
   return (
-    <Stack sx={styles.wrapper}>
-      <Stack sx={styles.sectionHeader}>
-        <Typography sx={styles.sectionTitle}>Sifre Degisikligi</Typography>
-      </Stack>
+    <div className="flex w-full flex-col gap-4">
+      <header className="rounded-xl border border-gray-200 bg-white px-4 py-4 sm:px-5 sm:py-[18px]">
+        <h2 className="text-lg font-semibold text-text">Sifre Degisikligi</h2>
+      </header>
 
-      <Stack sx={styles.formCard}>
-        <Stack sx={styles.formBody}>
-          <Stack sx={styles.fieldStack}>
-            <Typography sx={styles.fieldLabel}>Mevcut Sifre</Typography>
+      <section className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <div className="flex flex-col gap-4 px-4 py-4 sm:px-5 sm:py-[18px]">
+          <div className="flex max-w-[420px] flex-col gap-1.5">
             <TextField
-              size="small"
+              label="Mevcut Sifre"
               type="password"
+              autoComplete="current-password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              fullWidth
-              sx={styles.input}
+              labelClassName="text-[14px] font-semibold text-text"
+              size="large"
             />
-          </Stack>
+          </div>
 
-          <Stack sx={styles.fieldStack}>
-            <Typography sx={styles.fieldLabel}>Yeni Sifre</Typography>
+          <div className="flex max-w-[420px] flex-col gap-1.5">
             <TextField
-              size="small"
+              label="Yeni Sifre"
               type="password"
+              autoComplete="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              fullWidth
-              sx={styles.input}
+              labelClassName="text-[14px] font-semibold text-text"
+              size="large"
             />
-          </Stack>
+          </div>
 
-          <Stack sx={styles.fieldStack}>
-            <Typography sx={styles.fieldLabel}>Yeni Sifre (Tekrar)</Typography>
+          <div className="flex max-w-[420px] flex-col gap-1.5">
             <TextField
-              size="small"
+              label="Yeni Sifre (Tekrar)"
               type="password"
+              autoComplete="new-password"
               value={newPasswordRepeat}
               onChange={(e) => setNewPasswordRepeat(e.target.value)}
-              fullWidth
-              sx={styles.input}
+              labelClassName="text-[14px] font-semibold text-text"
+              size="large"
             />
-          </Stack>
+          </div>
 
-          {passwordError && <Typography sx={styles.errorText}>{passwordError}</Typography>}
-          {successMessage && <Typography sx={styles.successText}>{successMessage}</Typography>}
-        </Stack>
+          {passwordError && <p className="mt-1 text-[13px] text-error">{passwordError}</p>}
+          {successMessage && <p className="mt-1 text-[13px] text-success">{successMessage}</p>}
+        </div>
 
-        <Stack sx={styles.actionArea}>
+        <div className="border-t border-gray-200 bg-bg-light px-4 py-3 sm:px-5 sm:py-3.5">
           <Button
             variant="contained"
             onClick={handlePasswordUpdate}
             disabled={savingPassword || !passwordFormValid}
-            sx={styles.saveButton}
+            className="h-[52px] w-full max-w-[420px] rounded-lg text-lg normal-case disabled:border-gray-100 disabled:bg-gray-100 disabled:text-text-medium"
           >
             {savingPassword ? 'Kaydediliyor...' : 'Kaydet'}
           </Button>
-        </Stack>
-      </Stack>
+        </div>
+      </section>
 
-      <Stack sx={styles.twoFactorCard}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography sx={styles.sectionTitle}>Iki Adimli Dogrulama</Typography>
+      <section className="rounded-xl border border-gray-200 bg-white px-4 py-4 sm:px-5 sm:py-[18px]">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-text">Iki Adimli Dogrulama</h2>
           <Switch
             checked={twoFactorEnabled}
-            onChange={(e) => setTwoFactorEnabled(e.target.checked)}
+            onCheckedChange={setTwoFactorEnabled}
+            aria-label="İki adımlı doğrulama"
           />
-        </Stack>
-        <Typography sx={styles.twoFactorDesc}>
+        </div>
+        <p className="mt-2 max-w-[960px] text-base leading-[1.55] text-text-medium">
           Iki adimli dogrulama yontemini etkinlestirdiginizde, kisisel sifrelerinize ek olarak kayitli cep telefonunuza gelen dogrulama koduyla oturum acarsiniz.
-        </Typography>
-      </Stack>
-    </Stack>
+        </p>
+      </section>
+    </div>
   );
 };
 

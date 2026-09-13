@@ -1,18 +1,16 @@
 'use client';
 
-import useScreen from '@/lib/hooks/useScreen';
-import { Box, Stack } from '@mui/material';
 import Image from 'next/image';
-import Button from '@mui/material/Button';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
+import { cn } from '@/lib/utils/cn';
 import { BlockComponentBaseProps } from '..';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import ShopBannerItem from '../../shared/ShopBannerItem';
 import { SharedButtonType, SharedImageType } from '../../shared/cmsTypes';
-import useStyles, { AUTOPLAY_DELAY } from './styles';
 
+export const AUTOPLAY_DELAY = 10000;
 
 export interface ShopBannersProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
@@ -28,29 +26,18 @@ export interface ShopBannersProps extends BlockComponentBaseProps {
 }
 
 const ShopBanner = ({ section, banners }: ShopBannersProps) => {
-  const styles = useStyles();
-  const { isMobile } = useScreen();
   const [selectedIndex, setSelectedIndex] = useState(0);
-
-  // Kullanici cubuga dokununca otomatik gecis duruyor (WCAG 2.2.2).
   const [autoplayPaused, setAutoplayPaused] = useState(false);
-
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, align: 'center' },
-    // stopOnInteraction: false sart — true olursa hover'a girildiginde
-    // autoplay kalici duruyor ve slayt bir daha hic ilerlemiyor.
     [Autoplay({ delay: AUTOPLAY_DELAY, stopOnMouseEnter: true, stopOnInteraction: false })],
   );
 
   useEffect(() => {
     if (!emblaApi) return;
     const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap());
-    // Cubugun dolumu otomatik gecisin gercek durumuna bagli: hover'da
-    // autoplay durunca animasyon da duruyor, yoksa cubuk dolup slayt
-    // beklemeye devam ediyordu.
     const onAutoplayStop = () => setAutoplayPaused(true);
     const onAutoplayPlay = () => setAutoplayPaused(false);
-
     emblaApi.on('select', onSelect);
     emblaApi.on('autoplay:stop', onAutoplayStop);
     emblaApi.on('autoplay:play', onAutoplayPlay);
@@ -62,107 +49,35 @@ const ShopBanner = ({ section, banners }: ShopBannersProps) => {
   }, [emblaApi]);
 
   if (!banners?.length) return null;
-
   if (banners.length === 1) {
-    return (
-      <SectionBase {...section} fullBleed>
-        <ShopBannerItem
-          url={(isMobile && banners[0]?.mobileUrl?.trim()) || banners[0]?.url}
-          image={banners[0]?.image}
-          mobileImage={banners[0]?.mobileImage}
-          title={banners[0]?.title}
-          description={banners[0]?.description}
-          button={banners[0]?.button}
-          index={0}
-          sx={{ overflow: 'clip' }}
-        />
-      </SectionBase>
-    );
+    return <SectionBase {...section} fullBleed><ShopBannerItem {...banners[0]} index={0} className="overflow-clip" /></SectionBase>;
   }
 
   return (
     <SectionBase {...section} fullBleed>
-      <Stack sx={styles.sliderContainer}>
-        {/* Viewport */}
-        <Box ref={emblaRef as React.Ref<HTMLDivElement>} sx={{ overflow: 'hidden' }}>
-          <Box sx={{ display: 'flex' }}>
+      <div className="relative w-screen self-center overflow-hidden pb-6 sm:w-full">
+        <div ref={emblaRef} className="overflow-hidden">
+          <div className="flex">
             {banners.map((banner, index) => (
-              <Box
-                key={banner.url}
-                sx={{
-                  flex: '0 0 100%',
-                  minWidth: 0,
-                }}
-              >
-                <ShopBannerItem
-                  url={(isMobile && banner.mobileUrl?.trim()) || banner.url}
-                  image={banner.image}
-                  mobileImage={banner.mobileImage}
-                  title={banner.title}
-                  description={banner.description}
-                  button={banner.button}
-                  index={index}
-                />
-              </Box>
+              <div key={`${banner.url}-${index}`} className="min-w-0 flex-[0_0_100%]">
+                <ShopBannerItem {...banner} index={index} />
+              </div>
             ))}
-          </Box>
-        </Box>
-
-        {/* Segment cubuklari: konum + kalan sure */}
-        <Stack sx={styles.progressContainer}>
-          {banners.map((_, i) => (
-            <Box
-              key={i}
-              component="button"
-              onClick={() => emblaApi?.scrollTo(i)}
-              aria-label={`${i + 1}. banner`}
-              aria-current={i === selectedIndex}
-              sx={styles.progressTrack(i === selectedIndex)}
-            >
-              <Box
-                key={`${i}-${selectedIndex}`}
-                sx={styles.progressFill(i === selectedIndex, autoplayPaused)}
-              />
-            </Box>
-          ))}
-        </Stack>
-
-        {/* Oklar: yalnizca masaustunde, hover'da */}
-        <Button
-          color="neutral"
-          size="small"
-          variant="tonal"
-          className="banner-arrow"
-          onClick={() => emblaApi?.scrollPrev()}
-          aria-label="Önceki banner"
-          sx={{ ...styles.arrowBase, ...styles.prevButton }}
-        >
-          <Image
-            src="/static/images/icons/chevron-left.svg"
-            alt=""
-            width={20}
-            height={32}
-            style={{ objectFit: 'fill' }}
-          />
-        </Button>
-        <Button
-          color="neutral"
-          size="small"
-          variant="tonal"
-          className="banner-arrow"
-          onClick={() => emblaApi?.scrollNext()}
-          aria-label="Sonraki banner"
-          sx={{ ...styles.arrowBase, ...styles.nextButton }}
-        >
-          <Image
-            src="/static/images/icons/chevron-right.svg"
-            alt=""
-            width={20}
-            height={32}
-            style={{ objectFit: 'fill' }}
-          />
-        </Button>
-      </Stack>
+          </div>
+        </div>
+        <div className="absolute -bottom-0.5 inset-x-0 z-2 flex flex-row items-center justify-center gap-2.5">
+          {banners.map((_, index) => {
+            const active = index === selectedIndex;
+            return (
+              <button key={index} type="button" onClick={() => emblaApi?.scrollTo(index)} aria-label={`${index + 1}. banner`} aria-current={active} className={cn('relative flex cursor-pointer items-center appearance-none border-0 bg-transparent py-[11px] transition-[width] duration-[450ms] before:block before:h-0.5 before:w-full before:rounded-full before:bg-gray-300 hover:before:bg-gray-500', active ? 'w-11' : 'w-[18px]')}>
+                <span key={`${index}-${selectedIndex}`} style={{ animationPlayState: autoplayPaused ? 'paused' : 'running' }} className={cn('absolute inset-x-0 top-1/2 -mt-px h-0.5 origin-left rounded-full bg-text motion-reduce:animate-none', active ? 'animate-banner-progress motion-reduce:scale-x-100' : 'scale-x-0')} />
+              </button>
+            );
+          })}
+        </div>
+        <button type="button" onClick={() => emblaApi?.scrollPrev()} aria-label="Önceki banner" className="absolute left-3.5 top-1/2 z-2 hidden h-[52px] w-[30px] -translate-y-1/2 items-center justify-center border-0 bg-transparent p-0 opacity-75 drop-shadow-[0_1px_3px_rgba(0,0,0,0.35)] transition-opacity hover:opacity-100 focus-visible:opacity-100 sm:flex"><Image src="/static/images/icons/chevron-left.svg" alt="" width={20} height={32} className="h-8 w-5 object-fill" unoptimized /></button>
+        <button type="button" onClick={() => emblaApi?.scrollNext()} aria-label="Sonraki banner" className="absolute right-3.5 top-1/2 z-2 hidden h-[52px] w-[30px] -translate-y-1/2 items-center justify-center border-0 bg-transparent p-0 opacity-75 drop-shadow-[0_1px_3px_rgba(0,0,0,0.35)] transition-opacity hover:opacity-100 focus-visible:opacity-100 sm:flex"><Image src="/static/images/icons/chevron-right.svg" alt="" width={20} height={32} className="h-8 w-5 object-fill" unoptimized /></button>
+      </div>
     </SectionBase>
   );
 };

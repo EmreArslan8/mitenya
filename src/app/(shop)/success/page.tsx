@@ -1,18 +1,20 @@
 'use client';
 
-import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
+import { Button } from '@/components/ui/Button';
+import { Divider } from '@/components/ui/Divider';
+import { Typography } from '@/components/ui/Typography';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
 import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
 import { sendPurchaseEventForOrder } from '@/lib/utils/googleAnalytics';
 import { onMetaPixelReady, trackPurchase } from '@/lib/analytics/metaPixel';
 import { trackTikTokPurchase, trackTikTokWithUser } from '@/lib/analytics/tiktokPixel';
-import { Box, CircularProgress, Divider, Stack, Typography } from '@mui/material';
 import { Check } from '@/components/icons';
 import { PackageSearch } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useContext, useEffect, useRef, useState } from 'react';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface OrderData {
   id: string;
@@ -184,134 +186,119 @@ const SuccessPageContent = () => {
 
   if (loading) {
     return (
-      <Stack alignItems="center" justifyContent="center" minHeight="60vh">
-        <CircularProgress />
-      </Stack>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Spinner className="text-primary" />
+      </div>
     );
   }
 
   if (!order && errorMessage) {
     return (
-      <Stack alignItems="center" py={6} px={2}>
-        <Card sx={{ maxWidth: 500, width: '100%', p: 3 }}>
-          <Stack alignItems="center" gap={2}>
-            <Typography variant="h6" fontWeight={700} textAlign="center">
+      <div className="flex items-center justify-center px-4 py-12">
+        <Card className="w-full max-w-[500px] p-6">
+          <div className="flex flex-col items-center gap-4">
+            <Typography variant="h6" align="center" className="font-bold">
               {errorMessage}
             </Typography>
-            <Typography color="text.secondary" textAlign="center">
+            <Typography align="center" className="text-text-secondary">
               Sipariş detaylarını görüntülemek için giriş yapmanız gerekebilir.
             </Typography>
             <Button variant="contained" fullWidth onClick={() => openAuthenticator?.()}>
               Giriş Yap
             </Button>
-          </Stack>
+          </div>
         </Card>
-      </Stack>
+      </div>
     );
   }
 
   if (!order && isProcessing) {
     return (
-      <Stack alignItems="center" justifyContent="center" minHeight="60vh" px={2}>
-        <Card sx={{ maxWidth: 520, width: '100%', p: 3 }}>
-          <Stack alignItems="center" gap={2}>
-            <CircularProgress size={28} />
-            <Typography variant="h6" fontWeight={700} textAlign="center">
+      <div className="flex min-h-[60vh] items-center justify-center px-4">
+        <Card className="w-full max-w-[520px] p-6">
+          <div className="flex flex-col items-center gap-4">
+            <Spinner size={28} className="text-primary" />
+            <Typography variant="h6" align="center" className="font-bold">
               Ödemeniz doğrulanıyor
             </Typography>
-            <Typography color="text.secondary" textAlign="center">
+            <Typography align="center" className="text-text-secondary">
               Siparişiniz birkaç saniye içinde oluşturulacak. Lütfen bu sayfayı kapatmayın.
             </Typography>
-          </Stack>
+          </div>
         </Card>
-      </Stack>
+      </div>
     );
   }
 
   if (!order) {
     return (
-      <Stack alignItems="center" py={6} px={2}>
-        <Card sx={{ maxWidth: 520, width: '100%', p: 3 }}>
-          <Stack alignItems="center" gap={2}>
-            <Typography variant="h6" fontWeight={700} textAlign="center">
+      <div className="flex items-center justify-center px-4 py-12">
+        <Card className="w-full max-w-[520px] p-6">
+          <div className="flex flex-col items-center gap-4">
+            <Typography variant="h6" align="center" className="font-bold">
               Sipariş durumu güncelleniyor
             </Typography>
-            <Typography color="text.secondary" textAlign="center">
+            <Typography align="center" className="text-text-secondary">
               Sayfayı yenileyin ya da birkaç saniye sonra tekrar deneyin.
             </Typography>
-          </Stack>
+          </div>
         </Card>
-      </Stack>
+      </div>
     );
   }
 
   return (
-    <Stack alignItems="center" py={4} px={2}>
-      <Card sx={{ maxWidth: 500, width: '100%', p: 3 }}>
-        <Stack alignItems="center" gap={2} mb={3}>
-          <Box
-            sx={{
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              bgcolor: 'success.light',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+    <div className="flex items-center justify-center px-4 py-8">
+      <Card className="w-full max-w-[500px] p-6">
+        <div className="mb-6 flex flex-col items-center gap-4">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-success-light text-success">
             <Check size={40} />
-          </Box>
-          <Typography variant="h5" fontWeight={700} textAlign="center">
+          </div>
+          <Typography variant="h5" align="center" className="font-bold">
             Siparişiniz Alındı!
           </Typography>
-          <Typography color="text.secondary" textAlign="center">
+          <Typography align="center" className="text-text-secondary">
             Siparişiniz başarıyla oluşturuldu. En kısa sürede hazırlanıp kargoya vereceğiz.
           </Typography>
-        </Stack>
+        </div>
 
-        <Divider sx={{ my: 2 }} />
+        <Divider className="my-4" />
 
-        <Stack gap={1.5}>
-          <Stack direction="row" justifyContent="space-between">
-            <Typography color="text.secondary">Sipariş No:</Typography>
-            <Typography fontWeight={600}>{order.order_number}</Typography>
-          </Stack>
+        <div className="flex flex-col gap-3">
+          <div className="flex justify-between gap-4">
+            <Typography className="text-text-secondary">Sipariş No:</Typography>
+            <Typography className="font-semibold">{order.order_number}</Typography>
+          </div>
 
-          <Stack direction="row" justifyContent="space-between">
-            <Typography color="text.secondary">Durum:</Typography>
-            <Typography
-              fontWeight={600}
-              sx={{
-                color: order.status === 'processing' ? 'warning.main' : 'success.main',
-              }}
-            >
+          <div className="flex justify-between gap-4">
+            <Typography className="text-text-secondary">Durum:</Typography>
+            <Typography className={order.status === 'processing' ? 'font-semibold text-warning' : 'font-semibold text-success'}>
               {order.status === 'processing' ? 'Hazırlanıyor' : order.status}
             </Typography>
-          </Stack>
+          </div>
 
-          <Stack direction="row" justifyContent="space-between">
-            <Typography color="text.secondary">Toplam:</Typography>
-            <Typography fontWeight={700} color="primary.main">
+          <div className="flex justify-between gap-4">
+            <Typography className="text-text-secondary">Toplam:</Typography>
+            <Typography className="font-bold text-primary">
               {order.total_amount} {currencyLabel}
             </Typography>
-          </Stack>
+          </div>
 
           {order.shipping_address && (
-            <Stack direction="row" justifyContent="space-between">
-              <Typography color="text.secondary">Teslimat:</Typography>
-              <Typography textAlign="right" fontSize={14}>
+            <div className="flex justify-between gap-4">
+              <Typography className="text-text-secondary">Teslimat:</Typography>
+              <Typography variant="body2" align="right">
                 {order.shipping_address.contactName}
                 <br />
                 {order.shipping_address.city}
               </Typography>
-            </Stack>
+            </div>
           )}
-        </Stack>
+        </div>
 
-        <Divider sx={{ my: 2 }} />
+        <Divider className="my-4" />
 
-        <Stack gap={1.5}>
+        <div className="flex flex-col gap-3">
           {order.guest_tracking_token && isAuthenticated === false ? (
             <Button
               variant="contained"
@@ -329,16 +316,16 @@ const SuccessPageContent = () => {
           <Button variant="outlined" fullWidth onClick={() => router.push('/')}>
             Alışverişe Devam Et
           </Button>
-        </Stack>
+        </div>
       </Card>
-    </Stack>
+    </div>
   );
 };
 
 const SuccessPageFallback = () => (
-  <Stack alignItems="center" justifyContent="center" minHeight="60vh">
-    <CircularProgress />
-  </Stack>
+  <div className="flex min-h-[60vh] items-center justify-center">
+    <Spinner className="text-primary" />
+  </div>
 );
 
 const SuccessPage = () => {

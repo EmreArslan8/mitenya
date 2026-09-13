@@ -1,11 +1,10 @@
 import ModalCard from '@/components/common/ModalCard';
 import { AddressData } from '@/lib/api/types';
 import useAddress from '@/lib/api/useAddress';
-import { LoadingButton } from '@mui/lab';
-import { Button, Stack, Typography } from '@mui/material';
+import { Button } from '@/components/ui/Button';
+import { Typography } from '@/components/ui/Typography';
 import { useState } from 'react';
 import AddressForm from '../AddressForm';
-import styles from '../styles';
 import { CircleCheckBig } from '@/components/icons';
 import { Pencil } from 'lucide-react';
 import { TriangleAlert } from 'lucide-react';
@@ -57,46 +56,46 @@ const EditAddressModal = ({ initialData, open, onEdited, onClose }: EditAddressM
       customIcon={<Pencil size={24} />}
       showCloseIcon
       title= "Adres Düzenle"
-      CardProps={{ sx: styles.modalCard }}
-      BodyProps={{ sx: { maxHeight: 'min(78vh, 720px)', overflowY: 'auto' } }}
+      className="sm:max-w-[560px]"
+      bodyClassName="max-h-[min(78vh,720px)] overflow-y-auto"
     >
-      <Stack sx={{ display: success || error ? 'none' : 'flex' }}>
+      <div className={success || error ? 'hidden' : 'flex flex-col'}>
         <AddressForm
           onSubmit={handleSubmit}
           submitTrigger={submitTrigger}
           initialValues={{ ...initialValues, dateOfBirth: formattedDate }} 
         />
-        <LoadingButton
+        <Button
           fullWidth
           loading={loading}
           variant="contained"
           onClick={() => setSubmitTrigger((prev) => prev + 1)}
-          sx={{ width: { sm: '75%' }, mt: { xs: 2, md: 3 }, mx: 'auto' }}
+          className="mx-auto mt-4 sm:w-3/4 md:mt-6"
         >
           Değişiklikleri kaydet
-        </LoadingButton>
-      </Stack>
+        </Button>
+      </div>
       {success && (
-        <Stack sx={styles.cardBody} alignItems="center" textAlign="center" minWidth={300}>
-          <Stack gap={1} pb={2}>
-            <CircleCheckBig size={80} color="success" />
+        <div className="flex min-w-[300px] flex-col items-center gap-4 px-4 pb-5 pt-4 text-center sm:px-5">
+          <div className="flex flex-col items-center gap-2 pb-4 text-success">
+            <CircleCheckBig size={80} />
             <Typography> Adres değiştirildi. </Typography>
-          </Stack>
+          </div>
           <Button fullWidth variant="contained" onClick={handleClose}>
           Tamam
           </Button>
-        </Stack>
+        </div>
       )}
       {error && (
-        <Stack sx={styles.cardBody} alignItems="center" textAlign="center" minWidth={300}>
-          <Stack gap={1} pb={2}>
-            <TriangleAlert size={80} color="error" />
+        <div className="flex min-w-[300px] flex-col items-center gap-4 px-4 pb-5 pt-4 text-center sm:px-5">
+          <div className="flex flex-col items-center gap-2 pb-4 text-error">
+            <TriangleAlert size={80} />
             <Typography> Bir sunucu hatası oluştu, lütfen tekrar deneyin. </Typography>
-          </Stack>
+          </div>
           <Button fullWidth variant="contained" onClick={() => setError(false)}>
           Geri Dön
           </Button>
-        </Stack>
+        </div>
       )}
     </ModalCard>
   );

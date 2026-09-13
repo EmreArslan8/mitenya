@@ -1,13 +1,12 @@
 'use client';
 
-import { Box, Button, Stack } from '@mui/material';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 import Image from 'next/image';
 import { Children, useEffect } from 'react';
 import { DoubleChevronLeft, DoubleChevronRight } from '@/components/icons';
-import useStyles from './styles';
+import { cn } from '@/lib/utils/cn';
 
 export interface SliderHandle {
   scrollPrev: () => void;
@@ -56,8 +55,6 @@ const CustomSlider = ({
     plugins,
   );
 
-  const styles = useStyles();
-
   useEffect(() => {
     if (!externalRef || !emblaApi) return;
     externalRef.current = {
@@ -82,7 +79,7 @@ const CustomSlider = ({
   if (Children.count(children) === 0) return null;
 
   return (
-    <Stack sx={styles.sliderContainer}>
+    <div className="relative w-full self-center overflow-visible">
       <div ref={emblaRef} style={{ overflow: 'hidden' }}>
         <div style={{ display: 'flex' }}>
           {Children.map(children, (child, i) => (
@@ -98,55 +95,63 @@ const CustomSlider = ({
 
       {showControls && arrows !== false && (
         <>
-          <Button
-            color="neutral"
-            size="small"
-            variant="outlined"
+          <button
+            type="button"
             onClick={() => emblaApi?.scrollPrev()}
-            sx={styles.prevButton(arrowVariant)}
+            className={cn(
+              'absolute top-1/2 z-[1] hidden min-w-0 -translate-y-1/2 items-center justify-center border-0 p-0 sm:flex',
+              arrowVariant === 'editorial'
+                ? 'left-[-52px] h-[88px] w-[52px] rounded-none bg-transparent text-gray-800 shadow-none hover:bg-transparent hover:text-gray-900 md:left-[-68px] md:w-[68px]'
+                : 'left-[-12px] size-9 rounded-full bg-accentRed text-accentRed-contrast-text shadow-[0_5px_12px_rgba(17,17,17,0.08)] hover:bg-accentRed-dark hover:shadow-[0_6px_14px_rgba(17,17,17,0.12)]',
+            )}
             aria-label="Önceki"
           >
             {arrowVariant === 'editorial' ? (
-              <Box component="span" sx={styles.editorialArrowIcon}>
+              <span className="block size-8 shrink-0 leading-none md:size-[38px]">
                 <DoubleChevronLeft size="100%" />
-              </Box>
+              </span>
             ) : (
-              <Box component="span" sx={styles.arrowIcon}>
+              <span className="relative block size-4 shrink-0 sm:size-[18px]">
                 <Image
                   src="/static/images/icons/chevron-left.svg"
                   alt=""
                   fill
+                  unoptimized
                   sizes="(max-width: 599px) 16px, 18px"
                 />
-              </Box>
+              </span>
             )}
-          </Button>
-          <Button
-            color="neutral"
-            size="small"
-            variant="outlined"
+          </button>
+          <button
+            type="button"
             onClick={() => emblaApi?.scrollNext()}
-            sx={styles.nextButton(arrowVariant)}
+            className={cn(
+              'absolute top-1/2 z-[1] hidden min-w-0 -translate-y-1/2 items-center justify-center border-0 p-0 sm:flex',
+              arrowVariant === 'editorial'
+                ? 'right-[-52px] h-[88px] w-[52px] rounded-none bg-transparent text-gray-800 shadow-none hover:bg-transparent hover:text-gray-900 md:right-[-68px] md:w-[68px]'
+                : 'right-[-12px] size-9 rounded-full bg-accentRed text-accentRed-contrast-text shadow-[0_5px_12px_rgba(17,17,17,0.08)] hover:bg-accentRed-dark hover:shadow-[0_6px_14px_rgba(17,17,17,0.12)]',
+            )}
             aria-label="Sonraki"
           >
             {arrowVariant === 'editorial' ? (
-              <Box component="span" sx={styles.editorialArrowIcon}>
+              <span className="block size-8 shrink-0 leading-none md:size-[38px]">
                 <DoubleChevronRight size="100%" />
-              </Box>
+              </span>
             ) : (
-              <Box component="span" sx={styles.arrowIcon}>
+              <span className="relative block size-4 shrink-0 sm:size-[18px]">
                 <Image
                   src="/static/images/icons/chevron-right.svg"
                   alt=""
                   fill
+                  unoptimized
                   sizes="(max-width: 599px) 16px, 18px"
                 />
-              </Box>
+              </span>
             )}
-          </Button>
+          </button>
         </>
       )}
-    </Stack>
+    </div>
   );
 };
 

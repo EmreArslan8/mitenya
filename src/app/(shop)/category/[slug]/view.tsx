@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Box, Grid, Stack, Typography, Select, MenuItem } from '@mui/material';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import { ShopSearchResponse, ShopSearchSort } from '@/lib/api/types';
 import { UI_SORT_OPTIONS } from '@/lib/constants/shop';
-import styles from './styles';
+import ProductGrid from '@/components/ProductGrid';
+import { Select, SelectItem } from '@/components/ui/Select';
 
 type CategoryViewProps = {
   category: string;
@@ -60,53 +60,49 @@ const CategoryView = ({ category, initialData }: CategoryViewProps) => {
   };
 
   return (
-    <Stack gap={3} sx={styles.container}>
-      <Box sx={styles.hero}>
-        <Stack gap={1}>
-          <Typography variant="overline" sx={styles.eyebrow}>
+    <div className="flex flex-col gap-6 px-3 pb-8 sm:px-6">
+      <section className="rounded-3xl border border-black/[6%] bg-[linear-gradient(135deg,rgba(193,18,31,0.08)_0%,rgba(17,17,17,0.06)_100%)] p-5 sm:p-6">
+        <div className="flex flex-col gap-2">
+          <p className="font-bold tracking-[1.2px] text-accentRed uppercase">
             Seçili Koleksiyon
-          </Typography>
-          <Typography variant="h2" sx={styles.title}>
+          </p>
+          <h1 className="text-3xl font-extrabold">
             {category}
-          </Typography>
-          <Typography sx={styles.subtitle}>
+          </h1>
+          <p className="text-text-secondary">
             {initialData.totalCount} ürün · En yeni eklenenler ve fırsatlar
-          </Typography>
-        </Stack>
-      </Box>
+          </p>
+        </div>
+      </section>
 
-      <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
-        <Typography variant="body" color="text.secondary">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <p className="text-text-secondary">
           Toplam {initialData.totalCount} ürün
-        </Typography>
+        </p>
         <Select
-          size="small"
-          value={selectedSort}
-          onChange={(e) => handleSortChange(e.target.value as ShopSearchSort)}
-          sx={styles.sort}
-        >
-          {visibleSortOptions.map((opt) => (
-            <MenuItem key={opt} value={opt}>
-              {SORT_LABELS[opt] ?? opt}
-            </MenuItem>
-          ))}
-        </Select>
-      </Stack>
+            value={selectedSort}
+            onValueChange={(v) => handleSortChange(v as ShopSearchSort)}
+            aria-label="Sıralama"
+            className="h-9 w-auto min-w-[160px] text-[13px]"
+          >
+            {visibleSortOptions.map((opt) => (
+              <SelectItem key={opt} value={opt}>
+                {SORT_LABELS[opt] ?? opt}
+              </SelectItem>
+            ))}
+          </Select>
+      </div>
 
-      <Grid container columnSpacing={2.5} rowSpacing={3}>
+      <ProductGrid>
         {products.map((p) => (
-          <Grid item xs={6} sm={4} md={3} key={p.url}>
-            <ProductCard data={p} />
-          </Grid>
+          <ProductCard data={p} key={p.url} />
         ))}
         {isNavigating &&
           Array.from({ length: 8 }).map((_, i) => (
-            <Grid item xs={6} sm={4} md={3} key={`skeleton-${i}`}>
-              <ProductCardSkeleton />
-            </Grid>
+            <ProductCardSkeleton key={`skeleton-${i}`} />
           ))}
-      </Grid>
-    </Stack>
+      </ProductGrid>
+    </div>
   );
 };
 

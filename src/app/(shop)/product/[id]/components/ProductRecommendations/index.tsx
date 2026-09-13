@@ -5,12 +5,11 @@ import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import { fetchRecommendations } from '@/lib/api/shop';
 import { ShopProductListItemData } from '@/lib/api/types';
 import useScreen from '@/lib/hooks/useScreen';
-import { Stack, Typography } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
 
 const ProductRecommendations = ({ brandId, productId, categoryId }: { brandId: string; productId: string; categoryId?: string }) => {
   const [recommendations, setRecommendations] = useState<ShopProductListItemData[]>();
-  const { mdUp } = useScreen();
+  const mdUp = useScreen('mdUp');
   const visibleRecommendations = recommendations?.slice(0, 4);
   const skeletonItems = Array.from({ length: 4 }, (_, index) => index);
   const slidesToShow = mdUp ? 4 : 2;
@@ -33,31 +32,11 @@ const ProductRecommendations = ({ brandId, productId, categoryId }: { brandId: s
   if (recommendations?.length === 0) return <></>;
 
   return (
-    <Stack
-      gap={3}
-      sx={{
-        px: { xs: '16px', sm: '32px' },
-      }}
-    >
-      <Typography
-        variant="h3"
-        sx={{
-          fontSize: { xs: 24, sm: 36 },
-          lineHeight: { xs: '28px', sm: '40px' },
-          fontWeight: 500,
-        }}
-      >
+    <section className="flex flex-col gap-6 px-4 sm:px-8">
+      <h2 className="text-2xl leading-7 font-medium sm:text-4xl sm:leading-10">
         Benzer Ürünler
-      </Typography>
-      <Stack
-        sx={{
-          width: '100%',
-          alignSelf: 'stretch',
-          position: 'relative',
-          overflow: 'visible',
-          pb: { xs: 1, sm: 2 },
-        }}
-      >
+      </h2>
+      <div className="relative w-full self-stretch overflow-visible pb-2 sm:pb-4">
         <CustomSlider
           slidesToShow={slidesToShow}
           slidesToScroll={slidesToScroll}
@@ -67,17 +46,16 @@ const ProductRecommendations = ({ brandId, productId, categoryId }: { brandId: s
           showControls={false}
         >
           {(visibleRecommendations ?? skeletonItems).map((item) => (
-            <Stack
+            <div
               key={typeof item === 'number' ? item : item.id}
-              p={{ xs: 0.75, sm: 1 }}
-              sx={{ boxSizing: 'border-box', height: '100%' }}
+              className="box-border h-full p-1.5 sm:p-2"
             >
               {typeof item === 'number' ? <ProductCardSkeleton /> : <ProductCard data={item} />}
-            </Stack>
+            </div>
           ))}
         </CustomSlider>
-      </Stack>
-    </Stack>
+      </div>
+    </section>
   );
 };
 

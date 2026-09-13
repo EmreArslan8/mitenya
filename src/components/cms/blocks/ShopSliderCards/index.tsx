@@ -1,13 +1,11 @@
 'use client';
 
+import useEmblaCarousel from 'embla-carousel-react';
+import { ChevronLeft, ChevronRight } from '@/components/icons';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
-import CustomSlider from '@/components/CustomSlider';
-import useStyles from './styles';
-import { Box, Stack, Typography } from '@mui/material';
 import { SharedImageType } from '../../shared/cmsTypes';
 import ShopSliderCard from '../../shared/ShopSliderCard';
 import { BlockComponentBaseProps } from '..';
-import useScreen from '@/lib/hooks/useScreen';
 
 export interface ShopSliderCardsProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
@@ -15,31 +13,27 @@ export interface ShopSliderCardsProps extends BlockComponentBaseProps {
 }
 
 const ShopSliderCards = ({ section, cards }: ShopSliderCardsProps) => {
-  const styles = useStyles();
-  const { smUp, mdUp, lgUp } = useScreen();
-
-  if (!cards || cards.length === 0) return null;
-
-  // Replaces slick responsive breakpoints
-  const slidesToShow = lgUp ? 4.5 : mdUp ? 3.2 : smUp ? 2.2 : 1.2;
-  const showControls = smUp;
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, slidesToScroll: 1, align: 'start' });
+  if (!cards?.length) return null;
 
   return (
     <SectionBase {...section}>
-      <Stack spacing={2}>
-        <Typography variant="h6" fontWeight={600} sx={{ px: { xs: 2, sm: 0 } }}>
-          Popüler Kategoriler
-        </Typography>
-        <Box>
-          <CustomSlider slidesToShow={slidesToShow} slidesToScroll={1} infinite={false} showControls={showControls}>
-            {cards.map((e) => (
-              <Box key={e.url} sx={styles.slideWrapper}>
-                <ShopSliderCard image={e.image} url={e.url} title={e.title} label={e.label} />
-              </Box>
-            ))}
-          </CustomSlider>
-        </Box>
-      </Stack>
+      <div className="flex flex-col gap-4">
+        <h2 className="px-4 text-xl font-semibold sm:px-0">Popüler Kategoriler</h2>
+        <div className="relative">
+          <div ref={emblaRef} className="overflow-hidden">
+            <div className="flex">
+              {cards.map((card) => (
+                <div key={card.url} className="min-w-0 shrink-0 basis-[83.333%] pr-2 sm:basis-[45.455%] sm:pr-4 md:basis-[31.25%] lg:basis-[22.222%]">
+                  <ShopSliderCard {...card} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <button type="button" aria-label="Önceki" onClick={() => emblaApi?.scrollPrev()} className="absolute -left-3 top-1/2 z-1 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-accentRed text-white shadow-[0_5px_12px_rgba(17,17,17,0.08)] hover:bg-accentRed-dark sm:flex"><ChevronLeft size={18} /></button>
+          <button type="button" aria-label="Sonraki" onClick={() => emblaApi?.scrollNext()} className="absolute -right-3 top-1/2 z-1 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-accentRed text-white shadow-[0_5px_12px_rgba(17,17,17,0.08)] hover:bg-accentRed-dark sm:flex"><ChevronRight size={18} /></button>
+        </div>
+      </div>
     </SectionBase>
   );
 };

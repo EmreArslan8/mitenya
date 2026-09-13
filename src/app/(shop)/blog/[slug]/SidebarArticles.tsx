@@ -1,8 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Box, Stack, Typography } from '@mui/material';
-import styles from './styles';
 
 export interface SidebarArticle {
   slug: string;
@@ -23,43 +21,42 @@ const SidebarArticles = ({ items }: { items: SidebarArticle[] }) => {
 
   return (
     <>
-      <Stack sx={styles.sidebarBlock}>
-        <Typography component="h2" sx={styles.sidebarTitlePlain}>
+      <section className="flex flex-col gap-2.5 pb-6">
+        <h2 className="text-[15px] font-bold text-gray-800">
           Yazılarda ara
-        </Typography>
-        <Box
-          component="input"
+        </h2>
+        <input
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Ara"
           aria-label="Blog yazılarında ara"
-          sx={styles.sidebarSearch}
+          className="w-full border-0 bg-[#F2F2F7] px-3 py-2.5 text-[13px] text-gray-800 outline-none placeholder:text-[#AEAEB2] focus:bg-[#EBEBF0]"
         />
-      </Stack>
+      </section>
 
-      <Stack sx={styles.sidebarBlock}>
-        <Typography component="h2" sx={styles.sidebarTitle}>
+      <section className="flex flex-col gap-2.5 pb-6">
+        <h2 className="border-b border-gray-100 pb-2.5 text-[15px] font-bold text-gray-800">
           {query.trim() ? 'Sonuçlar' : 'Öne çıkan yazılar'}
-        </Typography>
+        </h2>
 
         {filtered.length === 0 ? (
-          <Typography sx={styles.sidebarEmpty}>Eşleşen yazı bulunamadı.</Typography>
+          <p className="py-3 text-[12.5px] text-[#AEAEB2]">Eşleşen yazı bulunamadı.</p>
         ) : (
           filtered.map((item) => (
-            <Box key={item.slug} component="a" href={`/blog/${item.slug}`} sx={styles.sidebarItem}>
-              <Typography component="h3" sx={styles.sidebarItemTitle}>
+            <a key={item.slug} href={`/blog/${item.slug}`} className="group block border-b border-gray-100 py-3 no-underline last:border-0">
+              <h3 className="line-clamp-2 text-[13px] font-normal leading-normal text-[#3A3A3C] transition-colors group-hover:text-accentRed">
                 {item.title}
-              </Typography>
+              </h3>
               {item.date && (
-                <Typography component="span" sx={styles.sidebarItemDate}>
+                <span className="mt-1.5 block text-[11.5px] text-[#AEAEB2]">
                   {item.date}
-                </Typography>
+                </span>
               )}
-            </Box>
+            </a>
           ))
         )}
-      </Stack>
+      </section>
     </>
   );
 };

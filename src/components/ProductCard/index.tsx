@@ -1,5 +1,10 @@
 'use client';
 
+import { Rating } from '@/components/ui/Rating';
+import { Spinner } from '@/components/ui/Spinner';
+import { Toast } from '@/components/ui/Toast';
+import { Skeleton as UiSkeleton } from '@/components/ui/Skeleton';
+import { Stack as UiStack } from '@/components/ui/Stack';
 import Card from '@/components/common/Card';
 import Banner from '@/components/common/Banner';
 import { CrossFade } from '@/components/common/CrossFade';
@@ -15,20 +20,11 @@ import NextImage from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { ShopContext } from '@/contexts/ShopContext';
-import {
-  CircularProgress,
-  IconButton,
-  Rating,
-  Skeleton,
-  Snackbar,
-  Stack,
-  Typography,
-} from '@mui/material';
 import { Check, Heart } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useContext } from 'react';
-import useStyles from './styles';
-import Button from '../common/Button';
+import Button from '../ui/Button';
+import { cn } from '@/lib/utils/cn';
 import type { BannerVariant } from '../common/Banner';
 
 interface ShopProductCardProps {
@@ -75,8 +71,7 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
   const router = useRouter();
   const imageData = data as ProductCardImageData;
   const isMobileApp = useIsMobileApp();
-  const { smUp } = useScreen();
-  const styles = useStyles();
+  const smUp = useScreen('smUp');
   const { handleAddItem } = useContext(ShopContext);
   const { isAuthenticated, openAuthenticator } = useAuth();
   const { isFavorite, isFavoriteLoading, toggleFavorite } = useFavorites();
@@ -222,49 +217,47 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
     <>
       <Link
         href={data.url}
-        style={styles.link}
+        className="block h-full w-full text-inherit"
         target="_self"
         onClick={() => setIsNavigatingToDetails(true)}
       >
-        <Card sx={styles.card}>
-          <Stack
-            sx={styles.imageContainer}
+        <Card className="h-full cursor-pointer gap-2 border-0 bg-white pb-2.5 text-text transition-transform duration-200 hover:-translate-y-px motion-reduce:transform-none motion-reduce:transition-none">
+          <div
+            className="relative mb-0.5 aspect-[0.8] w-full overflow-hidden bg-white sm:aspect-square"
             onMouseEnter={handleMouseEnterImage}
             onMouseLeave={() => hasSecondaryImage && setShowSecondaryImage(false)}
           >
             {isMobileApp && isNavigatingToDetails && (
-              <Stack sx={styles.imageLoadingOverlay}>
-                <Stack sx={styles.imageLoadingProgressContainer}>
-                  <CircularProgress />
-                </Stack>
-              </Stack>
+              <div className="absolute inset-0 z-[4] flex items-center justify-center bg-[#dedede50]">
+                <div className="rounded-full bg-bg p-2">
+                  <Spinner className="text-primary" />
+                </div>
+              </div>
             )}
-            <Stack sx={styles.topBar}>
-              <Stack sx={styles.badgeList}>
-                {isOutOfStock && <Stack sx={{ ...styles.badge, ...styles.badgeOutOfStock }}>TÜKENDİ</Stack>}
-                {isTopRated && <Stack sx={{ ...styles.badge, ...styles.badgeBest }}>EN İYİ</Stack>}
+            <div className="absolute top-0 right-2.5 left-0 z-[3] flex items-center justify-between sm:top-2.5 sm:left-2.5">
+              <div className="flex flex-col gap-1">
+                {isOutOfStock && <span className="hidden w-fit rounded-full bg-gray-100 px-3 py-1 text-[11px] font-bold tracking-[0.02em] text-text-medium-light sm:flex">TÜKENDİ</span>}
+                {isTopRated && <span className="w-fit rounded-full bg-primary px-2.5 py-[3px] text-[11px] font-bold tracking-[0.02em] text-primary-contrast-text sm:px-3 sm:py-1">EN İYİ</span>}
                 {hasDiscount && (
-                  <Stack sx={{ ...styles.badge, ...styles.badgeDiscount }}>
+                  <span className="w-fit rounded-full border border-accentRed-light bg-white/[88%] px-2.5 py-1 text-[11px] font-bold tracking-[0.02em] text-accentRed-dark shadow-[0_4px_14px_rgba(90,8,13,0.1)] backdrop-blur-md sm:px-3">
                     {smUp ? `%${discountPercent} İNDİRİM` : `-%${discountPercent}`}
-                  </Stack>
+                  </span>
                 )}
-              </Stack>
-              <IconButton
+              </div>
+              <button
+                type="button"
                 onClick={handleFavoriteClick}
                 disabled={favoriteLoading}
                 aria-label={favorited ? 'Favorilerden çıkar' : 'Favorilere ekle'}
-                sx={{
-                  ...styles.favoriteButton,
-                  ...(favorited ? styles.favoriteButtonActive : {}),
-                }}
+                className={cn('mr-[-4px] inline-flex size-9 appearance-none items-center justify-center border-0 bg-transparent text-text-medium transition-all hover:-translate-y-px hover:text-text disabled:text-text-light', favorited && 'text-accentRed')}
               >
                 {favoriteLoading ? (
-                  <CircularProgress size={20} />
+                  <Spinner size={20} className="text-primary" />
                 ) : (
-                  <Heart size={32} style={favorited ? styles.favoriteIconActive : styles.favoriteIcon} />
+                  <Heart size={32} className={cn('transition-colors', favorited && 'fill-current text-accentRed')} />
                 )}
-              </IconButton>
-            </Stack>
+              </button>
+            </div>
             {primarySrc && (
               <NextImage
                 src={primarySrc}
@@ -273,7 +266,8 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
                 sizes={cardSizes}
                 loading="lazy"
                 style={{
-                  ...styles.image,
+                  objectFit: 'contain',
+                  transition: 'opacity 220ms ease',
                   opacity: hasSecondaryImage && showSecondaryImage ? 0 : 1,
                 }}
               />
@@ -286,46 +280,42 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
                 sizes={cardSizes}
                 loading="lazy"
                 style={{
-                  ...styles.image,
-                  ...styles.imageSecondary,
+                  objectFit: 'contain',
+                  zIndex: 1,
+                  transition: 'opacity 220ms ease',
                   opacity: showSecondaryImage ? 1 : 0,
                 }}
               />
             )}
-          </Stack>
-          <Stack sx={styles.infoContainer}>
-            {productTag && <Typography sx={styles.subtitle}>{productTag}</Typography>}
-            <Typography variant="warning" sx={styles.productName}>
+          </div>
+          <div className="grid content-start gap-y-1">
+            {productTag && <p className="text-[11px] leading-[1.2] font-semibold tracking-[0.06em] text-text-medium-light uppercase">{productTag}</p>}
+            <p className="line-clamp-2 min-h-[42px] text-[15px] leading-[1.4] font-semibold break-words text-text">
               {data.name}
-            </Typography>
+            </p>
             {data.rating && (
-              <Stack sx={styles.rating}>
-                <Typography sx={styles.ratingValue}>{data.rating.averageRating.toFixed(1)}</Typography>
-                <Rating
-                  readOnly
-                  value={data.rating?.averageRating}
-                  precision={0.1}
-                  sx={styles.ratingStars}
-                />
-                <Typography variant="body" sx={styles.ratingCount}>
+              <div className="flex items-center gap-1 pt-[3px]">
+                <span className="text-xs leading-none font-bold text-text">{data.rating.averageRating.toFixed(1)}</span>
+                <Rating value={data.rating?.averageRating ?? 0} className="text-[13px]" />
+                <span className="text-[11px] leading-none text-text-medium-light">
                   {data.rating.totalCount} Yorum
-                </Typography>
-              </Stack>
+                </span>
+              </div>
             )}
-          </Stack>
-          <Stack sx={styles.priceContainer}>
+          </div>
+          <div className="mt-auto flex min-h-12 flex-wrap content-start items-center gap-1 rounded-lg py-1 sm:min-h-[52px]">
             {hasDiscount && (
-              <Typography sx={styles.originalPrice}>
+              <span className="text-sm leading-[1.2] text-text-medium line-through">
                 {formatPrice(data.price.originalPrice, data.price.currency)}
-              </Typography>
+              </span>
             )}
-            <Typography variant="infoValue" sx={styles.price}>
+            <span className="text-[17px] leading-[1.15] font-bold text-text sm:text-lg">
               {formatPrice(data.price.currentPrice, data.price.currency)}
-            </Typography>
+            </span>
 
             {/* Sepete Ekle Icon Button */}
-          </Stack>
-          <Stack>
+          </div>
+          <div>
             <Button
               onClick={
                 isOutOfStock
@@ -341,28 +331,30 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
                     }
               }
               disabled={!isOutOfStock && (quickAddLoading || showAdded)}
-              size={smUp ? 'medium' : 'small'}
+              size="small"
               variant={isOutOfStock ? 'outlined' : 'contained'}
-              sx={{
-                ...styles.addToCartButton,
-                ...(isOutOfStock ? styles.notifyButton : {}),
-                ...(showAdded ? styles.addToCartButtonAdded : {}),
-              }}
+              color="primary"
+              fullWidth
+              className={cn(
+                'mt-0.5 rounded-none normal-case sm:h-[46px] sm:px-6 sm:py-2 sm:text-base',
+                isOutOfStock && 'bg-transparent hover:bg-text hover:text-white',
+                showAdded && 'border-success bg-success text-success-contrast-text hover:border-success hover:bg-success disabled:border-success disabled:bg-success disabled:text-success-contrast-text',
+              )}
             >
               {isOutOfStock ? (
                 'Gelince Haber Ver'
               ) : quickAddLoading ? (
-                <CircularProgress size={16} sx={{ color: 'inherit' }} />
+                <Spinner size={16} />
               ) : smUp ? (
                 <CrossFade
                   components={[
                     {
                       in: showAdded,
                       component: (
-                        <Stack direction="row" alignItems="center" gap={1}>
+                        <span className="inline-flex items-center gap-2">
                           <Check size={16} />
                           Eklendi
-                        </Stack>
+                        </span>
                       ),
                     },
                     { in: !showAdded, component: 'Sepete Ekle' },
@@ -372,7 +364,7 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
                 'Sepete Ekle'
               )}
             </Button>
-          </Stack>
+          </div>
         </Card>
       </Link>
 
@@ -385,40 +377,42 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
       />
 
       {/* Success Snackbar */}
-      <Snackbar
+      <Toast
         open={snackbarOpen}
-        autoHideDuration={2000}
+        duration={2000}
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        position="bottom-center"
       >
-        <Banner variant="success" title="Ürün sepete eklendi" sx={{ width: '100%' }} />
-      </Snackbar>
+        <Banner variant="success" title="Ürün sepete eklendi" />
+      </Toast>
 
-      <Snackbar
+      <Toast
         open={favoriteFeedback.open}
-        autoHideDuration={2000}
+        duration={2000}
         onClose={() => setFavoriteFeedback((prev) => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        position="bottom-center"
       >
-        <Banner variant={favoriteFeedback.variant} title={favoriteFeedback.title} sx={{ width: '100%' }} />
-      </Snackbar>
+        <Banner variant={favoriteFeedback.variant} title={favoriteFeedback.title} />
+      </Toast>
     </>
   );
 };
 
 export const ProductCardSkeleton = () => {
+  // ADR-0002 Faz 2 (F2.1): iskelet kısmı Tailwind'e alındı.
+  // Dosyanın geri kalanı hâlâ MUI — Faz 4/5'te dönüşecek.
   return (
-    <Stack gap={1}>
-      <Stack sx={{ aspectRatio: 0.67 }}>
-        <Skeleton variant="rounded" height="100%" />
-      </Stack>
-      <Stack gap="2px">
-        <Skeleton width={100} sx={{ fontSize: 15, lineHeight: '20px' }} />
-        <Skeleton sx={{ fontSize: 15, lineHeight: '20px' }} />
-        <Skeleton width={150} sx={{ fontSize: 15, lineHeight: '20px' }} />
-      </Stack>
-      <Skeleton width={80} sx={{ fontSize: 15, lineHeight: '20px' }} />
-    </Stack>
+    <UiStack gap={1}>
+      <UiStack className="aspect-[0.67]">
+        <UiSkeleton variant="rounded" height="100%" />
+      </UiStack>
+      <UiStack className="gap-[2px]">
+        <UiSkeleton width={100} className="text-[15px] leading-[20px]" />
+        <UiSkeleton className="text-[15px] leading-[20px]" />
+        <UiSkeleton width={150} className="text-[15px] leading-[20px]" />
+      </UiStack>
+      <UiSkeleton width={80} className="text-[15px] leading-[20px]" />
+    </UiStack>
   );
 };
 

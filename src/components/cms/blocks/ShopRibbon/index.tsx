@@ -1,12 +1,10 @@
-import Button from '@/components/common/Button';
+import Button from '@/components/ui/Button';
 import Markdown from '@/components/common/Markdown';
-import useScreen from '@/lib/hooks/useScreen';
-import { Stack, Typography } from '@mui/material';
+import { cn } from '@/lib/utils/cn';
 import { BlockComponentBaseProps } from '..';
 import CMSImage from '../../shared/CMSImage';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import { SharedButtonType, SharedImageType } from '../../shared/cmsTypes';
-import useStyles from './styles';
 
 export interface ShopRibbonProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
@@ -17,38 +15,27 @@ export interface ShopRibbonProps extends BlockComponentBaseProps {
   button?: SharedButtonType;
 }
 
-const ShopRibbon = ({ section, image, title, description, colorway, button }: ShopRibbonProps) => {
-  const styles = useStyles()(colorway);
-  const { smUp } = useScreen();
+const COLORWAYS = {
+  primary: 'bg-[image:var(--gradient-primary)] text-primary-contrast-text',
+  info: 'bg-[image:var(--gradient-info)] text-info-contrast-text',
+  success: 'bg-[image:var(--gradient-success)] text-success-contrast-text',
+  error: 'bg-[image:var(--gradient-error)] text-error-contrast-text',
+  warning: 'bg-[image:var(--gradient-warning)] text-warning-contrast-text',
+} as const;
 
-  return (
-    <SectionBase {...section}>
-      <Stack sx={styles.container}>
-        {image?.data && (
-          <CMSImage
-            fill
-            src={image.data.attributes.url}
-            alt={image.data.attributes.alternativeText || title}
-            style={styles.image}
-            sizes="1200px"
-          />
-        )}
-        <Stack sx={styles.content}>
-          <Stack sx={styles.text}>
-            <Typography component="h2" variant={smUp ? 'h1' : 'h2'}>
-              {title}
-            </Typography>
-            <Markdown text={description} options={styles.markdownOptions} />
-          </Stack>
-          {button && (
-            <Button color={colorway} {...button} size="small">
-              {button.label}
-            </Button>
-          )}
-        </Stack>
-      </Stack>
-    </SectionBase>
-  );
-};
+const ShopRibbon = ({ section, image, title, description, colorway, button }: ShopRibbonProps) => (
+  <SectionBase {...section}>
+    <div className={cn('relative -my-4 flex min-h-[100px] items-center rounded-xl', COLORWAYS[colorway])}>
+      {image?.data ? <CMSImage fill src={image.data.attributes.url} alt={image.data.attributes.alternativeText || title} className="z-0 rounded-xl object-cover" sizes="1200px" /> : null}
+      <div className="z-1 flex w-full flex-col items-center gap-2 px-2 py-4 text-center sm:px-4 sm:py-6">
+        <div className="flex flex-col items-center gap-2">
+          <h2 className="text-2xl font-bold sm:text-[2.5rem]">{title}</h2>
+          <Markdown text={description} className="[&_a]:!underline" />
+        </div>
+        {button ? <Button color={colorway === 'primary' || colorway === 'error' ? colorway : 'neutral'} variant={button.variant} arrow={button.arrow === 'none' ? undefined : button.arrow} href={button.href} target={button.target as '_blank' | '_self' | undefined} dataLayerEventId={button.dataLayerEventId} size="small">{button.label}</Button> : null}
+      </div>
+    </div>
+  </SectionBase>
+);
 
 export default ShopRibbon;

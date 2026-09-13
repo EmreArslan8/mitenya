@@ -89,4 +89,23 @@ const imageLoader = (args: LoaderArgs): string => {
   return args.src;
 };
 
+/** Yalnizca gercekten responsive varyant uretebilen kaynaklar. */
+export const canResizeImage = (src: string): boolean =>
+  !isSvg(src) && (src.includes('res.cloudinary.com') || src.includes('cdn.mitenya.com'));
+
+/**
+ * Art-direction kullanan `<picture>` bloklari icin CDN tabanli srcset.
+ * Kaynak responsive donusum desteklemiyorsa sahte/tekrarlanan aday yazmayiz.
+ */
+export const buildImageSrcSet = (
+  src: string,
+  widths: readonly number[],
+  quality?: number,
+): string | undefined => {
+  if (!canResizeImage(src)) return undefined;
+  return widths
+    .map((width) => `${imageLoader({ src, width, quality })} ${width}w`)
+    .join(', ');
+};
+
 export default imageLoader;

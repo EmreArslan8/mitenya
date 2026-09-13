@@ -1,6 +1,5 @@
-import { Stack } from '@mui/material';
 import { MutableRefObject, useEffect, useRef, useState } from 'react';
-import useStyles from './styles';
+import { cn } from '@/lib/utils/cn';
 
 const ProgressIndicator = ({
   scrollerRef,
@@ -9,7 +8,6 @@ const ProgressIndicator = ({
   scrollerRef: MutableRefObject<HTMLDivElement | null>;
   total: number;
 }) => {
-  const styles = useStyles();
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
   const currentImgIndexRef = useRef(0);
 
@@ -36,11 +34,11 @@ const ProgressIndicator = ({
   }, [scrollerRef]); // ⭐️ eksik dependency tamamlandı
 
   return (
-    <Stack sx={styles.progressIndicator}>
+    <div className="flex items-center justify-center gap-2.5 px-1 py-1">
       {Array.from({ length: total }).map((_, i) => (
-        <Stack sx={styles.progressNode(i === currentImgIndex)} key={i} />
+        <span className={cn('h-2 rounded-full transition-[width,background-color] duration-200', i === currentImgIndex ? 'w-7 bg-[#111]' : 'w-2 bg-[#D8D2CC]')} key={i} />
       ))}
-    </Stack>
+    </div>
   );
 };
 

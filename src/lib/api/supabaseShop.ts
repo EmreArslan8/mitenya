@@ -64,7 +64,8 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
     totalCount: 0,
     tq: options.query,
     filters: { selectedOptions: options },
-    sortOptions: SORT_OPTIONS,
+    // `SORT_OPTIONS` readonly tuple; ShopSearchResponse mutable dizi bekliyor.
+    sortOptions: [...SORT_OPTIONS],
     session: { _S1: "supabase" },
   };
 
@@ -348,7 +349,8 @@ export async function fetchProductsSupabase(options: Partial<ShopSearchOptions> 
       concerns: concernFilters,
       priceRanges: priceFilters,
     },
-    sortOptions: SORT_OPTIONS,
+    // `SORT_OPTIONS` readonly tuple; ShopSearchResponse mutable dizi bekliyor.
+    sortOptions: [...SORT_OPTIONS],
     session: { _S1: "supabase" },
   };
 }

@@ -1,6 +1,5 @@
-import { Box, Divider, Grid, Stack, Typography } from '@mui/material';
 import BlogCard from '@/components/cms/shared/BlogCard';
-import styles from './styles';
+import { Divider } from '@/components/ui/Divider';
 
 interface BlogEntity {
   id: number;
@@ -44,17 +43,17 @@ const BlogPageView = async () => {
   const [featured, ...rest] = blogs;
 
   return (
-    <Stack gap={{ xs: 4, md: 6 }}>
+    <div className="flex flex-col gap-8 md:gap-12">
       {/* Page Header */}
-      <Stack sx={styles.header}>
-        <Typography sx={styles.headerTitle}>
+      <header className="flex flex-col gap-3 pt-2 md:pt-4">
+        <h1 className="text-[28px] font-extrabold leading-[1.15] tracking-[-0.02em] text-gray-800 md:text-4xl">
           Blog
-        </Typography>
-        <Typography sx={styles.headerSubtitle}>
+        </h1>
+        <p className="max-w-[520px] text-sm leading-normal text-[#6E6E73] md:text-base">
           Cilt bakımı, kozmetik trendleri ve güzellik ipuçları hakkında en güncel yazılar.
-        </Typography>
-        <Box sx={styles.headerAccent} />
-      </Stack>
+        </p>
+        <span className="mt-1 h-[3px] w-10 rounded-sm bg-accentRed" />
+      </header>
       {featured && (
         <>
           <BlogCard
@@ -69,19 +68,19 @@ const BlogPageView = async () => {
             featured
           />
           {rest.length > 0 && (
-            <Divider sx={styles.featuredDivider} />
+            <Divider className="border-gray-100" />
           )}
         </>
       )}
 
       {rest.length > 0 && (
-        <Stack gap={2}>
-          <Typography sx={styles.allPostsTitle}>
+        <section className="flex flex-col gap-4">
+          <h2 className="text-lg font-bold text-gray-800 md:text-[22px]">
             Tüm Yazılar
-          </Typography>
-          <Grid container spacing={3}>
+          </h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
             {rest.map((blog) => (
-              <Grid item xs={12} sm={6} md={4} key={blog.id}>
+              <div key={blog.id}>
                 <BlogCard
                   slug={blog.attributes.slug}
                   title={blog.attributes.title}
@@ -92,28 +91,24 @@ const BlogPageView = async () => {
                   }
                   coverImage={blog.attributes.cover?.data?.attributes}
                 />
-              </Grid>
+              </div>
             ))}
-          </Grid>
-        </Stack>
+          </div>
+        </section>
       )}
 
       {/* Empty State */}
       {blogs.length === 0 && (
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={styles.emptyState}
-        >
-          <Typography sx={styles.emptyStateTitle}>
+        <div className="flex flex-col items-center justify-center gap-3 py-20">
+          <h2 className="text-lg font-semibold text-gray-800">
             Henüz yazı yok
-          </Typography>
-          <Typography sx={styles.emptyStateSubtitle}>
+          </h2>
+          <p className="text-center text-sm text-gray-500">
             Blog yazıları yakında burada olacak.
-          </Typography>
-        </Stack>
+          </p>
+        </div>
       )}
-    </Stack>
+    </div>
   );
 };
 

@@ -1,18 +1,10 @@
-'use client';
-
-import { Stack } from '@mui/material';
 import { ReactNode } from 'react';
-import useStyles from './styles';
-import dynamic from 'next/dynamic';
-
 
 const MainLayout = ({ children }: { children: ReactNode }) => {
-  const styles = useStyles();
-
   return (
-    <Stack sx={styles.container}>
-      <Stack sx={styles.content}>{children}</Stack>
-    </Stack>
+    <main className="flex min-h-[calc(100vh-146px)] w-full flex-col gap-2 bg-bg px-2 pb-4 text-bg-contrast-text sm:gap-6">
+      <div className="w-full max-w-[1340px] self-center">{children}</div>
+    </main>
   );
 };
 

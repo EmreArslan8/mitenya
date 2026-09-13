@@ -1,12 +1,11 @@
 'use client';
 
-import Button from '@/components/common/Button';
+import Button from '@/components/ui/Button';
 import ModalCard from '@/components/common/ModalCard';
 import { Check } from '@/components/icons';
 import { ShopProductData } from '@/lib/api/types';
-import { Stack, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import useStyles from './styles';
+import Image from 'next/image';
 
 interface AddedToCartModalProps {
   open: boolean;
@@ -16,7 +15,6 @@ interface AddedToCartModalProps {
 }
 
 const AddedToCartModal = ({ open, onClose, product }: AddedToCartModalProps) => {
-  const styles = useStyles();
   const router = useRouter();
 
   if (!product) return null;
@@ -40,41 +38,41 @@ const AddedToCartModal = ({ open, onClose, product }: AddedToCartModalProps) => 
       open={open}
       onClose={onClose}
       showCloseIcon
-      CardProps={{ sx: styles.card }}
+      className="w-full max-w-full sm:w-[708px]"
     >
-      <Stack sx={styles.body}>
-        <Stack sx={styles.imageWrapper}>
-          <img src={product.imgSrc} alt={product.name} style={styles.image} />
-        </Stack>
+      <div className="grid grid-cols-1 items-center justify-items-center gap-6 px-2 pb-4 text-left sm:grid-cols-[182px_auto] sm:justify-items-stretch sm:gap-12 sm:px-4">
+        <div className="flex h-[255px] w-[182px] max-w-full items-center justify-center overflow-hidden border border-black/[8%] bg-white">
+          {product.imgSrc && <Image src={product.imgSrc} alt={product.name ?? 'Ürün'} width={182} height={255} className="block size-full object-cover" />}
+        </div>
 
-        <Stack sx={styles.details}>
-          <Stack sx={styles.successRow}>
-            <Stack sx={styles.successIcon}>
+        <div className="flex w-full min-w-0 flex-col items-start justify-center">
+          <div className="mb-4 flex items-center gap-4">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-success bg-bg text-success shadow-[2px_2px_var(--color-text)]">
               <Check size={12} strokeWidth={2.5} />
-            </Stack>
-            <Typography sx={styles.successText}>Ürün sepete eklendi.</Typography>
-          </Stack>
+            </span>
+            <h2 className="text-2xl leading-[34px] font-medium tracking-[0.48px] text-success">Ürün sepete eklendi.</h2>
+          </div>
 
-          <Stack sx={styles.infoBlock}>
-            {product.brand && <Typography sx={styles.brand}>{product.brand}</Typography>}
-            <Typography sx={styles.name}>{product.name}</Typography>
+          <div className="flex w-full flex-col gap-1">
+            {product.brand && <p className="text-base leading-[22px] font-medium tracking-[0.32px]">{product.brand}</p>}
+            <p className="text-sm leading-5 tracking-[0.28px]">{product.name}</p>
 
             {!!selectedVariants.length && (
-              <Stack sx={styles.variants}>
+              <div className="mt-3 flex flex-col gap-1">
                 {selectedVariants.map(({ name, value }) => (
-                  <Typography key={name} sx={styles.variantLine}>
+                  <p key={name} className="text-sm leading-5 text-text-medium-light">
                     {name}: {value}
-                  </Typography>
+                  </p>
                 ))}
-              </Stack>
+              </div>
             )}
-          </Stack>
+          </div>
 
-          <Button variant="contained" onClick={goToCart} sx={styles.cta}>
+          <Button variant="contained" color="primary" onClick={goToCart} className="mt-8 w-full">
             Sepete Git
           </Button>
-        </Stack>
-      </Stack>
+        </div>
+      </div>
     </ModalCard>
   );
 };

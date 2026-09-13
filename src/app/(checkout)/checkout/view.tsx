@@ -6,8 +6,10 @@ import LoadingOverlay from '@/components/LoadingOverlay';
 import CheckoutCard from '@/components/ShoppingCart/CheckoutCard';
 import ShopCartProductCard from '@/components/ShoppingCart/ShopCartProductCard';
 import Banner from '@/components/common/Banner';
-import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
+import { Button } from '@/components/ui/Button';
+import { Divider } from '@/components/ui/Divider';
+import { Typography } from '@/components/ui/Typography';
 import TwoColumnLayout, {
   PrimaryColumn,
   SecondaryColumn,
@@ -34,21 +36,12 @@ import {
   type ContractData,
 } from '@/lib/legal/contractTemplates';
 import LegalDocumentModal from '@/components/contracts/LegalDocumentModal';
-import {
-  Box,
-  Checkbox,
-  Divider,
-  IconButton,
-  Snackbar,
-  Stack,
-  TextField,
-  Typography,
-  debounce,
-} from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import useStyles from './styles';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Info } from '@/components/icons';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { Toast } from '@/components/ui/Toast';
+import { TextField } from '@/components/ui/TextField';
 
 export interface CheckoutPageViewProps {
   initialAddresses?: AddressData[] | null;
@@ -80,8 +73,7 @@ const getCheckoutErrorMessage = (data: unknown) => {
 };
 
 const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
-  const { isMobile } = useScreen();
-  const styles = useStyles();
+  const isMobile = useScreen('smDown');
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, customerData, openAuthenticator } = useAuth();
@@ -281,24 +273,40 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
   // Ref'i her render'da güncelle — stale closure'ı engeller
   handleCheckoutRef.current = handleCheckout;
 
-  const handleUpdateOrderSummary = useCallback(
-    debounce(async (selected, destination, paymentType, discountCode) => {
+  useEffect(() => {
+    if (selected != null && selected.length === 0) {
+      router.replace('/cart');
+      return;
+    }
+    if (!selected?.length) {
+      setOrderSummary(undefined);
+      return;
+    }
+    if (isAuthenticated === undefined) return;
+
+    let cancelled = false;
+    setSummaryLoading(true);
+    const timer = window.setTimeout(async () => {
       try {
         const data = await getOrderSummary({
           products: selected,
           destination,
-          discountCode,
+          discountCode: discountCode ?? undefined,
           draftPaymentMethod: paymentType,
         });
-        setOrderSummary(data?.orderSummary);
+        if (!cancelled) setOrderSummary(data?.orderSummary);
       } catch {
         // summary yüklenemedi, mevcut değer korunur
       } finally {
-        setSummaryLoading(false);
+        if (!cancelled) setSummaryLoading(false);
       }
-    }, 1000),
-    []
-  );
+    }, 1000);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [selected, destination, paymentType, discountCode, isAuthenticated, router]);
 
   useEffect(() => {
     const queryCode = searchParams?.get('dc')?.trim().toUpperCase() ?? null;
@@ -315,18 +323,7 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
       promo_code: nextCode,
       apply_method: queryCode ? 'query' : 'auto',
     });
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (selected != null && selected.length === 0) {
-      router.replace('/cart');
-      return;
-    }
-    if (!selected?.length) return setOrderSummary(undefined);
-    if (isAuthenticated === undefined) return;
-    setSummaryLoading(true);
-    handleUpdateOrderSummary(selected, destination, paymentType, discountCode);
-  }, [selected, destination, paymentType, discountCode, isAuthenticated]);
+  }, [searchParams, discountCode]);
 
   useEffect(() => {
     tikTokUserRef.current = {
@@ -456,163 +453,118 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
     <Card
       border
       title={`Ürün Bilgileri (${numSelected})`}
-      titleProps={{ sx: { fontSize: 16, fontWeight: 700 } }}
-      sx={{ header: { textTransform: 'none' } }}
+      titleClassName="text-base font-bold"
+      headerClassName="normal-case"
       collapsible
       defaultCollapsed={false}
     >
-      <Stack sx={styles.products}>
+      <div className="flex flex-col gap-4 py-4">
         {selected?.map((e, i) => (
-          <Stack gap={2} px={2} key={`${e.id}-${e.variants?.map(v => v.options.find(o => o.selected)?.value ?? '').join('-') ?? ''}`}>
+          <div className="flex flex-col gap-4 px-4" key={`${e.id}-${e.variants?.map(v => v.options.find(o => o.selected)?.value ?? '').join('-') ?? ''}`}>
             <ShopCartProductCard data={e} />
-            {i < selected.length - 1 && <Divider flexItem />}
-          </Stack>
+            {i < selected.length - 1 && <Divider />}
+          </div>
         ))}
-      </Stack>
+      </div>
     </Card>
   );
 
   return (
     <>
       {showDiscountCodeSnackbar && (
-        <Snackbar
-          open={showDiscountCodeSnackbar}
-          autoHideDuration={3000}
-          onClose={() => setShowDiscountCodeSnackbar(false)}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        >
+        <Toast
+        open={showDiscountCodeSnackbar}
+        duration={3000}
+        onClose={() => setShowDiscountCodeSnackbar(false)}
+        position="top-center"
+      >
           <Banner
             variant="success"
             title="İndirim kodu başarıyla uygulandı"
-            sx={{ width: '100%' }}
+
           />
-        </Snackbar>
+      </Toast>
       )}
-      <Snackbar
+      <Toast
         open={!!checkoutError}
-        autoHideDuration={4000}
+        duration={4000}
         onClose={() => setCheckoutError(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        position="top-center"
       >
-        <Banner variant="error" title={checkoutError ?? ''} sx={{ width: '100%' }} />
-      </Snackbar>
+        <Banner variant="error" title={checkoutError ?? ''} />
+      </Toast>
       {!orderSummary && <LoadingOverlay loading />}
-      <Stack gap={3}>
-        <TwoColumnLayout sx={{ pb: 3, gap: { xs: 2, sm: 3 } }}>
+      <div className="flex flex-col gap-6">
+        <TwoColumnLayout className="gap-4 pb-6 sm:gap-6">
           <PrimaryColumn>
             {!isAuthenticated && (
               <Card
                 border
-                sx={{ header: { textTransform: 'none' } }}
+                headerClassName="normal-case"
                 title={
-                  <Stack direction="row" alignItems="center" justifyContent="space-between" width="100%">
-                    <Typography sx={{ fontSize: 16, fontWeight: 700 }}>
-                    Müşteri Bilgileri
-                    </Typography>
-                    <Stack direction="row" gap={0.5} alignItems="center">
-                      <Typography
-                        variant="body2"
-                        sx={{ fontSize: 14, color: 'primary.main', textDecoration: 'underline', cursor: 'pointer' }}
+                  <div className="flex w-full items-center justify-between">
+                    <Typography variant="body1" as="span" className="font-bold tracking-normal">Müşteri Bilgileri</Typography>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        className="border-0 bg-transparent p-0 text-sm text-primary underline"
                         onClick={(event) => { event.stopPropagation(); openAuthenticator?.(); }}
                       >
                         Giriş Yap
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontSize: 14, color: 'text.secondary' }}>|</Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{ fontSize: 14, color: 'primary.main', textDecoration: 'underline', cursor: 'pointer' }}
+                      </button>
+                      <Typography variant="body2" as="span" className="text-text-secondary">|</Typography>
+                      <button
+                        type="button"
+                        className="border-0 bg-transparent p-0 text-sm text-primary underline"
                         onClick={(event) => { event.stopPropagation(); openAuthenticator?.({ type: 'uye-ol' }); }}
                       >
                         Üye Ol
-                      </Typography>
-                    </Stack>
-                  </Stack>
+                      </button>
+                    </div>
+                  </div>
                 }
               >
-                <Stack px={{ xs: 1.5, sm: 2 }} py={1.5}>
-                <TextField
-                  type="email"
-                  fullWidth
-                  value={guestEmail}
-                  onChange={(e) => { setGuestEmail(e.target.value); setGuestEmailError(''); }}
-                  onBlur={() => {
-                    if (guestEmail && !isValidEmail(guestEmail))
-                      setGuestEmailError('Geçerli bir e-posta adresi girin.');
-                  }}
-                  error={!!guestEmailError}
-                  helperText={guestEmailError}
-                  placeholder="E-posta"
-                  size="small"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 1,
-                      backgroundColor: '#fff',
-                      height: 'auto',
-                      minHeight: 48,
-                    },
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'rgba(0,0,0,0.23)',
-                    },
-                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#C1121F',
-                      borderWidth: 1,
-                    },
-                    '& .MuiInputBase-input': {
-                      padding: '13px 12px',
-                      fontSize: 15,
-                    },
-                    '& input::placeholder': {
-                      color: '#9B9BA1',
-                      opacity: 1,
-                    },
-                  }}
-                />
-              </Stack>
+                <div className="px-3 py-3 sm:px-4">
+                  <TextField
+                    type="email"
+                    autoComplete="email"
+                    value={guestEmail}
+                    onChange={(e) => { setGuestEmail(e.target.value); setGuestEmailError(''); }}
+                    onBlur={() => {
+                      if (guestEmail && !isValidEmail(guestEmail))
+                        setGuestEmailError('Geçerli bir e-posta adresi girin.');
+                    }}
+                    error={guestEmailError || false}
+                    placeholder="E-posta"
+                    aria-label="E-posta adresi"
+                    size="large"
+                  />
+                </div>
               </Card>
             )}
             <Card
               border
-              titleProps={{ sx: { fontSize: 16, fontWeight: 700 } }}
-              sx={{ header: { textTransform: 'none' } }}
+              titleClassName="text-base font-bold"
+              headerClassName="normal-case"
               title={
-                <Typography
-                  component="div"
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    fontSize: 16,
-                    fontWeight: 700,
-                    gap: 0.5,
-                  }}
-                >
-                  Teslimat Bilgileri
+                <div className="flex items-center justify-between gap-1 text-base font-bold">
+                  <span>Teslimat Bilgileri</span>
                   {destination && (
-                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <span className="inline-flex items-center">
                       <Check size={16} strokeWidth={3} />
-                      <Typography
-                        component="span"
-                        variant="cardTitle"
-                        color="text.medium"
-                        sx={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          textTransform: 'none',
-                          textDecoration: 'underline',
-                        }}
-                      >
+                      <Typography variant="cardTitle" as="span" className="inline-flex items-center normal-case text-text-medium underline">
                         {`${destination.name}`}
                       </Typography>
-                    </Box>
+                    </span>
                   )}
-                </Typography>
+                </div>
               }
               collapsible
               defaultCollapsed={isMobile && !!destination}
             >
-              <Stack px={{ xs: 1, sm: 2 }} py={1}>
-                <Stack>
-                  <Card sx={{ maxWidth: '100%', gap: 1 }}>
+              <div className="px-2 py-2 sm:px-4">
+                <div>
+                  <Card className="max-w-full gap-2">
                     <AddressSelector
                       value={destination}
                       options={addresses}
@@ -627,172 +579,65 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                     />
                     */}
                   </Card>
-                </Stack>
-              </Stack>
+                </div>
+              </div>
             </Card>
-            <Card
-                border
-                title="Fatura Bilgileri"
-                titleProps={{ sx: { fontSize: 16, fontWeight: 700 } }}
-                sx={{ header: { textTransform: 'none' } }}
-                collapsible
-                defaultCollapsed={!billingDifferent}
-              >
-                <Stack px={{ xs: 1, sm: 2 }} py={1} gap={1.5}>
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    gap={0.5}
-                    sx={{ cursor: 'pointer' }}
-                    onClick={() => { setBillingDifferent(p => !p); setBillingAddress(undefined); }}
-                  >
-                    <Checkbox
-                      size="small"
-                      checked={billingDifferent}
-                      onChange={() => { setBillingDifferent(p => !p); setBillingAddress(undefined); }}
-                      onClick={(e) => e.stopPropagation()}
-                      sx={{ p: 0.5 }}
-                    />
-                    <Typography sx={{ fontSize: 14, lineHeight: 1.4 }}>
-                      Fatura adresi teslimat adresinden farklı
-                    </Typography>
-                  </Stack>
-                  {!billingDifferent && destination && (
-                    <Stack
-                      direction="row"
-                      gap={1}
-                      sx={{
-                        px: 1.5,
-                        py: 1,
-                        borderRadius: 2,
-                        backgroundColor: 'grey.50',
-                        border: '1px solid',
-                        borderColor: 'divider',
-                      }}
-                    >
-                      <Box sx={{ color: 'text.secondary', mt: 0.2 }}>
-                        <Check size={14} />
-                      </Box>
-                      <Stack>
-                        <Typography variant="body2" sx={{ fontSize: 13, fontWeight: 600 }}>
-                          {destination.name}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {[destination.line1, destination.line2, destination.district, destination.city]
-                            .filter(Boolean)
-                            .join(', ')}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.25 }}>
-                          Teslimat adresiyle aynı
-                        </Typography>
-                      </Stack>
-                    </Stack>
-                  )}
-                  {billingDifferent && (
-                    <Card sx={{ maxWidth: '100%', gap: 1 }}>
-                      <AddressSelector
-                        value={billingAddress}
-                        options={addresses}
-                        onAddressAdded={(a) => setBillingAddress(a)}
-                        onChange={(a) => setBillingAddress(a)}
-                      />
-                    </Card>
-                  )}
-                </Stack>
-              </Card>
-            {/*
             <Card
               border
-              titleProps={{ sx: { fontSize: 16, fontWeight: 700 } }}
-              sx={{ header: { textTransform: 'none' } }}
-              title={
-                <Typography
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    fontSize: 16,
-                    fontWeight: 700,
-                    gap: 0.5,
-                  }}
-                >
-                  Ödeme Yöntemi
-                  <Box
-                    sx={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      maxWidth: { xs: 150, md: 'unset' },
-                    }}
-                  >
-                    <Check size={16} strokeWidth={3} />
-                    <Typography
-                      variant="cardTitle"
-                      color="text.medium"
-                      sx={{
-                        alignItems: 'center',
-                        textTransform: 'none',
-                        textDecoration: 'underline',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {paymentType === 'UniversalBank'
-                        ? 'Uzcard / Humo'
-                        : paymentType === 'COD'
-                          ? 'Kapıda Ödeme'
-                          : 'Kredi veya Banka Kartı'}
-                    </Typography>
-                  </Box>
-                </Typography>
-              }
+              title="Fatura Bilgileri"
+              titleClassName="text-base font-bold"
+              headerClassName="normal-case"
               collapsible
+              defaultCollapsed={!billingDifferent}
             >
-              <Stack pb={{ xs: 1, sm: 2 }} pt={{ sm: 1 }} pl={{ sm: 1 }} pr={1} gap={1.5}>
-                <Stack>
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    onClick={() => setPaymentType('PayTR')}
-                    sx={{ cursor: 'pointer' }}
-                  >
-                    <Checkbox size="small" checked={paymentType === 'PayTR'} />
-                    <Typography variant="warningSemibold">Kredi veya Banka Kart</Typography>
-                  </Stack>
-                  <Card
-                    border
-                    sx={{
-                      ml: { xs: 1.5, sm: 5 },
-                      gap: 2,
-                      p: 1.5,
-                      maxWidth: { xs: '100%', sm: 350 },
+              <div className="flex flex-col gap-3 px-2 py-2 sm:px-4">
+                <label className="flex cursor-pointer items-center gap-1">
+                  <Checkbox
+                    checked={billingDifferent}
+                    onCheckedChange={(checked) => {
+                      setBillingDifferent(checked);
+                      setBillingAddress(undefined);
                     }}
-                  >
-                    <Stack direction="row" gap={1.5}>
-                      {['visa', 'mastercard', 'troy'].map((e) => (
-                        <Image
-                          src={`/static/images/${e}.svg`}
-                          alt={e}
-                          key={e}
-                          width={36}
-                          height={28}
-                          style={{ objectFit: 'contain' }}
-                        />
-                      ))}
-                    </Stack>
+                    aria-label="Fatura adresi teslimat adresinden farklı"
+                  />
+                  <Typography variant="body2" as="span" className="tracking-normal">
+                    Fatura adresi teslimat adresinden farklı
+                  </Typography>
+                </label>
+                {!billingDifferent && destination && (
+                  <div className="flex gap-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                    <span className="mt-0.5 text-text-secondary"><Check size={14} /></span>
+                    <div className="flex flex-col">
+                      <Typography variant="progressLabel" className="font-semibold">{destination.name}</Typography>
+                      <Typography variant="caption" className="text-text-secondary">
+                        {[destination.line1, destination.line2, destination.district, destination.city]
+                          .filter(Boolean)
+                          .join(', ')}
+                      </Typography>
+                      <Typography variant="caption" className="mt-0.5 text-text-secondary">Teslimat adresiyle aynı</Typography>
+                    </div>
+                  </div>
+                )}
+                {billingDifferent && (
+                  <Card className="max-w-full gap-2">
+                    <AddressSelector
+                      value={billingAddress}
+                      options={addresses}
+                      onAddressAdded={(address) => setBillingAddress(address)}
+                      onChange={(address) => setBillingAddress(address)}
+                    />
                   </Card>
-                </Stack>
-              </Stack>
+                )}
+              </div>
             </Card>
-            */}
           </PrimaryColumn>
           <SecondaryColumn>
             {cartProductsCard}
             <CheckoutCard
               title="Sipariş Özeti"
               hideTitleIcon
-              titleProps={{ sx: { fontSize: 16, fontWeight: 700 } }}
-              sx={{ header: { textTransform: 'none' } }}
+              titleClassName="text-base font-bold"
+              headerClassName="normal-case"
               numSelected={numSelected}
               orderSummary={orderSummary}
               loading={summaryLoading}
@@ -800,45 +645,47 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
               onSubmitDiscountCode={setDiscountCode}
               showLines
               action={
-                <Stack gap={1.75}>
-                  <Stack sx={styles.legalConsentGroup}>
-                    <Stack sx={styles.legalConsentRow}>
+                <div className="flex flex-col gap-3.5">
+                  <div className="flex flex-col gap-4 py-2">
+                    <div className="flex w-full items-center">
                       <Checkbox
-                        size="small"
                         checked={preInfoAccepted}
-                        onChange={(e) => setPreInfoAccepted(e.target.checked)}
-                        sx={{ p: 0, mr: 1 }}
+                        onCheckedChange={setPreInfoAccepted}
+                        className="mr-2"
+                        aria-label="Ön bilgilendirme formunu okudum"
                       />
-                      <Typography variant="body2" sx={styles.legalConsentText}>
+                      <Typography variant="body2" className="flex-1 font-medium leading-[21px] tracking-normal text-text">
                         Ön Bilgilendirme Metnini okudum, kabul ediyorum.
                       </Typography>
-                      <IconButton
+                      <button
+                        type="button"
                         aria-label="Ön Bilgilendirme Metni'ni görüntüle"
                         onClick={() => setPreInfoModalOpen(true)}
-                        sx={styles.legalInfoButton}
+                        className="ml-2.5 flex h-5 w-5 shrink-0 items-center justify-center border-0 bg-transparent p-0 text-text"
                       >
                         <Info size={16} />
-                      </IconButton>
-                    </Stack>
-                    <Stack sx={styles.legalConsentRow}>
+                      </button>
+                    </div>
+                    <div className="flex w-full items-center">
                       <Checkbox
-                        size="small"
                         checked={distanceSaleAccepted}
-                        onChange={(e) => setDistanceSaleAccepted(e.target.checked)}
-                        sx={{ p: 0, mr: 1 }}
+                        onCheckedChange={setDistanceSaleAccepted}
+                        className="mr-2"
+                        aria-label="Mesafeli satış sözleşmesini okudum"
                       />
-                      <Typography variant="body2" sx={styles.legalConsentText}>
+                      <Typography variant="body2" className="flex-1 font-medium leading-[21px] tracking-normal text-text">
                         Mesafeli Satış Sözleşmesini okudum ve kabul ediyorum.
                       </Typography>
-                      <IconButton
+                      <button
+                        type="button"
                         aria-label="Mesafeli Satış Sözleşmesi'ni görüntüle"
                         onClick={() => setDistanceSaleModalOpen(true)}
-                        sx={styles.legalInfoButton}
+                        className="ml-2.5 flex h-5 w-5 shrink-0 items-center justify-center border-0 bg-transparent p-0 text-text"
                       >
                         <Info size={16} />
-                      </IconButton>
-                    </Stack>
-                  </Stack>
+                      </button>
+                    </div>
+                  </div>
                   <Button
                     loading={continueButtonLoading}
                     variant="contained"
@@ -852,68 +699,16 @@ const CheckoutPageView = ({ initialAddresses }: CheckoutPageViewProps) => {
                         orderSummary?.cashOnDeliveryAvailability.isAvailable === false)
                     }
                     onClick={handleCheckout}
-                    sx={{ py: 1.5, borderRadius: 0.75, fontSize: 16, fontWeight: 800 }}
+                    className="rounded-md py-3 text-base font-extrabold"
                   >
                     Siparişi Tamamla
                   </Button>
-                </Stack>
+                </div>
               }
             />
-            {/*
-            {isMobile && (
-              <Stack sx={styles.mobileCheckoutBar}>
-                <Box onClick={() => setSummaryModalOpen((prev) => !prev)}>
-                  <InfoItem
-                    sx={{ gap: 0 }}
-                    label="Ödenecek Toplam"
-                    value={
-                      <Stack direction="row" alignItems="center" gap={1} sx={{ cursor: 'pointer' }}>
-                        {formatPrice(orderSummary?.totalDue ?? 0, orderSummary?.currency ?? 'TRY')}
-                        <Box component="span" sx={styles.expandIcon(summaryModalOpen)}>
-                          <ChevronDown size={18} />
-                        </Box>
-                      </Stack>
-                    }
-                  />
-                </Box>
-                <Button
-                  variant="contained"
-                  size="small"
-                  arrow="end"
-                  disabled={
-                    !selected?.length ||
-                    !preInfoAccepted ||
-                    !distanceSaleAccepted ||
-                    (paymentType === 'COD' &&
-                      orderSummary?.cashOnDeliveryAvailability.isAvailable === false)
-                  }
-                  onClick={handleCheckout}
-                >
-                  Ödemeye Geç
-                </Button>
-                <ModalCard
-                  open={summaryModalOpen}
-                  onClose={() => setSummaryModalOpen(false)}
-                  layout="bottom-sheet"
-                  bottomOffset={mobileCheckoutBarOffset}
-                  BodyProps={{ sx: { p: 0 } }}
-                  sx={{ zIndex: 1297 }}
-                >
-                  <CheckoutCard
-                    showLines
-                    orderSummary={orderSummary}
-                    numSelected={numSelected}
-                    discountCode={discountCode}
-                    onSubmitDiscountCode={setDiscountCode}
-                    loading={summaryLoading}
-                  />
-                </ModalCard>
-              </Stack>
-            )}
-            */}
           </SecondaryColumn>
         </TwoColumnLayout>
-      </Stack>
+      </div>
       <NewAddressModal
         open={newAddressModalOpen}
         onClose={() => {

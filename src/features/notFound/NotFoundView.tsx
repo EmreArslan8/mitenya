@@ -1,97 +1,38 @@
 'use client';
 
-import Button from '@/components/common/Button';
-import { withPalette } from '@/theme/ThemeRegistry';
-import { Box, Stack, Typography } from '@mui/material';
+import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 
-const useStyles = withPalette((palette) => ({
-  root: {
-    alignItems: 'center',
-    textAlign: 'center',
-    py: { xs: 7, md: 12 },
-    px: 2,
-  },
-  /**
-   * Dekoratif rakam. Ekran genişliğiyle büyüyor ama clamp'in üst sınırı var,
-   * yoksa geniş ekranda başlığı ezip sayfanın konusu "404" oluyor.
-   */
-  numeral: {
-    fontSize: 'clamp(84px, 18vw, 168px)',
-    fontWeight: 800,
-    lineHeight: 0.85,
-    letterSpacing: '-0.05em',
-    color: palette.text.main,
-    userSelect: 'none',
-  },
-  /** Ortadaki sıfır tek aksan — başka renk kullanmıyoruz. */
-  numeralAccent: { color: palette.accentRed.main },
-  title: {
-    mt: { xs: 3, md: 4 },
-    fontSize: { xs: 22, md: 28 },
-    lineHeight: 1.25,
-    fontWeight: 600,
-    color: palette.text.main,
-  },
-  subtitle: {
-    mt: 1,
-    maxWidth: 440,
-    fontSize: { xs: 14, md: 16 },
-    lineHeight: 1.5,
-    color: palette.text.mediumLight,
-  },
-  actions: {
-    mt: { xs: 3, md: 4 },
-    flexDirection: { xs: 'column', sm: 'row' },
-    gap: 1.5,
-    width: '100%',
-    maxWidth: 440,
-    '& > *': { flex: 1 },
-  },
-  supportLine: {
-    mt: 3,
-    fontSize: 13,
-    color: palette.text.mediumLight,
-  },
-  supportLink: {
-    color: 'inherit',
-    textDecoration: 'underline',
-    textUnderlineOffset: 3,
-  },
-}));
-
 const NotFoundView = () => {
-  const styles = useStyles();
-
   return (
-    <Stack sx={styles.root}>
-      <Typography component="p" sx={styles.numeral} aria-hidden>
-        4<Box component="span" sx={styles.numeralAccent}>0</Box>4
-      </Typography>
+    <main className="flex flex-col items-center px-4 py-14 text-center md:py-24">
+      <p className="select-none text-[clamp(84px,18vw,168px)] font-extrabold leading-[0.85] tracking-[-0.05em] text-text" aria-hidden>
+        4<span className="text-accentRed">0</span>4
+      </p>
 
-      <Typography component="h1" sx={styles.title}>
+      <h1 className="mt-6 text-[22px] font-semibold leading-tight text-text md:mt-8 md:text-[28px]">
         Aradığın sayfayı bulamadık
-      </Typography>
-      <Typography sx={styles.subtitle}>
+      </h1>
+      <p className="mt-2 max-w-[440px] text-sm leading-normal text-text-medium-light md:text-base">
         Bağlantı taşınmış, adı değişmiş ya da hiç var olmamış olabilir.
-      </Typography>
+      </p>
 
-      <Stack sx={styles.actions}>
-        <Button variant="contained" href="/" sx={{ py: 1.5 }}>
+      <div className="mt-6 flex w-full max-w-[440px] flex-col gap-3 sm:flex-row md:mt-8 [&>*]:flex-1">
+        <Button variant="contained" href="/" className="py-3">
           Ana Sayfaya Dön
         </Button>
-        <Button variant="outlined" color="secondary" href="/search" sx={{ py: 1.5 }}>
+        <Button variant="outlined" color="secondary" href="/search" className="py-3">
           Ürünleri Keşfet
         </Button>
-      </Stack>
+      </div>
 
-      <Typography sx={styles.supportLine}>
+      <p className="mt-6 text-[13px] text-text-medium-light">
         Yardıma mı ihtiyacın var?{' '}
-        <Box component={Link} href="/iletisim" sx={styles.supportLink}>
+        <Link href="/iletisim" className="text-inherit underline underline-offset-3">
           Bize ulaş
-        </Box>
-      </Typography>
-    </Stack>
+        </Link>
+      </p>
+    </main>
   );
 };
 

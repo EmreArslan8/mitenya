@@ -1,4 +1,4 @@
-import { Stack, Typography } from '@mui/material';
+import { Typography } from '@/components/ui/Typography';
 import ModalCard from '@/components/common/ModalCard';
 import LegalDocumentContent from './LegalDocumentContent';
 
@@ -19,29 +19,17 @@ const LegalDocumentModal = ({ open, title, updatedAt, html, onClose }: LegalDocu
       fullWidth
       border
       title={title}
-      CardProps={{
-        sx: {
-          width: { xs: '100%', sm: 'min(900px, calc(100vw - 32px))' },
-          maxWidth: { xs: '100%', sm: 900 },
-        },
-      }}
-      BodyProps={{
-        sx: {
-          maxHeight: { xs: 'min(72dvh, calc(100dvh - 112px))', sm: '70vh' },
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          gap: 2,
-        },
-      }}
+      className="w-full max-w-full sm:w-[min(900px,calc(100vw-32px))] sm:max-w-[900px]"
+      bodyClassName="max-h-[min(72dvh,calc(100dvh-112px))] gap-4 overflow-x-hidden overflow-y-auto sm:max-h-[70vh]"
     >
       {updatedAt && (
-        <Typography variant="body" sx={{ color: 'text.secondary', fontSize: 13 }}>
+        <Typography variant="progressLabel" className="text-text-secondary">
           Son Güncelleme: {updatedAt}
         </Typography>
       )}
-      <Stack>
+      <div>
         <LegalDocumentContent html={html} />
-      </Stack>
+      </div>
     </ModalCard>
   );
 };

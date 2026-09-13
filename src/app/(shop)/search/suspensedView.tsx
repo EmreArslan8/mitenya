@@ -15,11 +15,7 @@ const SuspensedView = async ({ searchParams }: { searchParams: Record<string, st
     <TwoColumnLayout>
       {data.filters && (
         <SecondaryColumn
-          sx={{
-            width: { md: 280 },
-            minWidth: { md: 280 },
-            maxWidth: { sm: 280 }
-          }}
+          className="sm:max-w-[280px] md:w-[280px] md:min-w-[280px]"
         >
           <SearchFilters
             data={data.filters}

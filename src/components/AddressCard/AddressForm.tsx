@@ -7,7 +7,7 @@ import FormikTextField from '@/components/common/inputs/FormikTextField';
 import { AddressData } from '@/lib/api/types';
 import { DestinationCountry } from '@/lib/utils/countries';
 import tokenize from '@/lib/utils/tokenize';
-import { Stack, Typography } from '@mui/material';
+import { Typography } from '@/components/ui/Typography';
 import { useFormik } from 'formik';
 import { Asterisk } from '@/components/icons';
 import React, { useEffect, useRef, useState } from 'react';
@@ -63,56 +63,9 @@ const AddressForm = ({
     return errors;
   };
 
-  const fieldSx = {
-    '& .MuiOutlinedInput-root': {
-      borderRadius: 1,
-      backgroundColor: '#fff',
-      height: 'auto',
-      minHeight: 48,
-    },
-    '& .MuiSelect-select': {
-      padding: '13px 12px !important',
-    },
-    '& .MuiOutlinedInput-notchedOutline': {
-      borderColor: 'rgba(0,0,0,0.23)',
-    },
-    '& input::placeholder': {
-      color: '#9B9BA1',
-      opacity: 1,
-    },
-    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#C1121F',
-      borderWidth: 1,
-    },
-  } as const;
 
-  const inputProps = { style: { padding: '13px 12px', fontSize: 15 } };
 
-  const dropdownSx = {
-    borderRadius: 1,
-    backgroundColor: '#fff',
-    height: 'auto',
-    minHeight: 48,
-    '& .MuiSelect-select': { padding: '13px 12px !important', minHeight: 'unset !important' },
-    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.23)' },
-    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#C1121F', borderWidth: 1 },
-    '& .MuiInputBase-input': { padding: '13px 12px', fontSize: 15 },
-  } as const;
 
-  const autocompleteSx = {
-    '& .MuiOutlinedInput-root': {
-      borderRadius: 1,
-      backgroundColor: '#fff',
-      height: 'auto',
-      minHeight: 48,
-    },
-    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.23)' },
-    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: '#C1121F',
-      borderWidth: 1,
-    },
-    '& .MuiInputBase-input': { padding: '13px 12px', fontSize: 15 },
-  } as const;
 
   const formik = useFormik<AddressFormFields>({
     initialValues: {
@@ -199,34 +152,34 @@ const AddressForm = ({
   }, [submitTrigger]);
 
   return (
-    <Stack gap={2} sx={{ '& .MuiFormLabel-root, & .MuiTypography-infoLabel': { fontSize: { xs: 14, sm: 13 } } }}>
+    <div className="flex flex-col gap-4 [&_label]:text-sm sm:[&_label]:text-[13px]">
       <form onSubmit={formik.handleSubmit}>
-        <Stack gap={2}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
+        <div className="flex flex-col gap-4">
+          <div className="grid gap-2 sm:grid-cols-2">
             <FormikTextField
+              size="large"
               fieldKey="contactName"
               label="Ad"
               formik={formik}
               required
               disabled={disabledFields.contactName}
               placeholder="Adınızı Giriniz"
-              props={{ sx: fieldSx, inputProps }}
             />
             <FormikTextField
+              size="large"
               fieldKey="contactSurname"
               label="Soyad"
               formik={formik}
               required
               disabled={disabledFields.contactSurname}
               placeholder="Soyadınızı Giriniz"
-              props={{ sx: fieldSx, inputProps }}
             />
-          </Stack>
+          </div>
 
-          <Stack direction={{ xs: 'column', sm: 'row' }} gap={1} alignItems={{ sm: 'flex-end' }}>
-            <Stack width="100%">
-              <PhoneNumberInput formik={formik} label="Telefon" fullWidth size="small" />
-            </Stack>
+          <div className="grid items-end gap-2 sm:grid-cols-2">
+            <div className="w-full">
+              <PhoneNumberInput formik={formik} label="Telefon" />
+            </div>
 
             <FormikDropdown
               formik={formik}
@@ -234,17 +187,16 @@ const AddressForm = ({
               label="İl"
               options={cities.map((c) => ({ label: c.name, value: c.name }))}
               required
-              selectSx={dropdownSx}
-              size="small"
+              size="large"
               onChange={() => {
                 formik.setFieldValue('district', '');
                 formik.setFieldValue('neighborhood', '');
                 setNeighborhoods([]);
               }}
             />
-          </Stack>
+          </div>
 
-          <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
+          <div className="grid gap-2 sm:grid-cols-2">
             <FormikDropdown
               formik={formik}
               fieldKey="district"
@@ -253,46 +205,47 @@ const AddressForm = ({
                 .filter((d) => d.il_id === cities.find((c) => c.name === formik.values.city)?.id)
                 .map((d) => ({ label: d.name, value: d.name }))}
               required
-              selectSx={dropdownSx}
-              size="small"
+              size="large"
             />
             <FormikAutocomplete
+              variant="outlined"
               formik={formik}
               fieldKey="neighborhood"
               label="Mahalle"
               options={neighborhoods.map((n) => ({ label: n.name, value: n.name }))}
               required
-              textFieldSx={autocompleteSx}
-              size="small"
+              size="large"
             />
-          </Stack>
+          </div>
 
-          <Stack gap={0.5}>
-            <Typography variant="subtitle2" fontWeight={700}>
-              Adres <Asterisk color="error" size={8} />
+          <div className="flex flex-col gap-1">
+            <Typography variant="subtitle2" className="flex items-center font-bold">
+              Adres <span className="text-error"><Asterisk size={8} /></span>
             </Typography>
-            <Typography variant="body2" color="text.secondary" fontSize={12}>
+            <Typography variant="caption" className="text-text-secondary">
               Kargonuzun size sorunsuz bir şekilde ulaşabilmesi için mahalle, cadde, sokak,
               bina gibi detay bilgileri eksiksiz girdiğinizden emin olun.
             </Typography>
             <FormikTextField
+              size="large"
               fieldKey="lines"
               formik={formik}
               required
               limit={90}
               placeholder="Cadde, mahalle sokak ve diğer bilgileri giriniz."
-              props={{ multiline: true, minRows: 3, sx: fieldSx }}
+              multiline
+              minRows={3}
             />
-          </Stack>
+          </div>
 
           <FormikTextField
             fieldKey="name"
+            size="large"
             label="Adres Başlığı"
             formik={formik}
             required
             disabled={disabledFields.name}
             placeholder="Adres Başlığı Giriniz"
-            props={{ sx: fieldSx, inputProps }}
           />
 
 
@@ -304,9 +257,9 @@ const AddressForm = ({
             disabled={disabledFields.taxNumber}
           />
           */}
-        </Stack>
+        </div>
       </form>
-    </Stack>
+    </div>
   );
 };
 

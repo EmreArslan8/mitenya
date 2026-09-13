@@ -1,132 +1,113 @@
-'use client';
-
-import { Divider, Stack, Typography } from '@mui/material';
-import useStyles from './styles';
+import { Divider } from '@/components/ui/Divider';
+import { Typography } from '@/components/ui/Typography';
 
 const IletisimView = () => {
-  const styles = useStyles();
-
   return (
-    <Stack sx={styles.container}>
-      {/* ── Başlık ── */}
-      <Stack gap={1}>
-        <Typography sx={styles.pageTitle}>İletişim</Typography>
-        <Typography sx={styles.pageSubtitle}>
+    <div className="ml-4 flex w-full max-w-[800px] flex-col gap-5 py-4 sm:ml-8 sm:gap-6 sm:py-6">
+      <div className="flex flex-col gap-2">
+        <Typography variant="h1" className="text-[28px] font-extrabold leading-[1.15] tracking-[-0.02em] sm:text-[34px]">İletişim</Typography>
+        <Typography variant="body2" className="leading-[1.85] tracking-normal text-text-medium-light sm:text-[15px]">
           Mitenya olarak siparişleriniz, ürünlerimiz ve satış sonrası
           süreçlerle ilgili tüm sorularınızda yanınızdayız. Bizimle aşağıdaki
           iletişim kanallarından kolayca iletişime geçebilirsiniz.
         </Typography>
-      </Stack>
+      </div>
 
-      <Divider sx={styles.divider} />
+      <Divider className="border-gray-100" />
 
       {/* ── Müşteri Destek Kanalları ── */}
-      <Stack sx={styles.section}>
-        <Typography sx={styles.sectionTitle}>
+      <section className="flex flex-col gap-3">
+        <Typography variant="h2" className="leading-[1.3]">
           Müşteri Destek Kanalları
         </Typography>
-        <Stack sx={styles.infoRow}>
-          <Typography sx={styles.infoLabel}>E-posta</Typography>
-          <Typography
-            component="a"
-            href="mailto:destek@mitenya.com"
-            sx={styles.emailLink}
-          >
+        <div className="flex flex-col gap-1">
+          <Typography variant="progressLabel" className="font-semibold text-text">E-posta</Typography>
+          <a href="mailto:destek@mitenya.com" className="w-fit text-sm leading-[1.6] text-text underline outline-offset-2 hover:text-text-medium-light focus-visible:rounded focus-visible:outline-2 focus-visible:outline-gray-300 sm:text-[15px]">
             destek@mitenya.com
-          </Typography>
-        </Stack>
-        <Typography sx={styles.sectionBody}>
+          </a>
+        </div>
+        <Typography variant="body2" className="leading-[1.85] tracking-normal text-text-medium-light sm:text-[15px]">
           E-posta üzerinden ilettiğiniz taleplere, mümkün olan en kısa sürede
           ve en geç 1 iş günü içerisinde dönüş yapılmaktadır.
         </Typography>
-      </Stack>
+      </section>
 
-      <Divider sx={styles.divider} />
+      <Divider className="border-gray-100" />
 
       {/* ── Şirket Bilgileri ── */}
-      <Stack sx={styles.section}>
-        <Typography sx={styles.sectionTitle}>Şirket Bilgileri</Typography>
-        <Stack sx={styles.infoRow}>
-          <Typography sx={styles.infoLabel}>Şirket Unvanı</Typography>
-          <Typography sx={styles.infoValue}>
+      <section className="flex flex-col gap-3">
+        <Typography variant="h2" className="leading-[1.3]">Şirket Bilgileri</Typography>
+        <div className="flex flex-col gap-1">
+          <Typography variant="progressLabel" className="font-semibold text-text">Şirket Unvanı</Typography>
+          <Typography variant="body2" className="leading-[1.6] tracking-normal text-text-medium-light sm:text-[15px]">
             ALSANCAK PAZARLAMA SANAYİ VE TİCARET LİMİTED ŞİRKETİ
           </Typography>
-        </Stack>
-        <Stack sx={styles.infoRow}>
-          <Typography sx={styles.infoLabel}>Marka Adı</Typography>
-          <Typography sx={styles.infoValue}>Mitenya</Typography>
-        </Stack>
-        <Stack sx={styles.infoRow}>
-          <Typography sx={styles.infoLabel}>Vergi Dairesi</Typography>
-          <Typography sx={styles.infoValue}>TOSYA</Typography>
-        </Stack>
-        <Stack sx={styles.infoRow}>
-          <Typography sx={styles.infoLabel}>Vergi No</Typography>
-          <Typography sx={styles.infoValue}>0591263888</Typography>
-        </Stack>
-        <Stack sx={styles.infoRow}>
-          <Typography sx={styles.infoLabel}>MERSİS No</Typography>
-          <Typography sx={styles.infoValue}>0059126388800001</Typography>
-        </Stack>
-      </Stack>
+        </div>
+        {[['Marka Adı', 'Mitenya'], ['Vergi Dairesi', 'TOSYA'], ['Vergi No', '0591263888'], ['MERSİS No', '0059126388800001']].map(([label, value]) => (
+          <div className="flex flex-col gap-1" key={label}>
+            <Typography variant="progressLabel" className="font-semibold text-text">{label}</Typography>
+            <Typography variant="body2" className="leading-[1.6] tracking-normal text-text-medium-light sm:text-[15px]">{value}</Typography>
+          </div>
+        ))}
+      </section>
 
-      <Divider sx={styles.divider} />
+      <Divider className="border-gray-100" />
 
       {/* ── Adresler ── */}
-      <Stack sx={styles.section}>
-        <Stack sx={styles.addressCard}>
-          <Typography sx={styles.addressTitle}>
+      <section className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2 rounded-lg border border-gray-100 bg-bg-dark p-4 sm:p-5">
+          <Typography variant="body1" className="font-bold sm:text-[16px]">
             Merkez Ofis (Resmî Şirket Adresi)
           </Typography>
-          <Typography sx={styles.addressText}>
+          <Typography variant="body2" className="leading-[1.7] tracking-normal text-text-medium-light sm:text-[15px]">
             KARGI MAH. YEMENİCİLER ÇARŞISI SK. NO: 8A
             <br />
             TOSYA / KASTAMONU / Türkiye
           </Typography>
-          <Typography sx={styles.addressNote}>
+          <Typography variant="progressLabel" className="italic text-text-light [font-family:var(--font-albert-sans-italic)]">
             Bu adres, şirketimizin resmî kayıtlı adresidir.
           </Typography>
-        </Stack>
+        </div>
 
-        <Stack sx={styles.addressCard}>
-          <Typography sx={styles.addressTitle}>
+        <div className="flex flex-col gap-2 rounded-lg border border-gray-100 bg-bg-dark p-4 sm:p-5">
+          <Typography variant="body1" className="font-bold sm:text-[16px]">
             Depo, Kargo Çıkış ve İade Adresi
           </Typography>
-          <Typography sx={styles.addressText}>
+          <Typography variant="body2" className="leading-[1.7] tracking-normal text-text-medium-light sm:text-[15px]">
             KAYIKÇILAR MAH. 103. SK. NO: 14 DAİRE:2
             <br />
             ÇAYCUMA / ZONGULDAK / Türkiye
           </Typography>
-          <Typography sx={styles.addressNote}>
+          <Typography variant="progressLabel" className="italic text-text-light [font-family:var(--font-albert-sans-italic)]">
             Online siparişleriniz bu adres üzerinden hazırlanarak kargoya teslim
             edilmektedir. İade ve değişim işlemleri, İade &amp; Değişim Politikası
             sayfamızda belirtilen şartlara göre bu adres üzerinden
             yapılmaktadır.
           </Typography>
-        </Stack>
-      </Stack>
+        </div>
+      </section>
 
-      <Divider sx={styles.divider} />
+      <Divider className="border-gray-100" />
 
       {/* ── Çalışma Saatleri ── */}
-      <Stack sx={styles.section}>
-        <Typography sx={styles.sectionTitle}>Çalışma Saatleri</Typography>
-        <Stack sx={styles.infoRow}>
-          <Typography sx={styles.infoLabel}>Müşteri Hizmetleri</Typography>
-          <Typography sx={styles.hoursRow}>
+      <section className="flex flex-col gap-3">
+        <Typography variant="h2" className="leading-[1.3]">Çalışma Saatleri</Typography>
+        <div className="flex flex-col gap-1">
+          <Typography variant="progressLabel" className="font-semibold text-text">Müşteri Hizmetleri</Typography>
+          <Typography variant="body2" className="leading-[1.7] tracking-normal text-text-medium-light sm:text-[15px]">
             Pazartesi – Cuma: 09:00 – 18:00
             <br />
             Cumartesi: 10:00 – 16:00
             <br />
             Pazar: Kapalı
           </Typography>
-        </Stack>
-        <Typography sx={styles.sectionBody}>
+        </div>
+        <Typography variant="body2" className="leading-[1.85] tracking-normal text-text-medium-light sm:text-[15px]">
           Web sitemiz üzerinden 7/24 sipariş verebilirsiniz. Mesajlarınıza
           çalışma saatleri içerisinde dönüş yapılır.
         </Typography>
-      </Stack>
-    </Stack>
+      </section>
+    </div>
   );
 };
 

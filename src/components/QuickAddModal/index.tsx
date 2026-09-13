@@ -3,21 +3,17 @@
 import { ShopProductData } from '@/lib/api/types';
 import { Check, CloseIcon } from '@/components/icons';
 import { CrossFade } from '@/components/common/CrossFade';
-import {
-  Box,
-  CircularProgress,
-  Dialog,
-  IconButton,
-  Stack,
-  Typography,
-  Chip,
-} from '@mui/material';
 import { useState, useContext, useEffect, useRef } from 'react';
-import Button from '@/components/common/Button';
+import Button from '@/components/ui/Button';
 import { ShopContext } from '@/contexts/ShopContext';
 import formatPrice from '@/lib/utils/formatPrice';
 import useScreen from '@/lib/hooks/useScreen';
 import { ShoppingBag } from 'lucide-react';
+import { Chip } from '@/components/ui/Chip';
+import { Dialog } from '@/components/ui/Dialog';
+import { Spinner } from '@/components/ui/Spinner';
+import { cn } from '@/lib/utils/cn';
+import Image from 'next/image';
 
 interface QuickAddModalProps {
   open: boolean;
@@ -28,7 +24,7 @@ interface QuickAddModalProps {
 
 const QuickAddModal = ({ open, onClose, product, loading }: QuickAddModalProps) => {
   const { handleAddItem } = useContext(ShopContext);
-  const { smUp } = useScreen();
+  const smUp = useScreen('smUp');
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [showAdded, setShowAdded] = useState(false);
@@ -109,111 +105,80 @@ const QuickAddModal = ({ open, onClose, product, loading }: QuickAddModalProps) 
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
-      PaperProps={{
-        sx: {
-          borderRadius: 3,
-          maxWidth: 400,
-          width: '100%',
-          m: 2,
-        },
-      }}
+      onOpenChange={(next) => { if (!next) handleClose(); }}
+      srTitle="Hızlı ürün ekleme"
+      className="max-w-[400px] rounded-3xl"
     >
       {loading ? (
-        <Stack alignItems="center" justifyContent="center" p={4} minHeight={200}>
-          <CircularProgress />
-          <Typography mt={2} color="text.secondary">
-            Yükleniyor...
-          </Typography>
-        </Stack>
+        <div className="flex min-h-[200px] flex-col items-center justify-center p-8">
+          <Spinner className="text-primary" />
+          <p className="mt-4 text-text-medium">Yükleniyor...</p>
+        </div>
       ) : product ? (
-        <Stack>
+        <div className="flex flex-col">
           {/* Header */}
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            p={2}
-            borderBottom="1px solid #eee"
-          >
-            <Typography variant="h6" fontWeight={600}>
-              Hızlı Ekle
-            </Typography>
-            <IconButton onClick={handleClose} size="small">
+          <div className="flex items-center justify-between border-b border-gray-200 p-4">
+            <h2 className="text-lg font-semibold">Hızlı Ekle</h2>
+            <button type="button" onClick={handleClose} className="inline-flex size-8 items-center justify-center" aria-label="Kapat">
               <CloseIcon />
-            </IconButton>
-          </Stack>
+            </button>
+          </div>
 
           {/* Product Info */}
-          <Stack direction="row" gap={2} p={2}>
-            <Box
-              component="img"
-              src={product.imgSrc}
-              alt={product.name}
-              sx={{
-                width: 100,
-                height: 100,
-                objectFit: 'cover',
-                borderRadius: 2,
-              }}
-            />
-            <Stack flex={1} justifyContent="center">
-              <Typography variant="body2" color="text.secondary">
-                {product.brand}
-              </Typography>
-              <Typography fontWeight={500} sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-              }}>
-                {product.name}
-              </Typography>
-              <Typography fontWeight={600} color="primary.main" mt={0.5}>
+          <div className="flex gap-4 p-4">
+            {product.imgSrc && (
+              <Image
+                src={product.imgSrc}
+                alt={product.name ?? 'Ürün'}
+                width={100}
+                height={100}
+                className="size-[100px] rounded-2xl object-cover"
+              />
+            )}
+            <div className="flex flex-1 flex-col justify-center">
+              <p className="text-sm text-text-medium">{product.brand}</p>
+              <p className="line-clamp-2 font-medium">{product.name}</p>
+              <p className="mt-1 font-semibold text-primary">
                 {formatPrice(product.price.currentPrice, product.price.currency)}
-              </Typography>
-            </Stack>
-          </Stack>
+              </p>
+            </div>
+          </div>
 
           {/* Variants */}
           {hasVariants && (
-            <Stack p={2} pt={0} gap={2}>
+            <div className="flex flex-col gap-4 px-4 pb-4">
               {variants?.map((variant) => (
-                <Stack key={variant.name} gap={1}>
-                  <Typography variant="body2" fontWeight={600}>
-                    {variant.name}
-                  </Typography>
-                  <Stack direction="row" flexWrap="wrap" gap={1}>
+                <div key={variant.name} className="flex flex-col gap-2">
+                  <p className="text-sm font-semibold">{variant.name}</p>
+                  <div className="flex flex-wrap gap-2">
                     {variant.options.map((option) => (
                       <Chip
                         key={option.value}
                         label={option.value}
                         onClick={() => handleVariantSelect(variant.name, option.value)}
                         variant={isOptionSelected(variant.name, option.value) ? 'filled' : 'outlined'}
-                        color={isOptionSelected(variant.name, option.value) ? 'primary' : 'default'}
                         disabled={!option.isAvailable}
-                        sx={{
-                          cursor: option.isAvailable ? 'pointer' : 'not-allowed',
-                          opacity: option.isAvailable ? 1 : 0.5,
-                        }}
+                        className={cn(
+                          // MUI color="primary" + variant="filled" karşılığı
+                          isOptionSelected(variant.name, option.value) &&
+                            'bg-primary text-primary-contrast-text hover:bg-primary-light',
+                          !option.isAvailable && 'cursor-not-allowed opacity-50',
+                        )}
                       />
                     ))}
-                  </Stack>
-                </Stack>
+                  </div>
+                </div>
               ))}
-            </Stack>
+            </div>
           )}
 
           {/* Error */}
           {error && (
-            <Typography color="error" variant="body2" px={2}>
-              {error}
-            </Typography>
+            <p className="px-4 text-sm text-error">{error}</p>
           )}
 
           {/* Add to Cart Button */}
-          <Stack p={2}>
+          <div className="p-4">
             <Button
               variant="contained"
               fullWidth
@@ -225,26 +190,26 @@ const QuickAddModal = ({ open, onClose, product, loading }: QuickAddModalProps) 
                   {
                     in: showAdded,
                     component: (
-                      <Stack direction="row" alignItems="center" gap={1}>
+                      <span className="inline-flex items-center gap-2">
                         <Check size={18} />
                         Eklendi
-                      </Stack>
+                      </span>
                     ),
                   },
                   {
                     in: !showAdded,
                     component: (
-                      <Stack direction="row" alignItems="center" gap={1}>
+                      <span className="inline-flex items-center gap-2">
                         <ShoppingBag size={18} />
                         Sepete Ekle
-                      </Stack>
+                      </span>
                     ),
                   },
                 ]}
               />
             </Button>
-          </Stack>
-        </Stack>
+          </div>
+        </div>
       ) : null}
     </Dialog>
   );

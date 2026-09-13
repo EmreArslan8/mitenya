@@ -1,12 +1,8 @@
-'use client';
-
-import useScreen from '@/lib/hooks/useScreen';
-import { Box, Grid } from '@mui/material';
+import type { CSSProperties } from 'react';
 import { BlockComponentBaseProps } from '..';
 import InfoArea from '../../shared/InfoArea';
 import { SharedImageType } from '../../shared/cmsTypes';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
-import styles from './styles';
 
 export interface InfoAreasProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
@@ -14,48 +10,16 @@ export interface InfoAreasProps extends BlockComponentBaseProps {
 }
 
 const ShopInfoAreas = ({ section, infoAreas }: InfoAreasProps) => {
-  const { mdDown } = useScreen();
-
+  const columns = Math.min(infoAreas.length || 1, 4);
   return (
-    <SectionBase
-      {...section}
-      sx={{
-        // SectionBase'in varsayilan 8px padding'i bu blokta tamamen kapali.
-        p: 0,
-        mt: { xs: -3, md: -7 },
-      }}
-    >
-      <Box sx={styles.wrapper}>
-        {mdDown ? (
-          <Box
-            sx={{
-              ...styles.mobileContainer,
-              // Mobilde de yan yana: dortten fazlasi satira boluniyor.
-              gridTemplateColumns: `repeat(${Math.min(infoAreas.length || 1, 4)}, minmax(0, 1fr))`,
-            }}
-          >
-            {infoAreas.map((infoArea, index) => (
-              <Box key={index} sx={styles.mobileItem}>
-                <InfoArea {...infoArea} index={index} />
-              </Box>
-            ))}
-          </Box>
-        ) : (
-          <Grid container spacing={0} alignItems="stretch" sx={{ py: 0 }}>
-            {infoAreas.map((infoArea, index) => (
-              <Grid
-                item
-                key={`${infoArea.label ?? 'info'}-${index}`}
-                xs={12}
-                sm={Math.max(3, 12 / infoAreas.length)}
-                sx={styles.desktopItem}
-              >
-                <InfoArea {...infoArea} index={index} />
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </Box>
+    <SectionBase {...section} className="-mt-6 p-0 md:-mt-14">
+      <div style={{ '--info-columns': columns } as CSSProperties} className="grid grid-cols-[repeat(var(--info-columns),minmax(0,1fr))] gap-x-1 gap-y-5 md:gap-0">
+        {infoAreas.map((infoArea, index) => (
+          <div key={`${infoArea.label ?? 'info'}-${index}`} className="relative flex w-full items-center justify-center">
+            <InfoArea {...infoArea} index={index} />
+          </div>
+        ))}
+      </div>
     </SectionBase>
   );
 };

@@ -1,12 +1,10 @@
-import { InputAdornment, TextField } from '@mui/material';
-import { ChangeEvent, FocusEvent, MouseEvent, useLayoutEffect, useMemo, useRef } from 'react';
+import { TextField } from '@/components/ui/TextField';
+import { ChangeEvent, FocusEvent, MouseEvent, useId, useLayoutEffect, useMemo, useRef } from 'react';
 
 interface FormikPhoneNumberInputProps {
   formik: any;
   label?: string;
-  size?: 'small' | 'medium';
   disabled?: boolean;
-  fullWidth?: boolean;
 }
 
 const formatPhone = (raw: string): string => {
@@ -48,9 +46,10 @@ const caretPosForDigits = (value: string, digitsCount: number): number => {
 const FormikPhoneNumberInput = ({
   formik,
   label,
-  size = 'small',
   disabled = false,
 }: FormikPhoneNumberInputProps) => {
+  // Sabit id çakışıyordu: checkout'ta iki adres formu (review bulgusu).
+  const uid = useId();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const caretDigitsRef = useRef<number | null>(null);
   const prevRawRef = useRef<string>('');
@@ -102,60 +101,42 @@ const FormikPhoneNumberInput = ({
     prevRawRef.current = formik.values.phoneNumber ?? '';
   }, [formattedValue]);
 
+  const touched = Boolean(formik.touched.phoneNumber);
+  const fieldError = formik.errors.phoneNumber;
+
   return (
+    /*
+     * ADR-0002 Faz 3: MUI TextField -> ui/TextField.
+     * MASKELEME VE İMLEÇ MANTIĞINA DOKUNULMADI (formatPhone,
+     * countDigitsBeforePos, caretPosForDigits, useLayoutEffect) — yalnızca
+     * görsel kabuk değişti.
+     *
+     * Eski sx karşılıkları:
+     *   zemin (eski #F7F7F8) -> ui/Input variant="soft" (gray-50)
+     *   yükseklik 48 -> size="large" · ikisi de artık ui/Input'ta tek karar
+     *   kenarlık rgba(0,0,0,.12) · odakta #C1121F (= palette.error.main)
+     *   letterSpacing .08em + tabular-nums · placeholder #9B9BA1 (= text.light)
+     */
     <TextField
-      fullWidth
-      size={size}
-      id="phoneNumber"
+      id={`phoneNumber-${uid}`}
       name="phoneNumber"
       type="tel"
+      inputMode="tel"
+      autoComplete="tel"
       required
       label={label}
       placeholder="___) ___ __ __"
       disabled={disabled}
+      size="large"
       value={formattedValue}
       onChange={handleChange}
       onFocus={handleFocus}
       onClick={handleClick}
       inputRef={inputRef}
-      inputProps={{ style: { paddingTop: 13, paddingBottom: 13 } }}
-      InputProps={{
-        startAdornment: (
-          <InputAdornment
-            position="start"
-            sx={{ mr: 0, color: 'inherit', '& .MuiTypography-root': { color: 'inherit' } }}
-          >
-            0 (
-          </InputAdornment>
-        ),
-        sx: {
-          borderRadius: 1,
-          backgroundColor: '#F7F7F8',
-          px: 1.5,
-          height: 'auto',
-          minHeight: 48,
-        },
-      }}
-      sx={{
-        width: '100%',
-        '& .MuiOutlinedInput-input': {
-          paddingLeft: 0,
-          letterSpacing: '0.08em',
-          fontVariantNumeric: 'tabular-nums',
-        },
-        '& .MuiInputAdornment-positionStart': { marginRight: 0 },
-        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.12)' },
-        '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-          borderColor: '#C1121F',
-          borderWidth: 1,
-        },
-        '& input::placeholder': {
-          color: '#9B9BA1',
-          opacity: 1,
-          letterSpacing: '0.08em',
-        },
-      }}
-      error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
+      error={touched && fieldError ? String(fieldError) : false}
+      variant="soft"
+      inputClassName="tracking-[0.08em] [font-variant-numeric:tabular-nums] placeholder:tracking-[0.08em]"
+      startSlot={<span className="shrink-0 text-inherit">0 (</span>}
     />
   );
 };

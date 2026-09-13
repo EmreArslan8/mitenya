@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Snackbar } from '@mui/material';
+
 import Banner from '@/components/common/Banner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
@@ -10,6 +10,7 @@ import copyTextOnClick from '@/lib/utils/copyTextOnClick';
 import { trackAddToWishlist } from '@/lib/analytics/metaPixel';
 import { trackTikTokWithUser, trackTikTokAddToWishlist } from '@/lib/analytics/tiktokPixel';
 import ProductImageGalleryClient from '../ProductImageGallery/ProductImageGalleryClient';
+import { Toast } from '@/components/ui/Toast';
 
 // Client island: galeri + favori/paylaş etkileşimi. Favori/paylaş mantığı (eskiden
 // view.tsx'teydi) buraya taşındı ki view.tsx server kalabilsin. Kendi paylaş
@@ -87,17 +88,17 @@ const ProductGalleryIsland = ({ data }: { data: ShopProductData }) => {
         onFavoriteClick={handleFavoriteClick}
         onShareClick={handleShareClick}
       />
-      <Snackbar
+      <Toast
         open={!!feedback}
-        autoHideDuration={3000}
+        duration={3000}
         onClose={() => setFeedback(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        position="top-center"
       >
         <Banner
           variant={feedback?.variant ?? 'success'}
           title={feedback?.title}
         />
-      </Snackbar>
+      </Toast>
     </>
   );
 };

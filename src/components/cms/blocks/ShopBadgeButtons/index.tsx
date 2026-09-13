@@ -1,4 +1,4 @@
-import { Grid, Stack, Box } from '@mui/material';
+import { cn } from '@/lib/utils/cn';
 import { BlockComponentBaseProps } from '..';
 import SectionBase, { SectionBaseProps } from '../../shared/SectionBase';
 import { SharedImageType } from '../../shared/cmsTypes';
@@ -6,85 +6,20 @@ import ShopBadgeButton from '../../shared/ShopBadgeButton';
 
 export interface ShopBadgeButtonsProps extends BlockComponentBaseProps {
   section: SectionBaseProps;
-  badges: {
-    image: SharedImageType;
-    label?: string;
-    url: string;
-    title?: string;
-  }[];
+  badges: { image: SharedImageType; label?: string; url: string; title?: string }[];
 }
 
-const ShopBadgeButtons = ({ section, badges }: ShopBadgeButtonsProps) => {
-  const getGridSize = () => {
-    switch (badges.length) {
-      case 1:
-        return { sm: 12 };
-      case 2:
-        return { sm: 6 };
-      case 3:
-        return { sm: 4 };
-      case 4:
-        return { sm: 3 };
-      case 5:
-        return { sm: 2.4, md: 2 };
-      case 6:
-        return { sm: 4, md: 2 };
-      case 8:
-        return { sm: 2, md: 1.5 };
-      default:
-        return { sm: 3 };
-    }
-  };
+const desktopGrid = (count: number) => count === 1 ? 'sm:grid-cols-1' : count === 2 ? 'sm:grid-cols-2' : count === 3 ? 'sm:grid-cols-3' : count === 5 ? 'sm:grid-cols-5 md:grid-cols-6' : count === 6 ? 'sm:grid-cols-3 md:grid-cols-6' : count === 8 ? 'sm:grid-cols-6 md:grid-cols-8' : 'sm:grid-cols-4';
 
-  return (
-    <SectionBase {...section} sx={{ ...section?.sx, mb: { xs: -4, sm: -6 } }}>
-      {/* ✅ MOBILE – Horizontal scroll */}
-      <Box
-        sx={{
-          display: { xs: 'flex', sm: 'none' },
-          overflowX: 'auto',
-          gap: 2,
-          px: 1,
-          pb: 1,
-          scrollSnapType: 'x mandatory',
-          '&::-webkit-scrollbar': { display: 'none' },
-        }}
-      >
-        {badges.map((e) => (
-          <Box
-            key={e.url}
-            sx={{
-              flex: '0 0 auto',
-              scrollSnapAlign: 'start',
-            }}
-          >
-            <ShopBadgeButton
-              image={e.image}
-              label={e.label}
-              url={e.url}
-              title={e.title}
-            />
-          </Box>
-        ))}
-      </Box>
-
-      {/* ✅ TABLET + DESKTOP – Grid */}
-      <Grid container spacing={2} sx={{ display: { xs: 'none', sm: 'flex' } }}>
-        {badges.map((e) => (
-          <Grid item {...getGridSize()} key={e.url}>
-            <Stack alignItems="center">
-              <ShopBadgeButton
-                image={e.image}
-                label={e.label}
-                url={e.url}
-                title={e.title}
-              />
-            </Stack>
-          </Grid>
-        ))}
-      </Grid>
-    </SectionBase>
-  );
-};
+const ShopBadgeButtons = ({ section, badges }: ShopBadgeButtonsProps) => (
+  <SectionBase {...section} className={cn('-mb-8 sm:-mb-12', section.className)}>
+    <div className="-mx-2 flex snap-x gap-4 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:hidden">
+      {badges.map((badge) => <div key={badge.url} className="shrink-0 snap-start"><ShopBadgeButton {...badge} /></div>)}
+    </div>
+    <div className={cn('hidden gap-4 sm:grid', desktopGrid(badges.length))}>
+      {badges.map((badge) => <div key={badge.url} className="flex items-center justify-center"><ShopBadgeButton {...badge} /></div>)}
+    </div>
+  </SectionBase>
+);
 
 export default ShopBadgeButtons;
