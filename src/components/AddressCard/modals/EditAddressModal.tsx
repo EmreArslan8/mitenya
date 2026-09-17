@@ -5,9 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Typography } from '@/components/ui/Typography';
 import { useState } from 'react';
 import AddressForm from '../AddressForm';
-import { CircleCheckBig } from '@/components/icons';
-import { Pencil } from 'lucide-react';
-import { TriangleAlert } from 'lucide-react';
+import { AlertTriangle, CircleCheckBig, Pencil } from '@/components/icons';
 
 interface EditAddressModalProps {
   initialData: AddressData;
@@ -89,7 +87,7 @@ const EditAddressModal = ({ initialData, open, onEdited, onClose }: EditAddressM
       {error && (
         <div className="flex min-w-[300px] flex-col items-center gap-4 px-4 pb-5 pt-4 text-center sm:px-5">
           <div className="flex flex-col items-center gap-2 pb-4 text-error">
-            <TriangleAlert size={80} />
+            <AlertTriangle size={80} />
             <Typography> Bir sunucu hatası oluştu, lütfen tekrar deneyin. </Typography>
           </div>
           <Button fullWidth variant="contained" onClick={() => setError(false)}>

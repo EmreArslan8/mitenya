@@ -2,7 +2,7 @@
 
 import Button from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
-import { RefreshCw, ShieldCheck, ShoppingBag, Truck } from 'lucide-react';
+import { RefreshCw, ShieldCheck, ShoppingBag, Truck } from '@/components/icons';
 
 interface EmptyCartProps {
   onStartShopping?: () => void;

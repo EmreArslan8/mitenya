@@ -1,7 +1,7 @@
 'use client';
 
 import Button from '@/components/ui/Button';
-import { ArrowLeft, CloseIcon, Heart, Menu, Search } from '@/components/icons';
+import { ArrowLeft, CloseIcon, Heart, Menu, Search, ShoppingBag } from '@/components/icons';
 import AccountMenu from './AccountMenu';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShopContext } from '@/contexts/ShopContext';
@@ -26,7 +26,6 @@ import {
 } from 'react';
 import LoadingOverlay from '../LoadingOverlay';
 import ShoppingCartButton from '../ShoppingCart/ShoppingCartButton';
-import { ShoppingBag } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import useScreen from '@/lib/hooks/useScreen';

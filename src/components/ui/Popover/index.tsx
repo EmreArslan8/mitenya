@@ -20,6 +20,10 @@ export type PopoverProps = {
   className?: string;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  /** Açılışta Radix odağı ilk öğeye taşır; `event.preventDefault()` bunu durdurur. */
+  onOpenAutoFocus?: (event: Event) => void;
+  /** Kapanışta Radix odağı tetikleyiciye geri verir; `event.preventDefault()` bunu durdurur. */
+  onCloseAutoFocus?: (event: Event) => void;
 };
 
 export function Popover({
@@ -32,6 +36,8 @@ export function Popover({
   className,
   onMouseEnter,
   onMouseLeave,
+  onOpenAutoFocus,
+  onCloseAutoFocus,
 }: PopoverProps) {
   return (
     <RadixPopover.Root open={open} onOpenChange={onOpenChange}>
@@ -42,6 +48,8 @@ export function Popover({
           sideOffset={sideOffset}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
+          onOpenAutoFocus={onOpenAutoFocus}
+          onCloseAutoFocus={onCloseAutoFocus}
           className={cn(
             'z-[1400] rounded-lg border border-gray-100 bg-white shadow-lg outline-none',
             'data-[state=open]:animate-overlay-in data-[state=closed]:animate-overlay-out',

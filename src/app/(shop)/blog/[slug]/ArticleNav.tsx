@@ -62,7 +62,32 @@ const ArticleNav = ({ items }: { items: TocItem[] }) => {
     return () => observer.disconnect();
   }, [items]);
 
-  const remaining = Math.max(0, items.findIndex((item) => item.id === activeId));
+  // Ana bölümler her zaman görünür; alt başlıklar yalnızca içinde bulunulan
+  // bölümün altında açılır. 12 h2 + 17 h3'ü düz listelemek kenar çubuğunu
+  // ekrandan taşırıyordu.
+  const sections = items.filter((item) => item.level === 2);
+
+  const activeSectionId = (() => {
+    const index = items.findIndex((item) => item.id === activeId);
+    for (let i = index; i >= 0; i -= 1) {
+      if (items[i].level === 2) return items[i].id;
+    }
+    return sections[0]?.id ?? '';
+  })();
+
+  const subsectionsOf = (sectionId: string) => {
+    const start = items.findIndex((item) => item.id === sectionId);
+    const result: TocItem[] = [];
+    for (let i = start + 1; i < items.length && items[i].level === 3; i += 1) {
+      result.push(items[i]);
+    }
+    return result;
+  };
+
+  const activeSectionIndex = Math.max(
+    0,
+    sections.findIndex((section) => section.id === activeSectionId),
+  );
 
   return (
     <>
@@ -104,27 +129,58 @@ const ArticleNav = ({ items }: { items: TocItem[] }) => {
           </p>
 
           <ol style={{ listStyle: 'none', margin: 0, padding: 0, borderLeft: '2px solid #E5E5EA' }}>
-            {items.map((item) => {
-              const active = item.id === activeId;
+            {sections.map((section) => {
+              const inSection = section.id === activeSectionId;
+              const active = section.id === activeId;
+              const subsections = inSection ? subsectionsOf(section.id) : [];
+
               return (
-                <li key={item.id} style={{ marginLeft: -2 }}>
+                <li key={section.id} style={{ marginLeft: -2 }}>
                   <a
-                    href={`#${item.id}`}
+                    href={`#${section.id}`}
                     aria-current={active ? 'true' : undefined}
                     style={{
                       display: 'block',
                       padding: '6px 0 6px 13px',
-                      borderLeft: `2px solid ${active ? '#C1121F' : 'transparent'}`,
+                      borderLeft: `2px solid ${inSection ? '#C1121F' : 'transparent'}`,
                       fontSize: 13,
                       lineHeight: 1.45,
-                      fontWeight: active ? 600 : 400,
-                      color: active ? '#1C1C1E' : '#6E6E73',
+                      fontWeight: inSection ? 600 : 400,
+                      color: inSection ? '#1C1C1E' : '#6E6E73',
                       textDecoration: 'none',
                       transition: 'color 0.15s ease',
                     }}
                   >
-                    {item.text}
+                    {section.text}
                   </a>
+
+                  {subsections.length > 0 && (
+                    <ol style={{ listStyle: 'none', margin: '2px 0 6px', padding: 0 }}>
+                      {subsections.map((sub) => {
+                        const subActive = sub.id === activeId;
+                        return (
+                          <li key={sub.id}>
+                            <a
+                              href={`#${sub.id}`}
+                              aria-current={subActive ? 'true' : undefined}
+                              style={{
+                                display: 'block',
+                                padding: '4px 0 4px 26px',
+                                fontSize: 12.5,
+                                lineHeight: 1.4,
+                                fontWeight: subActive ? 600 : 400,
+                                color: subActive ? '#1C1C1E' : '#8E8E93',
+                                textDecoration: 'none',
+                                transition: 'color 0.15s ease',
+                              }}
+                            >
+                              {sub.text}
+                            </a>
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  )}
                 </li>
               );
             })}
@@ -138,7 +194,7 @@ const ArticleNav = ({ items }: { items: TocItem[] }) => {
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {remaining + 1} / {items.length} bölüm
+            {activeSectionIndex + 1} / {sections.length} bölüm
           </p>
         </nav>
       )}

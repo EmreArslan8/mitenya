@@ -1,8 +1,7 @@
 'use client';
 
 import { ReactNode, useState } from 'react';
-import { MapPin, Pencil, Trash } from 'lucide-react';
-import { ChevronDown } from '@/components/icons';
+import { ChevronDown, MapPin, Pencil, Trash } from '@/components/icons';
 import { AddressData } from '@/lib/api/types';
 import useAddress from '@/lib/api/useAddress';
 import { cn } from '@/lib/utils/cn';

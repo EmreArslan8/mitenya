@@ -1,5 +1,4 @@
-import { Sparkles } from 'lucide-react';
-import { ChevronDown } from '@/components/icons';
+import { ChevronDown, Sparkles } from '@/components/icons';
 import { Accordion, AccordionItem } from '@/components/ui/Accordion';
 import { Stack } from '@/components/ui/Stack';
 import { Typography } from '@/components/ui/Typography';

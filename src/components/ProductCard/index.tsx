@@ -10,6 +10,7 @@ import Banner from '@/components/common/Banner';
 import { CrossFade } from '@/components/common/CrossFade';
 import Link from '@/components/common/Link';
 import QuickAddModal from '@/components/QuickAddModal';
+import AddedToCartModal from '@/components/ShoppingCart/AddedToCartModal';
 import { ShopProductData, ShopProductListItemData } from '@/lib/api/types';
 import { fetchProductData } from '@/lib/api/shop';
 import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
@@ -79,7 +80,7 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [quickAddLoading, setQuickAddLoading] = useState(false);
   const [productDetail, setProductDetail] = useState<ShopProductData | null>(null);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [addedProduct, setAddedProduct] = useState<ShopProductData | null>(null);
   const [favoriteFeedback, setFavoriteFeedback] = useState<{
     open: boolean;
     title: string;
@@ -149,13 +150,12 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
       // Liste verisinden hasVariant kontrolü (modal açmadan önce)
       // Eğer liste verisinde hasVariant false ise direkt ekle
       if (!data.hasVariant) {
-        const success = handleAddItem({ ...detail, quantity: 1 });
+        const product = { ...detail, quantity: 1 };
+        // notify:false → global sepet çekmecesi yerine "Ürün sepete eklendi" modalı.
+        const success = handleAddItem(product, { notify: false });
         if (success) {
-          if (smUp) {
-            triggerAddedFeedback();
-          } else {
-            setSnackbarOpen(true);
-          }
+          triggerAddedFeedback();
+          setAddedProduct(product);
         }
         setQuickAddLoading(false);
         return;
@@ -336,7 +336,7 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
               color="primary"
               fullWidth
               className={cn(
-                'mt-0.5 rounded-none normal-case sm:h-[46px] sm:px-6 sm:py-2 sm:text-base',
+                'mt-0.5 rounded-none font-medium normal-case sm:h-[46px] sm:px-6 sm:py-2 sm:text-base',
                 isOutOfStock && 'bg-transparent hover:bg-text hover:text-white',
                 showAdded && 'border-success bg-success text-success-contrast-text hover:border-success hover:bg-success disabled:border-success disabled:bg-success disabled:text-success-contrast-text',
               )}
@@ -374,17 +374,14 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
         onClose={handleCloseQuickAdd}
         product={productDetail}
         loading={quickAddLoading}
+        onAdded={setAddedProduct}
       />
 
-      {/* Success Snackbar */}
-      <Toast
-        open={snackbarOpen}
-        duration={2000}
-        onClose={() => setSnackbarOpen(false)}
-        position="bottom-center"
-      >
-        <Banner variant="success" title="Ürün sepete eklendi" />
-      </Toast>
+      <AddedToCartModal
+        open={!!addedProduct}
+        onClose={() => setAddedProduct(null)}
+        product={addedProduct ?? undefined}
+      />
 
       <Toast
         open={favoriteFeedback.open}

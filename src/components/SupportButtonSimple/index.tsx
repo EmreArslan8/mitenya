@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, type ButtonProps } from '@/components/ui/Button';
-import { Headset } from 'lucide-react';
+import { Headset } from '@/components/icons';
 
 const SUPPORT_URL = "https://t.me/yourSupportChannel";
 
@@ -13,7 +13,7 @@ const SupportButton = ({ size = 'medium', text = 'İletişime Geçin', ...props 
   return (
     <Button
       variant="outlined"
-      startIcon={<Headset size={18} strokeWidth={2} />}
+      startIcon={<Headset size={18} />}
       href={SUPPORT_URL}
       target="_blank"
       size={size}

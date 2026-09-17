@@ -1,14 +1,11 @@
 'use client';
 
 import { ShopProductData } from '@/lib/api/types';
-import { Check, CloseIcon } from '@/components/icons';
-import { CrossFade } from '@/components/common/CrossFade';
-import { useState, useContext, useEffect, useRef } from 'react';
+import { CloseIcon, ShoppingBag } from '@/components/icons';
+import { useState, useContext } from 'react';
 import Button from '@/components/ui/Button';
 import { ShopContext } from '@/contexts/ShopContext';
 import formatPrice from '@/lib/utils/formatPrice';
-import useScreen from '@/lib/hooks/useScreen';
-import { ShoppingBag } from 'lucide-react';
 import { Chip } from '@/components/ui/Chip';
 import { Dialog } from '@/components/ui/Dialog';
 import { Spinner } from '@/components/ui/Spinner';
@@ -20,15 +17,14 @@ interface QuickAddModalProps {
   onClose: () => void;
   product: ShopProductData | null;
   loading?: boolean;
+  /** Ürün sepete eklenince çağrılır; çağıran "Ürün sepete eklendi" modalını gösterir. */
+  onAdded?: (product: ShopProductData) => void;
 }
 
-const QuickAddModal = ({ open, onClose, product, loading }: QuickAddModalProps) => {
+const QuickAddModal = ({ open, onClose, product, loading, onAdded }: QuickAddModalProps) => {
   const { handleAddItem } = useContext(ShopContext);
-  const smUp = useScreen('smUp');
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
-  const [showAdded, setShowAdded] = useState(false);
-  const addedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Varyantları kontrol et (variants veya attributes'dan)
   const variants = product?.variants;
@@ -76,31 +72,18 @@ const QuickAddModal = ({ open, onClose, product, loading }: QuickAddModalProps) 
         : undefined,
     };
 
-    const success = handleAddItem(productToAdd);
-    if (success) {
-      if (smUp) {
-        setShowAdded(true);
-        if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
-        addedTimeoutRef.current = setTimeout(() => handleClose(), 700);
-      } else {
-        handleClose();
-      }
-    }
+    // notify:false → global sepet çekmecesi açılmasın; onay modalını çağıran gösterir.
+    const success = handleAddItem(productToAdd, { notify: false });
+    if (!success) return;
+    handleClose();
+    onAdded?.(productToAdd);
   };
 
   const handleClose = () => {
-    if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
     onClose();
     setSelectedVariants({});
     setError(null);
-    setShowAdded(false);
   };
-
-  useEffect(() => {
-    return () => {
-      if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
-    };
-  }, []);
 
   return (
     <Dialog
@@ -179,34 +162,11 @@ const QuickAddModal = ({ open, onClose, product, loading }: QuickAddModalProps) 
 
           {/* Add to Cart Button */}
           <div className="p-4">
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleAddToCart}
-              disabled={showAdded}
-            >
-              <CrossFade
-                components={[
-                  {
-                    in: showAdded,
-                    component: (
-                      <span className="inline-flex items-center gap-2">
-                        <Check size={18} />
-                        Eklendi
-                      </span>
-                    ),
-                  },
-                  {
-                    in: !showAdded,
-                    component: (
-                      <span className="inline-flex items-center gap-2">
-                        <ShoppingBag size={18} />
-                        Sepete Ekle
-                      </span>
-                    ),
-                  },
-                ]}
-              />
+            <Button variant="contained" fullWidth onClick={handleAddToCart}>
+              <span className="inline-flex items-center gap-2">
+                <ShoppingBag size={18} />
+                Sepete Ekle
+              </span>
             </Button>
           </div>
         </div>

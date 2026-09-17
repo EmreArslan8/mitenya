@@ -86,7 +86,7 @@ const ShoppingCartButton = ({ compact = false }: { compact?: boolean }) => {
             onMouseLeave={handleCloseOnHover}
             className={
               compact
-                ? 'inline-flex size-12 min-w-12 appearance-none items-center justify-center gap-0 border-0 bg-transparent p-0 text-bg-contrast-text [&_svg]:size-6'
+                ? 'inline-flex size-12 min-w-12 appearance-none items-center justify-center gap-0 border-0 bg-transparent p-0 text-bg-contrast-text [&_svg]:size-7'
                 : 'inline-flex appearance-none items-center gap-2 border-0 bg-transparent px-4 py-2 text-bg-contrast-text'
             }
             aria-label={compact ? 'Sepet' : undefined}

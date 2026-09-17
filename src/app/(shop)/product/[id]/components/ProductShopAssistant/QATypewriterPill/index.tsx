@@ -1,7 +1,6 @@
 'use client';
 
-import { ArrowUpRight } from '@/components/icons';
-import { Sparkles } from 'lucide-react';
+import { ArrowUpRight, Sparkles } from '@/components/icons';
 import { openProductQA } from '../events';
 import useTypewriter from '@/lib/hooks/useTypewriter';
 

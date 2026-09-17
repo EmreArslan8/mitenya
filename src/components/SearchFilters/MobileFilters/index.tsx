@@ -1,9 +1,8 @@
 import SearchSort from '@/components/SearchSort';
-import { ArrowLeft, ChevronRight, CloseIcon } from '@/components/icons';
+import { ArrowLeft, ChevronRight, CloseIcon, SlidersHorizontal } from '@/components/icons';
 import { ShopFilter, ShopFilterType, ShopSearchResponseFilters, ShopSearchSort } from '@/lib/api/types';
 import { FILTER_TYPE_LABEL_TR } from '@/lib/utils/filters';
 
-import { SlidersHorizontal } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import FilterCard from '../FilterCard';
 import { Chip } from '@/components/ui/Chip';

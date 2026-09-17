@@ -84,7 +84,8 @@ const ProductPurchaseIsland = ({ data }: { data: ShopProductData }) => {
 
   const handleBuyNow = () => {
     if (isOutOfStock) return;
-    const success = handleAddItem({ ...data, variants: variants });
+    // notify:false → ödemeye giderken sepet çekmecesi bir anlığına açılmasın.
+    const success = handleAddItem({ ...data, variants: variants }, { notify: false });
     if (!success) return;
     router.push('/checkout');
   };

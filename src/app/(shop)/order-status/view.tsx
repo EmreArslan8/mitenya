@@ -3,8 +3,7 @@
 import Card from '@/components/common/Card';
 import { useAuth } from '@/contexts/AuthContext';
 import { getDisplayCurrencyCode } from '@/lib/utils/currencies';
-import { AlertCircle, ArrowRight, CheckCircle2, Clock3, LockKeyhole } from '@/components/icons';
-import { LogIn, PackageCheck, PackageSearch, Truck, UserPlus } from 'lucide-react';
+import { AlertCircle, ArrowRight, CheckCircle2, Clock3, LockKeyhole, LogIn, PackageCheck, PackageSearch, Truck, UserPlus } from '@/components/icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';

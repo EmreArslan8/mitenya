@@ -1,9 +1,8 @@
 'use client';
 
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import { CloseIcon } from '@/components/icons';
+import { CloseIcon, Send, Sparkles } from '@/components/icons';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Send, Sparkles } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { cn } from '@/lib/utils/cn';
 

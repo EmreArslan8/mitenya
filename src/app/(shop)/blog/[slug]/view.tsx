@@ -36,9 +36,16 @@ const sanitizeConfig = {
     'a', 'img',
     'blockquote', 'pre', 'code',
     'table', 'thead', 'tbody', 'tr', 'th', 'td',
+    'figure', 'figcaption',
     'div', 'span',
   ],
-  ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel'],
+  // width/height: yazar verirse CLS rezervasyonu yapılır (.blog-article img'de height:auto var).
+  // srcset/sizes/loading/decoding: prepareArticle bunları sanitize SONRASI ekler; burada
+  // izinli olmaları yazarın elle yazdığı değerlerin de korunmasını sağlar.
+  ALLOWED_ATTR: [
+    'href', 'src', 'alt', 'title', 'class', 'target', 'rel',
+    'width', 'height', 'srcset', 'sizes', 'loading', 'decoding',
+  ],
   ALLOW_DATA_ATTR: false,
   ADD_ATTR: ['target'],
   FORBID_TAGS: ['script', 'style', 'iframe', 'form', 'input', 'object', 'embed'],
@@ -131,6 +138,8 @@ const BlogDetailPageView = async ({ slug }: { slug: string }) => {
   } = blog.attributes;
 
   const { html, toc, readingMinutes } = prepareArticle(sanitizeHtml(content));
+  // Mobilde katlanan liste: alt başlıklar da girerse liste ekranı doldurur.
+  const tocSections = toc.filter((item) => item.level === 2);
 
   const authorName = author || 'Mitenya Editör';
   const sidebarItems: SidebarArticle[] = otherBlogs.map((item) => ({
@@ -207,14 +216,14 @@ const BlogDetailPageView = async ({ slug }: { slug: string }) => {
             {excerpt && <p className="max-w-[760px] text-base leading-[1.65] text-[#48484A] md:text-[19px]">{excerpt}</p>}
           </header>
 
-          {toc.length > 1 && (
+          {tocSections.length > 1 && (
             <details className="blog-mobile-toc mb-7 rounded-[10px] border border-gray-100 bg-[#FAFAFA] px-4 py-3.5 md:mb-9 md:px-5 md:py-4 lg:hidden">
               <summary>
                 <span>Bu rehberde</span>
-                <small>{toc.length} bölüm</small>
+                <small>{tocSections.length} bölüm</small>
               </summary>
               <ol>
-                {toc.map((item) => (
+                {tocSections.map((item) => (
                   <li key={item.id}>
                     <a href={`#${item.id}`}>{item.text}</a>
                   </li>

@@ -24,9 +24,8 @@ import { useContext, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import EmptyCart from './EmptyCart';
 import { usePathname, useRouter } from 'next/navigation';
-import { ChevronRight, ChevronUp } from '@/components/icons';
+import { ChevronRight, ChevronUp, Trash } from '@/components/icons';
 import formatPrice from '@/lib/utils/formatPrice';
-import { Trash } from 'lucide-react';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { cn } from '@/lib/utils/cn';
 

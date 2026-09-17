@@ -2,8 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Home, Moon, Sparkles, Stars } from 'lucide-react';
-import { ChevronRight } from '@/components/icons';
+import { ChevronRight, Home, Moon, Sparkles, Stars } from '@/components/icons';
 import Link from '@/components/common/Link';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import ProductGrid from '@/components/ProductGrid';

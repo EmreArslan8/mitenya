@@ -3,7 +3,7 @@ import ModalCard from '@/components/common/ModalCard';
 import Button from '@/components/ui/Button';
 import { useState } from 'react';
 import Image from 'next/image';
-import { RulerDimensionLine } from 'lucide-react';
+import { RulerDimensionLine } from '@/components/icons';
 
 const ProductSizeGuide = ({
   sizeRecommendation,
