@@ -7,7 +7,7 @@ export type IconProps = Omit<SVGProps<SVGSVGElement>, 'width' | 'height'> & {
 /**
  * Setteki bütün ikonların paylaştığı tek <svg> sarmalayıcı.
  * 24×24 viewBox, currentColor ve yuvarlatılmış uç — ikonlar yalnızca
- * kendi çizim düğümlerini ve varsayılan kalınlıklarını verir.
+ * kendi çizim düğümlerini ve gerekirse varsayılan kalınlıklarını verir.
  */
 const BaseIcon = ({
   size = 24,
@@ -31,19 +31,5 @@ const BaseIcon = ({
     {children}
   </svg>
 );
-
-/**
- * Çizim düğümlerinden isimli bir ikon bileşeni üretir.
- * Her ikon ayrı bir <svg> tanımı taşımaz; hepsi BaseIcon üstünden çizilir.
- */
-export const createIcon = (displayName: string, node: ReactNode, defaultStroke = 1.5) => {
-  const IconComponent = ({ strokeWidth = defaultStroke, ...props }: IconProps) => (
-    <BaseIcon strokeWidth={strokeWidth} {...props}>
-      {node}
-    </BaseIcon>
-  );
-  IconComponent.displayName = displayName;
-  return IconComponent;
-};
 
 export default BaseIcon;

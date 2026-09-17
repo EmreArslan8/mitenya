@@ -1,5 +1,4 @@
-import { Minus, Plus } from '@/components/icons';
-import { Trash } from 'lucide-react';
+import { Minus, Plus, Trash } from '@/components/icons';
 import { ChangeEvent, KeyboardEvent, useEffect, useState } from 'react';
 
 interface QuantitySelectorProps {

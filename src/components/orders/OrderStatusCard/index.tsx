@@ -4,8 +4,7 @@ import { ShopOrderStatus } from '@/lib/api/types';
 import SupportButton from '../../SupportButtonSimple';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils/cn';
-import { CheckCircle2, Clock, XCircle } from '@/components/icons';
-import { PackageCheck, Truck, SquareArrowOutUpRight } from 'lucide-react';
+import { CheckCircle2, Clock, PackageCheck, SquareArrowOutUpRight, Truck, XCircle } from '@/components/icons';
 import { ReactNode } from 'react';
 
 /* ── Status pipeline config ── */
@@ -67,7 +66,7 @@ const OrderStatusCard = ({
         {isCancelled ? (
           <div className="flex flex-col items-start gap-[17px]">
             <div className="flex items-center gap-[9px]">
-              <XCircle size={20} strokeWidth={2} color="#C1121F" />
+              <XCircle size={20} color="#C1121F" />
               <span className="text-base font-bold text-error sm:text-[17px]">
                 İptal Edildi
               </span>

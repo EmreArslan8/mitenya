@@ -94,9 +94,9 @@ const CookiePreferencesModal = ({
               </h3>
               <button type="button" className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-text-medium-light hover:bg-gray-50 hover:text-text" onClick={() => toggleSection('necessary')} aria-label="Zorunlu çerez açıklamasını aç veya kapat">
                 {expanded === 'necessary' ? (
-                  <ChevronUp size={18} strokeWidth={2} />
+                  <ChevronUp size={18} />
                 ) : (
-                  <ChevronDown size={18} strokeWidth={2} />
+                  <ChevronDown size={18} />
                 )}
               </button>
             </div>
@@ -124,9 +124,9 @@ const CookiePreferencesModal = ({
               </h3>
               <button type="button" className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-text-medium-light hover:bg-gray-50 hover:text-text" onClick={() => toggleSection('analytics')} aria-label="Analitik çerez açıklamasını aç veya kapat">
                 {expanded === 'analytics' ? (
-                  <ChevronUp size={18} strokeWidth={2} />
+                  <ChevronUp size={18} />
                 ) : (
-                  <ChevronDown size={18} strokeWidth={2} />
+                  <ChevronDown size={18} />
                 )}
               </button>
             </div>
@@ -155,9 +155,9 @@ const CookiePreferencesModal = ({
               </h3>
               <button type="button" className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-text-medium-light hover:bg-gray-50 hover:text-text" onClick={() => toggleSection('marketing')} aria-label="Pazarlama çerezi açıklamasını aç veya kapat">
                 {expanded === 'marketing' ? (
-                  <ChevronUp size={18} strokeWidth={2} />
+                  <ChevronUp size={18} />
                 ) : (
-                  <ChevronDown size={18} strokeWidth={2} />
+                  <ChevronDown size={18} />
                 )}
               </button>
             </div>

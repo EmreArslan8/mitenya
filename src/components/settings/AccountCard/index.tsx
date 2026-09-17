@@ -8,11 +8,11 @@ import { validatePassword } from '@/lib/utils/password';
 import { withCsrfHeaders } from '@/lib/utils/csrf';
 import { signOut } from '@/lib/utils/signOut';
 import { useMemo, useState } from 'react';
-import { LogOut } from 'lucide-react';
 import { Select, SelectItem } from '@/components/ui/Select';
 import { Switch } from '@/components/ui/Switch';
 import { Input } from '@/components/ui/Input';
 import { TextField } from '@/components/ui/TextField';
+import { LogOut } from '@/components/icons';
 
 const AccountCard = () => {
   const { customerData, setCustomerData } = useAuth();

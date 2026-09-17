@@ -2,13 +2,13 @@
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Droplets, Shield, Sparkles, Sun } from 'lucide-react';
 import ProductCard, { ProductCardSkeleton } from '@/components/ProductCard';
 import ProductGrid from '@/components/ProductGrid';
 import { Select, SelectItem } from '@/components/ui/Select';
 import { Collection, ShopSearchResponse, ShopSearchSort } from '@/lib/api/types';
 import { UI_SORT_OPTIONS } from '@/lib/constants/shop';
 import { cn } from '@/lib/utils/cn';
+import { Droplets, Shield, Sparkles, Sun } from '@/components/icons';
 
 type DayCareViewProps = { initialData: ShopSearchResponse; collection: Collection };
 

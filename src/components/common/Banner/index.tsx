@@ -1,8 +1,7 @@
 'use client';
 
 import { ReactNode, forwardRef, useEffect, useState } from 'react';
-import { AlertTriangle, Sparkles } from 'lucide-react';
-import { AlertCircle, CheckCircle2, ChevronDown, Info } from '@/components/icons';
+import { AlertCircle, AlertTriangle, CheckCircle2, ChevronDown, Info, Sparkles } from '@/components/icons';
 import Button, { ButtonProps } from '@/components/ui/Button';
 import { cn } from '@/lib/utils/cn';
 

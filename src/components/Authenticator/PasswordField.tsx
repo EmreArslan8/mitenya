@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
 import { TextField } from '@/components/ui/TextField';
+import { Eye, EyeOff } from '@/components/icons';
 
 /**
  * Göster/gizle düğmeli şifre alanı.
  *
  * ADR-0002 Faz 3: MUI `TextField` + `InputAdornment` + `@mui/icons-material`
- * yerine `ui/TextField` + `lucide-react`. İkonlar zaten `lucide` (projede
+ * yerine `ui/TextField` + yerel `@/components/icons` seti (projede
  * `@mui/icons-material` yalnızca 1 yerde kalmıştı).
  *
  * Erişilebilirlik: göster/gizle gerçek bir `<button>`, `aria-label`'ı duruma

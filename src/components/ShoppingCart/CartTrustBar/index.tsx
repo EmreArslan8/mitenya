@@ -1,5 +1,4 @@
-import { BadgeCheck, Undo2 } from '@/components/icons';
-import { Truck } from 'lucide-react';
+import { BadgeCheck, Truck, Undo2 } from '@/components/icons';
 
 /*
  * Sepetin üstündeki güven şeridi.

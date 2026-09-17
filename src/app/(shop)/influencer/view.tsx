@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { MoreVertical } from '@/components/icons';
-import { Copy, ExternalLink, Package } from 'lucide-react';
+import { Copy, ExternalLink, MoreVertical, Package } from '@/components/icons';
 import { Button } from '@/components/ui/Button';
 import { fetchProductData } from '@/lib/api/shop';
 import type { ShopProductData } from '@/lib/api/types';

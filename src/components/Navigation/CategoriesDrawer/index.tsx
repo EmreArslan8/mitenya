@@ -1,9 +1,8 @@
 'use client';
 
 import { CategoryParent } from '@/lib/api/types';
-import { ArrowLeft, ChevronRight, CloseIcon, Heart, User } from '@/components/icons';
+import { ArrowLeft, ChevronRight, CloseIcon, Heart, Package, User } from '@/components/icons';
 import Dialog from '@/components/ui/Dialog';
-import { Package } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 

@@ -1,11 +1,10 @@
 'use client';
 
 import LoadingOverlay from '@/components/LoadingOverlay';
-import { CloseIcon, Lock } from '@/components/icons';
+import { CloseIcon, Lock, ShieldCheck } from '@/components/icons';
 import { Dialog } from '@/components/ui/Dialog';
 import { Typography } from '@/components/ui/Typography';
 import { useEffect, useState } from 'react';
-import { ShieldCheck } from 'lucide-react';
 
 interface PayTRPortalProps {
   token: string;

@@ -5,7 +5,7 @@ import Divider from '@/components/ui/Divider';
 import Popover from '@/components/ui/Popover';
 import { useAuth } from '@/contexts/AuthContext';
 import { signOut } from '@/lib/utils/signOut';
-import { Headset, History, LogOut, PackageSearch, Settings, User } from 'lucide-react';
+import { Headset, History, LogOut, PackageSearch, Settings, User } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 

@@ -1,9 +1,8 @@
 'use client';
 
 import Button from '@/components/ui/Button';
-import { CloseIcon } from '@/components/icons';
+import { CloseIcon, Copy } from '@/components/icons';
 import ModalCard from '@/components/common/ModalCard';
-import { Copy } from 'lucide-react';
 import { Toast } from '@/components/ui/Toast';
 
 type Props = {

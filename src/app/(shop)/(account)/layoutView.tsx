@@ -1,16 +1,20 @@
 'use client';
 
 import {
-  Hand,
-  LogIn,
-  PackageSearch,
-  MessageSquareText,
-  MapPinned,
   Bell,
   BookUser,
+  ChevronRight,
   CircleHelp,
-} from 'lucide-react';
-import { ChevronRight, CreditCard, Heart, LockKeyhole, UserRound } from '@/components/icons';
+  CreditCard,
+  Hand,
+  Heart,
+  LockKeyhole,
+  LogIn,
+  MapPinned,
+  MessageSquareText,
+  PackageSearch,
+  UserRound,
+} from '@/components/icons';
 import type { ComponentType, SVGProps } from 'react';
 
 import SupportButton from '@/components/SupportButtonSimple';

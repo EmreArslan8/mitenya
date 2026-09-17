@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Typography } from '@/components/ui/Typography';
 import { useState } from 'react';
 import AddressForm from '../AddressForm';
-import { CheckCircle2 } from '@/components/icons';
-import { AlertTriangle, MapPinPlus } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, MapPinPlus } from '@/components/icons';
 
 interface NewAddressModalProps {
   open: boolean;

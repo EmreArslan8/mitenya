@@ -4,9 +4,9 @@ import OrderListItemCard from '@/components/orders/OrderListItemCard';
 import { Button } from '@/components/ui/Button';
 import { PagedResults, ShopOrderListItemData, ShopOrderStatus } from '@/lib/api/types';
 import { UserReview } from '@/lib/api/supabaseReviews';
-import { Package, ShoppingBag, Star } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils/cn';
+import { Package, ShoppingBag, Star } from '@/components/icons';
 
 type OrderFilter = 'all' | ShopOrderStatus;
 

@@ -1,8 +1,7 @@
 'use client';
 
 import NextImage from 'next/image';
-import { Heart } from '@/components/icons';
-import { Share } from 'lucide-react';
+import { Heart, Share } from '@/components/icons';
 import ProgressIndicator from '../ProgressIndicator';
 import { MobileGalleryBehaviorProps } from './types';
 import { Spinner } from '@/components/ui/Spinner';

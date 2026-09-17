@@ -1,7 +1,6 @@
 'use client';
 
-import { CloseIcon } from '@/components/icons';
-import { Cookie } from 'lucide-react';
+import { CloseIcon, Cookie } from '@/components/icons';
 import { Button } from '@/components/ui/Button';
 import Link from '@/components/common/Link';
 

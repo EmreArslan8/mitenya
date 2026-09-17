@@ -7,8 +7,7 @@ import Popover from '@/components/ui/Popover';
 import { AddressData } from '@/lib/api/types';
 import useAddress from '@/lib/api/useAddress';
 import { useState } from 'react';
-import { Check } from '@/components/icons';
-import { Trash } from 'lucide-react';
+import { Check, Trash } from '@/components/icons';
 
 const AddressLine = ({ data, onChange }: { data: AddressData; onChange: () => void }) => {
   const { deleteAddress } = useAddress();

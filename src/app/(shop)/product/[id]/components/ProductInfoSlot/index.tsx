@@ -1,5 +1,4 @@
-import { Undo2 } from '@/components/icons';
-import { Truck } from 'lucide-react';
+import { Truck, Undo2 } from '@/components/icons';
 import s from './ProductInfoSlot.module.css';
 
 // RSC (Server Component) — 'use client' YOK. Statik trust kartı + SKT kutusu.
@@ -12,7 +11,7 @@ const ProductInfoSlot = ({ expirationDate }: { expirationDate?: string }) => {
       <div className={s.trustCard}>
         <div className={s.trustSignal}>
           <div className={s.trustSignalIcon}>
-            <Truck size={18} strokeWidth={2} />
+            <Truck size={18} />
           </div>
           <div className={s.trustSignalContent}>
             <p className={s.trustSignalTitle}>Aynı Gün Kargo</p>
@@ -23,7 +22,7 @@ const ProductInfoSlot = ({ expirationDate }: { expirationDate?: string }) => {
         </div>
         <div className={s.trustSignal}>
           <div className={s.trustSignalIcon}>
-            <Undo2 size={18} strokeWidth={2} />
+            <Undo2 size={18} />
           </div>
           <div className={s.trustSignalContent}>
             <p className={s.trustSignalTitle}>{"Kolay İade & Değişim"}</p>

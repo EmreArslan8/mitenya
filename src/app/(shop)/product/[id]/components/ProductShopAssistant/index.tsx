@@ -2,8 +2,8 @@
 
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
-import { Sparkles } from 'lucide-react';
 import type { ShopProductData } from '@/lib/api/types';
+import { Sparkles } from '@/components/icons';
 
 const ProductShopAssistantPanel = dynamic(() => import('./ProductShopAssistantPanel'), {
   ssr: false,

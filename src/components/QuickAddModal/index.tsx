@@ -1,14 +1,13 @@
 'use client';
 
 import { ShopProductData } from '@/lib/api/types';
-import { Check, CloseIcon } from '@/components/icons';
+import { Check, CloseIcon, ShoppingBag } from '@/components/icons';
 import { CrossFade } from '@/components/common/CrossFade';
 import { useState, useContext, useEffect, useRef } from 'react';
 import Button from '@/components/ui/Button';
 import { ShopContext } from '@/contexts/ShopContext';
 import formatPrice from '@/lib/utils/formatPrice';
 import useScreen from '@/lib/hooks/useScreen';
-import { ShoppingBag } from 'lucide-react';
 import { Chip } from '@/components/ui/Chip';
 import { Dialog } from '@/components/ui/Dialog';
 import { Spinner } from '@/components/ui/Spinner';
