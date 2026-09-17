@@ -20,6 +20,38 @@ readingTime: 8
 
 A313, Fransız eczanelerinde onlarca yıldır satılan, retinol esterleri içeren bir A vitamini pomadı. Türkiye'de son yıllarda "eczane retinolü" olarak tanınıyor. Diğer retinol ürünlerinden ayrıldığı nokta hem formülü hem de dokusu: serum değil, **yoğun bir pomad**.
 
+## A313 nedir, kim üretiyor?
+
+A313, Fransız laboratuvarı **Pharma Développement** tarafından üretilen bir A vitamini pomadı. Fransız eczanelerinin onlarca yıllık klasiği; daha eski kuşak onu *Avibon* adıyla tanır.
+
+### "A313 yüzde kaç retinol?" — sorunun cevabı aslında başka bir şey
+
+En çok sorulan sorulardan biri bu ve kısa cevabı şaşırtıcı: **A313 retinol içermez.**
+
+Tüpün üzerinde yüzde değil uluslararası birim yazar: **100 gramda 200.000 IU A vitamini**. İçerideki aktif, retinolün kendisi değil **retinil esterleri** — retinil asetat, retinil propiyonat ve retinil palmitat karışımı.
+
+Bu fark etkiyi doğrudan belirliyor:
+
+| Form | Retinoik aside dönüşüm | Hız | Tolerans |
+|---|---|---|---|
+| **Retinil ester (A313)** | 3 adım | En yavaş | En yüksek |
+| Retinol | 2 adım | Orta | Yüksek |
+| Retinal | 1 adım | Hızlı | Orta |
+
+Yani A313, retinoid ailesinin **en nazik ama en yavaş** ucunda duruyor. "Eczane ürünüdür, güçlüdür" algısının tersine, ortalama bir retinol serumundan daha sert değil — daha yumuşak. Bunu bilmek beklentiyi doğru kurar: A313 sonucu haftalarla değil **aylarla** verir.
+
+### Pommade mi, krem mi?
+
+A313 adıyla iki ayrı ürün satılıyor ve sürekli karıştırılıyor:
+
+- **A313 Pommade** — orijinal, PEG bazlı, yoğun ve yarı saydam pomad dokusu. Bu rehber bundan bahsediyor.
+- **A313 Crème** — daha yeni, klasik krem dokusunda, içerik listesi farklı.
+
+Aldığın ürünün hangisi olduğunu tüpteki isimden teyit et; doku ve kullanım beklentisi ikisinde aynı değil.
+
+<!-- DOĞRULA: tam INCI listesi elinizdeki orijinal tüpten birebir yazılacak.
+     Kaynaklar Pommade ve Crème için farklı listeler veriyor; karıştırılmamalı. -->
+
 ## A313 ne işe yarar?
 
 A313'ün cilde etkisi, içerdiği A vitamini türevlerinin cilt yüzeyinde retinoik aside dönüşmesiyle ortaya çıkar. Düzenli kullanımda beklenen etkiler:
@@ -39,6 +71,14 @@ A313'ün cilde etkisi, içerdiği A vitamini türevlerinin cilt yüzeyinde retin
 | Karma cilt | Uygun | T bölgesinde ince tabaka |
 | Yağlı cilt | Dikkatli | Doku ağır gelebilir, gözenek tıkanma hissi olabilir |
 | Hassas cilt | Dikkatli | Sandviç yöntemiyle, haftada 1-2 geceyle başlanmalı |
+
+### A313 kaç yaşında kullanılmaya başlanır?
+
+Retinoide başlamak için sabit bir yaş yok; belirleyen şey yaş değil **ihtiyaç ve cilt toleransı**. Yine de pratikte:
+
+- **20'li yaşların ortası:** koruyucu amaçla, düşük sıklıkta mantıklı bir başlangıç.
+- **30 ve üzeri:** ince çizgi ve ton eşitsizliği belirginleştiğinde asıl fayda dönemi.
+- **18 altı:** akne tedavisi için retinoid gerekiyorsa bu bir hekim kararıdır, kozmetik ürünle kendi başına başlanmamalı.
 
 ## A313 nasıl kullanılır?
 
@@ -76,6 +116,21 @@ Sabır gerektiren bir üründür. Gerçekçi bir takvim:
 
 İlk haftalarda ciltte sivilcelenme artabilir; buna **purging** deniyor. Hücre döngüsü hızlandığı için yüzeye çıkmayı bekleyen tıkanıklıklar erken görünür hale gelir. Genellikle 3-4 hafta içinde geçer.
 
+## Lekelere ve sivilce izlerine gerçekten iyi gelir mi?
+
+Dürüst cevap: **leke türüne bağlı.** "Leke" tek bir şey değil ve retinoidin hepsinde aynı işi görmez.
+
+| Leke tipi | A313'ten beklenti |
+|---|---|
+| **Sivilce sonrası koyu iz** (PIH) | En iyi yanıt veren grup. Hücre döngüsünü hızlandırarak pigmentli üst katmanın atılmasını destekler. |
+| **Güneş lekesi** | Kısmi. Yeni leke oluşumunu yavaşlatır ama mevcut lekede tek başına yavaş kalır; SPF olmadan anlamsız. |
+| **Melazma** | Tek başına yetersiz. Hormonal kökenli bu tabloda retinoid destek unsurudur, ana tedavi değil. |
+| **Çukurlaşmış akne izi** (atrofik skar) | Doku kaybı söz konusu; kozmetik retinoid yüzey görünümünü iyileştirir, çukuru doldurmaz. |
+
+Koyu iz önceliğinse retinoide tranexamik asit gibi doğrudan pigment yolağına çalışan bir aktif eklemek sonucu belirgin hızlandırır — [tranexamik asit ve glutatyon içeren göz kremi](/product/mary-may-tranexamic-acid-glutathion-eye-cream-12g) göz çevresi için bu mantıkla kurulmuş bir formül.
+
+Ve bir hatırlatma: A313 ester olduğu için bu tablodaki her satır **aylarla** ölçülür, haftalarla değil.
+
 ## A313 göz altına sürülür mü?
 
 **Doğrudan göz altına önerilmez.** Göz çevresi derisi yüz derisinden yaklaşık üç kat daha ince ve yağ bezi yoğunluğu çok düşük. A313'ün yoğunluğu bu bölgede kızarıklık, kuruluk ve şişlik yaratabilir.
@@ -107,6 +162,50 @@ Doğru kullanıldığında A313 güvenli bir üründür, ancak şu yan etkiler g
 - **AHA/BHA asitler** — aynı gece değil, gün aşırı
 - **Benzoil peroksit** — retinoidi inaktive edebilir, ayrı zamanlarda
 - **Yüksek dozlu C vitamini** — sabah C, akşam A313 şeklinde ayrılmalı
+
+## A313 nerede satılır, reçete gerekir mi?
+
+**Reçete gerekmez.** A313 bir ilaç değil, kozmetik ürün; Fransa'da eczanelerde reçetesiz satılır.
+
+Türkiye'de durum farklı: A313 Türk eczanelerinin standart stok kalemi değil. Ürüne ithalatçılar ve kozmetik satıcıları üzerinden ulaşılıyor. Bu da asıl meseleyi doğuruyor — **ürünün gerçekliğini artık satıcı belirliyor.**
+
+<!-- DOĞRULA: Türkiye'deki ithalat / ürün bildirim statüsü teyit edilecek. -->
+
+## A313'ün sahtesi nasıl anlaşılır?
+
+Bu soru Google'da düzenli aranıyor ve boşuna değil: Fransız eczane klasikleri en çok taklit edilen ürün grubunda.
+
+Sahte bir A313'te iki ayrı risk var:
+
+- **Etkisizlik** — aktif ya hiç yok ya da bozunmuş. Aylarca kullanıp sonuç alamazsın.
+- **Tahriş** — bilinmeyen konsantrasyon ve dolgu maddesi. Yüze sürülen bir üründe bu ciddi bir risk.
+
+Kontrol edilecek noktalar:
+
+<!-- DOĞRULA — AŞAĞIDAKİ 5 MADDE ELDEKİ ORİJİNAL TÜPTEN BİREBİR DOLDURULACAK.
+     Her maddenin yanına gerçek ürün fotoğrafı girecek (stok görsel KULLANILMAYACAK).
+     Bu bölüm doğrulanmadan yayına ALINMAMALI: eksik/yanlış bir kontrol listesi,
+     okuyucunun sahte ürünü "orijinal" sanmasına yol açabilir. -->
+
+1. **Üretici bilgisi** — kutu ve tüp üzerinde üretici adının nasıl ve nerede yazdığı
+2. **Seri numarası ve son kullanma tarihi** — basım şekli, yeri, kutu ile tüpün uyumu
+3. **Tüp baskısı** — yazı kalitesi, renk tonu, kapak detayı
+4. **Doku ve renk** — orijinal pomadın kıvamı ve rengi
+5. **Fiyat** — gerçekçi aralığın belirgin şekilde altı, tek başına bir uyarı işareti
+
+**En pratik korunma yolu:** ürünü, tedarik zincirini gösterebilen bir satıcıdan almak. [A313 Retinol Pommade 50g](/product/a313-retinol-pommade-50g) Mitenya'da bu şekilde tedarik ediliyor.
+
+## "A313 kullananlar" ne diyor, şikayetler neden çıkıyor?
+
+Arama verisinde "kullananlar", "yorumları" ve "şikayet" birlikte yükseliyor. Şikayetlerin büyük kısmı üründen değil, **yanlış beklentiden** doğuyor:
+
+- **"Aylardır kullanıyorum, hiçbir şey olmadı."** Genelde süre yetersizdir. Ester formu 3 dönüşüm adımı gerektirir; 12 haftadan önce net yargıya varmak erken.
+- **"Cildim bozuldu, sivilce çıktı."** İlk 3-4 haftadaki purging ile gerçek tahrişi ayırmak gerekir. Kızarıklık + yanma + gerginlik birlikteyse purging değil, fazla sıklık.
+- **"Doku çok ağır."** Yağlı ciltte sık karşılaşılan ve gerçek bir şikayet. Bu ciltte pomad yerine hafif bir serum daha doğru seçim.
+
+<!-- YAYIN ÖNCESİ: gerçek müşteri değerlendirmeleri toplandığında bu bölüme
+     alıntı olarak eklenecek ve ürün sayfasında AggregateRating ile işaretlenecek.
+     Uydurma yorum girilmeyecek. -->
 
 ## A313 mi retinol serum mu?
 
@@ -147,6 +246,22 @@ Doğru kullanıldığında güvenlidir. Kuruluk, pullanma, geçici sivilcelenme 
 ### A313 her gece kullanılır mı?
 
 Başlangıçta hayır. Haftada 2 geceyle başlanıp 6-8 hafta içinde kademeli olarak artırılmalıdır. Cilt tolere ediyorsa her gece kullanılabilir, ancak çoğu kişi için gün aşırı kullanım yeterli sonuç verir.
+
+### A313 yüzde kaç retinol içerir?
+
+A313 retinol içermez. Tüpte yüzde değil uluslararası birim yazar: 100 gramda 200.000 IU A vitamini. Aktifler retinil asetat, retinil propiyonat ve retinil palmitat esterleridir. Ester formu retinole göre daha yavaş ama daha az tahriş edicidir.
+
+### A313 hangi ülkenin ürünü, kim üretiyor?
+
+Fransız ürünüdür; Pharma Développement laboratuvarı tarafından Fransa'da üretilir. Fransız eczanelerinin uzun yıllardır satılan klasiklerinden biridir.
+
+### A313 reçete ile mi alınır?
+
+Hayır. A313 kozmetik bir üründür, reçete gerekmez. Türkiye'de eczanelerin standart stok kalemi olmadığı için ithalatçı ve kozmetik satıcıları üzerinden temin edilir.
+
+### A313 lekelere iyi gelir mi?
+
+Leke tipine bağlıdır. Sivilce sonrası koyu izlerde (PIH) en iyi yanıtı verir. Güneş lekesinde kısmi, melazmada tek başına yetersizdir. Çukurlaşmış akne izlerinde doku kaybı söz konusu olduğu için yüzey görünümünü iyileştirir, çukuru doldurmaz.
 
 ### A313 yazın kullanılır mı?
 
@@ -206,6 +321,26 @@ Kullanılabilir ama güneş koruma disiplini şart. SPF 50+ bir ürün her sabah
           "@type": "Question",
           "name": "A313 kremin zararları nelerdir?",
           "acceptedAnswer": { "@type": "Answer", "text": "Doğru kullanıldığında güvenlidir. Kuruluk, pullanma, geçici sivilcelenme ve güneşe hassasiyet görülebilir. Hamilelik ve emzirme döneminde, aktif egzama veya rozaseada kullanılmamalıdır." }
+        },
+        {
+          "@type": "Question",
+          "name": "A313 yüzde kaç retinol içerir?",
+          "acceptedAnswer": { "@type": "Answer", "text": "A313 retinol içermez. Tüpte yüzde değil uluslararası birim yazar: 100 gramda 200.000 IU A vitamini. Aktifler retinil asetat, retinil propiyonat ve retinil palmitat esterleridir. Ester formu retinole göre daha yavaş ama daha az tahriş edicidir." }
+        },
+        {
+          "@type": "Question",
+          "name": "A313 hangi ülkenin ürünü, kim üretiyor?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Fransız ürünüdür; Pharma Développement laboratuvarı tarafından Fransa'da üretilir. Fransız eczanelerinin uzun yıllardır satılan klasiklerinden biridir." }
+        },
+        {
+          "@type": "Question",
+          "name": "A313 reçete ile mi alınır?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Hayır. A313 kozmetik bir üründür, reçete gerekmez. Türkiye'de eczanelerin standart stok kalemi olmadığı için ithalatçı ve kozmetik satıcıları üzerinden temin edilir." }
+        },
+        {
+          "@type": "Question",
+          "name": "A313 lekelere iyi gelir mi?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Leke tipine bağlıdır. Sivilce sonrası koyu izlerde (PIH) en iyi yanıtı verir. Güneş lekesinde kısmi, melazmada tek başına yetersizdir. Çukurlaşmış akne izlerinde yüzey görünümünü iyileştirir, çukuru doldurmaz." }
         },
         {
           "@type": "Question",
