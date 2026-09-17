@@ -1,9 +1,10 @@
 import NextImage from 'next/image';
 import Link from '@/components/common/Link';
+import { buttonVariants } from '@/components/ui/Button/variants';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
+import { cn } from '@/lib/utils/cn';
 import formatPrice from '@/lib/utils/formatPrice';
 import type { BrandProductView } from '../model';
-import AddToCartButton from './AddToCartButton';
 
 // Görsel kutusu: mobil 116px, masaüstü 280px.
 const IMAGE_SIZES = '(max-width: 999px) 116px, 280px';
@@ -78,7 +79,13 @@ const ProductRow = ({ product, priority }: { product: BrandProductView; priority
           ) : null}
           <p className="text-[32px] font-bold">{formatPrice(product.price.currentPrice, product.price.currency)}</p>
         </div>
-        <AddToCartButton product={product} />
+        {/* Satın alma ürün detayında: marka sayfası stok göstermez, sepet mantığı taşımaz (ADR-0003). */}
+        <Link
+          href={product.url}
+          className={cn(buttonVariants({ variant: 'contained', color: 'primary' }), 'h-12 w-full font-semibold normal-case')}
+        >
+          Ürünü incele
+        </Link>
       </div>
     </article>
   );

@@ -7,6 +7,9 @@ import type { ShopProductListItemData } from './types';
 /**
  * Marka sayfası veri katmanı (ADR-0003).
  *
+ * Stok çekilmez: marka sayfası stok göstermez, satın alma ürün detayında yapılır.
+ * (Stok değişikliği webhook'u tetiklemediği için 1 saatlik cache'te bayat kalırdı.)
+ *
  * Bilinçli olarak `fetchProductsSupabase` KULLANILMAZ: o fonksiyon facet ve
  * fiyat aralığı için birden çok paralel sorgu atar. Marka sayfası tek sorguyla
  * yetinir; marka kimliği ve ürün sayısı zaten `filterCache`'ten gelir.
@@ -44,11 +47,10 @@ const BRAND_PRODUCT_SELECT = `
   has_variants,
   product_prices!inner(price_current, price_original, currency),
   product_images(image_url, sort_order),
-  product_stock(quantity),
   product_benefits(benefits(name_tr))
 `;
 
-/** Tüm markalar — `generateStaticParams` ve "diğer markalar" için. Sorgu atmaz (Redis/bellek cache). */
+/** Tüm markalar — sitemap ve "diğer markalar" için. Sorgu atmaz (Redis/bellek cache). */
 export const listBrands = async (): Promise<BrandSummary[]> => {
   const { brands } = await getFilterAggregations();
   return brands.map(({ id, name, slug, count }) => ({ id, name, slug, productCount: count }));

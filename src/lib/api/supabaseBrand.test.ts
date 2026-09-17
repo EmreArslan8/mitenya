@@ -17,7 +17,6 @@ const row = {
   created_at: '2026-01-01T00:00:00Z',
   has_variants: false,
   product_images: [{ image_url: 'products/relief-sun/main.webp', sort_order: 0 }],
-  product_stock: [{ quantity: 5 }],
   product_benefits: [
     { benefits: { name_tr: 'Güneş Koruması' } },
     { benefits: null },

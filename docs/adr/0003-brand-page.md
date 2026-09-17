@@ -21,12 +21,13 @@
    | Veri | Kaynak | Nasıl |
    |---|---|---|
    | Marka kimliği (id, ad, slug) | Supabase `brands` | Mevcut `filterCache` (Redis), **ek sorgu yok** |
-   | Ürün listesi, fiyat, stok, puan | Supabase `products` (+ prices/images/stock/benefits embed) | **Marka başına tek sorgu**, `unstable_cache` + tag `brand:<brand_id>` |
+   | Ürün listesi, fiyat, puan | Supabase `products` (+ prices/images/benefits embed; **stok yok**) | **Marka başına tek sorgu**, `unstable_cache` + tag `brand:<brand_id>` |
    | Marka metinleri, SSS, karşılaştırma, içerik kartları, SEO | Strapi `brand` collection type | Doğrudan Strapi fetch (ADR-0001 Faz A deseni, self-fetch yok), tag `brand-content:<slug>` |
    | Marka etiketli blog yazıları | Strapi `blog` → `brands` ilişkisi | Aynı Strapi isteğinde populate |
 4. **Tazelik:** Olay bazlı. `/api/revalidate` ürün etiketinin yanında `brand:<record.brand_id>` ve `brand:<old_record.brand_id>` etiketlerini de düşürür (ürünün markası değişirse eski sayfa da yenilenir). Strapi'de marka/blog yayınlanınca Strapi webhook'u `brand-content:<slug>` etiketini düşürür. `revalidate = 3600` yalnızca güvenlik ağıdır.
 5. **Liste üst sınırı:** Statik sayfada en fazla `BRAND_PAGE_PRODUCT_LIMIT = 24` ürün gösterilir; fazlası için "Tümünü gör" → `/search?brand=<slug>`. Sayfalama için yeni dinamik rota açılmaz.
-6. **Türetilmiş veri ek sorgu yapmaz:** Ürün sayısı, içerik etiketleri ve JSON-LD aynı ürün listesinden hesaplanır.
+6. **Satın alma ürün detayında (2026-09-17):** Marka sayfasında sepete ekle yok, stok gösterilmez; her ürün "Ürünü incele" ile PDP'ye gider. Gerekçe: stok değişikliği webhook'u tetiklemiyor (Faz 0) → 1 saatlik cache'te bayat stok; ayrıca sayfa tamamen server component kalır (client island yok).
+7. **Türetilmiş veri ek sorgu yapmaz:** Ürün sayısı, içerik etiketleri ve JSON-LD aynı ürün listesinden hesaplanır.
 
 ### DB yükü (hesap, ölçüm değil)
 
@@ -84,14 +85,14 @@ src/lib/hooks/useQuickAdd.ts      # sepete ekle akışı (ProductCard ile ortak)
 src/lib/seo/brandJsonLd.ts
 ```
 
-- Bölümler **server component**; client JS yalnızca "Sepete ekle" butonu (mevcut sepet bileşeni yeniden kullanılır) ve mobil "Devamını oku" için. MUI yok, ADR-0002 konvansiyonları.
+- Bölümler **server component**; sayfada client island yok ("Devamını oku" ve SSS saf CSS/`<details>`). MUI yok, ADR-0002 konvansiyonları.
 - Cache tag string'leri tek dosyada (`tags.ts`); hem `data.ts` hem `/api/revalidate` buradan import eder. PDP'deki `productCacheTag` da oraya taşınır (sessiz sapma olmasın).
 
 ## 6. Fazlar
 
 | Faz | İş | Doğrulama |
 |---|---|---|
-| **0** | Supabase: `products(brand_id)` indeksi var mı; `product_prices` / `product_stock` değişince webhook tetikleniyor mu (ADR-0001 açığı) | SQL / panel kontrolü |
+| **0** | Supabase kontrolleri — **bulgular (2026-09-17):** `products(brand_id)`, `product_prices(product_id)`, `product_stock(product_id)` indeksleri YOK (eklenecek). `product_prices`'ta iki sync tetikleyicisi var (`sync_price_to_product`, `sync_prices_to_main_product`; tanımları doğrulanacak, çift iş şüphesi). `product_stock` değişikliği `products`'a dokunmuyor → `pdp-revalidate` webhook'u tetiklenmiyor (PDP 5 dk bayat stok) | SQL / panel kontrolü |
 | **1** | `tags.ts`, `supabaseBrand.ts` + test, `/api/revalidate` brand etiketi + test | Vitest |
 | **2** | Strapi şeması (mitenya-cms) + Beauty of Joseon için örnek içerik | Strapi lokal |
 | **3** | Rota + bölümler (tasarıma göre, masaüstü + mobil) | Lokal görsel karşılaştırma |
