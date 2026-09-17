@@ -9,10 +9,9 @@ import Card from '@/components/common/Card';
 import Banner from '@/components/common/Banner';
 import { CrossFade } from '@/components/common/CrossFade';
 import Link from '@/components/common/Link';
-import QuickAddModal from '@/components/QuickAddModal';
-import AddedToCartModal from '@/components/ShoppingCart/AddedToCartModal';
-import { ShopProductData, ShopProductListItemData } from '@/lib/api/types';
-import { fetchProductData } from '@/lib/api/shop';
+import QuickAddDialogs from '@/components/QuickAddModal/QuickAddDialogs';
+import { ShopProductListItemData } from '@/lib/api/types';
+import { useQuickAdd } from '@/lib/hooks/useQuickAdd';
 import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
 import useScreen from '@/lib/hooks/useScreen';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
@@ -20,10 +19,9 @@ import formatPrice from '@/lib/utils/formatPrice';
 import NextImage from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import { ShopContext } from '@/contexts/ShopContext';
 import { Check, Heart } from '@/components/icons';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState, useContext } from 'react';
+import { useState } from 'react';
 import Button from '../ui/Button';
 import { cn } from '@/lib/utils/cn';
 import type { BannerVariant } from '../common/Banner';
@@ -73,14 +71,9 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
   const imageData = data as ProductCardImageData;
   const isMobileApp = useIsMobileApp();
   const smUp = useScreen('smUp');
-  const { handleAddItem } = useContext(ShopContext);
   const { isAuthenticated, openAuthenticator } = useAuth();
   const { isFavorite, isFavoriteLoading, toggleFavorite } = useFavorites();
   const [isNavigatingToDetails, setIsNavigatingToDetails] = useState(false);
-  const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [quickAddLoading, setQuickAddLoading] = useState(false);
-  const [productDetail, setProductDetail] = useState<ShopProductData | null>(null);
-  const [addedProduct, setAddedProduct] = useState<ShopProductData | null>(null);
   const [favoriteFeedback, setFavoriteFeedback] = useState<{
     open: boolean;
     title: string;
@@ -90,10 +83,8 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
     title: '',
     variant: 'success',
   });
-  const [showAdded, setShowAdded] = useState(false);
   const [showSecondaryImage, setShowSecondaryImage] = useState(false);
   const [shouldLoadSecondaryImage, setShouldLoadSecondaryImage] = useState(false);
-  const addedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
   const isOutOfStock = typeof data.quantity === 'number' && data.quantity <= 0;
@@ -114,67 +105,12 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
   const favorited = isFavorite(data.id);
   const favoriteLoading = isFavoriteLoading(data.id);
 
-  useEffect(() => {
-    return () => {
-      if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
-    };
-  }, []);
-
-  const triggerAddedFeedback = () => {
-    if (!smUp) return;
-    setShowAdded(true);
-    if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
-    addedTimeoutRef.current = setTimeout(() => setShowAdded(false), 1200);
-  };
-
-  const handleQuickAdd = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    setQuickAddLoading(true);
-
-    try {
-      const detail = await fetchProductData(data.id);
-
-      if (!detail) {
-        setQuickAddLoading(false);
-        return;
-      }
-
-      if (detail.quantity <= 0) {
-        showFavoriteFeedback('Ürün stokta yok', 'error');
-        setQuickAddLoading(false);
-        return;
-      }
-
-      // Liste verisinden hasVariant kontrolü (modal açmadan önce)
-      // Eğer liste verisinde hasVariant false ise direkt ekle
-      if (!data.hasVariant) {
-        const product = { ...detail, quantity: 1 };
-        // notify:false → global sepet çekmecesi yerine "Ürün sepete eklendi" modalı.
-        const success = handleAddItem(product, { notify: false });
-        if (success) {
-          triggerAddedFeedback();
-          setAddedProduct(product);
-        }
-        setQuickAddLoading(false);
-        return;
-      }
-
-      // Varyant varsa modal'ı göster
-      setProductDetail(detail);
-      setQuickAddOpen(true);
-    } catch (error) {
-      console.error('Quick add error:', error);
-    } finally {
-      setQuickAddLoading(false);
-    }
-  };
-
-  const handleCloseQuickAdd = () => {
-    setQuickAddOpen(false);
-    setProductDetail(null);
-  };
+  const {
+    quickAdd,
+    loading: quickAddLoading,
+    showAdded,
+    dialogs: quickAddDialogs,
+  } = useQuickAdd(data, { onError: (message) => showFavoriteFeedback(message, 'error') });
 
   const handleMouseEnterImage = () => {
     if (!hasSecondaryImage) return;
@@ -327,7 +263,7 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
                   : (e: React.MouseEvent) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      handleQuickAdd(e);
+                      void quickAdd();
                     }
               }
               disabled={!isOutOfStock && (quickAddLoading || showAdded)}
@@ -368,20 +304,7 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
         </Card>
       </Link>
 
-      {/* Quick Add Modal */}
-      <QuickAddModal
-        open={quickAddOpen}
-        onClose={handleCloseQuickAdd}
-        product={productDetail}
-        loading={quickAddLoading}
-        onAdded={setAddedProduct}
-      />
-
-      <AddedToCartModal
-        open={!!addedProduct}
-        onClose={() => setAddedProduct(null)}
-        product={addedProduct ?? undefined}
-      />
+      <QuickAddDialogs state={quickAddDialogs} />
 
       <Toast
         open={favoriteFeedback.open}
