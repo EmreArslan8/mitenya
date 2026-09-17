@@ -14,3 +14,9 @@ export const brandTag = (brandId: string) => `brand:${brandId}`;
 
 /** Marka sayfasının Strapi içeriği. Strapi webhook'u slug gönderir. */
 export const brandContentTag = (slug: string) => `brand-content:${slug}`;
+
+/**
+ * Tüm marka sayfalarının Strapi içeriği. Blog webhook'u ilişkili markaları
+ * göndermediği için blog değişince hepsi düşürülür (yalnızca Strapi isteği, DB yükü yok).
+ */
+export const ALL_BRAND_CONTENT_TAG = 'brand-content:*';

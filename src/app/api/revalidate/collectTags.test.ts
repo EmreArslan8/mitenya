@@ -42,4 +42,22 @@ describe('collectRevalidateTags', () => {
   it('returns nothing for an empty body', () => {
     expect(collectRevalidateTags({})).toEqual([]);
   });
+
+  it('drops the brand content tag for a Strapi brand entry', () => {
+    const tags = collectRevalidateTags({
+      model: 'brand',
+      entry: { slug: 'beauty-of-joseon' },
+    });
+    expect(tags).toEqual(['brand-content:beauty-of-joseon']);
+  });
+
+  it('drops every brand content tag for a Strapi blog entry', () => {
+    expect(collectRevalidateTags({ model: 'blog', entry: { slug: 'a-post' } })).toEqual([
+      'brand-content:*',
+    ]);
+  });
+
+  it('ignores other Strapi models', () => {
+    expect(collectRevalidateTags({ model: 'shop-header', entry: { slug: 'x' } })).toEqual([]);
+  });
 });

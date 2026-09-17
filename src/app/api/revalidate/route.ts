@@ -18,6 +18,10 @@ import { collectRevalidateTags, type RevalidatePayload } from './collectTags';
  *      Type: HTTP Request, Method: POST
  *      URL: https://mitenya.com/api/revalidate
  *      HTTP Headers: x-revalidate-secret: <REVALIDATE_SECRET>
+ *  - Strapi → Settings → Webhooks (ADR-0003, marka içeriği):
+ *      URL: https://mitenya.com/api/revalidate
+ *      Headers: x-revalidate-secret: <REVALIDATE_SECRET>
+ *      Events: Entry create/update/delete/publish/unpublish (brand + blog için)
  */
 export const POST = async (req: NextRequest) => {
   const secret = process.env.REVALIDATE_SECRET;
