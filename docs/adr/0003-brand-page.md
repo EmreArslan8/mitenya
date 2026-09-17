@@ -1,6 +1,6 @@
 # ADR-0003 — Marka sayfası (`/brand/[slug]`): ISR + etiket bazlı revalidation
 
-**Durum:** Önerildi — onay bekliyor (onaysız kod yok)
+**Durum:** Uygulanıyor — Faz 1 ve Faz 3 tamam (feature/brand-page), Faz 0/4/5 açık
 **Tarih:** 2026-09-17
 **İlgili:** [ADR-0001](./0001-pdp-isr-webhook-revalidation.md), [ADR-0002](./0002-mui-to-tailwind-migration.md)
 **Tasarım:** Claude artifact "mitenya Marka Sayfası" → "Birleşik · Masaüstü / Mobil" artboard'ları
@@ -16,7 +16,7 @@
 ## 2. Karar
 
 1. **Rota:** `src/app/(shop)/brand/[slug]/`, mevcut `/product`, `/category`, `/collection` ile tutarlı.
-2. **Render:** ADR-0001 deseni. `dynamic = 'force-static'`, `revalidate = 3600`, `generateStaticParams` ile mevcut markalar build'de üretilir; yeni marka ilk istekte üretilir (`dynamicParams = true`).
+2. **Render:** ADR-0001 deseni. `dynamic = 'force-static'`, `revalidate = 3600`. PDP gibi `generateStaticParams` YOK: sayfa ilk istekte üretilip cache'lenir. Böylece build Strapi/Supabase erişimine bağlanmaz (veri katmanı hata durumunda fırlatır; build'de fırlatsaydı tüm build düşerdi).
 3. **Veri kaynakları (tek sorumluluk):**
    | Veri | Kaynak | Nasıl |
    |---|---|---|
@@ -43,7 +43,7 @@ Yeni collection type **`brand`** (draftAndPublish) — **uygulandı (mitenya-cms
 | `logo` | media (image) | |
 | `tagline` | string | Hero alt başlığı |
 | `intro` | text | Hero kısa tanıtım |
-| `about` | richtext | Uzun marka metni (sayfa altı) |
+| `about` | text | Uzun marka metni (sayfa altı); düz metin, paragraflar boş satırla ayrılır (projede Markdown çözücü yok) |
 | `facts` | repeatable `shared.brand-fact` (yeni: `label`, `value`) | Menşei, uzmanlık, güvence |
 | `productNotes` | repeatable `shared.brand-product-note` (yeni: `productSlug`, `note`) | Ürün kartı kısa açıklaması |
 | `ingredients` | repeatable `shared.ingredient-item` (mevcut) | İçerik kartları |
@@ -78,7 +78,9 @@ src/app/(shop)/brand/[slug]/
                     # BrandRoutine, BrandFaq, BrandGuides, BrandAbout, OtherBrands
 src/lib/api/supabaseBrand.ts      # fetchBrandProducts(brandId, limit) — tek sorgu, mapShopProductRow
 src/lib/api/cmsBrand.ts           # fetchBrandContent(slug) — doğrudan Strapi
-src/lib/cache/tags.ts             # productTag / brandTag / brandContentTag — TEK kaynak
+src/lib/cache/tags.ts             # productTag / brandTag / brandContentTag / ALL_BRAND_CONTENT_TAG — TEK kaynak
+src/lib/shop/brandPath.ts         # /brand/<slug> — TEK kaynak
+src/lib/hooks/useQuickAdd.ts      # sepete ekle akışı (ProductCard ile ortak)
 src/lib/seo/brandJsonLd.ts
 ```
 
