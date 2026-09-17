@@ -1,6 +1,11 @@
+import { buildImageSrcSet, canResizeImage } from '@/lib/imageLoader';
+import { getNextImageWidths } from '@/lib/imageSizesConfig';
+
 export type TocItem = {
   id: string;
   text: string;
+  /** 2 = ana bölüm (h2), 3 = alt başlık (h3). Gezinme bunu girintileme için kullanır. */
+  level: 2 | 3;
 };
 
 export type PreparedArticle = {
@@ -38,9 +43,60 @@ export const slugifyHeading = (value: string) =>
     .slice(0, 60) || 'bolum';
 
 /**
+ * Makale gövdesindeki görsellerin `sizes` değeri.
+ * Gövde masaüstünde ~720px'lik bir sütunda, mobilde tam genişlikte akıyor.
+ */
+const ARTICLE_IMAGE_SIZES = '(min-width: 1000px) 720px, 100vw';
+
+const ARTICLE_IMAGE_WIDTHS = getNextImageWidths(ARTICLE_IMAGE_SIZES);
+
+const hasAttr = (attrs: string, name: string) =>
+  new RegExp(`\\s${name}\\s*=`, 'i').test(attrs);
+
+/** Attribute değerini tırnak/ampersand kaçışıyla güvenli hale getirir. */
+const escapeAttr = (value: string) =>
+  value.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+
+/**
+ * Gövdeye elle yazılan `<img>` etiketlerini ürün görselleriyle aynı CDN
+ * boru hattına bağlar.
+ *
+ * Neden: içerik HTML'i `dangerouslySetInnerHTML` ile basıldığı için `next/image`
+ * bileşeni kullanılamıyor. Sonuç olarak yazılardaki görseller srcset'siz, tek
+ * boyutta ve eager iniyordu — mobilde masaüstü boyutunda bayt indiriliyor.
+ * Burada aynı `imageLoader` ile srcset üretiliyor; yazar yalnızca `<img src>`
+ * yazıyor, kural bu fonksiyonda yaşıyor.
+ *
+ * NOT: sanitize BU ADIMDAN ÖNCE çalışır (view.tsx). Burada eklenen attribute'lar
+ * kullanıcı girdisi değil, `src`ten türetiliyor ve kaçış uygulanıyor.
+ */
+export const enhanceArticleImages = (html: string): string =>
+  html.replace(/<img([^>]*?)\/?>/gi, (match, rawAttrs: string) => {
+    const src = /\ssrc=["']([^"']+)["']/i.exec(rawAttrs)?.[1];
+    if (!src) return match;
+
+    let attrs = rawAttrs.trimEnd();
+
+    // Gövde görselleri her zaman kıvrımın altında: eager indirmeye gerek yok.
+    if (!hasAttr(attrs, 'loading')) attrs += ' loading="lazy"';
+    if (!hasAttr(attrs, 'decoding')) attrs += ' decoding="async"';
+
+    if (canResizeImage(src) && !hasAttr(attrs, 'srcset')) {
+      const srcset = buildImageSrcSet(src, ARTICLE_IMAGE_WIDTHS);
+      if (srcset) {
+        attrs += ` srcset="${escapeAttr(srcset)}"`;
+        if (!hasAttr(attrs, 'sizes')) attrs += ` sizes="${ARTICLE_IMAGE_SIZES}"`;
+      }
+    }
+
+    return `<img${attrs}>`;
+  });
+
+/**
  * Sanitize edilmiş blog HTML'ini okuma deneyimi için hazırlar:
- * - h2 başlıklarına id verir ve içindekiler listesini çıkarır
+ * - h2 ve h3 başlıklarına id verir ve içindekiler listesini çıkarır
  * - tabloları yatay kaydırılabilir bir sarmalayıcıya alır (mobilde taşmayı önler)
+ * - görselleri CDN srcset'i + lazy/decoding ile donatır (bkz. enhanceArticleImages)
  * - okuma süresini hesaplar
  */
 export const prepareArticle = (rawHtml: string): PreparedArticle => {
@@ -48,8 +104,8 @@ export const prepareArticle = (rawHtml: string): PreparedArticle => {
   const usedIds = new Set<string>();
 
   const withHeadingIds = rawHtml.replace(
-    /<h2([^>]*)>([\s\S]*?)<\/h2>/gi,
-    (match, attrs: string, inner: string) => {
+    /<(h2|h3)([^>]*)>([\s\S]*?)<\/\1>/gi,
+    (match, tag: string, attrs: string, inner: string) => {
       // İçerikte zaten id varsa dokunma, yalnızca listeye ekle.
       const existing = /\sid=["']([^"']+)["']/i.exec(attrs);
       const text = toPlainText(inner);
@@ -61,9 +117,9 @@ export const prepareArticle = (rawHtml: string): PreparedArticle => {
         while (usedIds.has(id)) id = `${slugifyHeading(text)}-${suffix++}`;
       }
       usedIds.add(id);
-      toc.push({ id, text });
+      toc.push({ id, text, level: tag.toLowerCase() === 'h2' ? 2 : 3 });
 
-      return existing ? match : `<h2${attrs} id="${id}">${inner}</h2>`;
+      return existing ? match : `<${tag}${attrs} id="${id}">${inner}</${tag}>`;
     }
   );
 
@@ -72,8 +128,10 @@ export const prepareArticle = (rawHtml: string): PreparedArticle => {
     (table) => `<div class="article-table">${table}</div>`
   );
 
+  const withEnhancedImages = enhanceArticleImages(withScrollableTables);
+
   const words = toPlainText(rawHtml).split(' ').filter(Boolean).length;
   const readingMinutes = Math.max(1, Math.round(words / 200));
 
-  return { html: withScrollableTables, toc, readingMinutes };
+  return { html: withEnhancedImages, toc, readingMinutes };
 };
