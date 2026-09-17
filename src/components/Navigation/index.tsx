@@ -29,6 +29,7 @@ import ShoppingCartButton from '../ShoppingCart/ShoppingCartButton';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import useScreen from '@/lib/hooks/useScreen';
+import { brandPath } from '@/lib/shop/brandPath';
 
 const loadMegaMenu = () => import('./MegaMenu');
 const loadMobileSearchOverlay = () => import('./MobileSearchOverlay');
@@ -160,18 +161,18 @@ const HEADER_LINKS: HeaderNavItem[] = [
           href: '/search',
           allLabel: 'Tüm markalar',
           links: [
-            { id: 'boj', label: 'Beauty of Joseon', href: '/search?brand=beauty-of-joseon' },
-            { id: 'celimax', label: 'Celimax', href: '/search?brand=celimax' },
-            { id: 'numbuzin', label: 'Numbuzin', href: '/search?brand=numbuzin' },
-            { id: 'mary-may', label: 'Mary & May', href: '/search?brand=mary-may' },
-            { id: 'a313', label: 'A313', href: '/search?brand=a313' },
+            { id: 'boj', label: 'Beauty of Joseon', href: brandPath('beauty-of-joseon') },
+            { id: 'celimax', label: 'Celimax', href: brandPath('celimax') },
+            { id: 'numbuzin', label: 'Numbuzin', href: brandPath('numbuzin') },
+            { id: 'mary-may', label: 'Mary & May', href: brandPath('mary-may') },
+            { id: 'a313', label: 'A313', href: brandPath('a313') },
           ],
         },
       ],
       feature: {
         image: '/static/images/mitenya-numbuzin-no9-banner-1600x600.webp',
         caption: 'Numbuzin No.9',
-        href: '/search?brand=numbuzin',
+        href: brandPath('numbuzin'),
       },
     },
   },

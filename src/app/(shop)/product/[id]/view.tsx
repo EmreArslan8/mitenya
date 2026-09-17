@@ -3,6 +3,7 @@ import NextLink from 'next/link';
 import { ChevronRight } from '@/components/icons';
 import { ShopProductData } from '@/lib/api/types';
 import getDiscountPercent from '@/lib/shop/getDiscountPercent';
+import { brandPath } from '@/lib/shop/brandPath';
 import searchUrlFromOptions from '@/lib/shop/searchHelpers';
 import formatPrice from '@/lib/utils/formatPrice';
 import s from './view.module.css';
@@ -33,10 +34,13 @@ const ProductPageView = ({
   const hasDiscount = data.price.originalPrice > data.price.currentPrice;
   const discountPercent = hasDiscount ? getDiscountPercent(data.price) : 0;
   const brandLabel = data.brand?.trim();
+  // Marka sayfası (ADR-0003) slug ister; slug yoksa filtreli aramaya düş.
   const brandSearchToken = data.brandSlug ?? data.brandId;
-  const brandHref = brandSearchToken
-    ? searchUrlFromOptions({ brand: brandSearchToken })
-    : undefined;
+  const brandHref = data.brandSlug
+    ? brandPath(data.brandSlug)
+    : brandSearchToken
+      ? searchUrlFromOptions({ brand: brandSearchToken })
+      : undefined;
   const categoryLabel = data.category?.trim();
   const categorySearchToken = data.categorySlug ?? data.categoryId;
   const categoryHref = categorySearchToken
@@ -102,11 +106,7 @@ const ProductPageView = ({
             <div className={s.detailsCol}>
               <div className={s.details}>
                 <div className={s.titleBlock}>
-                  <NextLink
-                    href={searchUrlFromOptions({ brand: brandSearchToken })}
-                    prefetch={false}
-                    className={s.brand}
-                  >
+                  <NextLink href={brandHref ?? '/search'} prefetch={false} className={s.brand}>
                     {data.brand}
                   </NextLink>
                   <h1 className={s.productName}>{fullName}</h1>
