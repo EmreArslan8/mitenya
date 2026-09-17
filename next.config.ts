@@ -115,53 +115,35 @@ const nextConfig: NextConfig = {
     imageSizes: IMAGE_SIZES,
     qualities: QUALITIES,
     remotePatterns: [
+      // Yerel Strapi (gelistirme / lokal prod build).
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '1337',
         pathname: '/uploads/**',
       },
+      // Strapi Cloud: uygulama ve medya host'u.
       {
-        protocol: "https",
-        hostname: "funny-animal-09dc5ed329.media.strapiapp.com", 
-        pathname: "/**",
+        protocol: 'https',
+        hostname: 'funny-animal-09dc5ed329.strapiapp.com',
+        pathname: '/**',
       },
       {
-        protocol: "https",
-        hostname: "funny-animal-09dc5ed329.strapiapp.com",
-        pathname: "/**",
+        protocol: 'https',
+        hostname: 'funny-animal-09dc5ed329.media.strapiapp.com',
+        pathname: '/**',
+      },
+      // CMS gorselleri prod'da bu ikisinden geliyor; imageLoader yalnizca
+      // bunlar icin responsive varyant uretiyor (bkz. src/lib/imageLoader.ts).
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
       },
       {
-        protocol: "https",
-        hostname: "funny-animal-09dc5ed329.media.strapiapp.com", 
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "genuine-blessing-adf56ff856.strapiapp.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "genuine-blessing-adf56ff856.media.strapiapp.com",
-        pathname: "/**",
-      },
-            
-      {
-        protocol: "https",
-        hostname: "kozmedo-cms.onrender.com",
-        port: "",
-        pathname: "/uploads/**",
-      },
-      {
-        protocol: "https",
-        hostname: "res.cloudinary.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "cdn.mitenya.com",
-        pathname: "/**",
+        protocol: 'https',
+        hostname: 'cdn.mitenya.com',
+        pathname: '/**',
       },
     ],
   },
