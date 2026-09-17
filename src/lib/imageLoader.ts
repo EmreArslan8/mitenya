@@ -54,22 +54,30 @@ export const buildCloudflareUrl = ({ src, width, quality }: LoaderArgs): string 
   return `${url.origin}${CF_RESIZE_PREFIX}${transforms.join(',')}${path}`;
 };
 
-export const buildCloudinaryUrl = ({ src, width, quality }: LoaderArgs): string => {
+/**
+ * Cloudinary URL'ini `upload/` oncesi ve donusumsuz kuyruk olarak ikiye ayirir.
+ * Ilk segment surum degilse zaten bir donusum var (or. `f_auto,w_768`);
+ * ust uste bindirmek yerine onu atiyoruz.
+ */
+const splitCloudinaryUrl = (src: string): { prefix: string; tail: string } | null => {
   const uploadIndex = src.indexOf(CLOUDINARY_UPLOAD);
-  if (uploadIndex === -1) return src;
-
-  // SVG'ye f_auto uygulanirsa Cloudinary onu raster'a cevirir; marka logolari
-  // bulaniklasir. Vektorler dokunulmadan gecer.
-  if (isSvg(src)) return src;
+  if (uploadIndex === -1) return null;
 
   const prefix = src.slice(0, uploadIndex + CLOUDINARY_UPLOAD.length);
   const rest = src.slice(uploadIndex + CLOUDINARY_UPLOAD.length);
   const segments = rest.split('/');
-
-  // Ilk segment surum degilse zaten bir donusum var (or. `f_auto,w_768`);
-  // ust uste bindirmek yerine onu degistiriyoruz.
   const hasTransform = segments.length > 1 && !VERSION_SEGMENT.test(segments[0]);
-  const tail = hasTransform ? segments.slice(1).join('/') : rest;
+
+  return { prefix, tail: hasTransform ? segments.slice(1).join('/') : rest };
+};
+
+export const buildCloudinaryUrl = ({ src, width, quality }: LoaderArgs): string => {
+  // SVG'ye f_auto uygulanirsa Cloudinary onu raster'a cevirir; marka logolari
+  // bulaniklasir. Vektorler dokunulmadan gecer.
+  if (isSvg(src)) return src;
+
+  const parts = splitCloudinaryUrl(src);
+  if (!parts) return src;
 
   // c_limit sart: `sizes` vermeyen bilesenlerde next/image en buyuk device
   // size'i (3840w) secebiliyor; c_limit olmadan Cloudinary gorseli buyutur ve
@@ -79,7 +87,33 @@ export const buildCloudinaryUrl = ({ src, width, quality }: LoaderArgs): string 
   // logolarda 33.9 KB -> 13.7 KB. Bilesen acikca `quality` verirse ona uyulur.
   const q = quality ? `q_${quality}` : 'q_auto:eco';
 
-  return `${prefix}f_auto,${q},c_limit,w_${width}/${tail}`;
+  return `${parts.prefix}f_auto,${q},c_limit,w_${width}/${parts.tail}`;
+};
+
+const isGif = (src: string) => src.split('?')[0].toLowerCase().endsWith('.gif');
+
+/**
+ * Hareketli GIF'i Cloudinary'de videoya cevirir.
+ *
+ * `f_auto` hareketli GIF'e dokunmuyor: 240w varyant bile 1.44 MB GIF olarak
+ * iniyor. Ayni kare dizisi MP4 olarak ~22 KB, WebM olarak ~23 KB. Video
+ * srcset almadigi icin genislik tek; cagiran 3x ekrani karsilayani secmeli.
+ *
+ * Cloudinary disi ya da GIF olmayan kaynakta `undefined` doner; cagiran o
+ * zaman normal gorsele duser.
+ */
+export const buildCloudinaryGifVideoUrl = (
+  src: string,
+  format: 'mp4' | 'webm',
+  width: number,
+): string | undefined => {
+  if (!src.includes('res.cloudinary.com') || !isGif(src)) return undefined;
+
+  const parts = splitCloudinaryUrl(src);
+  if (!parts) return undefined;
+
+  const tail = parts.tail.replace(/\.gif(\?.*)?$/i, `.${format}`);
+  return `${parts.prefix}f_${format},q_auto:eco,c_limit,w_${width}/${tail}`;
 };
 
 const imageLoader = (args: LoaderArgs): string => {

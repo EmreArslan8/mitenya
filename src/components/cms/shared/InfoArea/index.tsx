@@ -2,6 +2,7 @@ import Markdown from '@/components/common/Markdown';
 import { Link } from '@/components/ui/Link';
 import { Stack } from '@/components/ui/Stack';
 import { Typography } from '@/components/ui/Typography';
+import { buildCloudinaryGifVideoUrl } from '@/lib/imageLoader';
 import { SharedImageType } from '../cmsTypes';
 import CMSImage from '../CMSImage';
 
@@ -20,10 +21,15 @@ import CMSImage from '../CMSImage';
  * HTML). Şu anki içerikte bilgi alanlarının tamamında `url: null` — o yüzden
  * yol kapalı; CMS'te url kullanılmaya başlanırsa burası gözden geçirilmeli.
  *
- * Stil dönüşümü ölçümle doğrulandı (dönüşüm öncesi getComputedStyle, 500px):
- *   kart gap 8px · ikon çerçevesi 72×72 / %50 yarıçap / rgb(245,245,247)
- *   etiket 12.5px / 600 / lh 16.875px / rgba(0,0,0,0.87) / ls -0.0625px
- *   açıklama 13px / lh 19.5px / rgb(58,58,60) / mobilde display:none
+ * Güncel responsive stil:
+ *   ikon 120×120 (mobil–md), 132×132 (lg+)
+ *   etiket 14/15/16/17px (mobil/sm/md/lg), 500 ağırlık
+ *   açıklama 14px ve mobilde gizli
+ *
+ * Hareketli GIF ikonlar <video> olarak basılıyor: Cloudinary `f_auto` GIF'i
+ * dönüştürmüyor, 240w varyant bile 1.44 MB iniyordu; MP4 karşılığı ~28 KB.
+ * Video srcset almadığı için tek genişlik (384) — 120px çerçeveyi 3x ekranda
+ * da keskin tutuyor.
  *
  * Etiket rengi bilerek token DEĞİL: `color: 'text.primary'` MUI'nin kendi
  * varsayılanına (rgba(0,0,0,0.87)) düşüyordu — palette.ts'te `text.primary`
@@ -38,21 +44,41 @@ export interface InfoAreaProps {
   icon?: SharedImageType;
 }
 
+const GIF_VIDEO_WIDTH = 384;
+
 const InfoArea = ({ label, description, url, icon }: InfoAreaProps) => {
   const iconImage = icon?.data?.attributes;
+  const iconAlt = iconImage?.alternativeText || label || 'Bilgi ikonu';
+  const gifMp4 = iconImage && buildCloudinaryGifVideoUrl(iconImage.url, 'mp4', GIF_VIDEO_WIDTH);
+  const gifWebm = iconImage && buildCloudinaryGifVideoUrl(iconImage.url, 'webm', GIF_VIDEO_WIDTH);
 
   const content = (
     <Stack align="center" gap={1} className="w-full py-0 text-center md:gap-3">
       {iconImage && (
-        <div className="flex size-[72px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-50 md:size-[60px] md:rounded-none md:bg-transparent">
-          <div className="relative size-[62%] overflow-hidden md:size-full">
-            <CMSImage
-              src={iconImage.url}
-              alt={iconImage.alternativeText || label || 'Bilgi ikonu'}
-              fill
-              sizes="(min-width: 768px) 60px, 45px"
-              style={{ objectFit: 'contain' }}
-            />
+        <div className="flex size-[120px] shrink-0 items-center justify-center lg:size-[132px]">
+          <div className="relative size-full overflow-hidden rounded-full">
+            {gifMp4 ? (
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                role="img"
+                aria-label={iconAlt}
+                className="absolute inset-0 size-full object-cover"
+              >
+                <source src={gifMp4} type="video/mp4" />
+                {gifWebm && <source src={gifWebm} type="video/webm" />}
+              </video>
+            ) : (
+              <CMSImage
+                src={iconImage.url}
+                alt={iconAlt}
+                fill
+                sizes="(min-width: 1200px) 132px, 120px"
+                style={{ objectFit: 'cover' }}
+              />
+            )}
           </div>
         </div>
       )}
@@ -61,7 +87,7 @@ const InfoArea = ({ label, description, url, icon }: InfoAreaProps) => {
         {label && (
           <Typography
             as="p"
-            className="text-[12.5px] font-semibold leading-[1.35] tracking-[-0.005em] text-black/[87%] md:text-[17px] md:leading-[1.4]"
+            className="text-[14px] font-medium leading-[1.4] tracking-[-0.005em] text-black/[87%] sm:text-[15px] md:text-[16px] lg:text-[17px]"
           >
             {label}
           </Typography>
