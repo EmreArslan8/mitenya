@@ -1,5 +1,7 @@
 // Pagination
 export const PRODUCTS_PER_PAGE = 24;
+/** Marka sayfası statik listesinin üst sınırı; fazlası /search?brand=... ile gösterilir (ADR-0003). */
+export const BRAND_PAGE_PRODUCT_LIMIT = 24;
 export const ORDERS_PER_PAGE = 50;
 
 // Cart limits

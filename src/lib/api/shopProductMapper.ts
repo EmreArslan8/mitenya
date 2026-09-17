@@ -16,7 +16,7 @@ type ProductStockRow = {
   quantity: number | null;
 };
 
-type ShopProductRow = {
+export type ShopProductRow = {
   id: string;
   slug: string | null;
   name: string;
