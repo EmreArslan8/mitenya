@@ -19,6 +19,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // Next `server-only`'yi kendi içinden sağlar; testte sunucu modüllerini import edebilmek için boş modüle bağla.
+      'server-only': path.resolve(__dirname, './node_modules/next/dist/compiled/server-only/empty.js'),
     },
   },
 });
