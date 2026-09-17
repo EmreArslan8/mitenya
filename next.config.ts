@@ -96,6 +96,9 @@ const nextConfig: NextConfig = {
                 "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://analytics.tiktok.com https://ads.tiktok.com",
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
                 imgSrc + " https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com https://analytics.tiktok.com https://ads.tiktok.com",
+                // InfoArea hareketli GIF'leri Cloudinary'den <video> (MP4/WebM)
+                // olarak basıyor; media-src yoksa default-src 'self' engeller.
+                "media-src 'self' blob: https://res.cloudinary.com",
                 "font-src 'self' data: https://fonts.gstatic.com",
                 "connect-src 'self' https://*.supabase.co https://www.paytr.com https://www.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://challenges.cloudflare.com https://connect.facebook.net https://www.facebook.com https://analytics.tiktok.com https://ads.tiktok.com https://*.ecs.us-east-2.on.aws https://*.run.app",
                 "frame-src https://www.paytr.com https://challenges.cloudflare.com https://www.googletagmanager.com https://www.facebook.com https://analytics.tiktok.com https://ads.tiktok.com",
