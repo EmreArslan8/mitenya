@@ -92,7 +92,7 @@ src/lib/seo/brandJsonLd.ts
 
 | Faz | İş | Doğrulama |
 |---|---|---|
-| **0** | Supabase kontrolleri — **bulgular (2026-09-17):** `products(brand_id)`, `product_prices(product_id)`, `product_stock(product_id)` indeksleri YOK (eklenecek). `product_prices`'ta iki sync tetikleyicisi var (`sync_price_to_product`, `sync_prices_to_main_product`; tanımları doğrulanacak, çift iş şüphesi). `product_stock` değişikliği `products`'a dokunmuyor → `pdp-revalidate` webhook'u tetiklenmiyor (PDP 5 dk bayat stok) | SQL / panel kontrolü |
+| **0** | Supabase kontrolleri — **bulgular (2026-09-17):** `products(brand_id)`, `product_prices(product_id)`, `product_stock(product_id)` indeksleri yoktu → **eklendi**. `product_prices`'ta iki sync tetikleyicisi var (`sync_price_to_product`, `sync_prices_to_main_product`; tanımları doğrulanacak, çift iş şüphesi). `product_stock` değişikliği `products`'a dokunmuyor → `pdp-revalidate` webhook'u tetiklenmiyor (PDP 5 dk bayat stok) → çözüm: [`docs/sql/2026-09-17-product-stock-touch-product.sql`](../sql/2026-09-17-product-stock-touch-product.sql) | SQL / panel kontrolü |
 | **1** | `tags.ts`, `supabaseBrand.ts` + test, `/api/revalidate` brand etiketi + test | Vitest |
 | **2** | Strapi şeması (mitenya-cms) + Beauty of Joseon için örnek içerik | Strapi lokal |
 | **3** | Rota + bölümler (tasarıma göre, masaüstü + mobil) | Lokal görsel karşılaştırma |
