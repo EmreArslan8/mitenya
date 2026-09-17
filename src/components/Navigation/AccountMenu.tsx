@@ -18,6 +18,10 @@ const AccountMenu = ({ triggerClassName }: { triggerClassName?: string }) => {
   const { isAuthenticated, customerData, openAuthenticator } = useAuth();
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [open, setOpen] = useState(false);
+  // Hover ile açılan menüde odak taşınmaz: yoksa tarayıcı açılışta "Giriş Yap"a,
+  // kapanışta header ikonuna klavye odak çerçevesi çiziyor. Tıklama/klavyeyle
+  // açılışta Radix odağı yine taşır ve kapanınca tetikleyiciye geri verir.
+  const openedByHoverRef = useRef(false);
   const firstName = customerData?.fullName?.trim().split(' ')[0];
 
   const cancelClose = () => {
@@ -38,7 +42,12 @@ const AccountMenu = ({ triggerClassName }: { triggerClassName?: string }) => {
   return (
     <Popover
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={(next) => {
+        if (next) openedByHoverRef.current = false;
+        setOpen(next);
+      }}
+      onOpenAutoFocus={(event) => openedByHoverRef.current && event.preventDefault()}
+      onCloseAutoFocus={(event) => openedByHoverRef.current && event.preventDefault()}
       align="end"
       sideOffset={0}
       onMouseEnter={cancelClose}
@@ -48,7 +57,11 @@ const AccountMenu = ({ triggerClassName }: { triggerClassName?: string }) => {
         <button
           type="button"
           className={triggerClassName}
-          onMouseEnter={() => { cancelClose(); setOpen(true); }}
+          onMouseEnter={() => {
+            cancelClose();
+            if (!open) openedByHoverRef.current = true;
+            setOpen(true);
+          }}
           onMouseLeave={closeLater}
           onClick={() => isAuthenticated && go('/orders')}
           aria-label={isAuthenticated ? 'Hesabım' : 'Giriş Yap'}
