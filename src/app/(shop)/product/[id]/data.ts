@@ -1,4 +1,5 @@
 import { fetchProductDataSupabase } from '@/lib/api/supabaseProducts';
+import { productTag } from '@/lib/cache/tags';
 import { unstable_cache } from 'next/cache';
 import { cache } from 'react';
 
@@ -9,13 +10,11 @@ import { cache } from 'react';
  *  - `product:<slug>` tag'i ile ürün güncellenince webhook → revalidateTag ile
  *    ANINDA tazeleme mümkün (Faz B). revalidate=300 altta güvenlik ağı.
  */
-export const productCacheTag = (idOrSlug: string) => `product:${idOrSlug}`;
-
 const getCachedProductData = (idOrSlug: string) =>
   unstable_cache(
     () => fetchProductDataSupabase(idOrSlug),
     ['product-data', idOrSlug],
-    { revalidate: 300, tags: [productCacheTag(idOrSlug)] }
+    { revalidate: 300, tags: [productTag(idOrSlug)] }
   )();
 
 // React cache(): aynı render içinde generateMetadata + sayfa çağrılarını dedup eder.
