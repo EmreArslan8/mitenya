@@ -336,7 +336,7 @@ const ProductCard = ({ data, sizes }: ShopProductCardProps) => {
               color="primary"
               fullWidth
               className={cn(
-                'mt-0.5 rounded-none normal-case sm:h-[46px] sm:px-6 sm:py-2 sm:text-base',
+                'mt-0.5 rounded-none font-medium normal-case sm:h-[46px] sm:px-6 sm:py-2 sm:text-base',
                 isOutOfStock && 'bg-transparent hover:bg-text hover:text-white',
                 showAdded && 'border-success bg-success text-success-contrast-text hover:border-success hover:bg-success disabled:border-success disabled:bg-success disabled:text-success-contrast-text',
               )}
