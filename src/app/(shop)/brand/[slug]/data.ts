@@ -11,6 +11,7 @@ import {
 } from '@/lib/api/supabaseBrand';
 import { getSupabaseAnon } from '@/lib/supabase/anon';
 import { brandTag } from '@/lib/cache/tags';
+import { isBrandIndexable } from '@/lib/seo/brandIndexing';
 
 /** ISR güvenlik ağı; asıl tazelik webhook → revalidateTag (ADR-0003). page.tsx ile aynı olmalı. */
 export const BRAND_REVALIDATE_SECONDS = 3600;
@@ -46,7 +47,7 @@ const loadBrandPageData = async (slug: string): Promise<BrandPageData | null> =>
     products,
     content,
     otherBrands: brands.filter((other) => other.id !== brand.id && other.productCount > 0),
-    indexable: Boolean(content) && products.length > 0,
+    indexable: isBrandIndexable({ hasContent: Boolean(content), productCount: products.length }),
   };
 };
 

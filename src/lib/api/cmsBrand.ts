@@ -124,3 +124,23 @@ export const fetchBrandContent = async (slug: string): Promise<BrandContent | nu
   const attributes = res?.data?.[0]?.attributes;
   return attributes ? normalizeBrandContent(attributes) : null;
 };
+
+/**
+ * Yayında olan marka içeriklerinin slug'ları (sitemap). Sitemap bir marka yüzünden
+ * düşmesin diye hata durumunda boş döner — blog slug'larıyla aynı davranış.
+ */
+export const fetchBrandContentSlugs = async (): Promise<string[]> => {
+  const cmsApiUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
+  const cmsBearer = process.env.STRAPI_BEARER;
+  if (!cmsApiUrl || !cmsBearer) return [];
+
+  const [res, error] = await bring<StrapiCollectionResult<{ slug?: string }>>(`${cmsApiUrl}/brands`, {
+    params: { 'fields[0]': 'slug', publicationState: 'live', 'pagination[pageSize]': 100 },
+    headers: { Authorization: `Bearer ${cmsBearer}` },
+    static: true,
+    next: { revalidate: BRAND_CONTENT_REVALIDATE_SECONDS, tags: [ALL_BRAND_CONTENT_TAG] },
+  });
+  if (error) return [];
+
+  return (res?.data ?? []).map((item) => item.attributes?.slug).filter((slug): slug is string => Boolean(slug));
+};

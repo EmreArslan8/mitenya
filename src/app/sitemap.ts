@@ -1,4 +1,8 @@
 import type { MetadataRoute } from 'next';
+import { fetchBrandContentSlugs } from '@/lib/api/cmsBrand';
+import { listBrands } from '@/lib/api/supabaseBrand';
+import { isBrandIndexable } from '@/lib/seo/brandIndexing';
+import { brandPath } from '@/lib/shop/brandPath';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 const baseUrl = (process.env.NEXT_PUBLIC_HOST_URL ?? 'https://mitenya.com').replace(/\/$/, '');
@@ -74,10 +78,20 @@ const fetchProductSlugs = async () => {
   }));
 };
 
+/** Yalnızca indekslenebilir marka sayfaları (sayfanın robots kuralıyla aynı). */
+const fetchIndexableBrandSlugs = async () => {
+  const [contentSlugs, brands] = await Promise.all([fetchBrandContentSlugs(), listBrands().catch(() => [])]);
+  const withContent = new Set(contentSlugs);
+  return brands
+    .filter((brand) => isBrandIndexable({ hasContent: withContent.has(brand.slug), productCount: brand.productCount }))
+    .map((brand) => brand.slug);
+};
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [blogSlugs, productSlugs] = await Promise.all([
+  const [blogSlugs, productSlugs, brandSlugs] = await Promise.all([
     fetchBlogSlugs(),
     fetchProductSlugs(),
+    fetchIndexableBrandSlugs(),
   ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -101,5 +115,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: product.lastmod ? new Date(product.lastmod) : new Date(),
   }));
 
-  return [...staticRoutes, ...blogRoutes, ...productRoutes];
+  const brandRoutes = brandSlugs.map((slug) => ({
+    url: `${baseUrl}${brandPath(slug)}`,
+    lastModified: new Date(),
+  }));
+
+  return [...staticRoutes, ...brandRoutes, ...blogRoutes, ...productRoutes];
 }
