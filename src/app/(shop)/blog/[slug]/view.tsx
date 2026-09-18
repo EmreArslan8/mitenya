@@ -24,6 +24,14 @@ interface BlogEntity {
         };
       };
     };
+    detailImage?: {
+      data?: {
+        attributes: {
+          url: string;
+          alternativeText?: string;
+        };
+      };
+    };
   };
 }
 
@@ -135,7 +143,10 @@ const BlogDetailPageView = async ({ slug }: { slug: string }) => {
     publishedAt,
     updatedAt,
     cover,
+    detailImage,
   } = blog.attributes;
+
+  const heroImage = detailImage?.data ?? cover?.data;
 
   const { html, toc, readingMinutes } = prepareArticle(sanitizeHtml(content));
   // Mobilde katlanan liste: alt başlıklar da girerse liste ekranı doldurur.
@@ -158,11 +169,11 @@ const BlogDetailPageView = async ({ slug }: { slug: string }) => {
 
   return (
     <div className="box-border flex w-full self-center flex-col gap-5 px-2 pb-12 pt-2 sm:px-4 md:gap-9 md:px-6 md:pb-20 md:pt-4">
-      {cover?.data && (
+      {heroImage && (
         <div className="relative mx-auto aspect-video w-full max-w-[1160px] overflow-hidden bg-[#F8F6F2] sm:aspect-[16/3]">
           <CMSImage
-            src={cover.data.attributes.url}
-            alt={cover.data.attributes.alternativeText || title}
+            src={heroImage.attributes.url}
+            alt={heroImage.attributes.alternativeText || title}
             fill
             sizes="(max-width: 1200px) 100vw, 1160px"
             style={{ objectFit: 'cover', objectPosition: 'center' }}

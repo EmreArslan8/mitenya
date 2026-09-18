@@ -21,7 +21,7 @@ export async function GET(
 
   try {
     const res = await fetch(
-      `${strapiUrl}/blogs?filters[slug][$eq]=${slug}&populate[cover]=*&populate[seo]=*&publicationState=live`,
+      `${strapiUrl}/blogs?filters[slug][$eq]=${slug}&populate[cover]=*&populate[detailImage]=*&populate[seo]=*&publicationState=live`,
       {
         headers: {
           Authorization: `Bearer ${cmsBearer}`,
