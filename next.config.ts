@@ -32,6 +32,50 @@ const nextConfig: NextConfig = {
         destination: '/:path*',
         permanent: true,
       },
+      /**
+       * Silinen blog yazilarinin kurtarilmasi (2026-09-18).
+       *
+       * Search Console'a gore bu URL'ler hala dizinde ve siralaniyor ama 404
+       * donuyordu: sitenin toplam 4.189 gosteriminin 3.819'u (%91) bu olu
+       * sayfalara gidiyordu. Google bunlari bir sonraki taramada dizinden
+       * dusurecekti; 301 ile siralama sinyali yasayan esdegere tasiniyor.
+       *
+       * Ilk iki kayit ayni yazinin eski slug semasi: Turkce karakterler
+       * `u` yerine `ue`, `o` yerine `oe` olarak ceviriliyordu. Slug uretimi
+       * degisince yeni URL sifirdan basladi (30,1. sira), eskisi ise
+       * birikimi tasiyor (14,9. sira). Yeni slug uretimi degistirilirse bu
+       * kurallar da gozden gecirilmeli.
+       */
+      {
+        source: '/blog/baslangic-icin-en-iyi-retinol-ueruenleri-hangi-formuelle-baslamali',
+        destination: '/blog/baslangic-icin-en-iyi-retinol-urunleri-hangi-formulle-baslamali',
+        permanent: true,
+      },
+      {
+        source: '/blog/retinol-goz-kremi-nasil-kullanilir',
+        destination: '/blog/goz-alti-retinol-kullanimi',
+        permanent: true,
+      },
+      {
+        source: '/blog/retinol-serum-nasil-kullanilir-yeni-baslayanlar-icin-adim-adim-rehber',
+        destination: '/blog/retinole-yeni-baslayanlar-rehberi',
+        permanent: true,
+      },
+      {
+        source: '/blog/retinol-serum-nasil-kullanilir',
+        destination: '/blog/retinole-yeni-baslayanlar-rehberi',
+        permanent: true,
+      },
+      {
+        source: '/blog/retinol-mu-retinal-mi',
+        destination: '/blog/retinal-mi-retinol-mu',
+        permanent: true,
+      },
+      {
+        source: '/blog/retinol-ne-ile-kullanilir-kullanilmaz',
+        destination: '/blog/retinole-yeni-baslayanlar-rehberi',
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
