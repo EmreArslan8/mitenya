@@ -4,7 +4,7 @@ import { ShopFooterData } from '@/lib/api/types';
 import { useIsMobileApp } from '@/lib/hooks/useIsMobileApp';
 import Image from 'next/image';
 import NextLink from 'next/link';
-import { ArrowUpRight, BadgeCheck } from '@/components/icons';
+import { ArrowUpRight, BadgeCheck, MapPin } from '@/components/icons';
 import CMSImage from '../cms/shared/CMSImage';
 import Card from '../common/Card';
 import Link from '../common/Link';
@@ -39,6 +39,17 @@ const Footer = ({ data }: FooterProps) => {
           </Link>
         ))}
       </div>
+      <address className="flex max-w-[260px] gap-2 not-italic text-gray-300">
+        <MapPin size={16} strokeWidth={2} className="mt-0.5 shrink-0 text-gray-200" />
+        <span className="flex flex-col gap-1">
+          <span className="text-[13px] font-semibold leading-[18px] tracking-[0.3px] text-white">Merkez Ofis</span>
+          <span className="text-[13px] leading-[1.6]">
+            Kargı Mah. Yemeniciler Çarşısı Sk. No:&nbsp;8A
+            <br />
+            Tosya / Kastamonu / Türkiye
+          </span>
+        </span>
+      </address>
     </div>
   );
 
